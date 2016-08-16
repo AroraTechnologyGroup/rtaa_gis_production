@@ -30,7 +30,6 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^api-auth/', include('rest_framework.urls')),
-    url(r'^docs/', include('rest_framework_swagger.urls')),
 ]
 
 if settings.DEBUG:

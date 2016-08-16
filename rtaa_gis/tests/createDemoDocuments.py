@@ -2,7 +2,7 @@ import os
 import docx
 os.chdir(r"C:\\FileTransferFTP\\eDoc")
 out_folder = os.curdir
-print os.path.abspath(out_folder)
+print(os.path.abspath(out_folder))
 
 for i in range(5000):
     document = docx.Document()
