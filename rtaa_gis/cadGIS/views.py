@@ -8,7 +8,7 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.permissions import AllowAny
-from eDocSearchAPI.settings import MEDIA_ROOT
+from rtaa_gis.settings import MEDIA_ROOT
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 

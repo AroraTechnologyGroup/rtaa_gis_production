@@ -43,9 +43,11 @@ CORS_ALLOW_HEADERS = (
     'authorization',
     'x-csrftoken'
 )
+
 CORS_EXPOSE_HEADERS = (
     'content-range',
 )
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -86,7 +88,6 @@ INSTALLED_APPS = [
 
 AUTHENTICATION_BACKENDS = (
     'oauth2_provider.backends.OAuth2Backend',
-    # Uncomment following if you want to access the admin
     'django.contrib.auth.backends.RemoteUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )

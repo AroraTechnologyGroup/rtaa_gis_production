@@ -7,7 +7,7 @@ if platform.system() == 'Windows':
 import logging
 import traceback
 
-from eDocSearchAPI.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
+from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
 from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
 from .models import FileModel, GridCell, Assignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination

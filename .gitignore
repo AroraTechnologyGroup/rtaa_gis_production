@@ -16,4 +16,4 @@ rtaa_gis/web.debug.config
 */logs/*
 .idea/
 rtaa_gis/fileApp/static/_fileApp/pdfjs/
-env_35/
+venv_35/
