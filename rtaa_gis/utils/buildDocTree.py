@@ -1,7 +1,7 @@
 import os
 from . import buildDocStore
 import mimetypes
-from directoryObjects import FileObject
+from .directoryObjects import FileObject
 
 desired_files = buildDocStore.FILE_TYPE_CHOICES
 
@@ -14,7 +14,7 @@ class TreeBuilder:
     def build_tree(self):
         try:
             tree = {}
-            top_dir = self.top_dir
+            top_dir = self.topDir
             for root, dirs, files in os.walk(top_dir):
                 tree[root] = []
                 for _file in files:
@@ -27,5 +27,5 @@ class TreeBuilder:
             return tree
             
         except Exception as e:
-            print e.message
+            print(e)
             return

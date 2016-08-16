@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 import traceback
-from eDocSearchAPI.settings import BASE_DIR
+from rtaa_gis.settings import BASE_DIR
 
 
 def open_monitor(in_path):
@@ -28,33 +28,33 @@ class Observers:
         return
 
     def stop_monitors(self):
-        for k, v in self.processes.iteritems():
+        for k, v in iter(self.processes.items()):
             try:
                 v["process"].kill()
                 v["process"] = ""
             except:
                 lumber_stack()
 
-        for k in self.processes.keys():
+        for k in list(self.processes.keys()):
             if self.processes[k]["process"] == "":
                 del self.processes[k]
-        paths = [{"pid": k, "path": v["process_path"]} for k, v in self.processes.iteritems()]
+        paths = [{"pid": k, "path": v["process_path"]} for k, v in self.processes.items()]
         return paths
 
     def start_monitors(self):
         for path in self.paths:
             try:
                 monitor_exists = False
-                for k, v in self.processes.iteritems():
+                for k, v in self.processes.items():
                     if path == v["process_path"]:
                         monitor_exists = True
                 if not monitor_exists:
                     x = open_monitor(path)
-                    pid = x.keys()[0]
+                    pid = list(x.keys())[0]
                     self.processes[pid] = x[pid]
 
             except:
                 lumber_stack()
 
-        paths = [{"pid": k, "path": v["process_path"]} for k, v in self.processes.iteritems()]
+        paths = [{"pid": k, "path": v["process_path"]} for k, v in self.processes.items()]
         return paths

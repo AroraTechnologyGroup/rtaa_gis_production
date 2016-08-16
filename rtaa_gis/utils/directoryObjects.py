@@ -19,7 +19,7 @@ class FolderObject:
             self.parent = os.path.dirname(path)
             self.children = self.get_children()
         except Exception as e:
-            print e.message
+            print(e)
         
     def get_children(self):
         try:
@@ -36,5 +36,5 @@ class FolderObject:
             return file_objs
         
         except Exception as e:
-            print e.message
+            print(e)
             return

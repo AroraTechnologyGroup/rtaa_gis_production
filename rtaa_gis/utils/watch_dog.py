@@ -3,7 +3,7 @@ import time
 import sys
 import django
 import logging
-import buildDocStore
+from . import buildDocStore
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
@@ -12,15 +12,15 @@ sys.path.append("{}\\_fileApp".format(os.path.dirname(os.path.dirname(os.path.ab
 os.environ['DJANGO_SETTINGS_MODULE'] = 'eDocSearchAPI.settings'
 django.setup()
 
-from _fileApp.models import FileModel as FileModel
-from _fileApp.serializers import FileSerializer as FileSerializer
-from eDocSearchAPI.settings import BASE_DIR
+from fileApp.models import FileModel as FileModel
+from fileApp.serializers import FileSerializer as FileSerializer
+from rtaa_gis.settings import BASE_DIR
 
 
 class MyHandler(PatternMatchingEventHandler):
 
-    step1 = buildDocStore.FILE_TYPE_CHOICES.itervalues()
-    patterns = ["*.{}".format(k.keys()[0]) for k in step1]
+    step1 = iter(buildDocStore.FILE_TYPE_CHOICES.values())
+    patterns = ["*.{}".format(list(k.keys())[0]) for k in step1]
     ignore_directories = False
     case_sensitive = False
 
@@ -37,7 +37,7 @@ class MyHandler(PatternMatchingEventHandler):
         if not event.is_directory:
             # source_path = os.path.join(path_input, event.src_path)
             logging.info('%s :: %s' % (event.event_type, event.src_path))
-            print '%s :: %s' % (event.event_type,  event.src_path)
+            print('%s :: %s' % (event.event_type,  event.src_path))
             _data = {'file_path': event.src_path}
 
             if len(FileModel.objects.filter(file_path=event.src_path)):
@@ -117,5 +117,5 @@ if __name__ == "__main__":
         observer.join()
 
     except Exception as e:
-        logging.error('%s' % e.message)
+        logging.error('%s' % e)
 

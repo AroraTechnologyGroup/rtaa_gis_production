@@ -10,7 +10,7 @@ import traceback
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'eDocSearchAPI.settings'
 django.setup()
-from _fileApp import models
+from fileApp import models
 
 TOP_DIRs = [r"C:\\FileTransferFTP\\eDoc", r"J:\2014\79514.001 - RTAA eALP"]
 
@@ -90,7 +90,7 @@ def convert_size(in_bytes):
 
 def check_file_type(types, ext):
     try:
-        for k, v in types.iteritems():
+        for k, v in iter(types.items()):
             # solves bug where some file extensions are uppercase
             if ext.lower() in v:
                 d = k
@@ -98,7 +98,7 @@ def check_file_type(types, ext):
 
     except Exception as e:
         logging.error("Unable to locate fileType from the supplied variables")
-        print e.message
+        print(e)
 
 
 class FileStoreBuilder:
@@ -114,7 +114,7 @@ class FileStoreBuilder:
                     for _file in files:
                         # solves bug where file extensions are uppercase
                         extension = _file.split(".")[-1].lower()
-                        for mapping in FILE_TYPE_CHOICES.itervalues():
+                        for mapping in iter(FILE_TYPE_CHOICES.values()):
                             # there is only one key for each mapping dict so testing
                             # if the extension is IN the dict as a value is good enough
                             if extension in mapping:
@@ -149,7 +149,7 @@ class FileStoreBuilder:
                                     _object.save()
 
         except Exception as e:
-            logging.warning(e.message)
+            logging.warning(e)
 
         return
 
@@ -183,7 +183,7 @@ class FileStoreBuilder:
                         pass
 
         except Exception as e:
-            print e.message
+            print(e)
 
 
 class GridCellBuilder:
@@ -234,7 +234,7 @@ class GridCellBuilder:
 
             except Exception as e:
                 logging.error("Error populating the Grid Model {}".format(name))
-                print e.message
+                print(e)
 
 
 class AssignmentManager:
