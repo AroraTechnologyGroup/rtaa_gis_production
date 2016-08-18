@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block icon %}
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.30/css/calcite-web-no-fonts.css">
+    <link rel="stylesheet" type="text/css" href="/static/home/style.css"/>
+{% endblock %}
+
+{% block title %}
+RTAA GIS Homepage
+{% endblock %}
+
+{% block content %}
+    <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
+      <nav class="drawer-nav" role="navigation">
+        <aside class="side-nav">
+          <h2 class="side-nav-title">RTAA GIS</h2>
+          <a href="/#home" class="side-nav-link">HomePage</a>
+          <a href="/#gisportal/home" class="side-nav-link">GIS Portal</a>
+          <a href="/#departments/home" class="side-nav-link">Departments</a>
+          <a href="/#web-resources/home" class="side-nav-link">Web Resources</a>
+          <a href="/#help/home" class="side-nav-link">Help</a>
+        </aside>
+      </nav>
+    </div>
+
+    <div class="wrapper">
+      <header class="top-nav">
+        <div class="grid-container">
+          <div class="column-24">
+            <div class="tablet-hide">
+              <a href="/#home" class="top-nav-title">RTAA GIS</a>
+              <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
+                <a class="top-nav-link" href="/#gisportal/home">GIS Portal</a>
+                <a class="top-nav-link" href="/#departments/home">Departments</a>
+                <a class="top-nav-link" href="/#web-resources/home">Web Resources</a>
+                <a class="top-nav-link" href="/#help/home">Help</a>
+              </nav>
+            </div>
+            <div class="tablet-show">
+              <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
+            </div>
+            <nav class="sign-in">
+                <a href="login/" class="btn btn-small btn-transparent">Sign In</a>
+            </nav>
+            <nav class="sign-out">
+                <a href="/logout/" class="btn btn-small btn-transparent">Sign Out</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <!--the sub-nav section is controlled by router -->
+      <header id="headerPane" class="sub-nav " role="banner">
+      </header>
+
+    </div>
+    <!-- busy indicator -->
+    <div class="loader is-active padding-leader-3 padding-trailer-3">
+      <div class="loader-bars"></div>
+      <div class="loader-text">Loading</div>
+    </div>
+
+    <!-- content of page -->
+    <div id="main-content" class="grid-container column-24">
+        {% block main-content %}
+        {% endblock %}
+    </div>
+
+    {% include 'home/home_footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.30/js/calcite-web.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/dojo/1.11.2/dojo/dojo.js"
+        data-dojo-config="selectorEngine: 'lite', async: true"></script>
+    <script src="/static/home/main.js"></script>
+    <script>
+        calcite.init()
+    </script>
+{% endblock %}

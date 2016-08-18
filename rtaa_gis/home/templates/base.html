@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+
+    {% block icon %}
+    {% endblock %}
+
+    {% block stylesheets %}{% endblock %}
+    <title>{% block title %}{% endblock %}</title>
+</head>
+
+<body>
+    {% block content %}
+    {% endblock %}
+    {% block footer %}
+    {% endblock %}
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

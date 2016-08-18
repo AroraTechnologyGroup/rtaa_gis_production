@@ -77,30 +77,7 @@ def dojo_login(request):
             'form': AuthenticationForm(request),
             'login': LOGIN_URL
         }
-        return render(request, template_name="_fileApp/dojo_login.html", context=context)
-
-
-@api_view(['GET', 'POST'])
-@permission_classes((AllowAny,))
-@ensure_csrf_cookie
-def api_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                return HttpResponseRedirect(redirect_to=LOGIN_REDIRECT_URL)
-
-    if request.method == 'GET':
-        context = {
-            'next': LOGIN_REDIRECT_URL,
-            'form': AuthenticationForm(request),
-            'login': LOGIN_URL
-        }
-        return render(request, template_name="_fileApp/login.html", context=context)
+        return render(request, template_name="fileApp/dojo_login.html", context=context)
 
 
 def create_response_object(in_path, extension):
