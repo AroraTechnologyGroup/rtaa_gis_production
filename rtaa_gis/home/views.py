@@ -14,18 +14,9 @@ class HomePage(APIView):
     permission_classes = (AllowAny,)
     template = r'home/main_content.html'
 
-    def post(self, request):
+    def get(self, request, format=None):
         if not request.user.is_authenticated():
-            username = request.POST["username"]
-            password = request.POST["password"]
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect(reverse('home:process'))
-
-    def get(self, request):
-        if not request.user.is_authenticated():
-            return redirect(reverse('home:login'), next='')
+            return redirect(reverse('home:login'))
         context = {"data": []}
         return Response(context, template_name=self.template)
 
