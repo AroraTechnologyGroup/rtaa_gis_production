@@ -44,10 +44,8 @@ RTAA GIS Homepage
               <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
             </div>
             <nav class="sign-in">
-                <a href="login/" class="btn btn-small btn-transparent">Sign In</a>
-            </nav>
-            <nav class="sign-out">
-                <a href="/logout/" class="btn btn-small btn-transparent">Sign Out</a>
+                <a href="{% url 'home:login' %}" class="btn btn-small btn-transparent">Sign In</a>
+                <a href="{% url 'home:logout' %}" class="btn btn-small btn-transparent">Sign Out</a>
             </nav>
           </div>
         </div>
