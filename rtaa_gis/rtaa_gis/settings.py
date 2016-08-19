@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from django.urls import reverse
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -61,13 +62,6 @@ if not DEBUG:
 
 ALLOWED_HOSTS = ['gisapps.aroraengineers.com', 'localhost', '127.0.0.1']
 
-
-
-# Application definition
-
-LOGIN_URL = 'login/'
-LOGIN_REDIRECT_URL = '//'
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -107,7 +101,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'rtaa_gis.urls'
 
 TEMPLATES = [
     {
@@ -259,3 +252,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# Application definition
+ROOT_URLCONF = r'rtaa_gis.urls'
+LOGIN_URL = r'login/'
+LOGIN_REDIRECT_URL = r'/'
