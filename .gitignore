@@ -3,7 +3,6 @@
 *.sln
 *.pyproj
 *.pubxml
-*.log
 *.user
 *.iml
 *.id
@@ -13,7 +12,17 @@ pip-selfcheck.json
 */workspace.xml
 rtaa_gis/web.config
 rtaa_gis/web.debug.config
-*/logs/*
 .idea/
 rtaa_gis/fileApp/static/fileApp/pdfjs/
 venv_35/
+**/node_modules/
+**/src/dgrid/
+**/src/dijit/
+**/src/dojo/
+**/src/dojox/
+**/src/dstore/
+**/src/esri/
+**/src/moment/
+**/src/put-selector/
+**/src/util/
+**/src/xstyle/

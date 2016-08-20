@@ -1,0 +1,28 @@
+{
+  "name": "calcite_rtaa",
+  "description": "website for rtaa",
+  "main": "index.html",
+  "authors": [
+    "Richard Hughes <richardh522@gmail.com>"
+  ],
+  "license": "ISC",
+  "moduleType": [
+    "amd",
+    "es6"
+  ],
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "esri": "arcgis-js-api#3.16.0"
+  },
+  "resolutions": {
+    "dojo": "v1.10.4/esri-3.14.0"
+  }
+}

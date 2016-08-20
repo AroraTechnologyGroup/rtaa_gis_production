@@ -3,14 +3,14 @@ from django.conf.urls import url
 from . import views
 
 router = routers.DefaultRouter()
-router.register('grids', views.GridViewSet)
-router.register('all-files', views.FileViewSet)
-router.register('io', views.IOViewSet)
-router.register('files', views.PagedFileViewSet)
-router.register('assignments', views.AssignmentViewSet)
+router.register(r'grids', views.GridViewSet)
+router.register(r'all-files', views.FileViewSet)
+router.register(r'io', views.IOViewSet)
+router.register(r'files', views.PagedFileViewSet)
+router.register(r'assignments', views.AssignmentViewSet)
 
 urlpatterns = [
-    url('^dojo-login/$', views.dojo_login),
+    url(r'^dojo-login/$', views.dojo_login),
 ]
 
 urlpatterns += router.urls

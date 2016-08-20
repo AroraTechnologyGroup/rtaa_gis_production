@@ -1,0 +1,19 @@
+<div class="grid-container">
+  <div class="column-24">
+    <h1 class="${baseClass}">${title}</h1>
+    <form method="GET" class="right" action="/search/">
+      <div class="search-bar right">
+        <input type='search' placeholder='Search'>
+        <button type="submit" class="search-submit icon-ui-search"></button>
+      </div>
+    </form>
+    <div class="phone-show dropdown column-6 trailer-half js-dropdown-toggle">
+      <!-- <a href="#" class="link-white">3 &darr;</a> -->
+      <nav class="dropdown-menu js-dropdown sidenav" data-dojo-attach-point="routeNode" role="navigation" aria-labelledby="subnav">
+      </nav>
+    </div>
+
+    <nav class="sub-nav-list phone-hide leader-1" data-dojo-attach-point="routeNode" role="navigation" aria-labelledby="subnav">
+    </nav>
+  </div>
+</div>

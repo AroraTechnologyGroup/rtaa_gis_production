@@ -1,0 +1,65 @@
+@import url("https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.13/css/calcite-web-no-fonts.css");
+@import url("//fonts.googleapis.com/css?family=Maven+Pro");
+
+.sub-nav  {
+	background-color: #9BC19C;
+}
+
+.rtaa_logo {
+	height: 60px;
+	width: 120px;
+}
+
+.card {
+	outline: 1px solid #F8F8F8;
+}
+
+.card-header {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+
+h1 {
+	font-family: 'Maven Pro';
+	font-size: 23px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+h3 {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+p {
+	font-family: 'Maven Pro';
+	font-size: 14px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
+}
+blockquote {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
+}
+pre {
+	font-family: 'Maven Pro';
+	font-size: 11px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
+}
