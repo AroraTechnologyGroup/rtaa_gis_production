@@ -1,23 +1,22 @@
 {
-  "name": "calcite_rtaa",
+  "name": "rtaa-server-application-development",
   "version": "1.0.0",
-  "description": "website for rtaa",
+  "description": "GIS site for rtaa",
   "main": "index.html",
   "scripts": {
-    "preinstall": "bower install",
     "build": "grunt build",
     "clean": "grunt clean"
   },
-  "author": "",
+  "author": "Richard Hughes at Arora Engineers, Inc.",
   "license": "ISC",
   "devDependencies": {
     "autoprefixer-stylus": "^0.9.3",
-    "calcite-web": "esri/calcite-web#v1.0.0-beta.25",
-    "grunt": "^0.4.5",
+    "calcite-web": "esri/calcite-web#v1.0.0-beta.31",
+    "grunt": "^1.0.1",
     "grunt-browser-sync": "^2.2.0",
-    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-connect": "^1.0.1",
-    "grunt-contrib-copy": "^0.8.2",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-contrib-stylus": "^1.2.0",
     "grunt-contrib-watch": "^1.0.0",
@@ -26,6 +25,6 @@
     "jshint-stylish": "^2.1.0",
     "load-grunt-tasks": "^3.5.0",
     "requirejs": "^2.2.0",
-    "stylus": "0.48.1"
+    "stylus": "^0.54.5"
   }
 }

@@ -15,7 +15,9 @@ rtaa_gis/web.debug.config
 .idea/
 rtaa_gis/fileApp/static/fileApp/pdfjs/
 venv_35/
-**/node_modules/
+node_modules/
+**/static/fileApp/pdf.js
+**/static/fileApp/pdf.worker.js
 **/src/dgrid/
 **/src/dijit/
 **/src/dojo/
