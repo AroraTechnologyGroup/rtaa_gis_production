@@ -2,8 +2,8 @@
   "name": "rtaa-server-application-development",
   "version": "1.0.0",
   "description": "GIS site for rtaa",
-  "main": "index.html",
   "scripts": {
+    "preinstall": "bower install",
     "build": "grunt build",
     "clean": "grunt clean"
   },
@@ -11,7 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "autoprefixer-stylus": "^0.9.3",
-    "calcite-web": "esri/calcite-web#v1.0.0-beta.31",
     "grunt": "^1.0.1",
     "grunt-browser-sync": "^2.2.0",
     "grunt-contrib-clean": "^1.0.0",

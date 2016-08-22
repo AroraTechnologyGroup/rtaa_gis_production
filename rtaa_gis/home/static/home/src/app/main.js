@@ -102,7 +102,7 @@ define([
 					if (registry.byId(e.id) !== undefined) {
 						registry.byId(e.id).destroyRecursive();
 					}
-					var div = domConstruct.create("div");
+					var div = domConstruct.create('div');
 					var new_card = new Card({
 						id: e.id,
 						baseClass: e.baseClass,
@@ -127,7 +127,7 @@ define([
 
 			router.register("home", function(evt) {
 				evt.preventDefault();
-				console.log("loading "+evt.newPath);
+				console.log('loading ' + evt.newPath);
 
 				unloadSection().then(function(e) {
 					var pane = new ContentPane({
@@ -140,8 +140,8 @@ define([
 					if (registry.byId('homepage-banner') === undefined) {
 						app.header = new HomepageBanner({
 							id: 'homepage-banner',
-							baseClass: "sub-nav-title text-white leader-3 trailer-3",
-							title: "Reno/Tahoe International Airport GIS Website"
+							baseClass: 'sub-nav-title text-white leader-3 trailer-3',
+							title: 'Reno/Tahoe International Airport GIS Website'
 						});
 					} else {
 						app.header = registry.byId('homepage-banner');
@@ -155,28 +155,28 @@ define([
 
 			router.register("gisportal/home", function(evt) {
 					evt.preventDefault();
-					console.log("loading "+evt.newPath);
+					console.log('loading ' + evt.newPath);
 
 					unloadSection().then(function(e) {
 						try {
 							registry.byId('gisportal-banner').destroyRecursive();
 						} catch(err) {
-							//console.log(err);
+							console.log(err);
 						}
 
 						app.header = new PageBanner({
 							id: 'gisportal-banner',
-							baseClass: "sub-nav-title text-white page-banner",
-							title: "Geographic Information Systems",
+							baseClass: 'sub-nav-title text-white page-banner',
+							title: 'Geographic Information Systems',
 							routes: [{
 								title: 'Map Viewer',
-								href: "/#gisportal/mapviewer"
+								href: '/#gisportal/mapviewer'
 							}, {
 								title: 'Web Apps',
-								href: "/#gisportal/apps"
+								href: '/#gisportal/apps'
 							}, {
 								title: 'Browse GIS Data',
-								href: "/#gisportal/gis-data-browse"
+								href: '/#gisportal/gis-data-browse'
 							}, {
 								title: 'Backend Database APIs',
 								href: '/#gisportal/backend-apis'
@@ -196,7 +196,7 @@ define([
 
 			router.register("gisportal/mapviewer", function(evt) {
 							evt.preventDefault();
-							console.log("loading "+evt.newPath);
+							console.log('loading ' + evt.newPath);
 							unloadContent().then(function(e) {
 								if (registry.byId('gisportal-banner') !== undefined) {
 									app.header.set('title', 'Map Viewer');
@@ -211,7 +211,7 @@ define([
 			router.register("gisportal/apps", function(evt) {
 							evt.preventDefault();
 							unloadContent().then(function(e) {
-								console.log("loading "+evt.newPath);
+								console.log('loading ' + evt.newPath);
 
 								if (registry.byId('gisportal-banner') !== undefined) {
 									registry.byId('gisportal-banner').set('title', "Geospatial Applications");
@@ -219,16 +219,16 @@ define([
 
 								app.loadCards([{
 									id: "AirspaceAppCard",
-									imgSrc: "./app/img/thumbnails/airspace_app.png",
-									header: "Airspace",
-									baseClass: "card column-6 animate-fade-in leader-1 trailer-2",
-									contents: "View and Analyze the data in the airspace of the RTAA Airport"
+									imgSrc: 'app/img/thumbnails/airspace_app.png',
+									header: 'Airspace',
+									baseClass: 'card column-6 animate-fade-in leader-1 trailer-2',
+									contents: 'View and Analyze the data in the airspace of the RTAA Airport'
 								}, {
 									id: "eDocAppCard",
-									imgSrc: './app/img/thumbnails/eDoc_app.png',
+									imgSrc: 'app/img/thumbnails/eDoc_app.png',
 									header: 'eDoc Search Tools',
-									baseClass: "card column-6 animate-fade-in pre-1 leader-1 trailer-2",
-									contents: "Search for documents and images using this map focused search tool"
+									baseClass: 'card column-6 animate-fade-in pre-1 leader-1 trailer-2',
+									contents: 'Search for documents and images using this map focused search tool'
 								}]).then(function(e) {
 									console.log(e);
 								}, function(err) {
@@ -242,7 +242,7 @@ define([
 						console.log("loading "+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('gisportal-banner') !== undefined) {
-								registry.byId('gisportal-banner').set('title', "Browse GIS Data");
+								registry.byId('gisportal-banner').set('title', 'Browse GIS Data');
 							}
 						});
 
@@ -253,7 +253,7 @@ define([
 						console.log("loading "+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('gisportal-banner') !== undefined) {
-								registry.byId('gisportal-banner').set('title', "Bacjebd==");
+								registry.byId('gisportal-banner').set('title', 'Backend APIs');
 							}
 						});
 
@@ -274,16 +274,16 @@ define([
 								title: "Airport Departments",
 								routes: [{
 									title: 'Engineering',
-									href: "/#departments/engineering"
+									href: '/#departments/engineering'
 								}, {
 									title: 'Operations',
-									href: "/#departments/operations"
+									href: '/#departments/operations'
 								}, {
 									title: 'Planning',
-									href: "/#departments/planning"
+									href: '/#departments/planning'
 								}, {
 									title: 'Utilities',
-									href: "/#departments/utilities"
+									href: '/#departments/utilities'
 								}]
 							});
 							var pane = new ContentPane({
@@ -301,7 +301,7 @@ define([
 						console.log("loading "+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('departments-banner') !== undefined) {
-								registry.byId('departments-banner').set('title', "Engineering");
+								registry.byId('departments-banner').set('title', 'Engineering');
 							}
 						});
 
@@ -309,10 +309,10 @@ define([
 
 		router.register("departments/operations", function(evt) {
 						evt.preventDefault();
-						console.log("loading "+evt.newPath);
+						console.log('loading '+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('departments-banner') !== undefined) {
-								registry.byId('departments-banner').set('title', "Operations");
+								registry.byId('departments-banner').set('title', 'Operations');
 							}
 						});
 
@@ -320,27 +320,27 @@ define([
 
 		router.register("departments/planning", function(evt) {
 						evt.preventDefault();
-						console.log("loading "+evt.newPath);
+						console.log('loading '+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('departments-banner') !== undefined) {
-								registry.byId('departments-banner').set('title', "Airport Planning");
+								registry.byId('departments-banner').set('title', 'Airport Planning');
 							}
 						});
 		});
 
 		router.register("departments/utilities", function(evt) {
 						evt.preventDefault();
-						console.log("loading "+evt.newPath);
+						console.log('loading '+evt.newPath);
 						unloadContent().then(function(e) {
 							if (registry.byId('departments-banner') !== undefined) {
-								registry.byId('departments-banner').set('title', "Airfield Utilities");
+								registry.byId('departments-banner').set('title', 'Airfield Utilities');
 							}
 						});
 		});
 
 		router.register("web-resources/home", function(evt) {
 						evt.preventDefault();
-						console.log("loading "+evt.newPath);
+						console.log('loading '+evt.newPath);
 						unloadSection().then(function(e) {
 							try {
 								registry.byId('web-resources-banner').destroyRecursive();
@@ -349,20 +349,20 @@ define([
 							}
 							app.header = new PageBanner({
 								id: 'web-resources-banner',
-								baseClass: "sub-nav-title text-white page-banner",
-								title: "Online Resource Library",
+								baseClass: 'sub-nav-title text-white page-banner',
+								title: 'Online Resource Library',
 								routes: [{
 									title: 'Live Data Feeds',
-									href: "/#web-resources/live-data"
+									href: '/#web-resources/live-data'
 								}, {
 									title: 'State Level GIS Data',
-									href: "/#web-resources/state-level"
+									href: '/#web-resources/state-level'
 								}, {
 									title: 'County Level GIS Data',
-									href: "/#web-resources/county-level"
+									href: '/#web-resources/county-level'
 								}, {
 									title: 'ESRI Online Resources',
-									href: "/#web-resources/esri-resources"
+									href: '/#web-resources/esri-resources'
 								}]
 							});
 
@@ -378,7 +378,7 @@ define([
 
 		router.register("help/home", function(evt) {
 						evt.preventDefault();
-						console.log("loading "+evt.newPath);
+						console.log('loading '+evt.newPath);
 						unloadSection().then(function(e) {
 							try {
 								registry.byId('help-banner').destroyRecursive();
@@ -387,20 +387,20 @@ define([
 							}
 							app.header = new PageBanner({
 								id: 'help-banner',
-								baseClass: "sub-nav-title text-white page-banner",
-								title: "Help Documentation",
+								baseClass: 'sub-nav-title text-white page-banner',
+								title: 'Help Documentation',
 								routes: [{
 									title: 'Technical Details',
-									href: "/#help/tech-details"
+									href: '/#help/tech-details'
 								}, {
 									title: 'About this Site',
-									href: "/#help/about"
+									href: '/#help/about'
 								}, {
 									title: 'Request Help Ticket',
-									href: "/#help/request-ticket"
+									href: '/#help/request-ticket'
 								}, {
 									title: 'Tutorials',
-									href: "/#help/tutorials"
+									href: '/#help/tutorials'
 								}]
 							});
 
@@ -415,10 +415,10 @@ define([
 
 		router.startup();
 		app.router = router;
-		query('.loader').forEach(function(e) {
-			domClass.toggle(e, 'is-active');
-		});
-		hash("home");
+		// query('.loader').forEach(function(e) {
+		// 	domClass.toggle(e, 'is-active');
+		// });
+		hash('home');
 
 		return app;
 

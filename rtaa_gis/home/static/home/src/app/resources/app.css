@@ -1,50 +1,5 @@
-@import url("https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.13/css/calcite-web-no-fonts.css");
+@import url("https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.31/css/calcite-web-no-fonts.css");
 @import url("//fonts.googleapis.com/css?family=Maven+Pro");
-.rtaa_logo {
-  height: 60px;
-  width: 120px;
-}
-h1 {
-  font-family: 'Maven Pro';
-  font-size: 23px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 500;
-  line-height: 23px;
-}
-h3 {
-  font-family: 'Maven Pro';
-  font-size: 17px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 500;
-  line-height: 23px;
-}
-p {
-  font-family: 'Maven Pro';
-  font-size: 14px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 400;
-  line-height: 23px;
-}
-blockquote {
-  font-family: 'Maven Pro';
-  font-size: 17px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 400;
-  line-height: 23px;
-}
-pre {
-  font-family: 'Maven Pro';
-  font-size: 11px;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 400;
-  line-height: 23px;
-}
-
 .card {
   outline: 1px solid #f8f8f8;
 }
@@ -76,10 +31,9 @@ pre {
   font-weight: 500;
   line-height: 23px;
 }
-
 #homepage-banner {
   width: 100%;
-  background-image: url("../../app/img/header_banner_resize.png");
+  background-image: url("../img/banner/header_banner_resize.png");
   -webkit-background-size: cover;
   -moz-background-size: cover;
   background-size: cover;
@@ -125,7 +79,6 @@ pre {
   -webkit-justify-content: center;
   justify-content: center;
 }
-
 .page-banner {
   margin-bottom: auto;
 }

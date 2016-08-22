@@ -7,7 +7,7 @@
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, user-scalable=no">
     <title>RTAA GIS Page</title>
-    <link rel="shortcut icon" href="app/img/favicon.ico">
+    <link rel="shortcut icon" href="app/img/icons/favicon.ico">
     <!--[if lt IE 9]>
       <script src="/assets/javascripts/libs/selectivizr.js"></script>
       <script src="/assets/javascripts/libs/html5shiv.js"></script>
@@ -114,7 +114,7 @@
     </div>
 
     <!-- get calcite-web js from the cdn (use latest version) -->
-    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.13/js/calcite-web.min.js"></script>
+    <script src="https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.31/js/calcite-web.min.js"></script>
     <script src="https://code.createjs.com/createjs-2015.11.26.min.js"></script>
 
     <script>
@@ -133,8 +133,6 @@
           'dojox',
           'dstore',
           'dgrid',
-          'xstyle',
-          'put-selector',
           'esri'
         ]
       };
@@ -145,10 +143,11 @@
 
     <!-- interactive patterns need to be initialized -->
     <script>
-       calcite.init()
-       require(['dojo/parser', 'dojo/ready', 'app/main', 'dijit/layout/ContentPane'], function (parser, ready, app) {
-
-       });
+       calcite.init();
+       require(['dojo/parser', 'app/main', 'dojo/query', 'dojo/dom-class', 'dojo/domReady!'], function (parser, app, query, domClass) {
+               var node = query(".loader")[0];
+               domClass.remove(node, 'is-active');
+           });
     </script>
   </body>
 </html>
