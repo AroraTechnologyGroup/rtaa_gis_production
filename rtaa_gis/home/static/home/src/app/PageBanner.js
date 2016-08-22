@@ -3,7 +3,7 @@ define([
   "dojo/_base/lang",
   "dojo/dom-construct",
   "dojo/dom-style",
-  "dojo/_base/Array",
+  "dojo/_base/array",
   "dijit/_WidgetBase",
   "dijit/_OnDijitClickMixin",
   "dijit/_TemplatedMixin",

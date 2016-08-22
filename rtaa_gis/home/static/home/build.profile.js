@@ -25,11 +25,11 @@ var profile = {
   // Uses Closure Compiler or "uglify" as the JavaScript minifier. This can also be set to "shrinksafe" to use ShrinkSafe,
   // though ShrinkSafe is deprecated and not recommended.
   // This option defaults to "" (no compression) if not provided.
-  optimize: 'closure',
+  optimize: '',
 
   // We're building layers, so we need to set the minifier to use for those, too.
   // This defaults to "shrinksafe" if not provided.
-  layerOptimize: 'closure',
+  layerOptimize: '',
 
   // A list of packages that will be built. The same packages defined in the loader should be defined here in the
   // build profile.
@@ -68,7 +68,7 @@ var profile = {
   // Strips all calls to console functions within the code. You can also set this to "warn" to strip everything
   // but console.error, and any other truthy value to strip everything but console.warn and console.error.
   // This defaults to "normal" (strip all but warn and error) if not provided.
-  stripConsole: 'all', // if set to "all" will remove all console messages, include warnings and errors.
+  stripConsole: 'none', // if set to "all" will remove all console messages, include warnings and errors.
 
   // The default selector engine is not included by default in a dojo.js build in order to make mobile builds
   // smaller. We add it back here to avoid that extra HTTP request. There is also an "acme" selector available; if

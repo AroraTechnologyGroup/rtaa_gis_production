@@ -20,8 +20,7 @@ define([
 	'app/Card',
 	'app/HomepageBanner',
 	'app/PageBanner',
-	'dijit/layout/ContentPane',
-	'dojo/domReady!'
+	'dijit/layout/ContentPane'
 	], function(
 		registry,
 		declare,
@@ -418,7 +417,7 @@ define([
 		// query('.loader').forEach(function(e) {
 		// 	domClass.toggle(e, 'is-active');
 		// });
-		hash('home');
+		//hash('home');
 
 		return app;
 

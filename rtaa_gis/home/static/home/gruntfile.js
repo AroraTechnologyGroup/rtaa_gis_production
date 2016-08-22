@@ -1,7 +1,6 @@
 module.exports = function(grunt) {
-  require('load-grunt-tasks')(grunt, {pattern: 'grunt-contrib-*'});
-    var path = require('path');
-
+    grunt.loadNpmTasks('grunt-dojo');
+    require('load-grunt-tasks')(grunt, {pattern: 'grunt-contrib-*'});
 
   grunt.initConfig({
 
@@ -20,7 +19,7 @@ module.exports = function(grunt) {
         main: {
             files: [{
                 expand: true,
-                cwd: './src/',
+                cwd: 'src/',
                 src: ['built.html'],
                 dest: './dist/',
                 rename: function (dest, src) {
@@ -32,18 +31,27 @@ module.exports = function(grunt) {
     dojo: {
       dist: {
           options: {
-              releaseDir: './dist'
+              releaseDir: '../dist'
           }
       },
       options: {
           profile: 'build.profile.js',
-          dojo: './src/dojo/dojo.js',
+          dojo: 'src/dojo/dojo.js',
           load: 'build',
           cwd: './',
           basePath: './src'
         }
     },
-
+    uglify: {
+      build: {
+        files: [{
+            expand: true,
+            cwd: 'dist/',
+            src: '**/*.js',
+            dest: 'dist/'
+        }]
+      }
+    },
     watch: {
       main: {
         files: ['**/*.js', '**/*.html',
@@ -105,7 +113,7 @@ module.exports = function(grunt) {
         },
         dist: {
             options: {
-                base: 'dist',
+                base: './dist',
               open: {
                 target: 'http://localhost:3000/index.html'
               }
@@ -144,8 +152,8 @@ module.exports = function(grunt) {
 		]);
 	});
 
-  grunt.registerTask('build', ['stylus:compile', 'jshint', 'clean:build', 'dojo:dist', 'copy', 'clean:uncompressed',
-'connect:dist']);
+  grunt.registerTask('build', ['stylus:compile', 'jshint', 'clean:build', 'dojo', 'copy', 'clean:uncompressed',
+'uglify', 'connect:dist']);
   grunt.registerTask('default', ['stylus:compile', 'jshint', 'connect:dev', 'watch']);
   grunt.registerTask('test', ['stylus:compile', 'jshint', 'connect:test', 'watch']);
 };

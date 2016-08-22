@@ -10,7 +10,7 @@ define({
 	},
     runnerClientReporter: {
         id: 'WebDriver',
-				writeHTML: 'true'
+        writeHTML: 'true'
     },
 
 	environments: [
@@ -24,7 +24,7 @@ define({
 
 	loaders: {
 			'host-node': 'dojo/dojo',
-			"host-browser": "src/dojo/dojo.js",
+			'host-browser': "src/dojo/dojo.js",
 	},
 
 
@@ -51,14 +51,8 @@ define({
             name: 'dojox',
             location: 'src/dojox'
           }, {
-            name: 'put-selector',
-            location: 'src/put-selector'
-          }, {
             name: 'util',
             location: 'src/util'
-          }, {
-            name: 'xstyle',
-            location: 'src/xstyle'
           }, {
             name: 'app',
             location: 'src/app'
@@ -66,10 +60,10 @@ define({
             name: 'tests',
             location: 'tests'
           }, {
-              name: 'moment',
-              location: 'src/moment'
+            name: 'moment',
+            location: 'src/moment'
           }
-                  ]
+        ]
 	},
 
 
@@ -78,8 +72,8 @@ define({
 
 	// Functional test suite(s) to execute against each browser once non-functional tests are completed
 
-	// functionalSuites: ['tests/functional/index'],
+	functionalSuites: ['tests/functional/index'],
 
 	// A regular expression matching URLs to files that should not be included in code coverage analysis
-	excludeInstrumentation: /^(?:tests|node_modules|bower_components|src\/(?:dgrid|dijit|dojo|dojox|put-selector|xstyle))\//
+	excludeInstrumentation: /^(?:tests|node_modules|bower_components|src\/(?:dgrid|dijit|dojo|dojox))\//
 });

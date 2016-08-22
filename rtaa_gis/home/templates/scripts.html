@@ -4,35 +4,22 @@
       // set up your dojoConfig
       var dojoConfig = {
         baseUrl: '.',
-        parseOnLoad: false,
+        parseOnLoad: true,
         async: true,
-        isDebug: true,
-        deps: ['app/main'],
-        tlmSiblingOfDojo: false,
-        packages: [
-          'app',
-          'dijit',
-          'dojo',
-          'dojox',
-          'dstore',
-          'dgrid',
-          'xstyle',
-          'put-selector',
-          'esri'
-        ]
+        isDebug: false
       };
-    </script>
+</script>
 
 <!-- Can use Dojo loader directly -->
-<script src="../static/home/src/dojo/dojo.js"></script>
+{#<script src="../static/home/src/dojo/dojo.js"></script>#}
 <!-- The built dojo path -->
-<!-- <script src="../static/home/dist/dojo/dojo.js"></script>-->
+<script src="../static/home/dist/dojo/dojo.js"></script>
 <script>
     calcite.init()
 </script>
 <script>
-    require(['dojo/parser', "dojo/query", "dojo/dom-class", 'dojo/domReady!'],
-        function (parser, query, domClass) {
+    require(["dojo/query", "dojo/dom-class", 'dojo/domReady!'],
+        function (query, domClass) {
             var node = query(".loader")[0];
             domClass.remove(node, 'is-active');
     });
