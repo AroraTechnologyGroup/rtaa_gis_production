@@ -218,13 +218,13 @@ define([
 
 								app.loadCards([{
 									id: "AirspaceAppCard",
-									imgSrc: 'app/img/thumbnails/airspace_app.png',
+									imgSrc: '/static/home/dist/app/img/thumbnails/airspace_app.png',
 									header: 'Airspace',
 									baseClass: 'card column-6 animate-fade-in leader-1 trailer-2',
 									contents: 'View and Analyze the data in the airspace of the RTAA Airport'
 								}, {
 									id: "eDocAppCard",
-									imgSrc: 'app/img/thumbnails/eDoc_app.png',
+									imgSrc: '/static/home/dist/app/img/thumbnails/eDoc_app.png',
 									header: 'eDoc Search Tools',
 									baseClass: 'card column-6 animate-fade-in pre-1 leader-1 trailer-2',
 									contents: 'Search for documents and images using this map focused search tool'

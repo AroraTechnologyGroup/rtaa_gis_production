@@ -215,12 +215,12 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
+            'level': 'INFO',
             'formatter': 'standard'
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "INFO",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -230,12 +230,12 @@ LOGGING = {
     'loggers': {
         '_fileApp': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propogate': True
         },
         'django': {
             'handlers': ['console'],
-            'level': 'DEBUG'
+            'level': 'INFO'
         }
     },
 }

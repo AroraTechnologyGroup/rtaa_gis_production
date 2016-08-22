@@ -144,9 +144,10 @@
     <!-- interactive patterns need to be initialized -->
     <script>
        calcite.init();
-       require(['dojo/parser', 'app/main', 'dojo/query', 'dojo/dom-class', 'dojo/domReady!'], function (parser, app, query, domClass) {
-               var node = query(".loader")[0];
-               domClass.remove(node, 'is-active');
+       require(['dojo/parser', 'app/main', 'dojo/query', 'dojo/dom-class', 'dojo/domReady!'],
+               function (parser, app, query, domClass) {
+                   var node = query(".loader")[0];
+                   domClass.remove(node, 'is-active');
            });
     </script>
   </body>
