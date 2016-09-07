@@ -1,5 +1,11 @@
 {% extends "home/home_body.html" %}
-{% block main-content %}
+
+{% block title %}
+    <Title>RTAA GIS Login Page</Title>
+{% endblock %}
+
+
+{% block main_content %}
 
 {% if form.errors %}
 <p>Your username and password didn't match. Please try again.</p>
@@ -30,8 +36,8 @@
 <button class='btn' data-dojo-type="dijit/form/Button" type="submit" name="submitButton" value="login">Submit</button>
 <input type="hidden" name="next" value="{{ next }}" />
 </form>
-
+{##}
 {# Assumes you setup the password_reset view in your URLconf #}
-<p><a href="{% url 'home:password_change' %}">Lost password?</a></p>
+{#<p><a href="{% url 'home:password_change' %}">Lost password?</a></p>#}
 
 {% endblock %}

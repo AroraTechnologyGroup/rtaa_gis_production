@@ -12,7 +12,7 @@ class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (TemplateHTMLRenderer,)
     permission_classes = (AllowAny,)
-    template = r'home/main_content.html'
+    template = r'home/main_content/main_content.html'
 
     def get(self, request, format=None):
         if not request.user.is_authenticated():
