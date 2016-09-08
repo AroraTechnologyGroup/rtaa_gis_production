@@ -13,11 +13,11 @@ oauthlib==1.0.3
 openapi-codec==1.0.0
 pathtools==0.1.2
 Pillow==3.3.0
-#pypiwin32==219
+pypiwin32==219
 python-docx==0.8.6
-#pywin32==220
+pywin32==220
 PyYAML==3.11
-requests==2.11.0
+requests==2.11.1
 simplejson==3.8.2
 six==1.10.0
 uritemplate==0.6
