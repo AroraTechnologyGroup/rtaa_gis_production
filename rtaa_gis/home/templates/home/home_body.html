@@ -12,64 +12,89 @@
     <Title>RTAA GIS Homepage</Title>
 {% endblock %}
 
-{% block content %}
-    <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
-      <nav class="drawer-nav" role="navigation">
-        <aside class="side-nav">
-          <h2 class="side-nav-title">RTAA GIS</h2>
-          <a href="/#home" class="side-nav-link">HomePage</a>
-          <a href="/#gisportal/home" class="side-nav-link">GIS Portal</a>
-          <a href="/#departments/home" class="side-nav-link">Departments</a>
-          <a href="/#web-resources/home" class="side-nav-link">Web Resources</a>
-          <a href="/#help/home" class="side-nav-link">Help</a>
-        </aside>
-      </nav>
-    </div>
-
-    <div class="wrapper">
-      <header class="top-nav">
-        <div class="grid-container">
-          <div class="column-24">
-            <div class="tablet-hide">
-              <a href="/#home" class="top-nav-title">RTAA GIS</a>
-              <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
-                <a class="top-nav-link" href="/#gisportal/home">GIS Portal</a>
-                <a class="top-nav-link" href="/#departments/home">Departments</a>
-                <a class="top-nav-link" href="/#web-resources/home">Web Resources</a>
-                <a class="top-nav-link" href="/#help/home">Help</a>
-              </nav>
-            </div>
-            <div class="tablet-show">
-              <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
-            </div>
-            <nav class="sign-in">
-                {% if request.user.is_authenticated %}
-                    <a href="{% url 'home:logout' %}" class="btn btn-small btn-transparent">Sign Out</a>
-                    {% else %}
-                    <a href="{% url 'home:login' %}" class="btn btn-small btn-clear">Sign In</a>
-                {% endif %}
-            </nav>
-          </div>
+{% block header_nav %}
+    {% if request.user.is_authenticated %}
+        <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
+          <nav class="drawer-nav" role="navigation">
+            <aside class="side-nav">
+              <h2 class="side-nav-title">RTAA GIS</h2>
+              <a href="/#home" class="side-nav-link">HomePage</a>
+              <a href="/#gisportal/home" class="side-nav-link">GIS Portal</a>
+              <a href="/#departments/home" class="side-nav-link">Departments</a>
+              <a href="/#web-resources/home" class="side-nav-link">Web Resources</a>
+              <a href="/#help/home" class="side-nav-link">Help</a>
+            </aside>
+          </nav>
         </div>
-      </header>
 
-      <!--the sub-nav section is controlled by dojo router -->
-      <header id="headerPane" class="sub-nav" role="banner">
-      </header>
+        <div class="wrapper">
+          <header class="top-nav">
+            <div class="grid-container">
+              <div class="column-24">
+                <div class="tablet-hide">
+                  <a href="/#home" class="top-nav-title">RTAA GIS</a>
+                  <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
+                    <a class="top-nav-link" href="/#gisportal/home">GIS Portal</a>
+                    <a class="top-nav-link" href="/#departments/home">Departments</a>
+                    <a class="top-nav-link" href="/#web-resources/home">Web Resources</a>
+                    <a class="top-nav-link" href="/#help/home">Help</a>
+                  </nav>
+                </div>
+                <div class="tablet-show">
+                  <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
+                </div>
+                <nav class="sign-in">
+                    {% if request.user.is_authenticated %}
+                        <div class="dropdown js-dropdown">
+                            <a href="" class="top-nav-link dropdown-btn js-dropdown-toggle text-ellipsis user-nav-name">
+                                {{ request.user.username }}
+                            </a>
+                            <nav class="dropdown-menu dropdown-right">
+                                <div class="dropdown-link">
+                                    <p class="trailer-0">{{ request.user.username }}</p>
+                                    <small>profile information</small>
+                                </div>
+                                <a class="dropdown-link" href="/help">Support</a>
+                                <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>
+                            </nav>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'home:login' %}" class="btn btn-small btn-clear">Sign-In</a>
+                    {% endif %}
+                </nav>
+              </div>
+            </div>
+          </header>
 
-    </div>
+          <!--the sub-nav section is controlled by dojo router -->
+          <header id="headerPane" class="sub-nav" role="banner">
+          </header>
 
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block busy_indicator %}
     <!-- busy indicator -->
     <div class="loader is-active padding-leader-3 padding-trailer-3">
       <div class="loader-bars"></div>
       <div class="loader-text">Loading</div>
     </div>
+{% endblock %}
 
-    <!-- content of page -->
+{% block content %}
     <div id="main-content" class="grid-container column-24">
-        {% block main-content %}
+        {% block main_content %}
         {% endblock %}
     </div>
-
-    {% include 'home/home_footer.html' %}
 {% endblock %}
+
+{% block footer %}
+    {% if request.user.is_authenticated %}
+        {% include 'home/footer/home_footer.html' %}
+    {% else %}
+        {% include 'home/footer/anonymous_footer.html' %}
+    {% endif %}
+{% endblock %}
+
