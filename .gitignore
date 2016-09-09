@@ -19,7 +19,6 @@ venv_35/
 rtaa_gis/static/
 rtaa_gis/media/
 **/node_modules/
-**/dist/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
 **/src/dgrid/
