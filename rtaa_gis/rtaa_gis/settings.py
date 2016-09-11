@@ -21,6 +21,8 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+FCGI_DEBUG = True
+FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
 
 # Quick-start development settings - unsuitable for production
@@ -50,7 +52,7 @@ CORS_EXPOSE_HEADERS = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True

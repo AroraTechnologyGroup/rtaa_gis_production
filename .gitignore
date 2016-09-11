@@ -15,7 +15,7 @@ rtaa_gis/web.config
 rtaa_gis/web.debug.config
 .idea/
 rtaa_gis/fileApp/static/fileApp/pdfjs/
-venv_35/
+**/venv/
 rtaa_gis/static/
 rtaa_gis/media/
 **/node_modules/
