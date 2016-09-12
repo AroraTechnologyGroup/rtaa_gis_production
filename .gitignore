@@ -7,7 +7,7 @@
 *.iml
 *.id
 *.vs
-*/db.sqlite3-journal
+**/db.sqlite3-journal
 **/db.sqlite3
 pip-selfcheck.json
 */workspace.xml
