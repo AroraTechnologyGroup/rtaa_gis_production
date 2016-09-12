@@ -43,25 +43,27 @@
                 <div class="tablet-show">
                   <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
                 </div>
-                <nav class="sign-in">
-                    {% if request.user.is_authenticated %}
-                        <div class="dropdown js-dropdown">
-                            <a href="" class="top-nav-link dropdown-btn js-dropdown-toggle text-ellipsis user-nav-name">
-                                {{ request.user.username }}
-                            </a>
-                            <nav class="dropdown-menu dropdown-right">
-                                <div class="dropdown-link">
-                                    <p class="trailer-0">{{ request.user.username }}</p>
-                                    <small>profile information</small>
-                                </div>
-                                <a class="dropdown-link" href="/help">Support</a>
-                                <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>
-                            </nav>
-                        </div>
-                        {% else %}
+
+                {% if request.user.is_authenticated %}
+                    <div class="right dropdown js-dropdown">
+                        <a href="" class="top-nav-link dropdown-btn js-dropdown-toggle text-ellipsis user-nav-name">
+                            {{ request.user.username }}
+                        </a>
+                        <nav class="dropdown-menu dropdown-right">
+                            <div class="dropdown-link">
+                                <p class="trailer-0">{{ request.user.username }}</p>
+                                <small>profile information</small>
+                            </div>
+                            <a class="dropdown-link" href="/help">Support</a>
+                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>
+                        </nav>
+                    </div>
+                {% else %}
+                    <nav class="right sign-in">
                         <a href="{% url 'home:login' %}" class="btn btn-small btn-clear">Sign-In</a>
-                    {% endif %}
-                </nav>
+                    </nav>
+                {% endif %}
+
               </div>
             </div>
           </header>

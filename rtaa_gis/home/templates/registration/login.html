@@ -6,38 +6,35 @@
 
 
 {% block main_content %}
-
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% endif %}
-
-{% if next %}
-    {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
-    {% else %}
-    <p>Login with your username and password.</p>
+<div class="leader-3 pre-8 column-8">
+    {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
     {% endif %}
-{% endif %}
 
-<form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
-{% csrf_token %}
-<table>
-<tr>
-    <td>{{ form.username.label_tag }}</td>
-    <td data-dojo-type="dijit/form/TextBox">{{ form.username }}</td>
-</tr>
-<tr>
-    <td>{{ form.password.label_tag }}</td>
-    <td data-dojo-type="dijit/form/TextBox">{{ form.password }}</td>
-</tr>
-</table>
+    {% if next %}
+        {% if user.is_authenticated %}
+        <p>Your account doesn't have access to this page. To proceed,
+        please login with an account that has access.</p>
+        {% else %}
+        <p>Login with your username and password.</p>
+        {% endif %}
+    {% endif %}
 
-<button class='btn' data-dojo-type="dijit/form/Button" type="submit" name="submitButton" value="login">Submit</button>
-<input type="hidden" name="next" value="{{ next }}" />
-</form>
-{##}
-{# Assumes you setup the password_reset view in your URLconf #}
-{#<p><a href="{% url 'home:password_change' %}">Lost password?</a></p>#}
+    <form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
+    {% csrf_token %}
+    <table>
+    <tr>
+        <td>{{ form.username.label_tag }}</td>
+        <td data-dojo-type="dijit/form/TextBox">{{ form.username }}</td>
+    </tr>
+    <tr>
+        <td>{{ form.password.label_tag }}</td>
+        <td data-dojo-type="dijit/form/TextBox">{{ form.password }}</td>
+    </tr>
+    </table>
 
+    <button class='btn' data-dojo-type="dijit/form/Button" type="submit" name="submitButton" value="login">Submit</button>
+    <input type="hidden" name="next" value="{{ next }}" />
+    </form>
+</div>
 {% endblock %}
