@@ -14,12 +14,14 @@
 </head>
 
 <body>
-    {% block header_nav %}
-    {% endblock %}
-    {% block busy_indicator %}
-    {% endblock %}
-    {% block content %}
-    {% endblock %}
+    <div class="wrapper">
+        {% block header_nav %}
+        {% endblock %}
+        {% block busy_indicator %}
+        {% endblock %}
+        {% block content %}
+        {% endblock %}
+    </div>
     {% block footer %}
     {% endblock %}
 
