@@ -9,3 +9,5 @@ for i in range(5000):
     paragraph = document.add_paragraph('This is a demo Document')
     document.add_heading('This document is index number {}'.format(i))
     document.save('DemoDocument{}.docx'.format(i))
+    if not i % 100:
+        print(i)
