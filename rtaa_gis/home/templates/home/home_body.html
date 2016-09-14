@@ -54,6 +54,10 @@
                                 <p class="trailer-0">{{ request.user.username }}</p>
                                 <small>profile information</small>
                             </div>
+                            {% if request.user.is_staff %}
+                                {% load admin_urls %}
+                                <a class="dropdown-link" href="{% url 'admin:index' %}">Admin Site</a>
+                            {% endif %}
                             <a class="dropdown-link" href="/help">Support</a>
                             <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>
                         </nav>
