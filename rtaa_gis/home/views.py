@@ -17,8 +17,8 @@ class HomePage(APIView):
     def get(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
-        context = {"data": []}
-        return Response(context, template_name=self.template)
-
+        resp = Response(template_name=self.template)
+        resp['Cache-Control'] = 'no-cache'
+        return resp
 
 

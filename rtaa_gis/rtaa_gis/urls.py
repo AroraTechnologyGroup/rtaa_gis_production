@@ -25,7 +25,7 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^', include('home.urls')),
     url(r'^cad/', include('cadGIS.urls')),
-    url(r'^edoc/', include('fileApp.urls')),
+    url(r'^edoc/', include('fileApp.urls', namespace='fileApp')),
     #url(r'^aad/', include('aad.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
