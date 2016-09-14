@@ -14,6 +14,7 @@ pip-selfcheck.json
 rtaa_gis/web.config
 rtaa_gis/web.debug.config
 .idea/
+**/logs/
 rtaa_gis/fileApp/static/fileApp/pdfjs/
 **/venv/
 rtaa_gis/static/
@@ -22,11 +23,3 @@ rtaa_gis/logs/
 **/node_modules/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
-**/src/dgrid/
-**/src/dijit/
-**/src/dojo/
-**/src/dojox/
-**/src/dstore/
-**/src/esri/
-**/src/moment/
-**/src/util/
