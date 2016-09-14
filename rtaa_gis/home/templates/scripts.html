@@ -22,9 +22,12 @@
     calcite.init()
 </script>
 <script>
-    require(["dojo/query", "dojo/dom-class", 'dojo/domReady!'],
-        function (query, domClass) {
+    require(["dojo/query", "dojo/dom-class", "dojo/dom-construct", 'dojo/domReady!'],
+        function (query, domClass, domConstruct) {
             var node = query(".loader")[0];
             domClass.remove(node, 'is-active');
+            var link = domConstruct.create("a", {href: "/#home"});
+            link.click();
+            domConstruct.destroy(link)
     });
 </script>
