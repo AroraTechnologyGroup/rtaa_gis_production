@@ -4,5 +4,5 @@ python:
 install:
   - pip install lxml-3.6.4-cp35-cp35m-win32.whl
   - pip install -r rtaa_gis\requirements.txt
-scripts:
+script:
   nosetests
