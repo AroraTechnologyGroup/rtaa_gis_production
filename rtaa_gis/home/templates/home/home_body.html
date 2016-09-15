@@ -27,7 +27,7 @@
           </nav>
         </div>
 
-        <div class="wrapper">
+        <div class="wrapper" style="overflow: visible">
           <header class="top-nav">
             <div class="grid-container">
               <div class="column-24">
@@ -90,9 +90,11 @@
 {% endblock %}
 
 {% block content %}
-    <div id="main-content" class="grid-container column-24">
-        {% block main_content %}
-        {% endblock %}
+    <div class="grid-container">
+        <div id="main-content" class="column-24">
+            {% block main_content %}
+            {% endblock %}
+        </div>
     </div>
 {% endblock %}
 
