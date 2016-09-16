@@ -18,6 +18,7 @@ rtaa_gis/fileApp/static/fileApp/pdfjs/
 **/venv/
 rtaa_gis/static/
 rtaa_gis/media/
+rtaa_gis/logs/
 **/node_modules/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js

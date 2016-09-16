@@ -5,3 +5,4 @@ install:
   - pip install -r rtaa_gis/requirements.txt
 script:
   nosetests
+
