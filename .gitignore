@@ -23,4 +23,3 @@ rtaa_gis/logs/
 **/node_modules/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
-**/*/staging_deploy.py
