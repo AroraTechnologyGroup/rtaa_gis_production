@@ -21,6 +21,11 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Application definition
+ROOT_URLCONF = r'rtaa_gis.urls'
+LOGIN_URL = r'login/'
+LOGIN_REDIRECT_URL = r'/'
+
 FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
@@ -255,8 +260,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-# Application definition
-ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = r'/'
