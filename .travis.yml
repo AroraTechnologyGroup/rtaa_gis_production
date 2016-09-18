@@ -5,4 +5,8 @@ install:
   - pip install -r rtaa_gis/requirements.txt
 script:
   nosetests
+deploy:
+  provider: script
+  script:  python call_deploy.py
+
 
