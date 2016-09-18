@@ -25,6 +25,9 @@ FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "aspmx.l.google.com"
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -77,8 +80,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'fileApp.apps.FileAppConfig',
-    #'aad.apps.AadConfig',
-    'cadGIS.apps.CadgisConfig',
     'home.apps.HomeConfig'
 ]
 
