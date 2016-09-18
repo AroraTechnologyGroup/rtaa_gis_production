@@ -1,2 +1,2 @@
 import requests
-req = requests.get("https://gisapps.aroraengineers.com:8004/git-pull")
+req = requests.get("https://gisapps.aroraengineers.com:8443/git-pull")

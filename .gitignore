@@ -22,4 +22,5 @@ rtaa_gis/media/
 **/node_modules/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
-
+call_deploy.py
+**/utils/deploy.py
