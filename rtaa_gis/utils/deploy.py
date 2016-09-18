@@ -19,7 +19,7 @@ def pull(path):
     connection = mail.get_connection()
     connection.open()
     send_mail(
-        "Deploy RTAA_GIS to Staging",
+        "Deploy RTAA_GIS to Production",
         "std_out: {} \n std_err: {}".format(std_out, std_err),
         "rhughes@aroraengineers.com",
         ["richardh522@gmail.com"],
