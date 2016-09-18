@@ -80,8 +80,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'fileApp.apps.FileAppConfig',
-    #'aad.apps.AadConfig',
-    'cadGIS.apps.CadgisConfig',
     'home.apps.HomeConfig'
 ]
 
