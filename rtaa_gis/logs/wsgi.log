@@ -10,3 +10,33 @@
 2016-09-10 22:58:42.771818: wfastcgi.py 3.0.0 initialized
 2016-09-12 08:40:46.900229: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
 2016-09-12 08:40:46.934230: wfastcgi.py 3.0.0 initialized
+2016-09-12 09:27:27.868618: wfastcgi.py exiting because rtaa_gis\settings.py has changed, matching .*((\.py)|(\.config))$
+2016-09-12 09:27:27.884243: Running on_exit tasks
+2016-09-12 09:30:38.438094: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 09:30:38.438094: wfastcgi.py 3.0.0 initialized
+2016-09-12 10:06:11.962212: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 10:06:11.977838: wfastcgi.py 3.0.0 initialized
+2016-09-12 10:25:55.039738: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 10:25:55.039738: wfastcgi.py 3.0.0 initialized
+2016-09-12 11:27:56.503987: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 11:27:56.503987: wfastcgi.py 3.0.0 initialized
+2016-09-12 17:57:20.947313: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 17:57:20.947313: wfastcgi.py 3.0.0 initialized
+2016-09-12 17:57:22.212987: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-12 17:57:22.212987: wfastcgi.py 3.0.0 initialized
+2016-09-14 09:19:34.272971: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-14 09:19:34.327975: wfastcgi.py 3.0.0 initialized
+2016-09-14 09:35:06.082640: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-14 09:35:06.082640: wfastcgi.py 3.0.0 initialized
+2016-09-14 18:09:20.884697: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-14 18:09:20.888697: wfastcgi.py 3.0.0 initialized
+2016-09-14 18:17:47.200313: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-14 18:17:47.201313: wfastcgi.py 3.0.0 initialized
+2016-09-15 10:11:50.545704: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-15 10:11:50.546700: wfastcgi.py 3.0.0 initialized
+2016-09-15 10:45:46.568092: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-15 10:45:46.570092: wfastcgi.py 3.0.0 initialized
+2016-09-15 12:11:52.685753: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-15 12:11:52.686752: wfastcgi.py 3.0.0 initialized
+2016-09-16 15:07:44.410077: wfastcgi.py will restart when files in C:\inetpub\django_prod\django_35\rtaa_gis\ are changed: .*((\.py)|(\.config))$
+2016-09-16 15:07:44.458080: wfastcgi.py 3.0.0 initialized
