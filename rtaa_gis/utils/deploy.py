@@ -1,5 +1,3 @@
-import os
-# from git import Repo
 import cgitb
 import subprocess
 from subprocess import PIPE
@@ -7,9 +5,7 @@ cgitb.enable()
 
 
 def pull(path):
-    # repo = Repo(path)
-    # x = repo.remotes.origin.pull()
-    kwargs = {}
+    kwargs = dict()
     kwargs['cwd'] = path
     kwargs['stderr'] = PIPE
     kwargs['stdout'] = PIPE
