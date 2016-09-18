@@ -10,6 +10,7 @@ from rtaa_gis.settings import BASE_DIR
 import os
 import json
 
+
 # Create your views here.
 class HomePage(APIView):
     """View that renders the opening homepage"""

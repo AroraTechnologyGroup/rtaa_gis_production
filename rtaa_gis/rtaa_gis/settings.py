@@ -25,6 +25,9 @@ FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "aspmx.l.google.com"
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
@@ -52,7 +55,7 @@ CORS_EXPOSE_HEADERS = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
