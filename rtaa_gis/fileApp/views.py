@@ -231,7 +231,7 @@ class PagedFileViewSet(viewsets.ModelViewSet):
     def _build(self, request):
         """Traverse through the list of paths in the buildDocStore.py file and build the sqlite db"""
         if request.user.is_authenticated():
-            # TODO create return from File Store Builder with statistics to render in response
+            # TODO streaming http response to update a chart showing statistics of created file object types
             trainer.stop_monitors()
             tool = buildDocStore.FileStoreBuilder()
             tool.build_store()

@@ -12,7 +12,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from fileApp import models
 
-TOP_DIRs = [r"C:\\FileTransferFTP\\eDoc", r"J:\2014\79514.001 - RTAA eALP"]
+TOP_DIRs = [r"C:\\FileTransferFTP\\eDoc"]
 
 
 PDF = {"pdf": "application/pdf"}
