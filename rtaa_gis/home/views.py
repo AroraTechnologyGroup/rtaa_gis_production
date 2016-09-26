@@ -5,10 +5,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, views
 from django.urls import reverse
-from utils import deploy
-from rtaa_gis.settings import BASE_DIR
-import os
-import json
 
 
 # Create your views here.
@@ -25,13 +21,3 @@ class HomePage(APIView):
         resp['Cache-Control'] = 'no-cache'
         return resp
 
-
-class GitPull(APIView):
-    """View that calls git pull on the repo"""
-    renderer_classes = (JSONRenderer,)
-    permission_classes = (AllowAny,)
-
-    def get(self, request):
-        staging_path = os.path.dirname(BASE_DIR)
-        x = deploy.pull(staging_path)
-        return Response(json.dumps(x))
