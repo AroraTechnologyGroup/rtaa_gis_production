@@ -12,7 +12,7 @@ oauthlib==1.0.3
 openapi-codec==1.0.0
 pathtools==0.1.2
 pillow==3.3.1
-pypiwin32==219
+#pypiwin32==219
 PyYAML==3.11
 reportlab==3.3.0
 requests==2.11.1
