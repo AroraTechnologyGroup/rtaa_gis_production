@@ -1,49 +1,27 @@
 import os
 import sys
-import platform
-if platform.system() == 'Windows':
-    import win32com.client
-    import pythoncom
 import logging
 import traceback
-
 from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
 from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
 from .models import FileModel, GridCell, Assignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view
-from rest_framework.permissions import AllowAny
+
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 from utils import buildDocStore
 from utils import WatchDogTrainer
 from utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
 from utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
-from django.shortcuts import render
-from django.template import RequestContext
-
-from django.contrib.auth.forms import (
-    AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,
-)
-from django.contrib.auth import (
-    REDIRECT_FIELD_NAME, get_user_model, login as auth_login,
-    logout as auth_logout, update_session_auth_hash,
-)
-from django.utils.http import is_safe_url, urlsafe_base64_decode
-from django.http import HttpResponseRedirect, QueryDict
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.response import TemplateResponse
-from django.shortcuts import resolve_url
-from django.conf import settings
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.cache import never_cache
-from django.views.decorators.debug import sensitive_post_parameters
-from django.contrib.auth.views import deprecate_current_app
-from django.contrib.auth import authenticate, login
 from PIL import Image
+import platform
+if platform.system() == 'Windows':
+    import win32com.client
+    import pythoncom
+
 
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
@@ -52,32 +30,6 @@ trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
 def log_traceback():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
-
-
-@api_view(['GET', 'POST'])
-@permission_classes((AllowAny,))
-@ensure_csrf_cookie
-def dojo_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                response = HttpResponse(content_type='application/json')
-                response.write(request)
-                return response
-
-    if request.method == 'GET':
-
-        context = {
-            'next': LOGIN_REDIRECT_URL,
-            'form': AuthenticationForm(request),
-            'login': LOGIN_URL
-        }
-        return render(request, template_name="fileApp/dojo_login.html", context=context)
 
 
 def create_response_object(in_path, extension):
