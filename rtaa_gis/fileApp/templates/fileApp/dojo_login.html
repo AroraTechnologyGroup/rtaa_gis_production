@@ -14,7 +14,7 @@
     {% endif %}
 {% endif %}
 
-<div data-dojo-type="dijit/form/Form" method="post" action="{% url 'login' %}">
+<form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
 {% csrf_token %}
 <table>
 <tr>
@@ -28,10 +28,7 @@
 </table>
 
 <button data-dojo-type="dijit/form/Button" type="submit" name="submitButton" value="login">Submit</button>
-<input type="hidden" name="next" value="/" />
-</div>
-
-{# Assumes you setup the password_reset view in your URLconf #}
-<p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
 
 {% endblock %}
