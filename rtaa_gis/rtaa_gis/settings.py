@@ -35,8 +35,21 @@ EMAIL_HOST = "aspmx.l.google.com"
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", ".aroraengineers.com"]
+CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", "gisapps.aroraengineers.com"]
 CSRF_COOKIE_SECURE = False
+CORS_ORIGIN_WHITELIST = (
+    "localhost",
+    "127.0.0.1",
+    "gisapps.aroraengineers.com"
+)
+CORS_ALLOW_METHODS = (
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
+        'OPTIONS'
+    )
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERER = False
 CORS_ORIGIN_ALLOW_ALL = True
@@ -47,11 +60,12 @@ CORS_ALLOW_HEADERS = (
     'accept',
     'origin',
     'authorization',
-    'x-csrftoken'
+    'x-csrftoken',
 )
 
 CORS_EXPOSE_HEADERS = (
     'content-range',
+    'x-csrftoken',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -61,7 +75,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    CORS_ALLOW_CREDENTIALS = False
+    CORS_ALLOW_CREDENTIALS = True
     CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
 
@@ -77,7 +91,6 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'crispy_forms',
     'rest_framework.authtoken',
-    'oauth2_provider',
     'corsheaders',
     'rest_framework',
     'fileApp.apps.FileAppConfig',
@@ -85,22 +98,20 @@ INSTALLED_APPS = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'oauth2_provider.backends.OAuth2Backend',
     'django.contrib.auth.backends.RemoteUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'corsheaders.middleware.CorsPostCsrfMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.PersistentRemoteUserMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    #'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -195,7 +206,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
         'rest_framework.authentication.TokenAuthentication',
         #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
