@@ -47,12 +47,12 @@ CORS_ALLOW_HEADERS = (
     'accept',
     'origin',
     'authorization',
-    'x-csrftoken'
+    'x-csrftoken',
 )
 
 CORS_EXPOSE_HEADERS = (
     'content-range',
-    'x-csrftoken'
+    'x-csrftoken',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -62,7 +62,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    CORS_ALLOW_CREDENTIALS = False
+    CORS_ALLOW_CREDENTIALS = True
     CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
 
