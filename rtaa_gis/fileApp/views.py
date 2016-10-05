@@ -279,7 +279,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post',])
     def _clean(self, request, pk=None):
         """Remove the specified assignment object"""
         if request.user.is_authenticated():

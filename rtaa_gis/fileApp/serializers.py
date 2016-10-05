@@ -114,7 +114,7 @@ class AssignmentSerializer(serializers.ModelSerializer):
         model = Assignment
         fields = ('pk', 'grid_cell', 'file', 'base_name', 'comment', 'date_assigned')
         depth = 1
-        read_only_fields = ('pk', 'base_name', 'date_assigned')
+        read_only_fields = ('base_name', 'date_assigned')
 
     def create(self, validated_data):
         base_name = validated_data['file'].base_name
