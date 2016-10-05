@@ -4,7 +4,7 @@ python:
 install:
   - pip install -r rtaa_gis/requirements.txt
 script:
-  python "rtaa_gis/runtests.py"
+  python "rtaa_gis/runtests.py" rtaa_gis.fileApp.tests
 deploy:
   provider: script
   script:  python call_deploy.py
