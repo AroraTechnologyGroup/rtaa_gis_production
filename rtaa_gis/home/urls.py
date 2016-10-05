@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 from django.contrib.auth.views import logout, login, password_change
 from .views import HomePage
 from rest_framework.authtoken import views

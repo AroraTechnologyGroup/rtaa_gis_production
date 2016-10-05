@@ -40,21 +40,8 @@ EMAIL_HOST = "aspmx.l.google.com"
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", "gisapps.aroraengineers.com"]
+CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", ".aroraengineers.com"]
 CSRF_COOKIE_SECURE = False
-CORS_ORIGIN_WHITELIST = (
-    "localhost",
-    "127.0.0.1",
-    "gisapps.aroraengineers.com"
-)
-CORS_ALLOW_METHODS = (
-        'GET',
-        'POST',
-        'PUT',
-        'PATCH',
-        'DELETE',
-        'OPTIONS'
-    )
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERER = False
 CORS_ORIGIN_ALLOW_ALL = True
@@ -109,8 +96,8 @@ AUTHENTICATION_BACKENDS = (
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsPostCsrfMiddleware',
@@ -187,11 +174,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-OAUTH2_PROVIDER = {
-    # this is the list of available scopes
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
-}
 
 REST_FRAMEWORK = {
 

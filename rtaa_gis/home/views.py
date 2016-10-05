@@ -19,3 +19,4 @@ class HomePage(APIView):
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
         return resp
+
