@@ -26,7 +26,6 @@ urlpatterns = [
     url(r'^', include('home.urls')),
     url(r'^edoc/', include('fileApp.urls', namespace='edoc')),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^api-auth/', include('rest_framework.urls')),
 ]
 
