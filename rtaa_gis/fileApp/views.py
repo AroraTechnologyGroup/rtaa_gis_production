@@ -7,7 +7,10 @@ from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
 from .models import FileModel, GridCell, Assignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route, permission_classes, api_view
+from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
+from rest_framework.permissions import AllowAny
+from rest_framework import response, schemas
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from rest_framework import viewsets
 from utils import buildDocStore
@@ -25,6 +28,13 @@ if platform.system() == 'Windows':
 
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
+
+
+@api_view()
+@renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
+def schema_view(request):
+    generator = schemas.SchemaGenerator(title='eDoc API')
+    return response.Response(generator.get_schema(request=request))
 
 
 def log_traceback():
@@ -276,6 +286,5 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             obj = Assignment.objects.get(pk=str(pk))
             obj.delete()
             return Response({"status": "deleted"})
-
 
 
