@@ -13,10 +13,10 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
 from rest_framework import viewsets
-from utils import buildDocStore
-from utils import WatchDogTrainer
-from utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
-from utils.OOoConversion import OpenOfficeConverter
+from .utils import buildDocStore
+from .utils import WatchDogTrainer
+from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
+from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
 from PIL import Image

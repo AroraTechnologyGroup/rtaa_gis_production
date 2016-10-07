@@ -7,7 +7,7 @@ from rtaa_gis.settings import BASE_DIR
 
 def open_monitor(in_path):
     try:
-        a = subprocess.Popen(['python', os.path.join(BASE_DIR, "utils\watch_dog.py"), in_path])
+        a = subprocess.Popen(['python', os.path.join(os.path.dirname(os.path.abspath(__file__)), "watch_dog.py"), in_path])
         return {a.pid: {"process_path": in_path, "process": a}}
     except:
         lumber_stack()
