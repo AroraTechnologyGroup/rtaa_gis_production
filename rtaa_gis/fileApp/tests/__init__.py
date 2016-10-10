@@ -1,5 +1,8 @@
-from django.test import Client
 from django.contrib.auth.models import User
+from .test_models import *
+from .test_serializers import *
+from .test_views import *
+from django.test import Client
 
 try:
     user = User.objects.create_user(username="tester",

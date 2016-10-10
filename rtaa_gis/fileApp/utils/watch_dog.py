@@ -3,7 +3,7 @@ import time
 import sys
 import logging
 import django
-from . import buildDocStore
+from fileApp.utils import buildDocStore
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 

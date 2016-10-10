@@ -1,6 +1,7 @@
 import os
 import subprocess
 from subprocess import PIPE
+import json
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,6 +18,22 @@ def dump(model):
         print(std_out)
     if std_err:
         print(std_err)
+
+    spec = os.path.join(BASE_DIR, "fileApp/fixtures/json/{}.json".format(model.lower()))
+    if os.path.exists(spec):
+        fixt = json.loads(open(spec, 'r').read())
+        new_list = list()
+        for row in fixt:
+            if row['fields']:
+                new_list.append(row['fields'])
+            else:
+                new_list.append({"name": row['pk']})
+
+        output = json.dumps(new_list)
+        out_file = spec
+        new_fixt = open(out_file, 'w')
+        new_fixt.write(output)
+        new_fixt.close()
 
 models = ['FileModel', 'GridCell', 'Assignment']
 for x in models:

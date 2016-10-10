@@ -1,39 +1,41 @@
 from django.test import TestCase
 from fileApp.models import Assignment, FileModel, GridCell
+from fileApp.serializers import FileSerializer, GridSerializer
+
 import os
+fixture_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              'fixtures/json')
+os.chdir(fixture_folder)
+file_serializer = FileSerializer('filemodel.json')
+file_serializer.data
+# assignments = open('assignment.json', 'rb')
 
 
-class TestAssignment(TestCase):
-    def setUp(self):
-        assign = Assignment.objects.create(
-            grid_cell='32',
-            file=os.path.abspath(__file__),
-            comment="test assignment",
-        )
-        assign.save()
-
+# class TestAssignment(TestCase):
+#     fixtures = ['assignment.json']
+#
+#     def setUp(self):
+#         assign = Assignment.objects.get({"pk": 1})
+#         self.assertTrue(assign)
+#         pass
+#
+#     def test_1(self):
+#         self.assertTrue(1, "test")
+#         pass
+#
 
 class TestFileModel(TestCase):
-    def setup(self):
-        file_path = os.path.abspath(__file__)
-        base_name = os.path.basename(file_path)
-        file_type = "PDF"
-        mime = "application/pdf"
-        size = "32 MB"
+    fixtures = ['filemodel.json']
 
-        file_obj = FileModel.objects.create(
-            file_path=file_path,
-            base_name=base_name,
-            file_type=file_type,
-            mime=mime,
-            size=size
-        )
-        file_obj.save()
+    def test_this(self):
+        objs = FileModel.objects.all()
+
+        self.assertGreater(len(objs), 1, "four is good")
 
 
 class TestGridCell(TestCase):
-    def setup(self):
-        grid_cell = GridCell.objects.create(
-            name='32'
-        )
-        grid_cell.save()
+    fixtures = ['gridcell.json']
+
+    def test_this(self):
+        objs = GridCell.objects.all()
+        self.assertGreater(len(objs), 1, "four is good")
