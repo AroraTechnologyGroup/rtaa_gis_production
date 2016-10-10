@@ -6,8 +6,9 @@ import os
 fixture_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                               'fixtures/json')
 os.chdir(fixture_folder)
-file_serializer = FileSerializer('filemodel.json')
-file_serializer.data
+file_serializer = FileSerializer(data='filemodel.json')
+grid_serializer = GridSerializer(data='gridcell.json')
+pass
 # assignments = open('assignment.json', 'rb')
 
 
@@ -25,7 +26,7 @@ file_serializer.data
 #
 
 class TestFileModel(TestCase):
-    fixtures = ['filemodel.json']
+    fixtures = ['filemodel']
 
     def test_this(self):
         objs = FileModel.objects.all()
@@ -34,7 +35,7 @@ class TestFileModel(TestCase):
 
 
 class TestGridCell(TestCase):
-    fixtures = ['gridcell.json']
+    fixtures = ['gridcell']
 
     def test_this(self):
         objs = GridCell.objects.all()
