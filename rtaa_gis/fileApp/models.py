@@ -7,6 +7,7 @@ class GridCell(models.Model):
 
     class Meta:
         ordering = ('name',)
+        app_label = 'fileApp'
 
     name = models.CharField(
             max_length=25,
@@ -21,6 +22,7 @@ class FileModel(models.Model):
 
     class Meta:
         ordering = ('base_name', )
+        app_label = 'fileApp'
 
     file_path = models.CharField(max_length=255, unique=True)
 
@@ -48,6 +50,7 @@ class Assignment(models.Model):
 
     class Meta:
         ordering = ('grid_cell', 'file', 'date_assigned', 'comment',)
+        app_label = 'fileApp'
 
     grid_cell = models.ForeignKey(
             GridCell,

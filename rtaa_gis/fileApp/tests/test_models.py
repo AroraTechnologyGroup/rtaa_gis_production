@@ -6,7 +6,7 @@ os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 
 
 class TestAssignment(TestCase):
-    fixtures = ['assignment.json']
+    fixtures = ['filemodel', 'assignment', 'gridcell']
 
     def setUp(self):
         assign = Assignment.objects.get({"pk": 1})
@@ -19,7 +19,7 @@ class TestAssignment(TestCase):
 
 
 class TestFileModel(TestCase):
-    fixtures = ['filemodel']
+    fixtures = ['filemodel', 'assignment', 'gridcell']
 
     def test_this(self):
         objs = FileModel.objects.all()
@@ -28,7 +28,7 @@ class TestFileModel(TestCase):
 
 
 class TestGridCell(TestCase):
-    fixtures = ['gridcell']
+    fixtures = ['filemodel', 'assignment', 'gridcell']
 
     def test_this(self):
         objs = GridCell.objects.all()
