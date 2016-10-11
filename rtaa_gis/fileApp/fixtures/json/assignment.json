@@ -1,1 +1,1 @@
-[{"pk": 2, "model": "fileApp.assignment", "fields": {"grid_cell": "A02", "base_name": "gutter", "date_assigned": "2016-10-07", "file": 5082, "comment": "butter"}}, {"pk": 3, "model": "fileApp.assignment", "fields": {"grid_cell": "A16", "base_name": "fdhy", "date_assigned": "2016-10-07", "file": 5009, "comment": "sssdd"}}]
+[{"fields": {"comment": "test1", "base_name": "DemoDocument2.pdf", "grid_cell": "A01", "file": 9880, "date_assigned": "2016-10-11"}, "model": "fileApp.assignment", "pk": 4}]
