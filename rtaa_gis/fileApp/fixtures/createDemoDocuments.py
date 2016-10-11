@@ -31,5 +31,5 @@ if __name__ == '__main__':
         write_text(c, text)
         c.showPage()
         c.save()
-        if not i % 100:
+        if not i % 10:
             print(i)

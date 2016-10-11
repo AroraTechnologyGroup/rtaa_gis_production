@@ -16,6 +16,7 @@ rtaa_gis/web.config
 rtaa_gis/web.debug.config
 .idea/
 **/logs/
+!**/logs/django_log.log
 rtaa_gis/fileApp/static/fileApp/pdfjs/
 **/venv/
 rtaa_gis/static/

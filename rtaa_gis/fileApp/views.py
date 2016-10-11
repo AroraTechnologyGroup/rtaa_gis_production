@@ -19,6 +19,9 @@ from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIE
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
+from django.shortcuts import redirect
+from django.urls import reverse
+
 from PIL import Image
 import platform
 if platform.system() == 'Windows':
@@ -145,12 +148,16 @@ class IOViewSet(viewsets.ViewSet):
             response = HttpResponse(fp.read(), content_type=mime_type)
             response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
             return response
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['post'])
     def _upload(self, request):
         """TODO - upload files"""
         if request.user.is_authenticated():
             return
+        else:
+            return redirect(reverse('home:login'))
 
 
 class FileViewSet(viewsets.ModelViewSet):
@@ -168,6 +175,8 @@ class FileViewSet(viewsets.ModelViewSet):
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
 
 class PagedFileViewSet(viewsets.ModelViewSet):
@@ -188,6 +197,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             file_path = file_obj[0].file_path.replace("\\", '/')
             response = create_response_object(file_path, extension)
             return response
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _build(self, request):
@@ -200,6 +211,9 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             trainer.start_monitors()
             return Response("build successful")
 
+        else:
+            return redirect(reverse('home:login'))
+
     @detail_route(methods=['get',])
     def _delete(self, request, pk=None):
         """Remove the specified file and its assignments from the sqlite database"""
@@ -209,6 +223,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             if os.path.exists(path):
                 _file.delete()
                 return Response("{} has been deleted".format(path))
+        else:
+            return redirect(reverse('home:login'))
 
     @detail_route(methods=['get',])
     def _grids(self, request, pk=None):
@@ -218,6 +234,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _clean(self, request):
@@ -229,6 +247,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             tool.clean_store()
             trainer.start_monitors()
             return Response("The Store has been cleaned")
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _stop_monitors(self, request):
@@ -236,6 +256,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated():
             x = trainer.stop_monitors()
             return Response(x)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _start_monitors(self, request):
@@ -243,6 +265,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated():
             x = trainer.start_monitors()
             return Response(x)
+        else:
+            return redirect(reverse('home:login'))
 
 
 class GridViewSet(viewsets.ModelViewSet):
@@ -259,6 +283,8 @@ class GridViewSet(viewsets.ModelViewSet):
             file_models = [x.file for x in queryset]
             serializer = FileSerializer(file_models, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route()
     def _build(self, request):
@@ -269,6 +295,8 @@ class GridViewSet(viewsets.ModelViewSet):
             grids = GridCell.objects.all()
             serializer = GridSerializer(grids, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
 
 class AssignmentViewSet(viewsets.ModelViewSet):
@@ -286,5 +314,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             obj = Assignment.objects.get(pk=str(pk))
             obj.delete()
             return Response({"status": "deleted"})
+        else:
+            return redirect(reverse('home:login'))
 
 
