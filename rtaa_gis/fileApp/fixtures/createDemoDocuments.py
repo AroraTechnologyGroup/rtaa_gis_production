@@ -23,7 +23,7 @@ def write_text(pdf, t):
     pdf.drawString(0, 0, t)
 
 if __name__ == '__main__':
-    for i in range(2500):
+    for i in range(100):
 
         text = 'This document is index number {}'.format(i)
         c = canvas.Canvas("DemoDocument{}.pdf".format(i), pagesize=letter)
