@@ -214,7 +214,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'INFO',
+            'level': 'DEBUG',
             'formatter': 'standard'
         },
         'file': {
@@ -234,7 +234,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console'],
-            'level': 'INFO'
+            'level': 'DEBUG'
         }
     },
 }

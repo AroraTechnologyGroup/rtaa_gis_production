@@ -22,14 +22,7 @@ def dump(model):
     spec = os.path.join(BASE_DIR, "fileApp/fixtures/json/{}.json".format(model.lower()))
     if os.path.exists(spec):
         fixt = json.loads(open(spec, 'r').read())
-        new_list = list()
-        for row in fixt:
-            if row['fields']:
-                new_list.append(row['fields'])
-            else:
-                new_list.append({"name": row['pk']})
-
-        output = json.dumps(new_list)
+        output = json.dumps(fixt)
         out_file = spec
         new_fixt = open(out_file, 'w')
         new_fixt.write(output)
