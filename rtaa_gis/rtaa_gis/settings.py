@@ -227,11 +227,11 @@ LOGGING = {
         }
     },
     'loggers': {
-        # '_fileApp': {
-        #     'handlers': ['console', 'file'],
-        #     'level': 'INFO',
-        #     'propogate': True
-        # },
+        '_fileApp': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propogate': True
+        },
         'django': {
             'handlers': ['console'],
             'level': 'DEBUG'

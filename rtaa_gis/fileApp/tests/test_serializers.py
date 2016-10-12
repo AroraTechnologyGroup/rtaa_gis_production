@@ -1,11 +1,17 @@
-#from django.test import TestCase, Client
-
-
+# from django.test import TestCase, Client
+#
+#
 # class TestAssignmentSerializer(TestCase):
+#     def test_get_assignment(self):
+#         self.fail()
+#
 #     def test_create(self):
 #         self.fail()
 #
 #     def test_update(self):
+#         self.fail()
+#
+#     def test_delete(self):
 #         self.fail()
 #
 #
@@ -24,6 +30,9 @@
 #     def test_update(self):
 #         self.fail()
 #
+#     def test_delete(self):
+#         self.fail()
+#
 #
 # class TestGridPrimaryKeyRelatedField(TestCase):
 #     def test_display_value(self):
@@ -37,4 +46,5 @@
 #     def test_update(self):
 #         self.fail()
 #
-#
+#     def test_delete(self):
+#         self.fail()

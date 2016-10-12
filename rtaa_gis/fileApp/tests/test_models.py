@@ -9,12 +9,14 @@ class TestAssignment(TestCase):
     fixtures = ['filemodel', 'assignment', 'gridcell']
 
     def setUp(self):
-        assign = Assignment.objects.all()
-        self.assertTrue(assign)
+        _assigns = Assignment.objects.all()
+        self.assertTrue(_assigns)
+        self._assigns = _assigns
         pass
 
-    def test_1(self):
+    def test_build(self):
         self.assertTrue(1, "test")
+        self.assertGreater(len(self._assigns), 1, "success test_build")
         pass
 
 
@@ -28,7 +30,7 @@ class TestFileModel(TestCase):
         pass
 
     def test_this(self):
-        self.assertGreater(len(self._files), 1, "four is good")
+        self.assertGreater(len(self._files), 1, "files in test_db")
 
 
 class TestGridCell(TestCase):
@@ -41,4 +43,4 @@ class TestGridCell(TestCase):
         pass
 
     def test_this(self):
-        self.assertGreater(len(self._grids), 1, "four is good")
+        self.assertGreater(len(self._grids), 1, "grid cells in test_db")
