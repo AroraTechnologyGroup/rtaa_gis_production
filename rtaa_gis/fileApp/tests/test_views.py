@@ -1,20 +1,23 @@
-#from django.test import TestCase, Client
+from rest_framework.test import APIRequestFactory
+from rest_framework.test import APITestCase
+from django.core.urlresolvers import reverse
 
 
-# class TestAssignmentViewSet(TestCase):
-#     def setup(self):
-#         self.client = Client()
-#
-#     def test__clean(self):
-#         resp = self.client.post
-#
-#
-# class TestFileViewSet(TestCase):
+class TestAssignmentViewSet(APITestCase):
+    def test_get(self):
+        response = self.client.get('/edoc/assignments/')
+        self.assertEqual(response.status_code, 200)
+
+    def test__clean(self):
+        pass
+
+
+# class TestFileViewSet(APITestCase):
 #     def test__grids(self):
 #         self.fail()
 #
 #
-# class TestGridViewSet(TestCase):
+# class TestGridViewSet(APITestCase):
 #     def test__files(self):
 #         self.fail()
 #
@@ -22,7 +25,7 @@
 #         self.fail()
 #
 #
-# class TestIOViewSet(TestCase):
+# class TestIOViewSet(APITestCase):
 #     def test__download(self):
 #         self.fail()
 #
@@ -30,7 +33,7 @@
 #         self.fail()
 #
 #
-# class TestPagedFileViewSet(TestCase):
+# class TestPagedFileViewSet(APITestCase):
 #     def test__view(self):
 #         self.fail()
 #
