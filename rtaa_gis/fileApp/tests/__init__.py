@@ -1,5 +1,5 @@
 import django, os
-os.environ['DJANGO_SETTING_MODULE'] = 'rtaa_gis.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 
 django.setup()
 
