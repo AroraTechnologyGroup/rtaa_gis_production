@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
+#TODO-add the django_ldap_auth module to connect to the Active Directory
 import os
 from django.urls import reverse
 
@@ -219,7 +220,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'INFO',
+            'level': 'DEBUG',
             'formatter': 'standard'
         },
         'file': {
