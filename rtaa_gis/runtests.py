@@ -2,7 +2,6 @@
 import django
 from django.conf import settings
 from django.test.utils import get_runner
-import unittest
 import os, sys
 
 if __name__ == '__main__':
