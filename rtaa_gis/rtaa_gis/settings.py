@@ -76,7 +76,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_python3_ldap',
     'django_extensions',
     'rest_framework_swagger',
     'crispy_forms',
@@ -88,7 +87,7 @@ INSTALLED_APPS = [
 ]
 
 AUTHENTICATION_BACKENDS = (
-    "django_python3_ldap.auth.LDAPBackend",
+    'django.contrib.auth.backends.RemoteUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -259,7 +258,8 @@ ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login/'
 LOGIN_REDIRECT_URL = r'/'
 
-# The LDAP search base for looking up users.
-LDAP_AUTH_SEARCH_BASE = "ou=gisapps,dc=aroraengineers,dc=com"
-LDAP_AUTH_FORMAT_USERNAME = "django_python3_ldap.utils.format_username_active_directory"
-LDAP_AUTH_ACTIVE_DIRECTORY_DOMAIN = "GISAPPS"
+
+# # The LDAP search base for looking up users.
+AUTH_LDAP_SERVER_URI = "ldap://gisapps.aroraengineers.com:8004"
+AUTH_LDAP_BIND_DN = "testUser"
+AUTH_LDAP_BIND_PASSWORD = "testUserPW"
