@@ -62,7 +62,7 @@ CORS_EXPOSE_HEADERS = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -94,7 +94,7 @@ INSTALLED_APPS = [
 
 AUTHENTICATION_BACKENDS = (
     "django_python3_ldap.auth.LDAPBackend",
-    'django.contrib.auth.backends.ModelBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
 )
 
 MIDDLEWARE = [
@@ -234,7 +234,7 @@ LOGGING = {
         }
     },
     'loggers': {
-        '_fileApp': {
+        'fileApp': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propogate': True
@@ -265,8 +265,12 @@ ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login/'
 LOGIN_REDIRECT_URL = r'/'
 
+# Initiate TLS on connection.
+LDAP_AUTH_USE_TLS = False
 # The LDAP search base for looking up users.
+LDAP_AUTH_OBJECT_CLASS = "User"
 LDAP_AUTH_SEARCH_BASE = "ou=gisapps,dc=aroraengineers,dc=com"
 LDAP_AUTH_FORMAT_USERNAME = "django_python3_ldap.utils.format_username_active_directory"
 LDAP_AUTH_ACTIVE_DIRECTORY_DOMAIN = "GISAPPS"
-
+LDAP_AUTH_CONNECTION_USERNAME = "gissetup"
+LDAP_AUTH_CONNECTION_PASSWORD = "AroraGIS123!"
