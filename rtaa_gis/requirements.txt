@@ -8,10 +8,12 @@ django-extensions==1.7.4
 django-rest-swagger==2.0.4
 djangorestframework==3.4.5
 itypes==1.1.0
+ldap3==1.4.0
 oauthlib==1.0.3
 openapi-codec==1.0.0
 pathtools==0.1.2
 Pillow==3.3.0
+pyasn1==0.1.9
 #pypiwin32==219
 PyYAML==3.11
 reportlab==3.3.0
