@@ -225,7 +225,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "INFO",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -234,6 +234,11 @@ LOGGING = {
     },
     'loggers': {
         'fileApp': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propogate': True
+        },
+        'home': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propogate': True

@@ -1,5 +1,6 @@
 import ldap3
 from ldap3 import Server, Connection, ALL, NTLM, SUBTREE
+import logging
 
 
 class LDAPQuery:
@@ -9,8 +10,9 @@ class LDAPQuery:
     """
     def __init__(self, username, ldap_url):
         self.username = username
+        self.target_groups = ['GIS', 'Planning', 'Operations']
         self.server = Server(ldap_url, get_info=ALL)
-        print(self.server.info)
+        logging.info(self.server.info)
 
     def get_groups(self):
         conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123!", authentication=NTLM,
@@ -25,26 +27,36 @@ class LDAPQuery:
             )
 
         except Exception as e:
-            print(e.args)
+            logging.error(e.args)
 
+        slicegroup = list()
         total_entries += len(conn.response)
-        target_groups = []
         for entry in conn.response:
             try:
-                print(entry['dn'], entry['attributes'])
+                logging.info(entry['dn'], entry['attributes'])
                 groups = entry['attributes']['memberOf']
                 for x in groups:
-                    target_groups.append(x.split(',')[0].split('=')[-1])
+                    group = x.split(',')[0].split('=')[-1]
+                    if group in self.target_groups:
+                        slicegroup.append(group)
             except KeyError:
                 pass
 
         # print('Total entries retrieved', total_entries)
-        conn.unbind()
+        try:
+            conn.unbind()
+        except Exception as e:
+            logging.debug(e.args)
+
         # print(target_groups)
-        return target_groups
+        logging.info(slicegroup)
+        if len(slicegroup):
+            pass
+
+        return slicegroup
 
 if __name__ == "__main__":
     query = LDAPQuery("Richard P. Hughes", "gisapps.aroraengineers.com")
     x = query.get_groups()
-    print(x)
+    logging.info(x)
 
