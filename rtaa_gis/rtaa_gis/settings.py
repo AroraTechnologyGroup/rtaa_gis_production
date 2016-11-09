@@ -44,8 +44,9 @@ SESSION_COOKIE_SECURE = False
 CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", "gisapps.aroraengineers.com"]
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERER = False
+CORS_REPLACE_HTTPS_REFERER = True
 CORS_ORIGIN_ALLOW_ALL = True
+
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',
@@ -57,12 +58,21 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_EXPOSE_HEADERS = (
+    'x-requested-with',
+    'content-type',
     'content-range',
+    'accept',
+    'origin',
+    'authorization',
     'x-csrftoken',
 )
 
+ALLOWED_HOSTS = [
+    'gisapps.aroraengineers.com',
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
@@ -70,9 +80,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     CORS_ALLOW_CREDENTIALS = True
     CORS_REPLACE_HTTPS_REFERER = True
-    CORS_ORIGIN_ALLOW_ALL = True
-
-ALLOWED_HOSTS = ['gisapps.aroraengineers.com', 'localhost', '127.0.0.1']
+    CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',

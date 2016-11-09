@@ -15,7 +15,7 @@ class LDAPQuery:
         logging.info(self.server.info)
 
     def get_groups(self):
-        conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123!", authentication=NTLM,
+        conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
                                auto_bind=True)
         total_entries = 0
         try:
@@ -56,7 +56,7 @@ class LDAPQuery:
         return slicegroup
 
 if __name__ == "__main__":
-    query = LDAPQuery("Richard P. Hughes", "gisapps.aroraengineers.com")
+    query = LDAPQuery("siteadmin", "gisapps.aroraengineers.com")
     x = query.get_groups()
     logging.info(x)
 
