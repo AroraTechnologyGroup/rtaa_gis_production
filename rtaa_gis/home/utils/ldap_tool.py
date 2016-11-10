@@ -10,53 +10,54 @@ class LDAPQuery:
     """
     def __init__(self, username, ldap_url):
         self.username = username
-        self.target_groups = ['GIS', 'Planning', 'Operations']
-        self.server = Server(ldap_url, get_info=ALL)
-        logging.info(self.server.info)
+        self.target_groups = ['GIS', 'Planning', 'Operations', 'Engineering']
+        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
 
     def get_groups(self):
-        conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
-                               auto_bind=True)
-        total_entries = 0
         try:
-            conn.search(
-                search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
-                search_filter="(&(objectClass=User)(cn={}))".format(self.username),
-                search_scope=SUBTREE,
-                attributes=ldap3.ALL_ATTRIBUTES,
-            )
-
-        except Exception as e:
-            logging.error(e.args)
-
-        slicegroup = list()
-        total_entries += len(conn.response)
-        for entry in conn.response:
+            conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
+                              auto_bind=True)
+            conn.start_tls()
+            total_entries = 0
             try:
-                logging.info(entry['dn'], entry['attributes'])
-                groups = entry['attributes']['memberOf']
-                for x in groups:
-                    group = x.split(',')[0].split('=')[-1]
-                    if group in self.target_groups:
-                        slicegroup.append(group)
-            except KeyError:
-                pass
+                conn.search(
+                    search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
+                    search_filter="(&(objectClass=User)(cn={}))".format(self.username),
+                    search_scope=SUBTREE,
+                    attributes=ldap3.ALL_ATTRIBUTES,
+                )
 
-        # print('Total entries retrieved', total_entries)
-        try:
-            conn.unbind()
+            except Exception as e:
+                print("Exception arguments: {}".format(e.args))
+
+            slicegroup = list()
+            total_entries += len(conn.response)
+            for entry in conn.response:
+                try:
+                    print("dn: [{}], attributes: {}".format(entry['dn'], entry['attributes']))
+                    groups = entry['attributes']['memberOf']
+                    for x in groups:
+                        group = x.split(',')[0].split('=')[-1]
+                        if group in self.target_groups:
+                            slicegroup.append(group)
+                except KeyError:
+                    pass
+
+            # print('Total entries retrieved', total_entries)
+            try:
+                conn.unbind()
+            except Exception as e:
+                print("Exception arguments: {}".format(e.args))
+
+            # print(target_groups)
+            return slicegroup
+
         except Exception as e:
-            logging.debug(e.args)
-
-        # print(target_groups)
-        logging.info(slicegroup)
-        if len(slicegroup):
-            pass
-
-        return slicegroup
+            print(e)
+            return False
 
 if __name__ == "__main__":
     query = LDAPQuery("siteadmin", "gisapps.aroraengineers.com")
     x = query.get_groups()
-    logging.info(x)
+    print(x)
 

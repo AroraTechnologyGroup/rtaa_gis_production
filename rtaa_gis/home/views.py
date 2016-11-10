@@ -28,10 +28,24 @@ class HomePage(APIView):
         groups = query.get_groups()
         logger.info(groups)
         user_obj = User.objects.get(username=name)
-        # TODO add code to remove user from group if removed in Active Directory
+        
+        users_groups = user_obj.groups.all()
+        for x in users_groups:
+            if x not in groups:
+                try:
+                    g = Group.objects.get(name=x)
+                    user_obj.groups.remove(g)
+                    user_obj.save()
+                except:
+                    pass
+
         for x in groups:
-            g = Group.objects.get(name=x)
-            user_obj.groups.add(g)
-            user_obj.save()
+            if x not in users_groups:
+                try:
+                    g = Group.objects.get(name=x)
+                    user_obj.groups.add(g)
+                    user_obj.save()
+                except:
+                    pass
         return resp
 
