@@ -14,6 +14,7 @@ class LDAPQuery:
         self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
 
     def get_groups(self):
+        slicegroup = list()
         try:
             conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
                               auto_bind=True)
@@ -30,7 +31,6 @@ class LDAPQuery:
             except Exception as e:
                 print("Exception arguments: {}".format(e.args))
 
-            slicegroup = list()
             total_entries += len(conn.response)
             for entry in conn.response:
                 try:
@@ -49,12 +49,10 @@ class LDAPQuery:
             except Exception as e:
                 print("Exception arguments: {}".format(e.args))
 
-            # print(target_groups)
-            return slicegroup
-
         except Exception as e:
             print(e)
-            return False
+
+        return slicegroup
 
 if __name__ == "__main__":
     query = LDAPQuery("siteadmin", "gisapps.aroraengineers.com")

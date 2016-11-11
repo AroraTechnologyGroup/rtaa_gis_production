@@ -6,18 +6,20 @@ from django.urls import reverse
 from rest_framework.permissions import AllowAny
 from .utils.ldap_tool import LDAPQuery
 from django.contrib.auth.models import User, Group
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 import logging
 
 logger = logging.getLogger(__package__)
 
 
-# Create your views here.
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (TemplateHTMLRenderer,)
     permission_classes = (AllowAny,)
     template = r'home/main_content/main_content.html'
 
+    @method_decorator(ensure_csrf_cookie)
     def get(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
@@ -28,7 +30,7 @@ class HomePage(APIView):
         groups = query.get_groups()
         logger.info(groups)
         user_obj = User.objects.get(username=name)
-        
+
         users_groups = user_obj.groups.all()
         for x in users_groups:
             if x not in groups:
