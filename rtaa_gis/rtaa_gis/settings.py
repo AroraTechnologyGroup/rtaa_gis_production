@@ -22,6 +22,11 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Application definition
+ROOT_URLCONF = r'rtaa_gis.urls'
+LOGIN_URL = r'login/'
+LOGIN_REDIRECT_URL = r'/'
+
 FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
@@ -41,6 +46,7 @@ CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERER = False
 CORS_ORIGIN_ALLOW_ALL = True
+
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',
@@ -52,9 +58,20 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_EXPOSE_HEADERS = (
+    'x-requested-with',
+    'content-type',
     'content-range',
+    'accept',
+    'origin',
+    'authorization',
     'x-csrftoken',
 )
+
+ALLOWED_HOSTS = [
+    'gisapps.aroraengineers.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -66,8 +83,6 @@ if not DEBUG:
     CORS_ALLOW_CREDENTIALS = True
     CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
-
-ALLOWED_HOSTS = ['gisapps.aroraengineers.com', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -220,7 +235,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "INFO",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -228,14 +243,19 @@ LOGGING = {
         }
     },
     'loggers': {
-        '_fileApp': {
+        'fileApp': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propogate': True
+        },
+        'home': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propogate': True
         },
         'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
+            'handlers': ['console', 'file'],
+            'level': 'INFO'
         }
     },
 }
@@ -252,8 +272,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-# Application definition
-ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = r'/'
