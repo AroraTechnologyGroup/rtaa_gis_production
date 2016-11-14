@@ -21,6 +21,8 @@ from django.http import HttpResponse
 from django.core.files import File
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from PIL import Image
 import platform
@@ -299,6 +301,7 @@ class GridViewSet(viewsets.ModelViewSet):
             return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class AssignmentViewSet(viewsets.ModelViewSet):
     """This view is used to manage the assignments of files to grid cells"""
     # TODO - verify that duplicate assignments are not supported
