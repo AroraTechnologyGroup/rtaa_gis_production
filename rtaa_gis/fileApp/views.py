@@ -130,6 +130,7 @@ def create_response_object(in_path, extension):
     return response
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class IOViewSet(viewsets.ViewSet):
     """This view is used to download files"""
     # TODO group download file requests into a zip file
@@ -162,6 +163,7 @@ class IOViewSet(viewsets.ViewSet):
             return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class FileViewSet(viewsets.ModelViewSet):
     """This view returns all of the files without pagination, use this view
     to manage the client-side data stores"""
@@ -181,6 +183,7 @@ class FileViewSet(viewsets.ModelViewSet):
             return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
     queryset = FileModel.objects.all()
@@ -271,6 +274,7 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class GridViewSet(viewsets.ModelViewSet):
     """Grid Cells within the ArcGIS Online Map Grid"""
     queryset = GridCell.objects.all()

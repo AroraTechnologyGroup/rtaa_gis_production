@@ -19,7 +19,6 @@ class HomePage(APIView):
     permission_classes = (AllowAny,)
     template = r'home/main_content/main_content.html'
 
-    @method_decorator(ensure_csrf_cookie)
     def get(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))

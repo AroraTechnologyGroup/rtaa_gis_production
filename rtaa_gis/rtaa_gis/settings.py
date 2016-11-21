@@ -38,12 +38,14 @@ EMAIL_HOST = "aspmx.l.google.com"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
+
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_DOMAIN = ["localhost", "gisapps.aroraengineers.com"]
 CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", "gisapps.aroraengineers.com"]
 CSRF_COOKIE_SECURE = False
 CORS_REPLACE_HTTPS_REFERER = False
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
@@ -68,18 +70,20 @@ CORS_EXPOSE_HEADERS = (
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    'https://localhost:3000',
+    'https://localhost:3000/node_modules/intern/client.html?config=tests/intern_integrate'
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CORS_REPLACE_HTTPS_REFERER = True
-    CORS_ORIGIN_ALLOW_ALL = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CORS_REPLACE_HTTPS_REFERER = False
+    CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -91,9 +95,9 @@ INSTALLED_APPS = [
     'django_extensions',
     'rest_framework_swagger',
     'crispy_forms',
+    'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders',
     'fileApp.apps.FileAppConfig',
     'home.apps.HomeConfig'
 ]
@@ -192,7 +196,8 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.AllowAny',
+        # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.OrderingFilter',
