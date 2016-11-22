@@ -9,6 +9,7 @@ from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 
@@ -314,14 +315,64 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
 
-    @detail_route(methods=['post',])
-    def _clean(self, request, pk=None):
+    @list_route(methods=['post', ])
+    def _delete(self, request):
         """Remove the specified assignment object"""
-        if request.user.is_authenticated():
-            obj = Assignment.objects.get(pk=str(pk))
-            obj.delete()
-            return Response({"status": "deleted"})
+        data = request.POST['files']
+        if "," in data:
+            file_pks = data.split(",")
         else:
-            return redirect(reverse('home:login'))
+            file_pks = [data]
+        cell_value = request.POST['grid_cell']
+        grid_cell = GridCell.objects.get(pk=cell_value)
+        pre_assignments = len(Assignment.objects.all())
 
+        for x in file_pks:
+            file = FileModel.objects.get(pk=x)
+            obj = Assignment.objects.filter(file=file).filter(grid_cell=grid_cell)
+            for x in obj:
+                x.delete()
 
+        post_assignments = len(Assignment.objects.all())
+
+        resp = {}
+        num_removed = pre_assignments - post_assignments
+
+        if num_removed > 0:
+            if num_removed == len(file_pks):
+                resp['status'] = True
+            else:
+                resp['status'] = "{} of {} assignments were removed".format(
+                    num_removed, len(file_pks))
+        else:
+            resp['status'] = False
+        return Response(resp)
+
+    @list_route(methods=['post', ])
+    def _create(self, request):
+        """Create assignment from the list of files and the grid cell on the Post request"""
+        file_pks = request.POST['files'].split(",")
+        cell_value = request.POST['grid_cell']
+
+        pre_assignments = len(Assignment.objects.all())
+
+        new_assignments = list()
+
+        for x in file_pks:
+            file = FileModel.objects.get(pk=x)
+            grid = GridCell.objects.get(pk=cell_value)
+            kwargs = dict()
+            kwargs['file'] = file
+            kwargs['grid_cell'] = grid
+            base_name = FileModel.objects.get(pk=x).base_name
+            kwargs['base_name'] = base_name
+            assign = Assignment.objects.create(**kwargs)
+            new_assignments.append(assign.pk)
+
+        post_assignments = len(Assignment.objects.all())
+        if post_assignments > pre_assignments:
+            assignments = Assignment.objects.filter(pk__in=new_assignments)
+            serializer = AssignmentSerializer(assignments, many=True, context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response({"status": "Assignments were not created!"})

@@ -12,7 +12,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from fileApp import models
 
-TOP_DIRs = [r"C:\FileTransferFTP\gissetup\ApplicationFixtures\eDoc"]
+fixtures_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures\\data')
+TOP_DIRs = [fixtures_path]
 
 
 PDF = {"pdf": "application/pdf"}
@@ -226,6 +227,7 @@ class GridCellBuilder:
             name = '{}'.format(grid)
             try:
                 filtered = models.GridCell.objects.filter(name=name)
+                # Only create a document if one with that name does not exist
                 if len(filtered) == 0:
                     x = models.GridCell.objects.create(name=name)
                     x.save()
