@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger(__package__)
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (TemplateHTMLRenderer,)
@@ -25,6 +26,8 @@ class HomePage(APIView):
         name = request.user.username
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
+
+        # Perform inheritance from AD
         query = LDAPQuery(name, 'gisapps.aroraengineers.com')
         groups = query.get_groups()
         logger.info(groups)
