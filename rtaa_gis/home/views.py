@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__package__)
 
 
-@method_decorator(ensure_csrf_cookie, name='dispatch')
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (TemplateHTMLRenderer,)
@@ -29,27 +29,29 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         query = LDAPQuery(name, 'gisapps.aroraengineers.com')
-        groups = query.get_groups()
-        logger.info(groups)
+        ldap_groups = query.get_groups()
+        logger.info("ldap_groups = {}".format(ldap_groups))
+
         user_obj = User.objects.get(username=name)
-
         users_groups = user_obj.groups.all()
+        # remove groups from user if not in LDAP group list
         for x in users_groups:
-            if x not in groups:
+            if x.name not in ldap_groups:
+                try:
+                    # g = Group.objects.get(name=x)
+                    user_obj.groups.remove(x)
+                    # user_obj.save()
+                except Exception as e:
+                    print(e)
+        # add user to group if group exists in ldap and local group table
+        for x in ldap_groups:
+            if x not in [g.name for g in users_groups]:
                 try:
                     g = Group.objects.get(name=x)
-                    user_obj.groups.remove(g)
-                    user_obj.save()
-                except:
-                    pass
-
-        for x in groups:
-            if x not in users_groups:
-                try:
-                    g = Group.objects.get(name=x)
+                    # g = Group.objects.get(name="tester")
                     user_obj.groups.add(g)
-                    user_obj.save()
-                except:
-                    pass
+                    # user_obj.save()
+                except Exception as e:
+                    print(e)
         return resp
 
