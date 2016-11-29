@@ -52,6 +52,7 @@ class LDAPQuery:
         except Exception as e:
             print(e)
 
+        print(slicegroup)
         return slicegroup
 
 if __name__ == "__main__":
