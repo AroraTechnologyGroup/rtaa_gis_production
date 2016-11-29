@@ -22,3 +22,7 @@ html, body {
 .footer {
     padding-bottom: 3px;
 }
+
+.footer-tall {
+    height: 25px;
+}
