@@ -22,8 +22,8 @@
     calcite.init()
 </script>
 <script>
-    require(["dojo/query", "dojo/dom-class", "dojo/dom-construct", 'dojo/domReady!'],
-        function (query, domClass, domConstruct) {
+    require(["dojo/query", "dojo/dom-class", "dojo/dom-construct", "dojo/dom", "dojo/on", 'dojo/domReady!'],
+        function (query, domClass, domConstruct, dom, on) {
             var node = query(".loader")[0];
             domClass.remove(node, 'is-active');
             {% if request.user.is_authenticated %}
@@ -31,5 +31,13 @@
                 link.click();
                 domConstruct.destroy(link)
             {% endif %}
+            var fc = dom.byId('footer-container');
+{#            on(fc, "mouseenter", function(evt) {#}
+{#                domClass.add(fc, "footer-tall");#}
+{#            });#}
+{#            on(fc, "mouseleave", function(evt) {#}
+{#                domClass.remove(fc, "footer-tall");#}
+{#            });#}
+
     });
 </script>

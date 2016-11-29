@@ -22,8 +22,10 @@
         {% block content %}
         {% endblock %}
     </div>
-    {% block footer %}
-    {% endblock %}
+    <div id="footer-container" class="animate-in-up">
+        {% block footer %}
+        {% endblock %}
+    </div>
 
     {% include 'scripts.html' %}
 </body>
