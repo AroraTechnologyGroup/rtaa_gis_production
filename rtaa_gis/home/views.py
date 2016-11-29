@@ -26,6 +26,8 @@ class HomePage(APIView):
         name = request.user.username
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
+
+        # Perform inheritance from AD
         query = LDAPQuery(name, 'gisapps.aroraengineers.com')
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
