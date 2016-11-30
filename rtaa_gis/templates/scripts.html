@@ -29,7 +29,7 @@
             {% if request.user.is_authenticated %}
                 var link = domConstruct.create("a", {href: "/#home"});
                 link.click();
-                domConstruct.destroy(link)
+                domConstruct.destroy(link);
             {% endif %}
     });
 </script>
