@@ -23094,7 +23094,7 @@ define([
 					// var username = user_list[0].innerText;
 					var username = user_list[0];
 					(function() {
-						request("http://127.0.0.1:8080/groups/", {
+						request("https://gisapps.aroraengineers.com:8004/groups/", {
 							method: "POST",
 							preventCache: true,
 							handleAs: 'json',
