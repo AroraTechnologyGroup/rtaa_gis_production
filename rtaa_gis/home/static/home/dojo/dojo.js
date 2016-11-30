@@ -2090,7 +2090,7 @@ define([
 				if (registry.byId('homepage-banner') === undefined) {
 					app.header = new HomepageBanner({
 						id: 'homepage-banner',
-						baseClass: 'sub-nav-title text-white leader-3 trailer-3',
+						baseClass: 'sub-nav-title text-white leader-3 trailer-3 animate-fade-in',
 						title: 'Reno/Tahoe International Airport GIS Website'
 					});
 				} else {
@@ -2186,28 +2186,28 @@ define([
 							
 							var airspace_app = {
 								id: "AirspaceAppCard",
-								imgSrc: 'app/img/thumbnails/airspace_app.png',
-								href: 'https://gisapps.aroraengineers.com:3344',
+								imgSrc: 'static/home/app/img/thumbnails/airspace_app.png',
+								href: 'https://aroragis.maps.arcgis.com/apps/3DScene/index.html?appid=5f7bf59e212c4339a3ffda29315972be',
 								header: 'Airspace',
-								baseClass: 'card column-8 animate-fade-in leader-2 trailer-2',
+								baseClass: 'card column-8 leader-2 trailer-2',
 								contents: 'View and Analyze the data in the airspace of the RTAA Airport'
 							};
 
 							var eDoc_app = {
 								id: "eDocAppCard",
-								imgSrc: 'app/img/thumbnails/eDoc_app.png',
-								href: 'https://gisapps.aroraengineers.com:3344',
+								imgSrc: 'static/home/app/img/thumbnails/eDoc_app.png',
+								href: 'https://gisapps.aroraengineers.com:3344/webappbuilder/apps/2/',
 								header: 'eDoc Search Tools',
-								baseClass: 'card column-8 animate-fade-in leader-2 trailer-2',
+								baseClass: 'card column-8 leader-2 trailer-2',
 								contents: 'Search for documents and images using this map focused search tool'
 							};
 
 							var airfield_app = {
 								id: "AirfieldAppCard",
-								imgSrc: 'app/img/thumbnails/airfield_app.png',
+								imgSrc: 'static/home/app/img/thumbnails/airfield_app.png',
 								href: 'https://rtaa.maps.arcgis.com/apps/webappviewer/index.html?id=ff605fe1a736477fad9b8b22709388d1',
 								header: 'Airfield',
-								baseClass: 'card column-8 animate-fade-in leader-2 trailer-2',
+								baseClass: 'card column-8 leader-2 trailer-2',
 								contents: 'View the Airfield Data'
 							};
 
@@ -2249,10 +2249,10 @@ define([
 
 							app.loadCards([{
 								id: "eDoc Rest API",
-								imgSrc: 'app/img/thumbnails/restapi_app.png',
-								href: 'https://gisapps.aroraengineers.com:8004/edoc',
+								imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
+								href: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
 								header: 'eDoc Rest API',
-								baseClass: 'card column-8 animate-fade-in leader-1 trailer-2',
+								baseClass: 'card column-8 leader-1 trailer-2',
 								contents: 'Manage the eDoc Rest API'
 							}]);
 						});
@@ -13954,7 +13954,7 @@ define([
     },
     postCreate: function() {
       var self = this;
-      self.on("mousedown", function(evt) {
+      self.on("mouseup", function(evt) {
         evt.preventDefault();
         if (mouse.isLeft(event)) {
           self.unloadSection().then(function(e) {
@@ -13996,6 +13996,7 @@ define([
       (function() {
         if (registry.byId('headerPane') !== undefined) {
           var obj = registry.byId('headerPane');
+          domClass.add(obj.domNode, "animate-out-down");
           domConstruct.empty(registry.byId('headerPane').containerNode);
           registry.remove('headerPane');
           deferred.resolve(true);
@@ -14017,17 +14018,28 @@ define([
 
     loadIframe: function() {
       var self = this;
-      var pane = new ContentPane({
+      var pane = registry.byId("iframe_pane");
+      if (pane !== undefined) {
+        pane.destroy();
+        registry.remove(pane);
+      }
+
+      pane = new ContentPane({
         id: "iframe_pane",
         style: {
           position: "relative",
-          height: "100%",
-          bottom: "0px",
+          width: "100vw",
+          height: "100vh",
           overflow: "hidden"
         }
       });
       pane.startup();
-      pane.setContent("<iframe src=" + self.href+" allowfullscreen></iframe>");
+      pane.set('content', domConstruct.create("iframe",  {
+        src: self.href,
+        frameborder: 0,
+        height: '100%',
+        width: '100%'
+      }));
       pane.placeAt('main-content');
     }
   });
@@ -23082,7 +23094,7 @@ define([
 					// var username = user_list[0].innerText;
 					var username = user_list[0];
 					(function() {
-						request("http://127.0.0.1:8080/groups/", {
+						request("https://gisapps.aroraengineers.com:8004/groups/", {
 							method: "POST",
 							preventCache: true,
 							handleAs: 'json',
