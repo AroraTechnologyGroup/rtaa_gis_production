@@ -1,3 +1,4 @@
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from .utils.ldap_tool import LDAPQuery
 from django.contrib.auth.models import User, Group
 from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view
 from django.views.decorators.csrf import ensure_csrf_cookie
 import logging
 
@@ -54,4 +56,16 @@ class HomePage(APIView):
                 except Exception as e:
                     print(e)
         return resp
+
+
+@api_view(['GET', 'POST'])
+def user_groups(request, format=None):
+    name = request.data.get('username')
+    user_obj = User.objects.get(username=name)
+    users_groups = user_obj.groups.all()
+    if len(users_groups):
+        return Response([x.name for x in users_groups])
+    else:
+        return Response(['anonymous'])
+
 
