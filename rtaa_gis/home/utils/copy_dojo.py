@@ -2,7 +2,11 @@ import os
 from os import path
 import shutil
 
-loc = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))))
+if path.exists("G:\\GitHub\\CalciteRTAA\\dist"):
+    loc = "G:\\GitHub"
+else:
+    loc = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))))
+
 dist = path.join(loc, "CalciteRTAA\\dist")
 
 dojo = path.join(dist, "dojo\\dojo.js")
@@ -12,14 +16,11 @@ app_resources = path.join(dist, "app\\resources")
 app_templates = path.join(dist, "app\\templates")
 
 home = path.dirname(path.dirname(path.abspath(__file__)))
-target_folder = path.join(home, "static\\home\\dist")
+target_folder = path.join(home, "static\\home")
+
 app_folder = path.join(target_folder, "app")
 dojo_folder = path.join(target_folder, "dojo")
 
-# for dirpath, dirnames, filenames in os.walk(target_folder):
-#     for x in filenames:
-#         path = os.path.join(dirpath, x)
-#         os.remove(path)
 
 if path.exists(app_folder):
     shutil.rmtree(app_folder)

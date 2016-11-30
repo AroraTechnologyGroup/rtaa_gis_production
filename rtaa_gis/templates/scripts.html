@@ -5,14 +5,14 @@
     <script>
           // set up your dojoConfig
           var dojoConfig = {
-            baseUrl: '../static/home/dist/dojo',
+            baseUrl: '../static/home/dojo',
             parseOnLoad: false,
             async: true,
             isDebug: false
           };
     </script>
     <!-- The built dojo path -->
-    <script src="../static/home/dist/dojo/dojo.js"></script>
+    <script src="../static/home/dojo/dojo.js"></script>
 {% else %}
     <script data-dojo-config="async: 1"
             src="//ajax.googleapis.com/ajax/libs/dojo/1.10.4/dojo/dojo.js"></script>
@@ -22,8 +22,8 @@
     calcite.init()
 </script>
 <script>
-    require(["dojo/query", "dojo/dom-class", "dojo/dom-construct", "dojo/dom", "dojo/on", 'dojo/domReady!'],
-        function (query, domClass, domConstruct, dom, on) {
+    require(["dojo/_base/array", "dojo/query", "dojo/dom-class", "dojo/dom-construct", "dojo/dom", "dojo/on", 'dojo/domReady!'],
+        function (Array, query, domClass, domConstruct, dom, on) {
             var node = query(".loader")[0];
             domClass.remove(node, 'is-active');
             {% if request.user.is_authenticated %}
@@ -31,13 +31,26 @@
                 link.click();
                 domConstruct.destroy(link);
             {% endif %}
-            var fc = dom.byId('footer-container');
-{#            on(fc, "mouseenter", function(evt) {#}
-{#                domClass.add(fc, "footer-tall");#}
-{#            });#}
-{#            on(fc, "mouseleave", function(evt) {#}
-{#                domClass.remove(fc, "footer-tall");#}
-{#            });#}
+            var footer_links = query("footer li");
+            Array.forEach(footer_links, function(e) {
+                domClass.add(e, "font-size--3");
+            });
 
-    });
+            var footer = query("#footer-container");
+            var top_nav_title = query(".top-nav-title");
+            Array.forEach(top_nav_title, function(e) {
+                on(e, 'click', function(evt) {
+                    domClass.remove(footer[0], 'hide');
+                    domClass.add(footer[0], 'show');
+                });
+            });
+            var top_nav_link = query(".top-nav-link");
+            Array.forEach(top_nav_link, function(e) {
+                on(e, 'click', function(evt) {
+                    domClass.remove(footer[0], 'show');
+                    domClass.add(footer[0], 'hide');
+                });
+            });
+        });
+
 </script>
