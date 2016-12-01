@@ -10,7 +10,7 @@ class LDAPQuery:
     """
     def __init__(self, username, ldap_url):
         self.username = username
-        self.target_groups = ['GIS', 'Utilities', 'Planning', 'Operations', 'Engineering']
+        self.target_groups = ['GIS_admin', 'GIS_user', 'Utilities', 'Planning', 'Operations', 'Engineering']
         self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
 
     def get_groups(self):

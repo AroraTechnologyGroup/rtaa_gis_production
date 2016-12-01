@@ -14067,7 +14067,7 @@ define([
 				pane.startup();
 				pane.set('content', domConstruct.create("iframe",  {
 				    src: self.href,
-				    // frameborder: 0,
+				    frameborder: 0,
 				    height: '100%',
 				    width: '100%',
 				    allowfullscreen: true
@@ -14154,7 +14154,7 @@ define([
 								href: '/#gisportal/apps'
 							}];
 					
-					var test = Array.indexOf(groups, 'Admin');
+					var test = Array.indexOf(groups, 'GIS_admin');
 					if (test !== -1) {
 						routes.push({
 								title: 'AGOL Browser',
@@ -14351,7 +14351,7 @@ define([
 
 				
 				var cards;
-				var test = Array.indexOf(groups, 'GIS');
+				var test = Array.indexOf(groups, 'GIS_admin');
 				if (test !== -1) {
 					cards = [airspace_app, eDoc_app, airfield_app, noise_app];
 				} else {

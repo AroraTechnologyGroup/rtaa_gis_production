@@ -25,7 +25,12 @@ class HomePage(APIView):
     def get(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
+
         name = request.user.username
+        # for testing, if username is '', set it to siteadmin
+        if name == '':
+            name = 'siteadmin'
+
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
 
