@@ -14146,32 +14146,24 @@ define([
 					
 					// if the user is admin, allow for browse data and backend api
 					
-					var routes;
-					
-					var test = Array.indexOf(groups, 'GIS');
-					if (test !== -1) {
-						routes = [{
+					var routes = [{
 								title: 'Dashboard',
 								href: '/#gisportal/dashboard'
 							}, {
 								title: 'Web Mapping Apps',
 								href: '/#gisportal/apps'
-							}, {
+							}];
+					
+					var test = Array.indexOf(groups, 'Admin');
+					if (test !== -1) {
+						routes.push({
 								title: 'AGOL Browser',
 								href: '/#gisportal/gis-data-browse'
 							}, {
 								title: 'Backend Database APIs',
 								href: '/#gisportal/backend-apis'
-							}];
-					} else {
-						routes = [{
-								title: 'Dashboard',
-								href: '/#gisportal/dashboard'
-							}, {
-								title: 'Web Mapping Apps',
-								href: '/#gisportal/apps'
-							}];
-					}
+							});
+					} 
 
 					self.header = new PageBanner({
 							id: 'gisportal-banner',
@@ -14219,13 +14211,7 @@ define([
 						// console.log(err);
 					}
 
-					var routes;
-
-					self.header = new PageBanner({
-						id: 'departments-banner',
-						baseClass: 'text-white font-size-4 page-banner',
-						title: "Airport Departments",
-						routes: [{
+					var routes = [{
 							title: 'Engineering',
 							href: '/#departments/engineering'
 						}, {
@@ -14237,7 +14223,20 @@ define([
 						}, {
 							title: 'Utilities',
 							href: '/#departments/utilities'
-						}]
+						}];
+
+					var filtered_routes = [];
+					Array.forEach(routes, function(e) {
+						if (Array.indexOf(groups, e.title) !== -1) {
+							filtered_routes.push(e);
+						}
+					});
+
+					self.header = new PageBanner({
+						id: 'departments-banner',
+						baseClass: 'text-white font-size-4 page-banner',
+						title: "Airport Departments",
+						routes: filtered_routes
 					});
 
 					var pane = registry.byId('header-pane');
