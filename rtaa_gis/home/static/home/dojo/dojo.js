@@ -2088,108 +2088,49 @@ define([
 		lang.mixin(app, new namedFunctions());
 
 		var ldap_url = JSON.parse(ldapConfig).url;
-
+		var header_pane = new ContentPane({
+			id: "header-pane",
+			style: "top: 0"
+		}, 'headerPane');
+		header_pane.startup();
 		var main_content = new ContentPane({
 					id: 'main-content'
 				}, 'main-content');
 		main_content.startup();
 
+		app.getGroups(ldap_url).then(function(groups) {
 		router.register("home", function(evt) {
 			evt.preventDefault();
 			console.log('loading ' + evt.newPath);
-
-			app.unloadSection().then(function(e) {
-				var pane;
-				if (registry.byId('header-pane') === undefined) {
-					pane = new ContentPane({
-						style: "display: flex",
-						id: 'header-pane'
-					}, 'headerPane');
-					pane.startup();
-				} else {
-					pane = registry.byId('header-pane');
-				}
-				
-				if (registry.byId('homepage-banner') === undefined) {
-					app.header = new HomepageBanner({
-						id: 'homepage-banner',
-						baseClass: 'sub-nav-title text-white leader-3 trailer-3 animate-fade-in',
-						title: 'Reno/Tahoe International Airport GIS Website'
-					});
-				} else {
-					app.header = registry.byId('homepage-banner');
-				}
-
-				pane.set('content', app.header);
-			}, function(err) {
-				console.log(err);
-			});
+			// var handle = topic.subscribe("/dojo/hashchange", function(hash) {
+			// 				app.unloadContent();
+			// 				handle.remove()
+			// 			});
+			app.buildTitleBar(evt);
+						
+			
 		});
 
 		router.register("gisportal/home", function(evt) {
-				evt.preventDefault();
-				console.log('loading ' + evt.newPath);
+			evt.preventDefault();
+			console.log('loading ' + evt.newPath);
 
-				app.unloadSection().then(function(e) {
-					try {
-						registry.byId('gisportal-banner').destroyRecursive();
-					} catch(err) {
-						console.log(err);
-					}
-					var node = query(".loader")[0];
-                  	domClass.add(node, 'is-active');
-					// if the user is admin, allow for browse data and backend api
-					app.getGroups(ldap_url).then(function(e) {
-						var routes;
-						domClass.remove(node, 'is-active');
-						var test = Array.indexOf(e, 'GIS');
-						if (test !== -1) {
-							routes = [{
-									title: 'Map Viewer',
-									href: '/#gisportal/mapviewer'
-								}, {
-									title: 'Web Mapping Apps',
-									href: '/#gisportal/apps'
-								}, {
-									title: 'AGOL Browser',
-									href: '/#gisportal/gis-data-browse'
-								}, {
-									title: 'Backend Database APIs',
-									href: '/#gisportal/backend-apis'
-								}];
-						} else {
-							routes = [{
-									title: 'Map Viewer',
-									href: '/#gisportal/mapviewer'
-								}, {
-									title: 'Web Apps',
-									href: '/#gisportal/apps'
-								}];
-						}
-
-						app.header = new PageBanner({
-								id: 'gisportal-banner',
-								baseClass: 'sub-nav-title text-white page-banner',
-								title: 'Geographic Information Systems',
-								routes: routes
-							});
-
-						
-						var pane = registry.byId('header-pane');
-						pane.set('content', app.header);
-					});
-
-			}, function(err) {
-				console.log(err);
-			});
+			// Get groups before tearing down to limit visual 
+			
+				app.buildGISPortal(evt, groups).then(function(e) {
+					console.log(e);
+				});
+		}, function(err) {
+			console.log(err);
 		});
+		
 
-		router.register("gisportal/mapviewer", function(evt) {
+		router.register("gisportal/dashboard", function(evt) {
 						evt.preventDefault();
 						console.log('loading ' + evt.newPath);
 						app.unloadContent().then(function(e) {
 							if (registry.byId('gisportal-banner') !== undefined) {
-								app.header.set('title', 'Map Viewer');
+								app.header.set('title', 'Home');
 							}
 						}, function(err) {
 							console.log(err);
@@ -2200,7 +2141,7 @@ define([
 
 		router.register("gisportal/apps", function(evt) {
 						evt.preventDefault();
-						app.unloadContent().then(function(e) {
+						app.buildGISPortal(evt, groups).then(function(e) {
 							console.log('loading ' + evt.newPath);
 
 							if (registry.byId('gisportal-banner') !== undefined) {
@@ -2213,17 +2154,17 @@ define([
 								imgSrc: 'static/home/app/img/thumbnails/airspace_app.png',
 								href: 'https://aroragis.maps.arcgis.com/apps/3DScene/index.html?appid=5f7bf59e212c4339a3ffda29315972be',
 								header: 'Airspace',
-								baseClass: 'card column-3 leader-2 trailer-2',
-								contents: 'View and Analyze the data in the airspace of the RTAA Airport'
+								baseClass: 'card column-4 leader-2 trailer-2',
+								contents: ''
 							};
 
 							var eDoc_app = {
 								id: "eDocAppCard",
 								imgSrc: 'static/home/app/img/thumbnails/eDoc_app.png',
 								href: 'https://gisapps.aroraengineers.com:3344/webappbuilder/apps/2/',
-								header: 'eDoc Search Tools',
-								baseClass: 'card column-3 leader-2 trailer-2',
-								contents: 'Search for documents and images using this map focused search tool'
+								header: 'eDoc Search Tool',
+								baseClass: 'card column-4 leader-2 trailer-2',
+								contents: ''
 							};
 
 							var airfield_app = {
@@ -2231,33 +2172,33 @@ define([
 								imgSrc: 'static/home/app/img/thumbnails/airfield_app.png',
 								href: 'https://rtaa.maps.arcgis.com/apps/webappviewer/index.html?id=ff605fe1a736477fad9b8b22709388d1',
 								header: 'Airfield',
-								baseClass: 'card column-3 leader-2 trailer-2',
-								contents: 'View the Airfield Data'
+								baseClass: 'card column-4 leader-2 trailer-2',
+								contents: ''
 							};
 
 							var noise_app = {
 								id: "NoiseAppCard",
 								imgSrc: 'static/home/app/img/thumbnails/NoiseApp.png',
 								href: "https://gisapps.aroraengineers.com/bcad-noise-mit/",
-								header: 'Noise Mitigation App',
-								baseClass: 'card column-3 leader-2 trailer-2',
-								contents: 'View noise parcel documents and other Noise Mitigation data'
+								header: 'Noise Mitigation',
+								baseClass: 'card column-4 leader-2 trailer-2',
+								contents: ''
 							};
 
-							app.getGroups(ldap_url).then(function(e) {
-								var cards;
-								var test = Array.indexOf(e, 'GIS');
-								if (test !== -1) {
-									cards = [airspace_app, eDoc_app, airfield_app, noise_app];
-								} else {
-									cards = [airspace_app];
-								}
-								app.loadCards(Card, cards).then(function(e) {
-									console.log(e);
-								}, function(err) {
-									console.log(err);
-								});
+							
+							var cards;
+							var test = Array.indexOf(groups, 'GIS');
+							if (test !== -1) {
+								cards = [airspace_app, eDoc_app, airfield_app, noise_app];
+							} else {
+								cards = [airspace_app];
+							}
+							app.loadCards(Card, cards).then(function(e) {
+								console.log(e);
+							}, function(err) {
+								console.log(err);
 							});
+							
 						});
 		});
 
@@ -2285,7 +2226,7 @@ define([
 								imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
 								href: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
 								header: 'eDoc Rest API',
-								baseClass: 'card column-8 leader-1 trailer-2',
+								baseClass: 'card column-4 leader-1 trailer-2',
 								contents: 'Manage the eDoc Rest API'
 							}]).then(function(e) {
 								console.log(e);
@@ -2307,7 +2248,7 @@ define([
 							}
 							app.header = new PageBanner({
 								id: 'departments-banner',
-								baseClass: "sub-nav-title text-white page-banner",
+								baseClass: 'text-white font-size-4 page-banner',
 								title: "Airport Departments",
 								routes: [{
 									title: 'Engineering',
@@ -2383,7 +2324,7 @@ define([
 							}
 							app.header = new PageBanner({
 								id: 'web-resources-banner',
-								baseClass: 'sub-nav-title text-white page-banner',
+								baseClass: 'text-white font-size-4 page-banner',
 								title: 'Online Resource Library',
 								routes: [{
 									title: 'Live Data Feeds',
@@ -2417,7 +2358,7 @@ define([
 							}
 							app.header = new PageBanner({
 								id: 'help-banner',
-								baseClass: 'sub-nav-title text-white page-banner',
+								baseClass: 'text-white font-size-4 page-banner',
 								title: 'Help Documentation',
 								routes: [{
 									title: 'Technical Details',
@@ -2441,7 +2382,7 @@ define([
 
 		router.startup();
 		app.router = router;
-		
+		});
 		return app;
 
 });
@@ -14194,6 +14135,8 @@ define([
 				var deferred = new Deferred();
 				all([self.unloadBanner(), self.unloadContent()]).then(function(arr) {
 					deferred.resolve("page cleaned, ready for new page load");
+				}, function(err) {
+					deferred.cancel(err);
 				});
 				return deferred.promise;
 			},
@@ -14303,6 +14246,101 @@ define([
 					deferred.resolve("iframe-pane not found");
 				}
 				return deferred.promise;
+			},
+
+			buildTitleBar: function(evt) {
+				var self = this;
+				var deferred = new Deferred();
+				self.unloadSection().then(function(e) {
+				var pane;
+				if (registry.byId('header-pane') === undefined) {
+					pane = new ContentPane({
+						style: "display: flex",
+						id: 'header-pane'
+					}, 'headerPane');
+					pane.startup();
+				} else {
+					pane = registry.byId('header-pane');
+				}
+				
+				if (registry.byId('homepage-banner') === undefined) {
+					self.header = new HomepageBanner({
+						id: 'homepage-banner',
+						baseClass: 'sub-nav-title text-white leader-0 trailer-6 animate-fade-in',
+						title: 'Reno/Tahoe International Airport GIS Website'
+					});
+				} else {
+					self.header = registry.byId('homepage-banner');
+				}
+
+				pane.set('content', self.header);
+				deferred.resolve(pane);
+			}, function(err) {
+				console.log(err);
+				deferred.cancel(pane);
+			});
+				return deferred.promise;
+
+			},
+
+			buildGISPortal: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				self.unloadSection().then(function(e) {
+					try {
+						registry.byId('gisportal-banner').destroyRecursive();
+					} catch(err) {
+						console.log(err);
+					}
+					var node = query(".loader")[0];
+                  	domClass.add(node, 'is-active');
+					// if the user is admin, allow for browse data and backend api
+					
+					var routes;
+					domClass.remove(node, 'is-active');
+					var test = Array.indexOf(groups, 'GIS');
+					if (test !== -1) {
+						routes = [{
+								title: 'Dashboard',
+								href: '/#gisportal/dashboard'
+							}, {
+								title: 'Web Mapping Apps',
+								href: '/#gisportal/apps'
+							}, {
+								title: 'AGOL Browser',
+								href: '/#gisportal/gis-data-browse'
+							}, {
+								title: 'Backend Database APIs',
+								href: '/#gisportal/backend-apis'
+							}];
+					} else {
+						routes = [{
+								title: 'Dashboard',
+								href: '/#gisportal/dashboard'
+							}, {
+								title: 'Web Mapping Apps',
+								href: '/#gisportal/apps'
+							}];
+					}
+
+					self.header = new PageBanner({
+							id: 'gisportal-banner',
+							baseClass: 'text-white font-size-4 page-banner',
+							title: 'Geographic Information Systems',
+							routes: routes
+						});
+
+					
+					var pane = registry.byId('header-pane');
+					pane.set('content', self.header);
+					pane.resize();
+					deferred.resolve(pane.content);
+				}, function(err) {
+					console.log(err);
+					deferred.cancel(err);
+				});
+				return deferred.promise;
+
 			}
 		});
 	});
@@ -49227,8 +49265,8 @@ define(["require","exports"],function(e,o){o.Pos3=[{name:"position",count:3,type
 define(["require","exports"],function(o,e){e.Default3D={position:0,normal:1,uv0:2,color:3,instanceColor:3,size:4,auxpos1:5,auxpos2:6,region:7,model:8,modelNormal:12}});
 },
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n    <h1 class=\"${baseClass}\">${title}</h1>\r\n</div>\r\n",
-'url:app/templates/PageBanner_template.html':"<div class=\"grid-container\">\r\n  <div class=\"column-24\">\r\n    <h1 class=\"${baseClass}\">${title}</h1>\r\n    <form method=\"GET\" class=\"right\" action=\"/search/\">\r\n      <div class=\"search-bar right\">\r\n        <input type='search' placeholder='Search'>\r\n        <button type=\"submit\" class=\"search-submit icon-ui-search\"></button>\r\n      </div>\r\n    </form>\r\n    <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n      <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n      <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n\r\n    <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n    </nav>\r\n  </div>\r\n</div>\r\n",
-'url:app/templates/Card_template.html':"<div class=\"${baseClass}\">\r\n  <div class=\"card-header\" data-dojo-attach-point=\"headerNode\">${header}</div>\r\n  <div class=\"card-image\" data-dojo-attach-point=\"imageNode\">\r\n    <img src='${imgSrc}' alt='${header}'>\r\n  </div>\r\n  <div class=\"card-body\" data-dojo-attach-point=\"cardNode\">${contents}</div>\r\n</div>\r\n",
+'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <form method=\"GET\" class=\"right\" action=\"/search/\">\r\n        <div class=\"search-bar\">\r\n          <input type='search' placeholder='Search'>\r\n          <button type=\"submit\" class=\"search-submit icon-ui-search\"></button>\r\n        </div>\r\n      </form>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
+'url:app/templates/Card_template.html':"<div class=\"block-group block-group-4-up\">\r\n<div class=\"${baseClass}\">\r\n\t<figure class=\"card-image-wrap\">\r\n\t\t<img class=\"card-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t<h4>${header}</h4>\r\n\t\t</div>\r\n\t</figure>\r\n</div>\r\n",
 'url:app/ldap.json':"{\r\n\t\"url\": \"https://gisapps.aroraengineers.com:8004/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
