@@ -62,6 +62,7 @@ class HomePage(APIView):
 def user_groups(request, format=None):
     name = request.data.get('username')
     user_obj = User.objects.get(username=name)
+
     users_groups = user_obj.groups.all()
     if len(users_groups):
         return Response([x.name for x in users_groups])
