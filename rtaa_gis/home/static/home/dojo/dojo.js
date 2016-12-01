@@ -2161,7 +2161,7 @@ define([
 							var eDoc_app = {
 								id: "eDocAppCard",
 								imgSrc: 'static/home/app/img/thumbnails/eDoc_app.png',
-								href: 'https://gisapps.aroraengineers.com:3344/webappbuilder/apps/2/',
+								href: 'https://gisapps.aroraengineers.com/eDoc/',
 								header: 'eDoc Search Tool',
 								baseClass: 'card column-4 leader-2 trailer-2',
 								contents: ''
