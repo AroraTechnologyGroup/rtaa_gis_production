@@ -60,7 +60,11 @@ class HomePage(APIView):
 
 @api_view(['GET', 'POST'])
 def user_groups(request, format=None):
-    name = request.data.get('username')
+    name = request.user.username
+    # for testing, if username is '', set it to siteadmin
+    if name == '':
+        name = 'siteadmin'
+
     user_obj = User.objects.get(username=name)
 
     users_groups = user_obj.groups.all()

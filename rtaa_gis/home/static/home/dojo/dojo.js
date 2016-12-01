@@ -2087,7 +2087,13 @@ define([
 		var app = {};
 		lang.mixin(app, new namedFunctions());
 
-		var ldap_url = JSON.parse(ldapConfig).url;
+		var ldap_url;
+		if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
+			ldap_url = JSON.parse(ldapConfig).test_url;
+		} else {
+			ldap_url = JSON.parse(ldapConfig).production_url;
+		}
+	
 		var header_pane = new ContentPane({
 			id: "header-pane",
 			style: "top: 0"
@@ -14023,35 +14029,24 @@ define([
 
 			getGroups: function(url) {
 				var deferred = new Deferred();
-				// var user_list = query('.user-nav-name');
-				var user_list = ["siteadmin"];
-				if (user_list.length > 0) {
-					// var username = user_list[0].innerText;
-					var username = user_list[0];
-					(function() {
-						request(url, {
-							method: "POST",
-							preventCache: true,
-							handleAs: 'json',
-							data: {
-								'username': username,
-							},
-							headers: {
-					            "X-Requested-With": null,
-					            "X-CSRFToken": cookie('csrftoken')
-					        }
-						}).then(function(data) {
-							console.log(data);
-							deferred.resolve(data);
-						}, function(err) {
-							console.log(err);
-							deferred.cancel(err);
-						});
-					})();
-					
-				} else {
-					deferred.resolve(["anonymous"]); 
-				}
+				
+				(function() {
+					request(url, {
+						method: "POST",
+						preventCache: true,
+						handleAs: 'json',
+						headers: {
+				            "X-Requested-With": null,
+				            "X-CSRFToken": cookie('csrftoken')
+				        }
+					}).then(function(data) {
+						console.log(data);
+						deferred.resolve(data);
+					}, function(err) {
+						console.log(err);
+						deferred.cancel(err);
+					});
+				})();
 
 				return deferred.promise;
 			},
@@ -49410,7 +49405,7 @@ define(["require","exports"],function(o,e){e.Default3D={position:0,normal:1,uv0:
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n    <h1 class=\"${baseClass}\">${title}</h1>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <form method=\"GET\" class=\"right\" action=\"/search/\">\r\n        <div class=\"search-bar\">\r\n          <input type='search' placeholder='Search'>\r\n          <button type=\"submit\" class=\"search-submit icon-ui-search\"></button>\r\n        </div>\r\n      </form>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/templates/Card_template.html':"<div class=\"block-group block-group-4-up\">\r\n<div class=\"${baseClass}\">\r\n\t<figure class=\"card-image-wrap\">\r\n\t\t<img class=\"card-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t<h4>${header}</h4>\r\n\t\t</div>\r\n\t</figure>\r\n</div>\r\n",
-'url:app/ldap.json':"{\r\n\t\"url\": \"https://gisapps.aroraengineers.com:8004/groups/\"\r\n}",
+'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com:8004/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
