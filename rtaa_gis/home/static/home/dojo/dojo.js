@@ -14333,20 +14333,11 @@ define([
 					contents: ''
 				};
 
-				var airfield_app = {
-					id: "AirfieldAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/airfield_app.png',
-					href: 'https://rtaa.maps.arcgis.com/apps/webappviewer/index.html?id=ff605fe1a736477fad9b8b22709388d1',
-					header: 'Airfield',
-					baseClass: 'card column-4 leader-2 trailer-2',
-					contents: ''
-				};
-
-				var noise_app = {
-					id: "NoiseAppCard",
+				var property_app = {
+					id: "PropertyAppCard",
 					imgSrc: 'static/home/app/img/thumbnails/NoiseApp.png',
-					href: "https://gisapps.aroraengineers.com/bcad-noise-mit/",
-					header: 'Noise Mitigation',
+					href: "https://gisapps.aroraengineers.com/rtaa_property",
+					header: 'Airport Parcels/Property',
 					baseClass: 'card column-4 leader-2 trailer-2',
 					contents: ''
 				};
@@ -14355,7 +14346,7 @@ define([
 				var cards;
 				var test = Array.indexOf(groups, 'GIS_admin');
 				if (test !== -1) {
-					cards = [airspace_app, eDoc_app, airfield_app, noise_app];
+					cards = [airspace_app, eDoc_app, property_app];
 				} else {
 					cards = [airspace_app];
 				}
