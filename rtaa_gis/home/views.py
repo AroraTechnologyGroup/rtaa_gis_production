@@ -25,9 +25,12 @@ class HomePage(APIView):
     def get(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
+        try:
+            name = request.META['REMOTE_USER']
+        except KeyError:
+            name = request.user.username
 
-        name = request.user.username
-        # for testing, if username is '', set it to siteadmin
+        # for dev with dojo, if username is '', set it to siteadmin
         if name == '':
             name = 'siteadmin'
 
@@ -60,12 +63,18 @@ class HomePage(APIView):
                     # user_obj.save()
                 except Exception as e:
                     print(e)
+        final_groups = user_obj.groups.all()
+        resp.data = {"groups": final_groups}
         return resp
 
 
 @api_view(['GET', 'POST'])
 def user_groups(request, format=None):
-    name = request.user.username
+    try:
+        name = request.META['REMOTE_USER']
+    except KeyError:
+        name = request.user.username
+
     # for testing, if username is '', set it to siteadmin
     if name == '':
         name = 'siteadmin'
