@@ -14318,7 +14318,7 @@ define([
 				var airspace_app = {
 					id: "AirspaceAppCard",
 					imgSrc: 'static/home/app/img/thumbnails/airspace_app.png',
-					href: 'https://aroragis.maps.arcgis.com/apps/3DScene/index.html?appid=5f7bf59e212c4339a3ffda29315972be',
+					href: 'https://gisapps.aroraengineers.com/rtaa_airspace/',
 					header: 'Airspace',
 					baseClass: 'card column-4 leader-2 trailer-2',
 					contents: ''
