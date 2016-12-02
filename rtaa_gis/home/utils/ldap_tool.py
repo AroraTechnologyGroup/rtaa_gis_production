@@ -9,7 +9,7 @@ class LDAPQuery:
         perform queries on Active Directory or LDAP
     """
     def __init__(self, username, ldap_url):
-        self.username = username
+        self.username = username.split("\\")[-1]
         self.target_groups = ['GIS_admin', 'GIS_user', 'Utilities', 'Planning', 'Operations', 'Engineering']
         self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
 
