@@ -14117,7 +14117,7 @@ define([
 					self.header = new HomepageBanner({
 						id: 'homepage-banner',
 						baseClass: 'sub-nav-title text-white leader-0 trailer-6 animate-fade-in',
-						title: 'Reno/Tahoe International Airport GIS Website'
+						title: 'Reno-Tahoe Airport Authority GIS Website'
 					});
 				} else {
 					self.header = registry.byId('homepage-banner');
