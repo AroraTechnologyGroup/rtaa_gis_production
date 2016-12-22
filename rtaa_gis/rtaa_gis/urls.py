@@ -24,6 +24,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include('home.urls')),
+    url(r'^cloudSync/', include('cloudSync.urls')),
     url(r'^edoc/', include('fileApp.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

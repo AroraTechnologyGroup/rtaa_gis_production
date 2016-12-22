@@ -17,7 +17,6 @@ class OpenOfficeConverter:
         p.wait()
 
     def convert(self):
-        # type: () -> object
         p = subprocess.Popen([open_office_python_path, src_file, self.in_path], stdout=PIPE)
         response = HttpResponse(content_type='application/pdf')
         response.write(p.stdout.read())
