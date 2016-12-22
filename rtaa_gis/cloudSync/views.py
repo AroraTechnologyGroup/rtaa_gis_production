@@ -10,7 +10,7 @@ from .utils.SearchTool import SearchTool
 import json
 
 
-# Create your views here.
+# Create your views here
 class ViewLayers(APIView):
     renderer_classes = (TemplateHTMLRenderer,)
     template = r'cloudSync\OnlineLayers.html'
