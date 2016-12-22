@@ -12,8 +12,9 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n rtaa_gis python=$TRAVIS_PYTHON_VERSION arcgis
+  - conda create -q -n rtaa_gis python=$TRAVIS_PYTHON_VERSION
   - source activate rtaa_gis
+  - conda install -n rtaa_gis -c esri arcgis
   - pip install -r rtaa_gis/requirements.txt
 script:
   python rtaa_gis/runtests.py
