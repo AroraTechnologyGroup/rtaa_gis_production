@@ -2152,7 +2152,7 @@ define([
 
 		});
 
-		router.register("gisportal/gis-data-browse", function(evt) {
+		router.register("gisportal/published-layers", function(evt) {
 			evt.preventDefault();
 			console.log("loading "+evt.newPath);
 			app.buildGISPortal(evt, groups).then(function(e) {
@@ -2163,7 +2163,7 @@ define([
 
 		});
 
-		router.register("gisportal/backend-apis", function(evt) {
+		router.register("gisportal/publishing-tools", function(evt) {
 			evt.preventDefault();
 			console.log("loading "+evt.newPath);
 			app.buildGISPortal(evt, groups).then(function(e) {
@@ -14079,6 +14079,21 @@ define([
 					domStyle.set(pane.domNode, "height", "90vh");
 					});
 				});
+				var target = query(".top-nav-list")[0];
+
+				var node = domConstruct.create("button", {
+					class: "btn-green",
+					innerHTML: "back to apps"
+				}, target);
+
+				on(node, 'click', function(e) {
+					self.unloadIframe().then(function(e) {
+						self.buildApps().then(function(e) {
+							console.log(e);
+							node.destroy();
+						});
+					});
+				});
 			},
 
 			unloadIframe: function() {
@@ -14116,8 +14131,8 @@ define([
 				if (registry.byId('homepage-banner') === undefined) {
 					self.header = new HomepageBanner({
 						id: 'homepage-banner',
-						title: 'Reno-Tahoe Airport Authority',
-						subtitle: 'Web Framework App'
+						baseClass: 'sub-nav-title text-white leader-0 trailer-6 animate-fade-in',
+						title: 'Reno/Tahoe International Airport GIS Website'
 					});
 				} else {
 					self.header = registry.byId('homepage-banner');
@@ -14159,11 +14174,11 @@ define([
 					var test = Array.indexOf(groups, 'GIS_admin');
 					if (test !== -1) {
 						routes.push({
-								title: 'AGOL Browser',
-								href: '/#gisportal/gis-data-browse'
+								title: 'Data Viewer',
+								href: '/#gisportal/published-layers'
 							}, {
-								title: 'Backend Database APIs',
-								href: '/#gisportal/backend-apis'
+								title: 'Publishing Tools',
+								href: '/#gisportal/publishing-tools'
 							});
 					} 
 
@@ -14307,7 +14322,8 @@ define([
 				var self = this;
 				var deferred = new Deferred();
 				if (registry.byId('gisportal-banner') !== undefined) {
-					var nodeList = query("h1", 'gisportal-banner');
+					var t = dom.byId('gisportal-banner');
+					var nodeList = query("h1", t);
 					nodeList[0].innerText = "Geospatial Applications";
 					registry.byId('gisportal-banner').set('title', 'Geospatial Applications');
 					deferred.progress(nodeList[0]);
@@ -14333,11 +14349,21 @@ define([
 					contents: ''
 				};
 
+				var airfield_app = {
+					id: "AirfieldAppCard",
+					imgSrc: 'static/home/app/img/thumbnails/airfield_app.png',
+					href: 'https://gisapps.aroraengineers.com/rtaa_airfield/',
+					header: 'Airfield',
+					baseClass: 'card column-4 leader-2 trailer-2',
+					contents: ''
+				};
+
 				var property_app = {
 					id: "PropertyAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/NoiseApp.png',
-					href: "https://gisapps.aroraengineers.com/rtaa_property",
-					header: 'Airport Parcels/Property',
+					imgSrc: 'static/home/app/img/thumbnails/property_app.png',
+					href: 'https://gisapps.aroraengineers.com/rtaa_property/',
+					header: 'Parcel, Easement, and Leases',
+
 					baseClass: 'card column-4 leader-2 trailer-2',
 					contents: ''
 				};
@@ -14346,9 +14372,9 @@ define([
 				var cards;
 				var test = Array.indexOf(groups, 'GIS_admin');
 				if (test !== -1) {
-					cards = [airspace_app, eDoc_app, property_app];
+					cards = [airspace_app, eDoc_app, airfield_app, property_app];
 				} else {
-					cards = [airspace_app];
+					cards = [airspace_app, airfield_app, property_app];
 				}
 				self.loadCards(Card, cards).then(function(e) {
 					console.log(e);
@@ -14365,11 +14391,23 @@ define([
 				var deferred = new Deferred();
 				if (registry.byId('gisportal-banner') !== undefined) {
 					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Browse GIS Data';
-					registry.byId('gisportal-banner').set('title', 'Browse GIS Data');
+					nodeList[0].innerText = 'Admin: Published Layers';
+					registry.byId('gisportal-banner').set('title', 'Admin: Published Layers');
 				}
-
-				deferred.resolve("no code written for this method");
+				self.loadCards(Card, [{
+					id: "Data Viewer",
+					imgSrc: 'static/home/app/img/thumbnails/data_viewer.png',
+					href: 'https://gisapps.aroraengineers.com/rtaa_data_viewer',
+					header: 'Data Viewer',
+					baseClass: 'card column-4 leader-1 trailer-2',
+					contents: 'View Published Layers from AGOL'
+				}]).then(function(e) {
+					console.log(e);
+					deferred.resolve(e);
+				}, function(err) {
+					console.log(err);
+					deferred.cancel(err);
+				});
 				return deferred.promise;
 			},
 
@@ -14379,8 +14417,8 @@ define([
 				var deferred = new Deferred();
 				if (registry.byId('gisportal-banner') !== undefined) {
 					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Backend APIs';
-					registry.byId('gisportal-banner').set('title', 'Backend APIs');
+					nodeList[0].innerText = 'Admin: Inspect GDB / Publish Layers';
+					registry.byId('gisportal-banner').set('title', 'Admin: Inspect GDB / Publish Layers');
 				}
 				self.loadCards(Card, [{
 					id: "eDoc Rest API",
@@ -14672,11 +14710,13 @@ define([
   return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
     templateString: template,
     options: {
+      baseClass: null,
       title: null
     },
 
     constructor: function(options) {
       declare.safeMixin(this.options, options);
+      this.set("baseClass", this.options.baseClass);
       this.set("title", this.options.title);
     },
 
@@ -17773,14 +17813,15 @@ define([
   return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
     templateString: template,
     options: {
+      baseClass: null,
       title: null,
       routes: []
     },
     constructor: function(options) {
       this.inherited(arguments);
       declare.safeMixin(this.options, options);
+      this.set("baseClass", this.options.baseClass);
       this.set("title", this.options.title);
-      this.set("subtitle", this.options.subtitle);
       this.set("routes", this.options.routes);
     },
     postCreate: function() {
@@ -49391,8 +49432,8 @@ define(["require","exports"],function(e,o){o.Pos3=[{name:"position",count:3,type
 
 define(["require","exports"],function(o,e){e.Default3D={position:0,normal:1,uv0:2,color:3,instanceColor:3,size:4,auxpos1:5,auxpos2:6,region:7,model:8,modelNormal:12}});
 },
-'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
-'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <form method=\"GET\" class=\"right\" action=\"/search/\">\r\n        <div class=\"search-bar\">\r\n          <input type='search' placeholder='Search'>\r\n          <button type=\"submit\" class=\"search-submit icon-ui-search\"></button>\r\n        </div>\r\n      </form>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
+'url:app/templates/HomepageBanner_template.html':"<div>\r\n    <h1 class=\"${baseClass}\">${title}</h1>\r\n</div>\r\n",
+'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      \r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/templates/Card_template.html':"<div class=\"block-group block-group-4-up\">\r\n<div class=\"${baseClass}\">\r\n\t<figure class=\"card-image-wrap\">\r\n\t\t<img class=\"card-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t<h4>${header}</h4>\r\n\t\t</div>\r\n\t</figure>\r\n</div>\r\n",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com:8004/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
