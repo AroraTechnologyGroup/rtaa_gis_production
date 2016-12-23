@@ -21,6 +21,11 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Application definition
+ROOT_URLCONF = r'rtaa_gis.urls'
+LOGIN_URL = r'login/'
+LOGIN_REDIRECT_URL = r'/'
+
 FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
@@ -33,13 +38,17 @@ EMAIL_HOST = "aspmx.l.google.com"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
+
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1", ".aroraengineers.com"]
+# Leave these commented out for testing
+# CSRF_TRUSTED_ORIGINS = ["localhost", "127.0.0.1:8080", "gisapps.aroraengineers.com"]
+# CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERER = False
 CORS_ORIGIN_ALLOW_ALL = True
+
 CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'content-type',
@@ -47,25 +56,34 @@ CORS_ALLOW_HEADERS = (
     'accept',
     'origin',
     'authorization',
-    'x-csrftoken'
+    'x-csrftoken',
 )
 
 CORS_EXPOSE_HEADERS = (
+    'x-requested-with',
+    'content-type',
     'content-range',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
 )
 
+ALLOWED_HOSTS = [
+    'gisapps.aroraengineers.com',
+    'localhost',
+    '127.0.0.1'
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CORS_ALLOW_CREDENTIALS = False
-    CORS_REPLACE_HTTPS_REFERER = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CORS_REPLACE_HTTPS_REFERER = False
     CORS_ORIGIN_ALLOW_ALL = False
-
-ALLOWED_HOSTS = ['gisapps.aroraengineers.com', 'localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -74,32 +92,32 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'rest_framework_swagger',
     'crispy_forms',
-    'oauth2_provider',
-    'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
     'fileApp.apps.FileAppConfig',
-    'home.apps.HomeConfig'
+    'home.apps.HomeConfig',
+    'cloudSync.apps.CloudsyncConfig'
 ]
 
 AUTHENTICATION_BACKENDS = (
-    'oauth2_provider.backends.OAuth2Backend',
     'django.contrib.auth.backends.RemoteUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    #'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'corsheaders.middleware.CorsPostCsrfMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.PersistentRemoteUserMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    #'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -108,7 +126,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -171,10 +189,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-OAUTH2_PROVIDER = {
-    # this is the list of available scopes
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
-}
 
 REST_FRAMEWORK = {
 
@@ -183,7 +197,8 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
+        # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_FILTER_BACKENDS': (
         'rest_framework.filters.OrderingFilter',
@@ -194,7 +209,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
+        'rest_framework.authentication.TokenAuthentication',
         #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
@@ -218,12 +233,12 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'INFO',
+            'level': 'DEBUG',
             'formatter': 'standard'
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "INFO",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -231,13 +246,18 @@ LOGGING = {
         }
     },
     'loggers': {
-        '_fileApp': {
+        'fileApp': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propogate': True
+        },
+        'home': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propogate': True
         },
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'INFO'
         }
     },
@@ -255,8 +275,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-# Application definition
-ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = r'/'

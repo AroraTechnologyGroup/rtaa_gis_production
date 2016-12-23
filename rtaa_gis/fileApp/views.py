@@ -1,83 +1,51 @@
 import os
 import sys
-import platform
-if platform.system() == 'Windows':
-    import win32com.client
-    import pythoncom
 import logging
 import traceback
-
 from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
 from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
 from .models import FileModel, GridCell, Assignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route, permission_classes, api_view
+from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
 from rest_framework.permissions import AllowAny
+from rest_framework.reverse import reverse_lazy
+from rest_framework import response, schemas
+from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
+
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
-from utils import buildDocStore
-from utils import WatchDogTrainer
-from utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
-from utils.OOoConversion import OpenOfficeConverter
+from .utils import buildDocStore
+from .utils import WatchDogTrainer
+from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
+from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
-from django.shortcuts import render
-from django.template import RequestContext
-
-from django.contrib.auth.forms import (
-    AuthenticationForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm,
-)
-from django.contrib.auth import (
-    REDIRECT_FIELD_NAME, get_user_model, login as auth_login,
-    logout as auth_logout, update_session_auth_hash,
-)
-from django.utils.http import is_safe_url, urlsafe_base64_decode
-from django.http import HttpResponseRedirect, QueryDict
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.response import TemplateResponse
-from django.shortcuts import resolve_url
-from django.conf import settings
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.cache import never_cache
-from django.views.decorators.debug import sensitive_post_parameters
-from django.contrib.auth.views import deprecate_current_app
-from django.contrib.auth import authenticate, login
+
 from PIL import Image
+import platform
+if platform.system() == 'Windows':
+    import win32com.client
+    import pythoncom
+
 
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
 
 
+@api_view()
+@renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
+def schema_view(request):
+    generator = schemas.SchemaGenerator(title='eDoc API')
+    return response.Response(generator.get_schema(request=request))
+
+
 def log_traceback():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
-
-
-@api_view(['GET', 'POST'])
-@permission_classes((AllowAny,))
-@ensure_csrf_cookie
-def dojo_login(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                response = HttpResponse(content_type='application/json')
-                response.write(request)
-                return response
-
-    if request.method == 'GET':
-
-        context = {
-            'next': LOGIN_REDIRECT_URL,
-            'form': AuthenticationForm(request),
-            'login': LOGIN_URL
-        }
-        return render(request, template_name="fileApp/dojo_login.html", context=context)
 
 
 def create_response_object(in_path, extension):
@@ -163,6 +131,7 @@ def create_response_object(in_path, extension):
     return response
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class IOViewSet(viewsets.ViewSet):
     """This view is used to download files"""
     # TODO group download file requests into a zip file
@@ -183,14 +152,19 @@ class IOViewSet(viewsets.ViewSet):
             response = HttpResponse(fp.read(), content_type=mime_type)
             response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
             return response
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['post'])
     def _upload(self, request):
         """TODO - upload files"""
         if request.user.is_authenticated():
             return
+        else:
+            return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class FileViewSet(viewsets.ModelViewSet):
     """This view returns all of the files without pagination, use this view
     to manage the client-side data stores"""
@@ -206,8 +180,11 @@ class FileViewSet(viewsets.ModelViewSet):
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
     queryset = FileModel.objects.all()
@@ -226,17 +203,22 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             file_path = file_obj[0].file_path.replace("\\", '/')
             response = create_response_object(file_path, extension)
             return response
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _build(self, request):
         """Traverse through the list of paths in the buildDocStore.py file and build the sqlite db"""
         if request.user.is_authenticated():
-            # TODO create return from File Store Builder with statistics to render in response
+            # TODO streaming http response to update a chart showing statistics of created file object types
             trainer.stop_monitors()
             tool = buildDocStore.FileStoreBuilder()
             tool.build_store()
             trainer.start_monitors()
             return Response("build successful")
+
+        else:
+            return redirect(reverse('home:login'))
 
     @detail_route(methods=['get',])
     def _delete(self, request, pk=None):
@@ -247,6 +229,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             if os.path.exists(path):
                 _file.delete()
                 return Response("{} has been deleted".format(path))
+        else:
+            return redirect(reverse('home:login'))
 
     @detail_route(methods=['get',])
     def _grids(self, request, pk=None):
@@ -256,6 +240,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _clean(self, request):
@@ -267,6 +253,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
             tool.clean_store()
             trainer.start_monitors()
             return Response("The Store has been cleaned")
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _stop_monitors(self, request):
@@ -274,6 +262,8 @@ class PagedFileViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated():
             x = trainer.stop_monitors()
             return Response(x)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _start_monitors(self, request):
@@ -281,8 +271,11 @@ class PagedFileViewSet(viewsets.ModelViewSet):
         if request.user.is_authenticated():
             x = trainer.start_monitors()
             return Response(x)
+        else:
+            return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class GridViewSet(viewsets.ModelViewSet):
     """Grid Cells within the ArcGIS Online Map Grid"""
     queryset = GridCell.objects.all()
@@ -297,6 +290,8 @@ class GridViewSet(viewsets.ModelViewSet):
             file_models = [x.file for x in queryset]
             serializer = FileSerializer(file_models, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
     @list_route()
     def _build(self, request):
@@ -307,8 +302,11 @@ class GridViewSet(viewsets.ModelViewSet):
             grids = GridCell.objects.all()
             serializer = GridSerializer(grids, many=True)
             return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class AssignmentViewSet(viewsets.ModelViewSet):
     """This view is used to manage the assignments of files to grid cells"""
     # TODO - verify that duplicate assignments are not supported
@@ -317,13 +315,64 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
 
-    @detail_route(methods=['post'])
-    def _clean(self, request, pk=None):
+    @list_route(methods=['post', ])
+    def _delete(self, request):
         """Remove the specified assignment object"""
-        if request.user.is_authenticated():
-            obj = Assignment.objects.get(pk=str(pk))
-            obj.delete()
-            return Response({"status": "deleted"})
+        data = request.POST['files']
+        if "," in data:
+            file_pks = data.split(",")
+        else:
+            file_pks = [data]
+        cell_value = request.POST['grid_cell']
+        grid_cell = GridCell.objects.get(pk=cell_value)
+        pre_assignments = len(Assignment.objects.all())
 
+        for x in file_pks:
+            file = FileModel.objects.get(pk=x)
+            obj = Assignment.objects.filter(file=file).filter(grid_cell=grid_cell)
+            for x in obj:
+                x.delete()
 
+        post_assignments = len(Assignment.objects.all())
 
+        resp = {}
+        num_removed = pre_assignments - post_assignments
+
+        if num_removed > 0:
+            if num_removed == len(file_pks):
+                resp['status'] = True
+            else:
+                resp['status'] = "{} of {} assignments were removed".format(
+                    num_removed, len(file_pks))
+        else:
+            resp['status'] = False
+        return Response(resp)
+
+    @list_route(methods=['post', ])
+    def _create(self, request):
+        """Create assignment from the list of files and the grid cell on the Post request"""
+        file_pks = request.POST['files'].split(",")
+        cell_value = request.POST['grid_cell']
+
+        pre_assignments = len(Assignment.objects.all())
+
+        new_assignments = list()
+
+        for x in file_pks:
+            file = FileModel.objects.get(pk=x)
+            grid = GridCell.objects.get(pk=cell_value)
+            kwargs = dict()
+            kwargs['file'] = file
+            kwargs['grid_cell'] = grid
+            base_name = FileModel.objects.get(pk=x).base_name
+            kwargs['base_name'] = base_name
+            assign = Assignment.objects.create(**kwargs)
+            new_assignments.append(assign.pk)
+
+        post_assignments = len(Assignment.objects.all())
+        if post_assignments > pre_assignments:
+            assignments = Assignment.objects.filter(pk__in=new_assignments)
+            serializer = AssignmentSerializer(assignments, many=True, context={'request': request})
+            return Response(serializer.data)
+        else:
+            return Response({"status": "Assignments were not created!"})

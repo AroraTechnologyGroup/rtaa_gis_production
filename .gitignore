@@ -1,3 +1,4 @@
+*.coverage
 *.pyc
 *.suo
 *.sln
@@ -14,7 +15,7 @@ pip-selfcheck.json
 rtaa_gis/web.config
 rtaa_gis/web.debug.config
 .idea/
-*/logs/
+**/logs/
 rtaa_gis/fileApp/static/fileApp/pdfjs/
 **/venv/
 rtaa_gis/static/
@@ -22,5 +23,4 @@ rtaa_gis/media/
 **/node_modules/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
-call_deploy.py
-**/utils/deploy.py
+**/fixtures/data/
