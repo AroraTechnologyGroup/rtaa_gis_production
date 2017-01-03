@@ -110,4 +110,6 @@
     {% endif %}
 {% endblock %}
 
-{% include 'home/scripts.html' %}
+{% block scripts %}
+    {% include 'home/home_scripts.html' %}
+{% endblock %}

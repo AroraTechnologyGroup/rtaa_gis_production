@@ -1,5 +1,6 @@
 import ldap3
 from ldap3 import Server, Connection, ALL, NTLM, SUBTREE
+from django.contrib.auth.models import User, Group
 import logging
 
 
@@ -11,6 +12,11 @@ class LDAPQuery:
     def __init__(self, username, ldap_url):
         self.username = username.split("\\")[-1]
         self.target_groups = ['GIS_admin', 'GIS_user', 'Utilities', 'Planning', 'Operations', 'Engineering']
+        for group in self.target_groups:
+            try:
+                Group.objects.get(name=group)
+            except Group.DoesNotExist:
+                Group.objects.create(name=group)
         self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
 
     def get_groups(self):

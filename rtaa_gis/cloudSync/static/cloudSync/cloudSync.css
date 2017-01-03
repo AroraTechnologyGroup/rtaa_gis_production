@@ -13,3 +13,111 @@ html, body {
     border: 0;
     padding: 0;
 }
+
+
+td {
+    text-align: center;
+    padding: 10px;
+    border-right: 1px dashed black;
+}
+
+tr {
+    display: table-row-group;
+    border-bottom: 1px solid black;
+
+}
+
+tbody {
+    display:table;
+    border-collapse:collapse;
+}
+
+.maintable {
+    display: none;
+    border-collapse: collapse;
+    overflow: scroll;
+    margin-left: 5px;
+    margin-right: auto;
+    border: 2px solid black;
+}
+
+.maintable th{
+    border-right: 1px dashed black;
+    padding: 5px;
+    font-size: large;
+}
+
+.maintable td {
+    font-size: small;
+}
+
+.rowtable  {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.rowtable th{
+    border:none;
+}
+
+.rowtable  td{
+    text-align: justify;
+    border: 1px solid black;
+}
+
+.dataset {
+    display: none;
+    border-collapse:collapse;
+    overflow: scroll;
+    margin-left: 5px;
+    margin-right: auto;
+    border: 2px solid black;
+}
+
+.dataset th {
+    border-right: 1px dashed black;
+    padding: 5px;
+    font-size: large;
+}
+
+.dataset td {
+    font-size: small;
+}
+
+.fctable {
+    border-collapse: collapse;
+    display:none;
+    padding: 0px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+    border: 2px solid black;
+}
+
+.fieldtable {
+    border-collapse: collapse;
+    display:none;
+    border-right: 1px solid black;
+}
+
+.fieldtable th {
+    font-size: large;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+}
+
+.fieldtable td {
+    font-size: small;
+    background-color: WindowFrame;
+    border: 1px solid black;
+}
+
+button {
+    padding: 5px;
+    margin:5px;
+
+}
+
+fc_buttons {
+    display: none;
+}
