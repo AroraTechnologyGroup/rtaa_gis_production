@@ -64,8 +64,8 @@ CORS_EXPOSE_HEADERS = (
 )
 
 ALLOWED_HOSTS = [
-    'gisapps.aroraengineers.com:8004',
-    'localhost:3003',
+    'gisapps.aroraengineers.com',
+    'localhost',
     '127.0.0.1'
 ]
 
