@@ -7,10 +7,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from rest_framework.permissions import AllowAny
 from .utils.ldap_tool import LDAPQuery
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 import logging
 
 logger = logging.getLogger(__package__)
@@ -89,3 +90,9 @@ def user_groups(request, format=None):
         return Response(['anonymous'])
 
 
+# @api_view(['GET', 'POST'])
+# def dojo_login(request, format=None):
+#     user = request.META['REMOTE_USER']
+#     logger.log(0, user)
+#     login(request, user, backend='django.contrib.auth.backends.RemoteUserBackend')
+#     return Response(user)
