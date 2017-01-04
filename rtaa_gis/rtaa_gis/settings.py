@@ -44,7 +44,6 @@ SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = ['gisapps.aroraengineers.com:8004']
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
-
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
@@ -64,15 +63,20 @@ CORS_EXPOSE_HEADERS = (
     'x-csrftoken',
 )
 
+ALLOWED_HOSTS = [
+    'gisapps.aroraengineers.com:8004',
+    'localhost:3003',
+    '127.0.0.1'
+]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CORS_REPLACE_HTTPS_REFERRER = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CORS_REPLACE_HTTPS_REFERER = False
     CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
