@@ -42,16 +42,21 @@ SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
-CSRF_TRUSTED_ORIGINS = ['gisapps.aroraengineers.com:8004']
+CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'https://localhost:3003/')
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
-
-CORS_ALLOW_HEADERS = (
-    'content-range',
+CORS_ORIGIN_WHITELIST = (
+    'gisapps.aroraengineers.com',
+    'localhost:3003',
+    'gisapps.aroraengineers.com:8004',
+    'localhost:3344',
 )
+# CORS_ALLOW_HEADERS = (
+#     # 'content-range',
+# )
 
 CORS_EXPOSE_HEADERS = (
     'x-requested-with',
@@ -242,17 +247,17 @@ LOGGING = {
     'loggers': {
         'fileApp': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propogate': True
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': 'DEBUG',
             'propogate': True
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'INFO'
+            'level': 'DEBUG'
         }
     },
 }
