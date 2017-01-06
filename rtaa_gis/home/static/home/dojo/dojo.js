@@ -2091,9 +2091,9 @@ define([
 		var ldap_config = JSON.parse(ldapConfig);
 		if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
 			ldap_url = ldap_config.test_url;
-		} else if (window.location.hostname === "gisapps.aroraengineers.com") {
+		} else if (window.location.port === "443") {
 			ldap_url = ldap_config.production_url;
-		} else if (window.location.hostname === "gisapps.aroraengineers.com:8004") {
+		} else if (window.location.port === "8004") {
 			ldap_url = ldap_config.staging_url;
 		}
 	
