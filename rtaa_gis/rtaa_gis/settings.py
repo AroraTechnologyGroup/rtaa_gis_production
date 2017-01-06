@@ -47,7 +47,7 @@ CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'https://localhost:30
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'gisapps.aroraengineers.com',
     'localhost:3003',
