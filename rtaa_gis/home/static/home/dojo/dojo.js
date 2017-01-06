@@ -2088,12 +2088,13 @@ define([
 		lang.mixin(app, new namedFunctions());
 
 		var ldap_url;
+		var ldap_config = JSON.parse(ldapConfig);
 		if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
-			ldap_url = JSON.parse(ldapConfig).test_url;
-		} else if (window.location.hostname === JSON.parse(ldapConfig).production_url) {
-			ldap_url = JSON.parse(ldapConfig).production_url;
-		} else if (window.location.hostname === JSON.parse(ldapConfig).staging_url) {
-			ldap_url = JSON.parse(ldapConfig).staging_url;
+			ldap_url = ldap_config.test_url;
+		} else if (window.location.hostname === "gisapps.aroraengineers.com") {
+			ldap_url = ldap_config.production_url;
+		} else if (window.location.hostname === "gisapps.aroraengineers.com:8004") {
+			ldap_url = ldap_config.staging_url;
 		}
 	
 		var header_pane = new ContentPane({
