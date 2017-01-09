@@ -99,10 +99,12 @@ class FClassViewSet(viewsets.ModelViewSet):
 
             try:
                 existing_gdb = GDB.objects.get(catalogPath=kwargs["catalogPath"])
-                existing_gdb.update(**kwargs)
+                for x in kwargs:
+                    existing_gdb.x = kwargs[x]
                 existing_gdb.save()
             except GDB.DoesNotExist:
-                GDB.objects.create(**kwargs)
+                entry = GDB.objects.create(**kwargs)
+                entry.save()
 
             datasets = item["datasets"]
             for dset in datasets:
@@ -114,7 +116,15 @@ class FClassViewSet(viewsets.ModelViewSet):
                     "spatialReference": dset["spatialReference.name"],
                     "children": dset["children"]
                 }
-                FeatureDataset.objects.create(**kwargs)
+
+                try:
+                    fd = FeatureDataset.objects.get(baseName = kwargs["baseName"])
+                    for x in kwargs:
+                        fd.x = kwargs[x]
+                    fd.save()
+                except fd.DoesNotExist:
+                    entry = FeatureDataset.objects.create(**kwargs)
+                    entry.save()
 
                 for fc in dset["feature_classes"]:
                     kwargs = {
@@ -128,9 +138,16 @@ class FClassViewSet(viewsets.ModelViewSet):
                         "shapeFieldName": fc["shapeFieldName"],
                         "shapeType": fc["shapeType"]
                     }
-                    FeatureClass.objects.create(**kwargs)
+                    try:
+                        fc = FeatureClass.objects.get(catalogPath=kwargs['catalogPath'])
+                        for x in kwargs:
+                            fc.x = kwargs[x]
+                        fc.save()
+                    except fc.DoesNotExist:
+                        entry = FeatureClass.objects.create(**kwargs)
+                        entry.save()
 
-            return Response(conv2)
+            return Response(item)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
