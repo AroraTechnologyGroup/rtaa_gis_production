@@ -66,6 +66,7 @@ class HomePage(APIView):
                 except Exception as e:
                     print(e)
         final_groups = user_obj.groups.all()
+        final_groups = [x.name for x in final_groups]
         resp.data = {"groups": final_groups}
         return resp
 
