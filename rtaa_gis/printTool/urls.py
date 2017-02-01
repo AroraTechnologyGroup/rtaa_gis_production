@@ -4,7 +4,7 @@ from django.conf.urls import url
 
 router = routers.DefaultRouter()
 urlpatterns = [
-    url(r'submitJob', views.print_map),
+    url(r'execute', views.print_map),
 ]
 
 urlpatterns += router.urls
