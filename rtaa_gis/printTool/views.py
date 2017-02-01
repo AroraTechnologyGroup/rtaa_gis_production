@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 import logging
 import os
 import arcgis
@@ -6,11 +6,14 @@ from arcgis import mapping
 from rtaa_gis.settings import MEDIA_ROOT
 from io import BytesIO
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import HttpResponse
 from django.core.files import File
 from datetime import datetime
 import mimetypes
 import json
+from rest_framework_jsonp.renderers import JSONPRenderer
 
 logger = logging.getLogger(__package__)
 
@@ -21,6 +24,9 @@ gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
 
 # Create your views here.
 @api_view(['GET', 'POST'])
+@renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
 def print_map(request, format=None):
     data = request.POST
     webmap = data['Web_Map_as_JSON']
@@ -59,7 +65,7 @@ def print_map(request, format=None):
         "messages": [],
         "results": [{
             "value": {
-                "url": "http://127.0.0.1:8080/media/{}".format(full_name)
+                "url": "https://gisapps.aroraengineers.com:8004/media/{}".format(full_name)
             },
             "paramName": "Output_File",
             "dataType": "GPDataFile"
