@@ -16,6 +16,8 @@ from django.urls import reverse
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
+APPEND_SLASH = False
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -99,7 +101,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'fileApp.apps.FileAppConfig',
     'home.apps.HomeConfig',
-    'cloudSync.apps.CloudsyncConfig'
+    'cloudSync.apps.CloudsyncConfig',
+    'printTool.apps.PrinttoolConfig'
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -247,17 +250,22 @@ LOGGING = {
     'loggers': {
         'fileApp': {
             'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propogate': True
+        },
+        'printTool': {
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propogate': True
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propogate': True
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG'
+            'level': 'INFO'
         }
     },
 }

@@ -24,6 +24,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include('home.urls')),
+    url(r'^print/', include('printTool.urls')),
     url(r'^cloudSync/', include('cloudSync.urls')),
     url(r'^edoc/', include('fileApp.urls')),
     url(r'^admin/', include(admin.site.urls)),
