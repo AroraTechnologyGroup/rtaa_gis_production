@@ -24,7 +24,6 @@ gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
 
 # Create your views here.
 @api_view(['GET', 'POST'])
-@renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_map(request, format=None):
