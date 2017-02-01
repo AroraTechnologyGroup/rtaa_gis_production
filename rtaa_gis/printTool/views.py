@@ -1,9 +1,12 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes, authentication_classes
+from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
 import os
 import arcgis
 from arcgis import mapping
 from rtaa_gis.settings import MEDIA_ROOT
+from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import ensure_csrf_cookie
 from io import BytesIO
 from rest_framework.response import Response
 from django.http import HttpResponse
@@ -21,6 +24,9 @@ gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
 
 # Create your views here.
 @api_view(['GET', 'POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
 def print_map(request, format=None):
     data = request.POST
     webmap = data['Web_Map_as_JSON']
