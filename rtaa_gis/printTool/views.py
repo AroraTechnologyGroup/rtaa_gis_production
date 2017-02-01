@@ -1,8 +1,16 @@
 from rest_framework.decorators import api_view
 import logging
-from rest_framework.response import Response
+import os
 import arcgis
 from arcgis import mapping
+from rtaa_gis.settings import MEDIA_ROOT
+from io import BytesIO
+from rest_framework.response import Response
+from django.http import HttpResponse
+from django.core.files import File
+from datetime import datetime
+import mimetypes
+import json
 
 logger = logging.getLogger(__package__)
 
@@ -21,6 +29,40 @@ def print_map(request, format=None):
     data = mapping.export_map(web_map_as_json=webmap, format=format,
                        layout_template=layout_template,
                        gis=gis)
-    resp = Response()
-    resp.data = data.url
-    return resp
+    file = data.download(MEDIA_ROOT)
+    file_name = os.path.basename(file)
+
+    os.chdir(MEDIA_ROOT)
+    mime_type = mimetypes.guess_type(file)
+    extension = file.split(".")[-1]
+    base_name = "GISViewer_export"
+    full_name = "{}.{}".format(base_name, extension)
+    if os.path.exists(full_name):
+        full_name = "{}_1.{}".format(base_name, extension)
+        if os.path.exists(full_name):
+            i = False
+            while not i:
+                splits = full_name.split("_")
+                full_name = "{}_{}.{}".format(base_name, int(splits[-1].split('.')[0]) + 1, extension)
+                if not os.path.exists(full_name):
+                    i = True
+
+
+    try:
+        os.rename(file_name, full_name)
+    except OSError:
+        logging.error("printed map unable to be saved")
+
+    response = Response()
+    # This format must be identical to the DataFile object returned by the esri print examples
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": "http://127.0.0.1:8080/media/{}".format(full_name)
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
+    return response
