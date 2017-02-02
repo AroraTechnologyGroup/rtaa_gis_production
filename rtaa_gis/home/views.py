@@ -10,9 +10,10 @@ from .utils.ldap_tool import LDAPQuery
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
 from django.utils.decorators import method_decorator
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__package__)
 
@@ -91,9 +92,11 @@ def user_groups(request, format=None):
         return Response(['anonymous'])
 
 
-# @api_view(['GET', 'POST'])
-# def dojo_login(request, format=None):
-#     user = request.META['REMOTE_USER']
-#     logger.log(0, user)
-#     login(request, user, backend='django.contrib.auth.backends.RemoteUserBackend')
-#     return Response(user)
+@api_view(['GET', 'POST'])
+@permission_classes((AllowAny,))
+def dojo_login(request, format=None):
+    user = request.META['REMOTE_USER']
+    logger.log(0, user)
+    login(request, user, backend='django.contrib.auth.backends.RemoteUserBackend')
+    logging.info("{} logged in at {}".format(user, datetime.now()))
+    return Response(user)
