@@ -65,7 +65,7 @@ def print_map(request, format=None):
         "messages": [],
         "results": [{
             "value": {
-                "url": "http://127.0.0.1:8080/media/{}".format(full_name)
+                "url": "https://gisapps.aroraengineers.com:8004/media/{}".format(full_name)
             },
             "paramName": "Output_File",
             "dataType": "GPDataFile"
