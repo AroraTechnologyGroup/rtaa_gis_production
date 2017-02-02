@@ -93,10 +93,11 @@ def user_groups(request, format=None):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes((AllowAny,))
 def dojo_login(request, format=None):
-    user = request.META['REMOTE_USER']
+    try:
+        user = request.META['REMOTE_USER']
+        login(request, user, backend='django.contrib.auth.backends.RemoteUserBackend')
+    except KeyError:
+        user = request.user
     logger.log(0, user)
-    login(request, user, backend='django.contrib.auth.backends.RemoteUserBackend')
-    logging.info("{} logged in at {}".format(user, datetime.now()))
-    return Response(user)
+    return Response(user.username)
