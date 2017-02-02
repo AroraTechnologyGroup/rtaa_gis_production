@@ -76,7 +76,6 @@ def print_map(request, format=None):
 
 @api_view(['POST'])
 @authentication_classes((AllowAny,))
-@renderer_classes((JSONPRenderer,))
 @ensure_csrf_cookie
 def delete_file(request, format=None):
     data = request.POST
