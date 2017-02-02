@@ -23,7 +23,7 @@ gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
 
 
 # Create your views here.
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
 # @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
@@ -72,3 +72,16 @@ def print_map(request, format=None):
         }]
     }
     return response
+
+
+@api_view(['POST'])
+@authentication_classes((AllowAny,))
+@renderer_classes((JSONPRenderer,))
+@ensure_csrf_cookie
+def delete_file(request, format=None):
+    data = request.POST
+    file_name = data["filename"]
+    os.chdir(MEDIA_ROOT)
+    if os.path.exists(file_name):
+        os.remove(file_name)
+    return Response(data="File Deleted from Server")
