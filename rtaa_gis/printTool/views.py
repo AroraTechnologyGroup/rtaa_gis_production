@@ -17,17 +17,15 @@ import json
 
 logger = logging.getLogger(__package__)
 
-gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                     username="data_owner",
-                     password="GIS@RTAA123!")
-
-
 # Create your views here.
 @api_view(['POST'])
 # @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_map(request, format=None):
+    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                         username="data_owner",
+                         password="GIS@RTAA123!")
     data = request.POST
     webmap = data['Web_Map_as_JSON']
     format = data['Format']
