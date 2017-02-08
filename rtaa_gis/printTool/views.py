@@ -26,8 +26,19 @@ def print_map(request, format=None):
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
                          password="GIS@RTAA123!")
+    token = gis._con._token
+    logger.info(token)
     data = request.POST
+
     webmap = data['Web_Map_as_JSON']
+    map_obj = json.loads(webmap)
+    for x in map_obj["operationalLayers"]:
+        if "token" in x.keys():
+            print(x["token"])
+            x["token"] = token
+            print(x["token"])
+    webmap = json.dumps(map_obj)
+
     format = data['Format']
     layout_template = data['Layout_Template']
     data = mapping.export_map(web_map_as_json=webmap, format=format,
