@@ -2,6 +2,8 @@ from rest_framework.decorators import api_view, renderer_classes, authentication
 from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
 import os
+import subprocess
+from subprocess import PIPE
 import arcgis
 from arcgis import mapping
 from rtaa_gis.settings import MEDIA_ROOT
@@ -15,7 +17,10 @@ from datetime import datetime
 import mimetypes
 import json
 
+arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
+mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 logger = logging.getLogger(__package__)
+
 
 # Create your views here.
 @api_view(['POST'])
@@ -84,6 +89,22 @@ def print_map(request, format=None):
 
 
 @api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_mxd(request, format=None):
+    data = request.POST
+    webmap = data['Web_Map_as_JSON']
+    format = data['Format']
+    layout_template = data['Layout_Template']
+
+    proc = subprocess.Popen(["{}".format(arcmap_path), mxd_script, webmap, layout_template, format], stdout=PIPE)
+    out, err = proc.communicate()
+    if out:
+        return HttpResponse(out)
+
+
+@api_view(['POST'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def delete_file(request, format=None):
@@ -92,4 +113,4 @@ def delete_file(request, format=None):
     os.chdir(MEDIA_ROOT)
     if os.path.exists(file_name):
         os.remove(file_name)
-    return Response(data="File Deleted from Server")
+    return Response(data="Temp File {} Deleted from Server".format(file_name))
