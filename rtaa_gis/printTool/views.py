@@ -56,15 +56,22 @@ def print_map(request, format=None):
     try:
         os.rename(file_name, full_name)
     except OSError:
-        logging.error("printed map unable to be saved")
+        logging.error("printed map unable to be saved with correct filename")
 
     response = Response()
     # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
+
+    if host == "127.0.0.1:8080":
+        url = "http://{}/media/{}".format(request.META["HTTP_HOST"], full_name)
+    else:
+        url = "https://{}/media/{}".format(request.META["HTTP_HOST"], full_name)
+
     response.data = {
         "messages": [],
         "results": [{
             "value": {
-                "url": "https://gisapps.aroraengineers.com:8004/media/{}".format(full_name)
+                "url": url
             },
             "paramName": "Output_File",
             "dataType": "GPDataFile"
