@@ -1,6 +1,9 @@
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
+from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
 import os
+import subprocess
+from subprocess import PIPE
 import arcgis
 from arcgis import mapping
 from rtaa_gis.settings import MEDIA_ROOT
@@ -13,22 +16,34 @@ from django.core.files import File
 from datetime import datetime
 import mimetypes
 import json
-from rest_framework_jsonp.renderers import JSONPRenderer
 
+arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
+mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 logger = logging.getLogger(__package__)
-
-gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                     username="data_owner",
-                     password="GIS@RTAA123!")
 
 
 # Create your views here.
-@api_view(['GET', 'POST'])
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_map(request, format=None):
+    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                         username="data_owner",
+                         password="GIS@RTAA123!")
+    token = gis._con._token
+    logger.info(token)
     data = request.POST
+
     webmap = data['Web_Map_as_JSON']
+    map_obj = json.loads(webmap)
+    for x in map_obj["operationalLayers"]:
+        if "token" in x.keys():
+            print(x["token"])
+            x["token"] = token
+            print(x["token"])
+    webmap = json.dumps(map_obj)
+
     format = data['Format']
     layout_template = data['Layout_Template']
     data = mapping.export_map(web_map_as_json=webmap, format=format,
@@ -78,3 +93,31 @@ def print_map(request, format=None):
         }]
     }
     return response
+
+
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_mxd(request, format=None):
+    data = request.POST
+    webmap = data['Web_Map_as_JSON']
+    format = data['Format']
+    layout_template = data['Layout_Template']
+
+    proc = subprocess.Popen(["{}".format(arcmap_path), mxd_script, webmap, layout_template, format], stdout=PIPE)
+    out, err = proc.communicate()
+    if out:
+        return HttpResponse(out)
+
+
+@api_view(['POST'])
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def delete_file(request, format=None):
+    data = request.POST
+    file_name = data["filename"]
+    os.chdir(MEDIA_ROOT)
+    if os.path.exists(file_name):
+        os.remove(file_name)
+    return Response(data="Temp File {} Deleted from Server".format(file_name))
