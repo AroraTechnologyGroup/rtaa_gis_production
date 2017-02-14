@@ -16,9 +16,14 @@ from django.core.files import File
 from datetime import datetime
 import mimetypes
 import json
+import shlex
 
 arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
 mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
+
+arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
+
 logger = logging.getLogger(__package__)
 
 
@@ -105,10 +110,40 @@ def print_mxd(request, format=None):
     format = data['Format']
     layout_template = data['Layout_Template']
 
-    proc = subprocess.Popen(["{}".format(arcmap_path), mxd_script, webmap, layout_template, format], stdout=PIPE)
+    proc = subprocess.Popen("'{}' '{}' --{} --{} --{}".format(arcmap_path, mxd_script, webmap, layout_template, format),
+                            stdout=PIPE)
     out, err = proc.communicate()
     if out:
         return HttpResponse(out)
+
+
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_mxdx(request, format=None):
+    username = request.user.username
+    if not len(username):
+        username = "Anonymous"
+    data = request.POST
+    # write the web map json to a file to bypass command line string limitations
+    webmap = data['Web_Map_as_JSON']
+    temp_path = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(temp_path):
+        os.mkdir(temp_path)
+    os.chdir(temp_path)
+    temp_file = open('webmap.json', 'w')
+    temp_file.write(webmap)
+    temp_file.close()
+
+    format = data['Format']
+    layout_template = data['Layout_Template']
+
+    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT]
+
+    proc = subprocess.Popen(args, executable=arcpro_path, stdout=PIPE, stderr=subprocess.PIPE)
+    out, err = proc.communicate()
+    return Response(data="")
 
 
 @api_view(['POST'])
