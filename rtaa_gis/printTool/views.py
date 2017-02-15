@@ -33,9 +33,17 @@ logger = logging.getLogger(__package__)
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_map(request, format=None):
+    username = request.user.username
+    if not len(username):
+        username = "Anonymous"
+    out_folder = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
                          password="GIS@RTAA123!")
+
     token = gis._con._token
     logger.info(token)
     data = request.POST
@@ -47,28 +55,29 @@ def print_map(request, format=None):
             print(x["token"])
             x["token"] = token
             print(x["token"])
-    webmap = json.dumps(map_obj)
 
     format = data['Format']
     layout_template = data['Layout_Template']
     data = mapping.export_map(web_map_as_json=webmap, format=format,
                        layout_template=layout_template,
                        gis=gis)
-    file = data.download(MEDIA_ROOT)
+
+    file = data.download(out_folder)
     file_name = os.path.basename(file)
 
-    os.chdir(MEDIA_ROOT)
+    os.chdir(out_folder)
     mime_type = mimetypes.guess_type(file)
     extension = file.split(".")[-1]
     base_name = "GISViewer_export"
     full_name = "{}.{}".format(base_name, extension)
     if os.path.exists(full_name):
-        full_name = "{}_1.{}".format(base_name, extension)
+        v = 1
+        full_name = "{}_{}.{}".format(base_name, v, extension)
         if os.path.exists(full_name):
             i = False
             while not i:
-                splits = full_name.split("_")
-                full_name = "{}_{}.{}".format(base_name, int(splits[-1].split('.')[0]) + 1, extension)
+                v += 1
+                full_name = "{}_{}.{}".format(base_name, v, extension)
                 if not os.path.exists(full_name):
                     i = True
 
@@ -83,9 +92,11 @@ def print_map(request, format=None):
     host = request.META["HTTP_HOST"]
 
     if host == "127.0.0.1:8080":
-        url = "http://{}/media/{}".format(request.META["HTTP_HOST"], full_name)
+        protocol = "http"
     else:
-        url = "https://{}/media/{}".format(request.META["HTTP_HOST"], full_name)
+        protocol = "https"
+
+    url = "{}://{}/{}/{}".format(protocol, request.META["HTTP_HOST"], out_folder, full_name)
 
     response.data = {
         "messages": [],
@@ -105,16 +116,49 @@ def print_map(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
+    username = request.user.username
+    if not len(username):
+        username = "Anonymous"
     data = request.POST
     webmap = data['Web_Map_as_JSON']
+    out_folder = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    os.chdir(out_folder)
+
+    temp_file = open('webmap.json', 'w')
+    temp_file.write(webmap)
+    temp_file.close()
+
     format = data['Format']
     layout_template = data['Layout_Template']
 
-    proc = subprocess.Popen("'{}' '{}' --{} --{} --{}".format(arcmap_path, mxd_script, webmap, layout_template, format),
-                            stdout=PIPE)
+    args = [arcmap_path, mxd_script, '-username', username, '-media', MEDIA_ROOT, '-layout', layout_template, '-format', format]
+    proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
     out, err = proc.communicate()
-    if out:
-        return HttpResponse(out)
+
+    response = Response()
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
+
+    if host == "127.0.0.1:8080":
+        protocol = "http"
+    else:
+        protocol = "https"
+
+    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
+    return response
 
 
 @api_view(['POST'])
@@ -128,10 +172,11 @@ def print_mxdx(request, format=None):
     data = request.POST
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
-    temp_path = os.path.join(MEDIA_ROOT, username)
-    if not os.path.exists(temp_path):
-        os.mkdir(temp_path)
-    os.chdir(temp_path)
+    out_folder = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    os.chdir(out_folder)
+
     temp_file = open('webmap.json', 'w')
     temp_file.write(webmap)
     temp_file.close()
@@ -141,9 +186,30 @@ def print_mxdx(request, format=None):
 
     args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT]
 
-    proc = subprocess.Popen(args, executable=arcpro_path, stdout=PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(args, executable=arcpro_path, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
-    return Response(data="")
+    response = Response()
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
+
+    if host == "127.0.0.1:8080":
+        protocol = "http"
+    else:
+        protocol = "https"
+
+    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
+    return response
 
 
 @api_view(['POST'])
