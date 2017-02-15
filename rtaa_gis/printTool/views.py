@@ -5,6 +5,7 @@ import os
 import sys
 import subprocess
 from subprocess import PIPE
+from subprocess import TimeoutExpired
 import arcgis
 from arcgis import mapping
 from rtaa_gis.settings import MEDIA_ROOT
@@ -27,8 +28,16 @@ arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python
 mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
 
 gdbPath = r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+if not os.path.exists(gdbPath):
+    gdbPath = r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+
 layerDir = r"C:\inetpub\rtaa_gis_data\layers"
+if not os.path.exists(layerDir):
+    layerDir = r"C:\ESRI_WORK_FOLDER\rtaa\layers"
+
 defaultProject = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
+if not os.path.exists(defaultProject):
+    defaultProject = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
 
 logger = logging.getLogger(__package__)
 
@@ -178,6 +187,7 @@ def print_mxdx(request, format=None):
         username = request.user.username
     if not len(username):
         username = "Anonymous"
+
     logger.info(username)
     data = request.POST
     # write the web map json to a file to bypass command line string limitations
@@ -198,34 +208,33 @@ def print_mxdx(request, format=None):
             '-gdbPath', gdbPath, '-layerDir', layerDir, '-defaultProject', defaultProject]
     logger.info(args)
     proc = subprocess.Popen(args, executable=arcpro_path, stdout=PIPE, stderr=PIPE)
-    out, err = proc.communicate()
+    try:
+        out, err = proc.communicate()
+    except:
+        proc.kill()
+
     response = Response()
-    if out:
 
-        # This format must be identical to the DataFile object returned by the esri print examples
-        host = request.META["HTTP_HOST"]
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
 
-        if host == "127.0.0.1:8080":
-            protocol = "http"
-        else:
-            protocol = "https"
-
-        url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
-
-        response.data = {
-            "messages": [],
-            "results": [{
-                "value": {
-                    "url": url
-                },
-                "paramName": "Output_File",
-                "dataType": "GPDataFile"
-            }]
-        }
+    if host == "127.0.0.1:8080":
+        protocol = "http"
     else:
-        logger.error(err)
-        response.data = err
+        protocol = "https"
 
+    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
     return response
 
 
