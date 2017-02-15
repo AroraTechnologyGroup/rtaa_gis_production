@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, renderer_classes, authentication
 from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
 import os
+import sys
 import subprocess
 from subprocess import PIPE
 import arcgis
@@ -166,9 +167,13 @@ def print_mxd(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxdx(request, format=None):
-    username = request.user.username
+    try:
+        username = request.META['REMOTE_USER'].split("\\")[-1]
+    except KeyError:
+        username = request.user.username
     if not len(username):
         username = "Anonymous"
+    logger.info(username)
     data = request.POST
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
