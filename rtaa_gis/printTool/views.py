@@ -23,7 +23,12 @@ arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
 mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
 arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
 mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
+
+gdbPath = r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+layerDir = r"C:\inetpub\rtaa_gis_data\layers"
+defaultProject = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
 
 logger = logging.getLogger(__package__)
 
@@ -189,31 +194,38 @@ def print_mxdx(request, format=None):
     format = data['Format']
     layout_template = data['Layout_Template']
 
-    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT]
-
+    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
+            '-gdbPath', gdbPath, '-layerDir', layerDir, '-defaultProject', defaultProject]
+    logger.info(args)
     proc = subprocess.Popen(args, executable=arcpro_path, stdout=PIPE, stderr=PIPE)
     out, err = proc.communicate()
     response = Response()
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
+    if out:
 
-    if host == "127.0.0.1:8080":
-        protocol = "http"
+        # This format must be identical to the DataFile object returned by the esri print examples
+        host = request.META["HTTP_HOST"]
+
+        if host == "127.0.0.1:8080":
+            protocol = "http"
+        else:
+            protocol = "https"
+
+        url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+
+        response.data = {
+            "messages": [],
+            "results": [{
+                "value": {
+                    "url": url
+                },
+                "paramName": "Output_File",
+                "dataType": "GPDataFile"
+            }]
+        }
     else:
-        protocol = "https"
+        logger.error(err)
+        response.data = err
 
-    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
-
-    response.data = {
-        "messages": [],
-        "results": [{
-            "value": {
-                "url": url
-            },
-            "paramName": "Output_File",
-            "dataType": "GPDataFile"
-        }]
-    }
     return response
 
 
