@@ -230,7 +230,7 @@ def print_mxdx(request, format=None):
     logger.info(args)
     with subprocess.Popen(args, executable=arcpro_path, stdout=PIPE) as proc:
         try:
-            out = proc.communicate(timeout=75)[0]
+            out = proc.communicate(timeout=250)[0]
         except TimeoutExpired:
             proc.kill()
             out = proc.communicate()[0]
