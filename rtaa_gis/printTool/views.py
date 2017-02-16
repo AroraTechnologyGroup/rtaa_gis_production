@@ -24,8 +24,8 @@ arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
 mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
 #work laptop
-arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
+# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
 if not os.path.exists(arcpro_path):
     # home pc
     arcpro_path = r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
@@ -54,10 +54,13 @@ if not os.path.exists(layerDir):
     # home Pc
     layerDir = r"G:\GIS Data\Arora\rtaa\layers"
 
+#azure staging
 defaultProject = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
 if not os.path.exists(defaultProject):
+    # work laptop
     defaultProject = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
 if not os.path.exists(defaultProject):
+    # home pc
     defaultProject = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
 
 logger = logging.getLogger(__package__)
@@ -228,14 +231,12 @@ def print_mxdx(request, format=None):
     args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
             '-gdbPath', gdbPath, '-layerDir', layerDir, '-defaultProject', defaultProject]
     logger.info(args)
-    with subprocess.Popen(args, executable=arcpro_path, stdout=PIPE) as proc:
-        try:
-            out = proc.communicate(timeout=250)[0]
-        except TimeoutExpired:
-            proc.kill()
-            out = proc.communicate()[0]
+    proc = subprocess.Popen(args, stdout=PIPE)
 
+    out = proc.communicate()[0]
+    logger.info("return value from subprocess print script :: {}".format(str(out)))
     response = Response()
+    response['Cache-Control'] = 'no-cache'
 
     # This format must be identical to the DataFile object returned by the esri print examples
     host = request.META["HTTP_HOST"]
