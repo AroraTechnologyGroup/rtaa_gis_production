@@ -24,8 +24,8 @@ arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
 mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
 #work laptop
-# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
+arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
 if not os.path.exists(arcpro_path):
     # home pc
     arcpro_path = r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
