@@ -250,10 +250,8 @@ def print_mxdx(request, format=None):
     logger.info(args)
     proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
 
-    out, err = proc.communicate()
+    out = proc.communicate()[0]
 
-    if err:
-        logging.error(err)
     if out:
         logger.info(str(out))
 
