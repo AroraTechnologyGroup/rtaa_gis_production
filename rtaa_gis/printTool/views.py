@@ -20,51 +20,60 @@ import mimetypes
 import json
 import shlex
 
-arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
-mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
-#work laptop
-arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-# arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
-if not os.path.exists(arcpro_path):
-    # home pc
-    arcpro_path = r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+def system_paths():
+    arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
+    mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
-# work laptop
-mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
-if not os.path.exists(mxdx_script):
-    # home pc
-    mxdx_script = r"G:\GitHub\arcpro\printing\webmap2MXDX.py"
+    #work laptop
+    arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+    # arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
+    if not os.path.exists(arcpro_path):
+        # home pc
+        arcpro_path = r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
 
-# azure staging
-gdbPath = r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
-if not os.path.exists(gdbPath):
     # work laptop
-    gdbPath = r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
-if not os.path.exists(gdbPath):
-    # home pc
-    gdbPath = r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+    mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
+    if not os.path.exists(mxdx_script):
+        # home pc
+        mxdx_script = r"G:\GitHub\arcpro\printing\webmap2MXDX.py"
 
-# azure staging
-layerDir = r"C:\inetpub\rtaa_gis_data\layers"
-if not os.path.exists(layerDir):
-    # work laptop
-    layerDir = r"C:\ESRI_WORK_FOLDER\rtaa\layers"
-if not os.path.exists(layerDir):
-    # home Pc
-    layerDir = r"G:\GIS Data\Arora\rtaa\layers"
+    # azure staging
+    gdb_path = r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+    if not os.path.exists(gdb_path):
+        # work laptop
+        gdb_path = r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+    if not os.path.exists(gdb_path):
+        # home pc
+        gdb_path = r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
 
-#azure staging
-defaultProject = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
-if not os.path.exists(defaultProject):
-    # work laptop
-    defaultProject = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
-if not os.path.exists(defaultProject):
-    # home pc
-    defaultProject = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
+    # azure staging
+    layer_dir = r"C:\inetpub\rtaa_gis_data\layers"
+    if not os.path.exists(layer_dir):
+        # work laptop
+        layer_dir = r"C:\ESRI_WORK_FOLDER\rtaa\layers"
+    if not os.path.exists(layer_dir):
+        # home Pc
+        layer_dir = r"G:\GIS Data\Arora\rtaa\layers"
+
+    #azure staging
+    default_project = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
+    if not os.path.exists(default_project):
+        # work laptop
+        default_project = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
+    if not os.path.exists(default_project):
+        # home pc
+        default_project = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
+
+    return {
+        "arcpro_path": arcpro_path,
+        "mxdx_script": mxdx_script,
+        "gdb_path": gdb_path,
+        "layer_dir": layer_dir,
+        "default_project": default_project
+    }
 
 logger = logging.getLogger(__package__)
-
 
 # Create your views here.
 @api_view(['POST'])
@@ -205,6 +214,14 @@ def print_mxd(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxdx(request, format=None):
+    v = system_paths()
+    logger.info(repr(v))
+    arcpro_path = v["arcpro_path"]
+    mxdx_script = v["mxdx_script"]
+    default_project = v["default_project"]
+    gdb_path = v["default_project"]
+    layer_dir = v["layer_dir"]
+
     try:
         username = request.META['REMOTE_USER'].split("\\")[-1]
     except KeyError:
@@ -229,12 +246,15 @@ def print_mxdx(request, format=None):
     layout_template = data['Layout_Template']
 
     args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-            '-gdbPath', gdbPath, '-layerDir', layerDir, '-defaultProject', defaultProject]
+            '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project]
     logger.info(args)
-    proc = subprocess.Popen(args, stdout=PIPE)
+    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
 
     out = proc.communicate()[0]
-    logger.info("return value from subprocess print script :: {}".format(str(out)))
+
+    if out:
+        logger.info(str(out))
+
     response = Response()
     response['Cache-Control'] = 'no-cache'
 
