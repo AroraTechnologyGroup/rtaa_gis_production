@@ -73,6 +73,16 @@ def system_paths():
         "default_project": default_project
     }
 
+
+def get_username(request):
+    try:
+        username = request.META['REMOTE_USER'].split("\\")[-1]
+    except KeyError:
+        username = request.user.username
+    if not len(username):
+        username = "Anonymous"
+    return username
+
 logger = logging.getLogger(__package__)
 
 
@@ -82,9 +92,7 @@ logger = logging.getLogger(__package__)
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_map(request, format=None):
-    username = request.user.username
-    if not len(username):
-        username = "Anonymous"
+    username = get_username(request)
     out_folder = os.path.join(MEDIA_ROOT, username)
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
@@ -165,9 +173,11 @@ def print_map(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
-    username = request.user.username
-    if not len(username):
-        username = "Anonymous"
+    v = system_paths()
+    arcmap_path = v["arcmap_path"]
+    mxd_script = v["mxd_script"]
+
+    username = get_username(request)
     data = request.POST
     webmap = data['Web_Map_as_JSON']
     out_folder = os.path.join(MEDIA_ROOT, username)
@@ -216,24 +226,18 @@ def print_mxd(request, format=None):
 @ensure_csrf_cookie
 def print_mxdx(request, format=None):
     v = system_paths()
-    logger.info(repr(v))
     arcpro_path = v["arcpro_path"]
     mxdx_script = v["mxdx_script"]
     default_project = v["default_project"]
-    gdb_path = v["default_project"]
+    gdb_path = v["gdb_path"]
     layer_dir = v["layer_dir"]
 
-    try:
-        username = request.META['REMOTE_USER'].split("\\")[-1]
-    except KeyError:
-        username = request.user.username
-    if not len(username):
-        username = "Anonymous"
-
-    logger.info(username)
     data = request.POST
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
+    layout = data['Layout_Template']
+
+    username = get_username(request)
     out_folder = os.path.join(MEDIA_ROOT, username)
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
@@ -247,14 +251,12 @@ def print_mxdx(request, format=None):
     layout_template = data['Layout_Template']
 
     args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-            '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project]
+            '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
+
     logger.info(args)
     proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
 
     out = proc.communicate()[0]
-
-    if out:
-        logger.info(str(out))
 
     response = Response()
     response['Cache-Control'] = 'no-cache'
@@ -270,7 +272,10 @@ def print_mxdx(request, format=None):
     while proc.returncode is None:
         proc.wait(1)
 
-    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    out_file = out.decode().replace("\n", "")
+    out_file = out_file.replace("\r", "")
+
+    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
 
     response.data = {
         "messages": [],
@@ -290,9 +295,11 @@ def print_mxdx(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def delete_file(request, format=None):
+    username = get_username(request)
     data = request.POST
-    file_name = data["filename"]
-    os.chdir(MEDIA_ROOT)
+    file_name = data["filename"].replace("\n", "")
+    outfolder = os.path.join(MEDIA_ROOT, username)
+    os.chdir(outfolder)
     if os.path.exists(file_name):
         os.remove(file_name)
     return Response(data="Temp File {} Deleted from Server".format(file_name))
