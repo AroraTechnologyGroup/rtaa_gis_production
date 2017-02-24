@@ -57,13 +57,13 @@ def system_paths():
         layer_dir = r"G:\GIS Data\Arora\rtaa\layers"
 
     #azure staging
-    default_project = r"C:\inetpub\rtaa_gis_data\RTAA_Printing.aprx"
+    default_project = r"C:\inetpub\rtaa_gis_data\RTAA_publishing.aprx"
     if not os.path.exists(default_project):
         # work laptop
-        default_project = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
+        default_project = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_publishing\RTAA_publishing.aprx"
     if not os.path.exists(default_project):
         # home pc
-        default_project = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_Printing.aprx"
+        default_project = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_publishing.aprx"
 
     return {
         "arcpro_path": arcpro_path,
@@ -241,8 +241,11 @@ def print_mxdx(request, format=None):
     out_folder = os.path.join(MEDIA_ROOT, username)
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
-    os.chdir(out_folder)
 
+    out_folder = os.path.join(out_folder, 'prints')
+    if not os.path.exists(out_folder):
+        os.mkdir(out_folder)
+    os.chdir(out_folder)
     temp_file = open('webmap.json', 'w')
     temp_file.write(webmap)
     temp_file.close()
@@ -275,7 +278,7 @@ def print_mxdx(request, format=None):
     out_file = out.decode().replace("\n", "")
     out_file = out_file.replace("\r", "")
 
-    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
 
     response.data = {
         "messages": [],
@@ -299,7 +302,10 @@ def delete_file(request, format=None):
     data = request.POST
     file_name = data["filename"].replace("\n", "")
     outfolder = os.path.join(MEDIA_ROOT, username)
-    os.chdir(outfolder)
-    if os.path.exists(file_name):
-        os.remove(file_name)
-    return Response(data="Temp File {} Deleted from Server".format(file_name))
+    if os.path.exists(outfolder):
+        os.chdir(outfolder)
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            return Response(data="Temp File {} Deleted from Server".format(file_name))
+    else:
+        return Response(data="Failed to located user's media folder")

@@ -2,9 +2,10 @@ from arcgis.gis import GIS
 import json
 import os
 
-cred = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'creds.json'), 'r').read()
+cred = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'code.txt'), 'rb').read().decode()
 j_cred = json.loads(cred)
-user, pwd = [j_cred.username, j_cred.password]
+user, pwd = [j_cred["username"], j_cred["password"]]
+
 
 class SearchTool:
     def __init__(self, type):
