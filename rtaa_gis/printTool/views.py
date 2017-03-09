@@ -20,7 +20,6 @@ import mimetypes
 import json
 import shlex
 
-
 def system_paths():
     arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
     mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
