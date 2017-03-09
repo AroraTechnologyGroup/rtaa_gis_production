@@ -8,11 +8,12 @@ django-crispy-forms==1.6.1
 django-extensions==1.7.5
 django-rest-swagger==2.1.0
 djangorestframework==3.5.3
+djangorestframework-jsonp==1.0.2
 itypes==1.1.0
 ldap3==2.1.1
 openapi-codec==1.2.1
 pathtools==0.1.2
-Pillow==3.3.1
+Pillow==3.4.2
 pyasn1==0.1.9
 #pypiwin32==219
 PyYAML==3.11
@@ -20,7 +21,6 @@ reportlab==3.3.0
 requests==2.12.4
 simplejson==3.10.0
 six==1.10.0
-smmap==0.9.0
 uritemplate==3.0.0
 watchdog==0.8.3
 wfastcgi==2.2.1

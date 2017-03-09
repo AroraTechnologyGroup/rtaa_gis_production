@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-
+from rest_framework_jsonp.renderers import JSONPRenderer
 from rest_framework import viewsets
 from .utils import buildDocStore
 from .utils import WatchDogTrainer
@@ -171,6 +171,7 @@ class FileViewSet(viewsets.ModelViewSet):
     queryset = FileModel.objects.all()
     serializer_class = FileSerializer
     filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
+    renderer_classes = (JSONPRenderer,)
 
     @detail_route()
     def _grids(self, request, pk=None):
@@ -314,6 +315,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
+    renderer_classes = (JSONPRenderer,)
 
     @list_route(methods=['post', ])
     def _delete(self, request):

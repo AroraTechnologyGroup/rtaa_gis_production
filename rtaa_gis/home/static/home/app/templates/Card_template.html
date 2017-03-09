@@ -1,9 +1,13 @@
-<div class="block-group block-group-4-up">
-<div class="${baseClass}">
-	<figure class="card-image-wrap">
-		<img class="card-image" src='${imgSrc}' alt='${header}'>
+<div class="card card-wide">
+	<figure class="card-wide-image-wrap">
+		<img class="card-wide-image" src='${imgSrc}' alt='${header}'>
 		<div class="card-image-caption">
-			<h4>${header}</h4>
+			${header}
 		</div>
 	</figure>
+	<div class="card-content">
+		<h4 class="trailer-half"><a href="${href}">${header}</a></h4>
+	    	<p class="font-size--1 trailer-half">${content1}</p>
+	    	<p class="font-size--1 trailer-half">${content2}</p>
+	</div>
 </div>

@@ -20,8 +20,10 @@
             <aside class="side-nav">
               <h2 class="side-nav-title">RTAA GIS</h2>
               <a href="/#home" class="side-nav-link">HomePage</a>
+                {% if "GIS_admin" in groups %}
               <a href="/#gisportal/home" class="side-nav-link">GIS Portal</a>
-              <a href="/#departments/home" class="side-nav-link">Departments</a>
+                {% endif %}
+              <a href="/#applications/home" class="side-nav-link">Applications</a>
               <a href="/#web-resources/home" class="side-nav-link">Web Resources</a>
               <a href="/#help/home" class="side-nav-link">Help</a>
             </aside>
@@ -35,8 +37,10 @@
                 <div class="tablet-hide">
                   <a href="/#home" class="top-nav-title">RTAA GIS</a>
                   <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
+                      {% if 'GIS_admin' in groups %}
                     <a class="top-nav-link" href="/#gisportal/home">GIS Portal</a>
-                    <a class="top-nav-link" href="/#departments/home">Departments</a>
+                      {% endif %}
+                    <a class="top-nav-link" href="/#applications/home">Applications</a>
                     <a class="top-nav-link" href="/#web-resources/home">Web Resources</a>
                     <a class="top-nav-link" href="/#help/home">Help</a>
                   </nav>
@@ -52,7 +56,7 @@
                         </a>
                         <nav class="dropdown-menu dropdown-right">
                             <div class="dropdown-link">
-                                <p class="trailer-0">{{ request.user.username }}</p>
+                                <p class="trailer-0">{{ request.user.username }} on {%  now "DATE_FORMAT" %}</p>
                                 <small>profile information</small>
                                 {%  for group in groups %}
                                     <p class="trailer-0"> {{ group }}</p>
@@ -63,7 +67,8 @@
                                 <a class="dropdown-link" href="{% url 'admin:index' %}">Admin Site</a>
                             {% endif %}
                             <a class="dropdown-link" href="/#help/home">Support</a>
-                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>
+
+{#                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>#}
                         </nav>
                     </div>
                 {% else %}

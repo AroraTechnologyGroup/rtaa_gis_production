@@ -1,5 +1,10 @@
 from arcgis.gis import GIS
 import json
+import os
+
+cred = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'code.txt'), 'rb').read().decode()
+j_cred = json.loads(cred)
+user, pwd = [j_cred["username"], j_cred["password"]]
 
 
 class SearchTool:
@@ -8,7 +13,7 @@ class SearchTool:
         pass
 
     def search_all(self):
-        gis = GIS("https://rtaa.maps.arcgis.com", "data_owner", "GIS@RTAA123!")
+        gis = GIS("https://rtaa.maps.arcgis.com", user, pwd)
         search_result = gis.content.search(query="", item_type=self.type)
         return search_result
 

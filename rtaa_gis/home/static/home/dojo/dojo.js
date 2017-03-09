@@ -2088,10 +2088,13 @@ define([
 		lang.mixin(app, new namedFunctions());
 
 		var ldap_url;
+		var ldap_config = JSON.parse(ldapConfig);
 		if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
-			ldap_url = JSON.parse(ldapConfig).test_url;
-		} else {
-			ldap_url = JSON.parse(ldapConfig).production_url;
+			ldap_url = ldap_config.test_url;
+		} else if (window.location.port === "8443") {
+			ldap_url = ldap_config.production_url;
+		} else if (window.location.port === "8004") {
+			ldap_url = ldap_config.staging_url;
 		}
 	
 		var header_pane = new ContentPane({
@@ -2122,34 +2125,10 @@ define([
 			console.log('loading ' + evt.newPath);
 			app.buildGISPortal(evt, groups).then(function(e) {
 				console.log(e);
-				//TODO-add a redirect to the dashboard
+				router.go("gisportal/published-layers");
 			});
 		}, function(err) {
 			console.log(err);
-		});
-		
-
-		router.register("gisportal/dashboard", function(evt) {
-			evt.preventDefault();
-			app.buildGISPortal(evt, groups).then(function(e) {
-				app.buildDashboard(evt, Card, groups).then(function(e) {
-					console.log(e);
-				});
-			}, function(err) {
-				console.log(err);
-			});
-		});
-
-		router.register("gisportal/apps", function(evt) {
-
-			evt.preventDefault();
-			console.log('loading ' + evt.newPath);
-			app.buildGISPortal(evt, groups).then(function(e) {
-				app.buildApps(evt, Card, groups).then(function(e) {
-					console.log(e);
-				});
-			});
-
 		});
 
 		router.register("gisportal/published-layers", function(evt) {
@@ -2174,54 +2153,15 @@ define([
 
 		});
 
-		router.register("departments/home", function(evt) {
+		router.register("applications/home", function(evt) {
 			evt.preventDefault();
 			console.log("loading "+evt.newPath);
-			app.buildDepartments(evt, groups).then(function(e) {
+			app.buildApplications(evt, Card, groups).then(function(e) {
 				console.log(e);
 			});
 		});
 
-		router.register("departments/engineering", function(evt) {
-			evt.preventDefault();
-			console.log("loading "+evt.newPath);
-			app.buildDepartments(evt, groups).then(function(e) {
-				app.buildEngineering(evt, Card, groups).then(function(e) {
-					console.log(e);
-				});
-			});
-		});
-
-		router.register("departments/operations", function(evt) {
-			evt.preventDefault();
-			console.log('loading '+evt.newPath);
-			app.buildDepartments(evt, groups).then(function(e) {
-				app.buildOperations(evt, Card, groups).then(function(e) {
-					console.log(e); 
-				});
-			});
-		});
-
-		router.register("departments/planning", function(evt) {
-			evt.preventDefault();
-			console.log('loading '+evt.newPath);
-			app.buildDepartments(evt, groups).then(function(e) {
-				app.buildPlanning(evt, Card, groups).then(function(e) {
-					console.log(e);
-				});
-			});
-		});
-
-		router.register("departments/utilities", function(evt) {
-			evt.preventDefault();
-			console.log('loading '+evt.newPath);
-			app.buildDepartments(evt, groups).then(function(e) {
-				app.buildUtilities(evt, Card, groups).then(function(e) {
-					console.log(e);
-				});
-			});
-		});
-
+		
 		router.register("web-resources/home", function(evt) {
 			evt.preventDefault();
 			console.log('loading '+evt.newPath);
@@ -13859,21 +13799,22 @@ define([
     templateString: template,
     id: null,
     options: {
-      baseClass: null,
       imgSrc: null,
       href: null,
       header: null,
-      contents: null
+      content1: null,
+      content2: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
       declare.safeMixin(this.options, options);
       this.set("imgSrc", this.options.imgSrc);
       this.set("header", this.options.header);
-      this.set("contents", this.options.contents);
+      this.set("content1", this.options.content1);
+      this.set("content2", this.options.content2);
       this.set("href", this.options.href);
-      this.set("baseClass", this.options.baseClass);
       this.set("srcNodeRef", this.srcNodeRef);
+      this.set("back_url", this.back_url);
       this.id = this.options.id;
       
     },
@@ -13884,7 +13825,7 @@ define([
         evt.preventDefault();
         if (mouse.isLeft(event)) {
           self.unloadSection().then(function(e) {
-            self.loadIframe();
+            self.loadIframe(self.back_url);
             console.log(event);
           });
           
@@ -14011,11 +13952,12 @@ define([
 					var div = domConstruct.create('div');
 					var new_card = new Card({
 						id: e.id,
-						baseClass: e.baseClass,
 						href: e.href,
-						contents: e.contents,
+						content1: e.content1,
+						content2: e.content2,
 						imgSrc: e.imgSrc,
-						header: e.header
+						header: e.header,
+						back_url: e.back_url
 					}, div);
 					return deferred.resolve(new_card);
 				});
@@ -14053,7 +13995,7 @@ define([
 				return deferred.promise;
 			},
 
-			loadIframe: function() {
+			loadIframe: function(back_url) {
 				var self = this;
 				self.unloadIframe().then(function(e) {
 				console.log(e);
@@ -14088,7 +14030,7 @@ define([
 
 				on(node, 'click', function(e) {
 					self.unloadIframe().then(function(e) {
-						router.go("gisportal/apps");
+						router.go(self.back_url);
 						domConstruct.destroy(node);
 					});
 				});
@@ -14129,8 +14071,8 @@ define([
 				if (registry.byId('homepage-banner') === undefined) {
 					self.header = new HomepageBanner({
 						id: 'homepage-banner',
-						baseClass: 'sub-nav-title text-white leader-0 trailer-6 animate-fade-in',
-						title: 'Reno/Tahoe International Airport GIS Website'
+						title: 'Reno-Tahoe Airport Authority',
+						subtitle: 'Web Framework App'
 					});
 				} else {
 					self.header = registry.byId('homepage-banner');
@@ -14162,23 +14104,13 @@ define([
 					// if the user is admin, allow for browse data and backend api
 					
 					var routes = [{
-								title: 'Dashboard',
-								href: '/#gisportal/dashboard'
-							}, {
-								title: 'Web Mapping Apps',
-								href: '/#gisportal/apps'
-							}];
-					
-					var test = Array.indexOf(groups, 'GIS_admin');
-					if (test !== -1) {
-						routes.push({
 								title: 'Data Viewer',
 								href: '/#gisportal/published-layers'
 							}, {
 								title: 'Publishing Tools',
 								href: '/#gisportal/publishing-tools'
-							});
-					} 
+							}];
+				
 
 					self.header = new PageBanner({
 							id: 'gisportal-banner',
@@ -14200,206 +14132,25 @@ define([
 
 			},
 
-			buildDashboard: function(evt, Card, groups) {
-				var deferred = new Deferred();
-				if (registry.byId('gisportal-banner') !== undefined) {
-					//TODO - modify text in title to show selected route
-					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'My Dashboard';
-					registry.byId('gisportal-banner').set('title', 'My Dashboard');
-					deferred.resolve(nodeList);
-				} else {
-					deferred.cancel('gisportal-banner does not exist');
-				}
-				return deferred.promise;
-			},
-
-			buildDepartments: function(evt, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				var footer = query("#footer-container");
-				domClass.add(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					try {
-						registry.byId('departments-banner').destroyRecursive();
-					} catch(err) {
-						// console.log(err);
-					}
-
-					var routes = [{
-							title: 'Engineering',
-							href: '/#departments/engineering'
-						}, {
-							title: 'Operations',
-							href: '/#departments/operations'
-						}, {
-							title: 'Planning',
-							href: '/#departments/planning'
-						}, {
-							title: 'Utilities',
-							href: '/#departments/utilities'
-						}];
-
-					var filtered_routes = [];
-					Array.forEach(routes, function(e) {
-						if (Array.indexOf(groups, e.title) !== -1) {
-							filtered_routes.push(e);
-						}
-					});
-
-					self.header = new PageBanner({
-						id: 'departments-banner',
-						baseClass: 'text-white font-size-4 page-banner',
-						title: "Airport Departments",
-						routes: filtered_routes
-					});
-
-					var pane = registry.byId('header-pane');
-					pane.set('content', self.header);
-					deferred.resolve(pane);
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-			},
-
-			buildEngineering: function(evt, Card, groups) {
-				var deferred = new Deferred();
-				if (registry.byId('departments-banner') !== undefined) {
-					var nodeList = query("h1", 'departments-banner');
-					nodeList[0].innerText = 'Airport Engineering';
-					registry.byId('departments-banner').set('title', 'Airport Engineering');
-					deferred.resolve(nodeList[0]);
-				} else {
-					deferred.cancel('departments-banner does not exist');
-				}
-				return deferred.promise;
-			},
-
-			buildOperations: function(env, Card, groups) {
-				var deferred = new Deferred();
-				if (registry.byId('departments-banner') !== undefined) {
-					var nodeList = query("h1", 'departments-banner');
-					nodeList[0].innerText = 'Airport Operations';
-					registry.byId('departments-banner').set('title', 'Airport Operations');
-					deferred.resolve(nodeList[0]);
-				} else {
-					deferred.cancel('departments-banner does not exist');
-				}
-				return deferred.promise;
-			},
-
-			buildPlanning: function(env, Card, groups) {
-				var deferred = new Deferred();
-				if (registry.byId('departments-banner') !== undefined) {
-					var nodeList = query("h1", 'departments-banner');
-					nodeList[0].innerText = 'Airport Planning';
-					registry.byId('departments-banner').set('title', 'Airport Planning');
-					deferred.resolve(nodeList[0]);
-				} else {
-					deferred.cancel('departments-banner does not exist');
-				}
-				return deferred.promise;
-			},
-
-			buildUtilities: function(env, Card, groups) {
-				var deferred = new Deferred();
-				if (registry.byId('departments-banner') !== undefined) {
-					var nodeList = query("h1", 'departments-banner');
-					nodeList[0].innerText = 'Airport Utilities';
-					registry.byId('departments-banner').set('title', 'Utilities');
-					deferred.resolve(nodeList[0]);
-				} else {
-					deferred.cancel('departments-banner does not exist');
-				}
-				return deferred.promise;
-			},
-
-			buildApps: function(evt, Card, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				if (registry.byId('gisportal-banner') !== undefined) {
-					var t = registry.byId('gisportal-banner').domNode;
-					var nodeList = query("h1", t);
-					nodeList[0].innerText = "Geospatial Applications";
-					registry.byId('gisportal-banner').set('title', 'Geospatial Applications');
-					deferred.progress(nodeList[0]);
-				} else {
-					deferred.cancel("gisportal-banner does not exist");
-				}
-
-				var airspace_app = {
-					id: "AirspaceAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/airspace_app.png',
-					href: 'https://gisapps.aroraengineers.com/rtaa_airspace/',
-					header: 'Airspace',
-					baseClass: 'card column-4 leader-2 trailer-2',
-					contents: ''
-				};
-
-				var eDoc_app = {
-					id: "eDocAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/eDoc_app.png',
-					href: 'https://gisapps.aroraengineers.com/eDoc/',
-					header: 'eDoc Search Tool',
-					baseClass: 'card column-4 leader-2 trailer-2',
-					contents: ''
-				};
-
-				var airfield_app = {
-					id: "AirfieldAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/airfield_app.png',
-					href: 'https://gisapps.aroraengineers.com/rtaa_airfield/',
-					header: 'Airfield',
-					baseClass: 'card column-4 leader-2 trailer-2',
-					contents: ''
-				};
-
-				var property_app = {
-					id: "PropertyAppCard",
-					imgSrc: 'static/home/app/img/thumbnails/property_app.png',
-					href: 'https://gisapps.aroraengineers.com/rtaa_property/',
-					header: 'Parcel, Easement, and Leases',
-
-					baseClass: 'card column-4 leader-2 trailer-2',
-					contents: ''
-				};
-
-				
-				var cards;
-				var test = Array.indexOf(groups, 'GIS_admin');
-				if (test !== -1) {
-					cards = [airspace_app, eDoc_app, airfield_app, property_app];
-				} else {
-					cards = [airspace_app, airfield_app, property_app];
-				}
-				self.loadCards(Card, cards).then(function(e) {
-					console.log(e);
-					deferred.resolve(e);
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(e);
-				});
-				return deferred.promise;
-			},
-
 			buildDataBrowser: function(evt, Card, groups) {
 				var self = this;
 				var deferred = new Deferred();
 				if (registry.byId('gisportal-banner') !== undefined) {
 					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Admin: Published Layers';
-					registry.byId('gisportal-banner').set('title', 'Admin: Published Layers');
+					nodeList[0].innerText = 'Admin: Online Data Viewer';
+					registry.byId('gisportal-banner').set('title', 'Admin: Online Data Viewer');
 				}
-				self.loadCards(Card, [{
+				self.loadCards(Card, [
+				{
 					id: "Data Viewer",
 					imgSrc: 'static/home/app/img/thumbnails/data_viewer.png',
 					href: 'https://gisapps.aroraengineers.com/rtaa_data_viewer',
 					header: 'Data Viewer',
-					baseClass: 'card column-4 leader-1 trailer-2',
-					contents: 'View Published Layers from AGOL'
-				}]).then(function(e) {
+					content1: 'Sign into ArcGIS Online and browse the available Published Layers',
+					content2: '*only available to GIS_admin members',
+					back_url: "gisportal/home"
+				}
+				]).then(function(e) {
 					console.log(e);
 					deferred.resolve(e);
 				}, function(err) {
@@ -14415,17 +14166,19 @@ define([
 				var deferred = new Deferred();
 				if (registry.byId('gisportal-banner') !== undefined) {
 					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Admin: Inspect GDB / Publish Layers';
-					registry.byId('gisportal-banner').set('title', 'Admin: Inspect GDB / Publish Layers');
+					nodeList[0].innerText = 'Admin: Publishing Tools';
+					registry.byId('gisportal-banner').set('title', 'Admin: Publishing Tools');
 				}
-				self.loadCards(Card, [{
-					id: "eDoc Rest API",
-					imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
-					href: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
-					header: 'eDoc Rest API',
-					baseClass: 'card column-4 leader-1 trailer-2',
-					contents: 'Manage the eDoc Rest API'
-				}]).then(function(e) {
+				self.loadCards(Card, [
+				// {
+				// 	id: "eDoc Rest API",
+				// 	imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
+				// 	href: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
+				// 	header: 'eDoc Rest API',
+				// 	content1: 'Interact with the eDoc Rest API through this graphical api page.',
+				// 	content2: 'available for members of the GIS_admin group'
+				// }
+				]).then(function(e) {
 					console.log(e);
 					deferred.resolve(e);
 				}, function(err) {
@@ -14434,6 +14187,99 @@ define([
 				});
 				return deferred.promise;
 			},
+
+			buildApplications: function(evt, Card, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var footer = query("#footer-container");
+				domClass.add(footer[0], 'animate-out-up');
+				self.unloadSection().then(function(e) {
+					try {
+						registry.byId('applications-banner').destroyRecursive();
+					} catch(err) {
+						// console.log(err);
+					}
+
+					var cards = [
+						// {
+						// 	id: "GIS Data Viewer",
+						// 	imgSrc: "static/home/app/img/background.png",
+						// 	href: "",
+						// 	header: "GIS Data Viewer",
+						// 	content1: "View and Interact with layers",
+						// 	content2: "* available to all users",
+						// 	back_url: "applications/home"
+						// }, 
+						{
+							id: "eDoc Search Tool",
+							imgSrc: "static/home/app/img/background.png",
+							href: 'https://gisapps.aroraengineers.com/eDoc',
+							header: 'eDoc Search Tool',
+							content1: "Use this tool to assign files to grid cells",
+							content2: "* available to specific groups",
+							back_url: "applications/home"
+						} 
+						// {
+						// 	id: 'Airspace',
+						// 	imgSrc: "static/home/app/img/background.png",
+						// 	href: "",
+						// 	header: 'Airspace',
+						// 	content1: "View and Interact with Airspace data",
+						// 	content2: "* available to specific groups",
+						// 	back_url: "applications/home"
+						// }, {
+						// 	id: 'Economic Dev.',
+						// 	imgSrc: "static/home/app/img/background.png",
+						// 	href: "",
+						// 	header: 'Economic Development',
+						// 	content1: "View and Interact with GIS Data for Economic Development",
+						// 	content2: "* available to specific groups",
+						// 	back_url: "applications/home"
+						// }, {
+						// 	id: 'Airfield Signage and Marking',
+						// 	imgSrc: "static/home/app/img/background.png",
+						// 	href: "",
+						// 	header: 'Airfield Signage',
+						// 	content1: "View and Interact with the airfield signage data",
+						// 	content2: "* available to specific groups",
+						// 	back_url: "applications/home"
+						// }, {
+						// 	id: 'Mobile Collection',
+						// 	imgSrc: "static/home/app/img/background.png",
+						// 	href: "",
+						// 	header: 'Mobile Collection',
+						// 	content1: "Mobile app for collecting locations and attributes of features",
+						// 	content2: "* available to specific groups",
+						// 	back_url: "applications/home"
+						// }
+						];
+
+					self.header = new PageBanner({
+						id: 'applications-banner',
+						baseClass: 'text-white font-size-4 page-banner',
+						title: "Web Mapping Applications",
+						routes: []
+					});
+
+					var pane = registry.byId('header-pane');
+					pane.set('content', self.header);
+					// set overflow scroll on main-content
+					self.loadCards(Card, cards).then(function(e) {
+						console.log(e);
+						deferred.resolve(e);
+					}, function(err) {
+						console.log(err);
+						deferred.cancel(err);
+					});
+
+				}, function(err) {
+					console.log(err);
+					deferred.cancel(err);
+				});
+				return deferred.promise;
+			},
+
+			
 
 			buildWebResources: function(evt, Card, groups) {
 				var self = this;
@@ -14451,9 +14297,6 @@ define([
 						baseClass: 'text-white font-size-4 page-banner',
 						title: 'Online Resource Library',
 						routes: [{
-							title: 'Live Data Feeds',
-							href: '/#web-resources/live-data'
-						}, {
 							title: 'State Level GIS Data',
 							href: '/#web-resources/state-level'
 						}, {
@@ -14708,14 +14551,14 @@ define([
   return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
     templateString: template,
     options: {
-      baseClass: null,
-      title: null
+      title: null,
+      subtitle: null
     },
 
     constructor: function(options) {
       declare.safeMixin(this.options, options);
-      this.set("baseClass", this.options.baseClass);
       this.set("title", this.options.title);
+      this.set("subtitle", this.options.subtitle);
     },
 
     postCreate: function() {
@@ -17811,24 +17654,25 @@ define([
   return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
     templateString: template,
     options: {
-      baseClass: null,
       title: null,
       routes: []
     },
     constructor: function(options) {
       this.inherited(arguments);
       declare.safeMixin(this.options, options);
-      this.set("baseClass", this.options.baseClass);
       this.set("title", this.options.title);
+      this.set("subtitle", this.options.subtitle);
       this.set("routes", this.options.routes);
     },
     postCreate: function() {
       var routes = this.routes;
       var targetNode = this.routeNode;
-      Array.forEach(routes, function(e) {
-        var string = "<a class='sub-nav-link' href="+e.href+">"+e.title+"</a>";
-        domConstruct.place(string, targetNode, 'last');
-      });
+      if (routes.length >= 1) {
+        Array.forEach(routes, function(e) {
+          var string = "<a class='sub-nav-link' href="+e.href+">"+e.title+"</a>";
+          domConstruct.place(string, targetNode, 'last');
+        });
+      }
     }
   });
 });
@@ -49430,10 +49274,10 @@ define(["require","exports"],function(e,o){o.Pos3=[{name:"position",count:3,type
 
 define(["require","exports"],function(o,e){e.Default3D={position:0,normal:1,uv0:2,color:3,instanceColor:3,size:4,auxpos1:5,auxpos2:6,region:7,model:8,modelNormal:12}});
 },
-'url:app/templates/HomepageBanner_template.html':"<div>\r\n    <h1 class=\"${baseClass}\">${title}</h1>\r\n</div>\r\n",
-'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      \r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
-'url:app/templates/Card_template.html':"<div class=\"block-group block-group-4-up\">\r\n<div class=\"${baseClass}\">\r\n\t<figure class=\"card-image-wrap\">\r\n\t\t<img class=\"card-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t<h4>${header}</h4>\r\n\t\t</div>\r\n\t</figure>\r\n</div>\r\n",
-'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com:8004/groups/\"\r\n}",
+'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
+'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
+'url:app/templates/Card_template.html':"<div class=\"card card-wide\">\r\n\t<figure class=\"card-wide-image-wrap\">\r\n\t\t<img class=\"card-wide-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t${header}\r\n\t\t</div>\r\n\t</figure>\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${href}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
+'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com:8004/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com:8443/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
