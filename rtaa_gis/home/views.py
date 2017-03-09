@@ -27,10 +27,12 @@ class HomePage(APIView):
     template = r'home/home_body.html'
 
     def get(self, request, format=None):
+
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
         try:
             name = request.META['REMOTE_USER']
+            logger.info(name)
         except KeyError:
             name = request.user.username
 
