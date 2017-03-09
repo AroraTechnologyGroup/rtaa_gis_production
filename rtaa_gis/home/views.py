@@ -42,7 +42,7 @@ class HomePage(APIView):
         resp['Cache-Control'] = 'no-cache'
 
         # Perform inheritance from AD
-        query = LDAPQuery(name, 'gisapps.aroraengineers.com')
+        query = LDAPQuery(name, 'renoairport.net')
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
 

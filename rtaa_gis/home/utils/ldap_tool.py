@@ -17,18 +17,21 @@ class LDAPQuery:
                 Group.objects.get(name=group)
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
-        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+        # self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+        self.server = Server(ldap_url)
 
     def get_groups(self):
         slicegroup = list()
         try:
-            conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
-                              auto_bind=True)
-            conn.start_tls()
+            # conn = Connection(self.server, user="AroraTeam", password="@R0r@G1$", authentication=NTLM,
+            #                   auto_bind=True)
+            conn = Connection(self.server)
+            conn.bind()
+            # conn.start_tls()
             total_entries = 0
             try:
                 conn.search(
-                    search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
+                    search_base="dc=renoairport, dc=net",
                     search_filter="(&(objectClass=User)(cn={}))".format(self.username),
                     search_scope=SUBTREE,
                     attributes=ldap3.ALL_ATTRIBUTES,
