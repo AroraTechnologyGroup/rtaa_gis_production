@@ -5,6 +5,7 @@ from django.conf.urls import url
 router = routers.DefaultRouter()
 urlpatterns = [
     url(r'execute', views.print_mxdx),
+    url(r'list', views.getPrintList),
     url(r'delete', views.delete_file)
 ]
 

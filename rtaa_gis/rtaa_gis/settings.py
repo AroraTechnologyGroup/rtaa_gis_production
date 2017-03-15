@@ -61,17 +61,18 @@ CORS_ORIGIN_WHITELIST = (
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
+    'x-requested-with',
 )
 
-# CORS_EXPOSE_HEADERS = (
-#     'x-requested-with',
-#     'content-type',
-#     'content-range',
-#     'accept',
-#     'origin',
-#     'authorization',
-#     'x-csrftoken',
-# )
+CORS_EXPOSE_HEADERS = (
+    'x-requested-with',
+    'content-type',
+    'content-range',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
+)
 
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
@@ -80,7 +81,7 @@ ALLOWED_HOSTS = [
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
