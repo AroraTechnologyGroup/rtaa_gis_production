@@ -20,57 +20,70 @@ import mimetypes
 import json
 import shlex
 
+environ = "staging"
 
-def system_paths():
+
+def system_paths(environ):
     arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
     mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
 
-    #work laptop
-    arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-    # arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\Scripts\propy"
-    if not os.path.exists(arcpro_path):
-        # home pc
-        arcpro_path = r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
 
-    # work laptop
-    mxdx_script = r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
-    if not os.path.exists(mxdx_script):
-        # home pc
-        mxdx_script = r"G:\GitHub\arcpro\printing\webmap2MXDX.py"
 
-    # azure staging
-    gdb_path = r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
-    if not os.path.exists(gdb_path):
-        # work laptop
-        gdb_path = r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
-    if not os.path.exists(gdb_path):
-        # home pc
-        gdb_path = r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+    media_dir = {
+        "home": "C:/Users/rich/PycharmProjects/rtaa_gis/rtaa_gis/media",
+        "work": "C:/GitHub/rtaa_gis/rtaa_gis/media",
+        "staging": "C:/inetpub/django_staging/rtaa_gis/rtaa_gis/media",
+        "production": "C:/inetpub/django_prod/rtaa_gis/rtaa_gis/media",
+    }
+    media_dir = media_dir[environ]
 
-    # azure staging
-    layer_dir = r"C:\inetpub\rtaa_gis_data\layers"
-    if not os.path.exists(layer_dir):
-        # work laptop
-        layer_dir = r"C:\ESRI_WORK_FOLDER\rtaa\layers"
-    if not os.path.exists(layer_dir):
-        # home Pc
-        layer_dir = r"G:\GIS Data\Arora\rtaa\layers"
+    gdb_path = {
+        "home": r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
+        "work": r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
+        "staging": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
+        "production": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+    }
+    gdb_path = gdb_path[environ]
 
-    #azure staging
-    default_project = r"C:\inetpub\rtaa_gis_data\RTAA_publishing.aprx"
-    if not os.path.exists(default_project):
-        # work laptop
-        default_project = r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_publishing\RTAA_publishing.aprx"
-    if not os.path.exists(default_project):
-        # home pc
-        default_project = r"G:\Documents\ArcGIS\Projects\RTAA_Printing\RTAA_publishing.aprx"
+    default_project = {
+        "home": r"G:\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
+        "work": r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
+        "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx"
+    }
+    default_project = default_project[environ]
+
+    layer_dir = {
+        "home": r"G:\GIS Data\Arora\rtaa\layers",
+        "work": r"C:\ESRI_WORK_FOLDER\rtaa\layers",
+        "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers",
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers"
+    }
+    layer_dir = layer_dir[environ]
+
+    arcpro_path = {
+        "work": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
+        "home": r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
+        "staging": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
+        "production": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+    }
+    arcpro_path = arcpro_path[environ]
+
+    mxdx_script = {
+        "work": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
+        "home": r"G:\GitHub\arcpro\printing\webmap2MXDX.py",
+        "staging": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
+        "production": r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
+    }
+    mxdx_script = mxdx_script[environ]
 
     return {
         "arcpro_path": arcpro_path,
         "mxdx_script": mxdx_script,
         "gdb_path": gdb_path,
         "layer_dir": layer_dir,
-        "default_project": default_project
+        "default_project": default_project,
+        "media_dir": media_dir
     }
 
 
@@ -220,12 +233,12 @@ def print_mxd(request, format=None):
     return response
 
 
-@api_view(['POST'])
+@api_view(['POST', 'GET'])
 # @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxdx(request, format=None):
-    v = system_paths()
+    v = system_paths(environ)
     arcpro_path = v["arcpro_path"]
     mxdx_script = v["mxdx_script"]
     default_project = v["default_project"]
@@ -233,8 +246,13 @@ def print_mxdx(request, format=None):
     layer_dir = v["layer_dir"]
 
     data = request.POST
+    if not len(data):
+        data = request.query_params
+
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
+    webmap = json.loads(webmap)
+
     layout = data['Layout_Template']
 
     username = get_username(request)
@@ -247,7 +265,7 @@ def print_mxdx(request, format=None):
         os.mkdir(out_folder)
     os.chdir(out_folder)
     temp_file = open('webmap.json', 'w')
-    temp_file.write(webmap)
+    temp_file.write(u"{}".format(json.dumps(webmap)))
     temp_file.close()
 
     format = data['Format']
@@ -294,6 +312,37 @@ def print_mxdx(request, format=None):
     return response
 
 
+@api_view(['POST', 'GET'])
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def getPrintList(request, format=None):
+    username = get_username(request)
+    print_dir = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+
+    response = Response()
+    response.data = list()
+    if os.path.exists(print_dir):
+        files = os.listdir(print_dir)
+        pdfs = [f for f in files if f.endswith(".pdf")]
+        response['Cache-Control'] = 'no-cache'
+
+        # This format must be identical to the DataFile object returned by the esri print examples
+        host = request.META["HTTP_HOST"]
+
+        if host == "127.0.0.1:8080":
+            protocol = "http"
+        else:
+            protocol = "https"
+
+        for out_file in pdfs:
+            url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+            response.data.append({"url": url})
+    else:
+        os.mkdir(print_dir)
+
+    return response
+
+
 @api_view(['POST'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
@@ -301,9 +350,10 @@ def delete_file(request, format=None):
     username = get_username(request)
     data = request.POST
     file_name = data["filename"].replace("\n", "")
-    outfolder = os.path.join(MEDIA_ROOT, username)
+    outfolder = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
     if os.path.exists(outfolder):
         os.chdir(outfolder)
+
         if os.path.exists(file_name):
             os.remove(file_name)
             return Response(data="Temp File {} Deleted from Server".format(file_name))
