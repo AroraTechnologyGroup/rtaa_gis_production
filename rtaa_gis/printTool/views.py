@@ -251,34 +251,39 @@ def print_mxdx(request, format=None):
 
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
-    webmap = json.loads(webmap)
 
-    layout = data['Layout_Template']
+    try:
+        webmap = json.loads(webmap)
 
-    username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, username)
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
+        layout = data['Layout_Template']
 
-    out_folder = os.path.join(out_folder, 'prints')
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
-    os.chdir(out_folder)
-    temp_file = open('webmap.json', 'w')
-    temp_file.write(u"{}".format(json.dumps(webmap)))
-    temp_file.close()
+        username = get_username(request)
+        out_folder = os.path.join(MEDIA_ROOT, username)
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
+
+        out_folder = os.path.join(out_folder, 'prints')
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
+        os.chdir(out_folder)
+        temp_file = open('webmap.json', 'w')
+        temp_file.write(u"{}".format(json.dumps(webmap)))
+        temp_file.close()
+    except Exception as e:
+        logger.error(e)
 
     format = data['Format']
     layout_template = data['Layout_Template']
 
     args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-            '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
+        '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
 
     logger.info(args)
     proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
 
     out = proc.communicate()[0]
 
+    logger.info(out)
     response = Response()
     response['Cache-Control'] = 'no-cache'
 
@@ -291,6 +296,7 @@ def print_mxdx(request, format=None):
         protocol = "https"
 
     while proc.returncode is None:
+        logger.info("print process return code :: {}".format(proc.returncode))
         proc.wait(1)
 
     out_file = out.decode().replace("\n", "")
@@ -299,16 +305,15 @@ def print_mxdx(request, format=None):
     url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
 
     response.data = {
-        "messages": [],
-        "results": [{
-            "value": {
-                "url": url
-            },
-            "paramName": "Output_File",
-            "dataType": "GPDataFile"
-        }]
+    "messages": [],
+    "results": [{
+        "value": {
+            "url": url
+        },
+        "paramName": "Output_File",
+        "dataType": "GPDataFile"
+    }]
     }
-
     return response
 
 
