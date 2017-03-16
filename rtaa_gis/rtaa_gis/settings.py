@@ -44,7 +44,7 @@ SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
-CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'localhost:3003',
+CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
                         'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com')
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
@@ -56,6 +56,7 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3003',
     'localhost:3001',
     'gisapps.aroraengineers.com:8004',
+    'gisapps.aroraengineers.com:8443',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
 )
