@@ -20,9 +20,7 @@ import mimetypes
 import json
 import shlex
 
-environ = "staging"
-
-
+environ = "production"
 def system_paths(environ):
     arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
     mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
@@ -281,7 +279,10 @@ def print_mxdx(request, format=None):
     logger.info(args)
     proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
 
-    out = proc.communicate()[0]
+    out, err = proc.communicate()
+
+    if err:
+        logger.error(err)
 
     logger.info(out)
     response = Response()
@@ -322,28 +323,30 @@ def print_mxdx(request, format=None):
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
     username = get_username(request)
-    print_dir = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
-
+    user_dir = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(user_dir):
+        os.mkdir(user_dir)
+    print_dir = os.path.join(user_dir, "prints")
+    if not os.path.exists(print_dir):
+        os.mkdir(print_dir)
     response = Response()
     response.data = list()
-    if os.path.exists(print_dir):
-        files = os.listdir(print_dir)
-        pdfs = [f for f in files if f.endswith(".pdf")]
-        response['Cache-Control'] = 'no-cache'
 
-        # This format must be identical to the DataFile object returned by the esri print examples
-        host = request.META["HTTP_HOST"]
+    files = os.listdir(print_dir)
+    pdfs = [f for f in files if f.endswith(".pdf")]
+    response['Cache-Control'] = 'no-cache'
 
-        if host == "127.0.0.1:8080":
-            protocol = "http"
-        else:
-            protocol = "https"
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
 
-        for out_file in pdfs:
-            url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
-            response.data.append({"url": url})
+    if host == "127.0.0.1:8080":
+        protocol = "http"
     else:
-        os.mkdir(print_dir)
+        protocol = "https"
+
+    for out_file in pdfs:
+        url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+        response.data.append({"url": url})
 
     return response
 
@@ -356,11 +359,16 @@ def delete_file(request, format=None):
     data = request.POST
     file_name = data["filename"].replace("\n", "")
     outfolder = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+    response = Response()
+
     if os.path.exists(outfolder):
         os.chdir(outfolder)
-
         if os.path.exists(file_name):
             os.remove(file_name)
-            return Response(data="Temp File {} Deleted from Server".format(file_name))
+            data = "Temp File {} Deleted from Server".format(file_name)
+        else:
+            data = "File not found in user's print folder"
     else:
-        return Response(data="Failed to located user's media folder")
+        data = "Failed to located user's media folder"
+    response.data = data
+    return response
