@@ -42,22 +42,22 @@ EMAIL_HOST = "aspmx.l.google.com"
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT =False
 SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = ['gisapps.aroraengineers.com:443', 'gisapps.aroraengineers.com', 'gisapps.aroraengineers.com:8443']
 CSRF_COOKIE_DOMAIN = ['https://localhost:3003', 'gisapps.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_REPLACE_HTTPS_REFERRER = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'https://gisapps.aroraengineers.com:8443',
-    'localhost:3003',
+    'https://localhost:3003',
     'localhost:3001',
     'gisapps.aroraengineers.com:8004',
-    'https://gisapps.aroraengineers.com:3344',
+    # 'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
 )
 CORS_ALLOW_HEADERS = (
@@ -83,10 +83,10 @@ ALLOWED_HOSTS = [
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = False
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     CORS_REPLACE_HTTPS_REFERER = True

@@ -71,7 +71,7 @@ def system_paths(environ):
         "work": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
         "home": r"G:\GitHub\arcpro\printing\webmap2MXDX.py",
         "staging": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "production": r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
+        "production": r"C:\inetpub\arcpro\printing\webmap2MXDX.py"
     }
     mxdx_script = mxdx_script[environ]
 
@@ -277,8 +277,9 @@ def print_mxdx(request, format=None):
         '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
 
     logger.info(args)
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
-
+    startupinfo = subprocess.STARTUPINFO()
+    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
+    pid = proc.pid
     out, err = proc.communicate()
 
     if err:
