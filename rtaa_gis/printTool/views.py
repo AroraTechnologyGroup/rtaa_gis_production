@@ -21,11 +21,9 @@ import json
 import shlex
 
 environ = "production"
+
+
 def system_paths(environ):
-    arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
-    mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
-
-
 
     media_dir = {
         "home": "C:/Users/rich/PycharmProjects/rtaa_gis/rtaa_gis/media",
@@ -249,7 +247,7 @@ def print_mxdx(request, format=None):
 
     # write the web map json to a file to bypass command line string limitations
     webmap = data['Web_Map_as_JSON']
-
+    response = Response()
     try:
         webmap = json.loads(webmap)
 
@@ -267,55 +265,66 @@ def print_mxdx(request, format=None):
         temp_file = open('webmap.json', 'w')
         temp_file.write(u"{}".format(json.dumps(webmap)))
         temp_file.close()
+
+        format = data['Format']
+        layout_template = data['Layout_Template']
+
+        args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
+            '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
+
+        proc = subprocess.Popen(args,
+                                executable=r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
+                                stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+        logger.info(args)
+        pid = proc.pid
+
+        out, err = proc.communicate()
+        if out:
+            logger.info("This is the output :: {}".format(out))
+        if err:
+            logger.error("Error during Popen communicate :: {}".format(err))
+        response['Cache-Control'] = 'no-cache'
+
+        # This format must be identical to the DataFile object returned by the esri print examples
+        host = request.META["HTTP_HOST"]
+
+        if host == "127.0.0.1:8080":
+            protocol = "http"
+        else:
+            protocol = "https"
+
+        while proc.returncode is None:
+            logger.info("print process return code :: {}".format(proc.returncode))
+            proc.wait(1)
+
+        out_file = out.decode().replace("\n", "")
+        out_file = out_file.replace("\r", "")
+
+        url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+        logger.info("Url to pdf :: {}".format(url))
+        response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+        }
     except Exception as e:
-        logger.error(e)
-
-    format = data['Format']
-    layout_template = data['Layout_Template']
-
-    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-        '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
-
-    logger.info(args)
-    startupinfo = subprocess.STARTUPINFO()
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE, startupinfo=startupinfo)
-    pid = proc.pid
-    out, err = proc.communicate()
-
-    if err:
-        logger.error(err)
-
-    logger.info(out)
-    response = Response()
-    response['Cache-Control'] = 'no-cache'
-
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
-
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
-
-    while proc.returncode is None:
-        logger.info("print process return code :: {}".format(proc.returncode))
-        proc.wait(1)
-
-    out_file = out.decode().replace("\n", "")
-    out_file = out_file.replace("\r", "")
-
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
-
-    response.data = {
-    "messages": [],
-    "results": [{
-        "value": {
-            "url": url
-        },
-        "paramName": "Output_File",
-        "dataType": "GPDataFile"
-    }]
-    }
+        logger.error("Exception 320 :: {}".format(e))
+        response.data = {
+            "messages": [e],
+            "results": [{
+                "value": {
+                    "url": e
+                },
+                "paramName": "Output_File",
+                "dataType": "GPString"
+            }]
+        }
     return response
 
 
