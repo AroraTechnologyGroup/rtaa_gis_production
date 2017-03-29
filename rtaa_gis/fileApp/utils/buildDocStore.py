@@ -6,12 +6,16 @@ import requests
 import logging
 import json
 import traceback
+import pyodbc
+import datetime
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
-from fileApp import models
-
+import fileApp
+from fileApp.serializers import EngSerializer
+from fileApp.models import EngineeringFileModel, GridCell
+from fileApp.utils import function_definitions
 fixtures_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures\\data')
 TOP_DIRs = [fixtures_path]
 
@@ -75,37 +79,101 @@ class Error(Exception):
         return repr(self.value)
 
 
-def convert_size(in_bytes):
-    mb = in_bytes / 1048576.0
-    kb = in_bytes / 1024.0
-    gb = in_bytes / 1073741824.0
-
-    if kb <= 612.0:
-        d = "{} kB".format(int(kb))
-    elif gb >= 1.0:
-        d = "{} GB".format(int(gb))
-    else:
-        d = "{} MB".format(int(mb))
-    return d
-
-
-def check_file_type(types, ext):
-    try:
-        for k, v in iter(types.items()):
-            # solves bug where some file extensions are uppercase
-            if ext.lower() in v:
-                d = k
-                return d
-
-    except Exception as e:
-        logging.error("Unable to locate fileType from the supplied variables")
-        print(e)
-
-
 class FileStoreBuilder:
     def __init__(self):
         self.top_dirs = TOP_DIRs
         pass
+
+    def load_accdb(self):
+        try:
+            conn_str = (
+                r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
+                r'DBQ=%s;' % os.path.join(fixtures_path, 'reno.accdb')
+            )
+            cnxn = pyodbc.connect(conn_str)
+            cursor = cnxn.cursor()
+            cursor.execute("SELECT FILENAME, SHEETTYPE, DISCIPLINE, PROJECTNAME, SHEETDESCRIPTION,"
+                           "SHEETNUMBER, DATE, VENDOR FROM reno")
+            rows = cursor.fetchall()
+            for row in rows:
+                if row[-1] != 'text':
+                    file_path, sheet_type, discipline, project_title, sheet_description, sheet_title, project_date, vendor = row
+                    file_path = file_path.replace('#', '')
+                    filtered = EngineeringFileModel.objects.filter(file_path=file_path)
+                    if not vendor:
+                        vendor = ""
+                    if project_date:
+                        project_date = datetime.date(int(project_date), 1, 1)
+                    if not project_date:
+                        project_date = datetime.date(9999, 1, 1)
+                    if not sheet_title:
+                        sheet_title = ""
+                    if not sheet_type:
+                        sheet_type = ""
+                    if not discipline:
+                        discipline = ""
+                    if not project_title:
+                        project_title = ""
+                    if not sheet_description:
+                        sheet_description = ""
+
+                    airport = "RNO"
+                    if row[-1] != 'text':
+                        if len(filtered) == 0:
+                            # new_obj = EngineeringFileModel.objects.create(
+                            #     file_path=file_path,
+                            #     sheet_type=sheet_type,
+                            #     discipline=discipline,
+                            #     project_title=project_title,
+                            #     sheet_description=sheet_description,
+                            #     sheet_title=sheet_title,
+                            #     project_date=project_date,
+                            #     vendor=vendor,
+                            #     airport=airport,
+                            #     project_description='',
+                            #     funding_type='',
+                            #     grant_number=''
+                            # )
+                            new_obj = {
+                                'file_path': file_path,
+                                'sheet_type': sheet_type,
+                                'discipline': discipline,
+                                'project_title': project_title,
+                                'sheet_description': sheet_description,
+                                'sheet_title': sheet_title,
+                                'project_date': project_date,
+                                'vendor': vendor,
+                                'airport': airport,
+                                'project_description': '',
+                                'funding_type': '',
+                                'grant_number': ''
+                            }
+                            ser_obj = EngSerializer(data=new_obj)
+                            if ser_obj.is_valid():
+                                ser_obj.save()
+                        elif len(filtered) == 1:
+                            _object = filtered[0]
+                            _object.file_path = file_path
+                            _object.sheet_type = sheet_type
+                            _object.discipline = discipline
+                            _object.project_title = project_title
+                            _object.sheet_description = sheet_description
+                            _object.sheet_title = sheet_title
+                            # _object.project_date = project_date,
+                            _object.vendor = vendor
+                            _object.airport = airport
+                            _object.project_description = ''
+                            _object.funding_type = ''
+                            _object.grant_number = ''
+                            try:
+                                _object.save()
+                            except:
+                                exc_type, exc_value, exc_traceback = sys.exc_info()
+                                traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
     def build_store(self):
         try:
@@ -121,17 +189,17 @@ class FileStoreBuilder:
                             if extension in mapping:
                                 file_path = os.path.join(root, _file)
                                 base_name = os.path.basename(file_path)
-                                file_type = check_file_type(FILE_TYPE_CHOICES, extension)
+                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)[0]
                                 mime = mimetypes.guess_type(file_path)[0]
                                 if mime is None:
                                     mime = FILE_TYPE_CHOICES[file_type][extension]
                                     # print mime
-                                size = convert_size(os.path.getsize(file_path))
+                                size = function_definitions.convert_size(os.path.getsize(file_path))
 
-                                filtered = models.FileModel.objects.filter(file_path=file_path)
+                                filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                                 if len(filtered) == 0:
                                     # File has not been added to the database
-                                    new_obj = models.FileModel.objects.create(
+                                    new_obj = EngineeringFileModel.objects.create(
                                             file_path=file_path,
                                             base_name=base_name,
                                             file_type=file_type,
@@ -170,7 +238,7 @@ class FileStoreBuilder:
 
         try:
             file_paths = []
-            for _file in models.FileModel.objects.all():
+            for _file in EngineeringFileModel.objects.all():
                 path = _file.file_path
                 if not check_roots(path, self.top_dirs):
                     _file.delete()
@@ -226,10 +294,10 @@ class GridCellBuilder:
             grid = feature['attributes']['GRID']
             name = '{}'.format(grid)
             try:
-                filtered = models.GridCell.objects.filter(name=name)
+                filtered = GridCell.objects.filter(name=name)
                 # Only create a document if one with that name does not exist
                 if len(filtered) == 0:
-                    x = models.GridCell.objects.create(name=name)
+                    x = GridCell.objects.create(name=name)
                     x.save()
                 else:
                     pass
@@ -245,3 +313,8 @@ class AssignmentManager:
 
     def clear(self, data):
         pass
+
+
+if __name__ == '__main__':
+    x = FileStoreBuilder()
+    x.load_accdb()
