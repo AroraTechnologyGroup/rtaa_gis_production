@@ -64,7 +64,7 @@ def system_paths(environ):
     arcpro_path = {
         "work": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
         "home": r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "staging": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
+        "staging": r"C:\inetpub\Pro\bin\Python\envs\arcgispro-py3\python.exe",
         "production": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
     }
     arcpro_path = arcpro_path[environ]
