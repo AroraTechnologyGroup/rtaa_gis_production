@@ -12,9 +12,9 @@ import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
-import fileApp
+from fileApp import models
 from fileApp.serializers import EngSerializer
-from fileApp.models import EngineeringFileModel, GridCell
+from fileApp.models import EngineeringFileModel, EngineeringDiscipline, EngineeringSheetType, GridCell
 from fileApp.utils import function_definitions
 fixtures_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures\\data')
 TOP_DIRs = [fixtures_path]
@@ -99,6 +99,8 @@ class FileStoreBuilder:
                 if row[-1] != 'text':
                     file_path, sheet_type, discipline, project_title, sheet_description, sheet_title, project_date, vendor = row
                     file_path = file_path.replace('#', '')
+                    if not file_path:
+                        file_path = ""
                     filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                     if not vendor:
                         vendor = ""
@@ -117,33 +119,18 @@ class FileStoreBuilder:
                     if not sheet_description:
                         sheet_description = ""
 
-                    airport = "RNO"
                     if row[-1] != 'text':
                         if len(filtered) == 0:
-                            # new_obj = EngineeringFileModel.objects.create(
-                            #     file_path=file_path,
-                            #     sheet_type=sheet_type,
-                            #     discipline=discipline,
-                            #     project_title=project_title,
-                            #     sheet_description=sheet_description,
-                            #     sheet_title=sheet_title,
-                            #     project_date=project_date,
-                            #     vendor=vendor,
-                            #     airport=airport,
-                            #     project_description='',
-                            #     funding_type='',
-                            #     grant_number=''
-                            # )
                             new_obj = {
                                 'file_path': file_path,
-                                'sheet_type': sheet_type,
-                                'discipline': discipline,
+                                'sheet_type': [],
+                                'discipline': [],
                                 'project_title': project_title,
                                 'sheet_description': sheet_description,
                                 'sheet_title': sheet_title,
                                 'project_date': project_date,
                                 'vendor': vendor,
-                                'airport': airport,
+                                'airport': '',
                                 'project_description': '',
                                 'funding_type': '',
                                 'grant_number': ''
@@ -151,22 +138,64 @@ class FileStoreBuilder:
                             ser_obj = EngSerializer(data=new_obj)
                             if ser_obj.is_valid():
                                 ser_obj.save()
+                                # add the relationships tables
+                                _obj = EngineeringFileModel.objects.get(file_path=file_path)
+                                if discipline:
+                                    # using the disciplines defined in the model
+                                    disc_upper = discipline.upper()
+                                    discs = []
+                                    for x in models.engineering_sheet_types:
+                                        pass
+                                    discs = EngineeringDiscipline.objects.get(name=disc_upper)
+                                    _obj.discipline.add(discs)
+                                if sheet_type:
+                                    stypes = EngineeringSheetType.objects.get(name=sheet_type)
+                                    _obj.sheet_type.add(stypes)
+
+                            else:
+                                print(ser_obj.errors)
                         elif len(filtered) == 1:
                             _object = filtered[0]
-                            _object.file_path = file_path
-                            _object.sheet_type = sheet_type
-                            _object.discipline = discipline
-                            _object.project_title = project_title
-                            _object.sheet_description = sheet_description
-                            _object.sheet_title = sheet_title
-                            # _object.project_date = project_date,
-                            _object.vendor = vendor
-                            _object.airport = airport
-                            _object.project_description = ''
-                            _object.funding_type = ''
-                            _object.grant_number = ''
+                            serializer = EngSerializer(_object)
+                            new_data = {}
+
+                            if sheet_type:
+                                sh = sheet_type.upper()
+                                stypes = []
+                                for x in models.engineering_sheet_types:
+                                    if x[0] in sh:
+                                        stypes.append(x[0])
+                                stypes = EngineeringSheetType.objects.filter(name__in=stypes)
+                                for t in stypes:
+                                    _object.sheet_type.add(t)
+
+                            if discipline:
+                                disc = discipline.upper()
+                                discs = []
+                                for x in models.engineering_discipline_choices:
+                                    if x[0] in disc:
+                                        discs.append(x[0])
+                                discs = EngineeringDiscipline.objects.filter(name__in=discs)
+                                for d in discs:
+                                    _object.discipline.add(d)
+
+                            new_data["file_path"] = file_path
+                            new_data["project_title"] = project_title
+                            new_data["sheet_description"] = sheet_description
+                            new_data["sheet_title"] = sheet_title
+                            new_data["project_date"] = project_date,
+                            new_data["vendor"] = vendor
+                            new_data["airport"] = ''
+                            new_data["project_description"] = ''
+                            new_data["funding_type"] = ''
+                            new_data["grant_number"] = ''
+
                             try:
-                                _object.save()
+                                new_s = EngSerializer(data=new_data)
+                                if new_s.is_valid():
+                                    serializer.update(new_s.data)
+                                else:
+                                    print(new_s.errors)
                             except:
                                 exc_type, exc_value, exc_traceback = sys.exc_info()
                                 traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)

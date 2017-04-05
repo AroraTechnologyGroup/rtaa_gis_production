@@ -1,6 +1,30 @@
 from django.db import models
 
 
+engineering_discipline_choices = (
+        ('MISC', 'Miscellaneous'),
+        ('CIVIL', 'Civil'),
+        ('ARCH', 'Architectural'),
+        ('STRUCTURAL', 'Structural'),
+        ('LANDSCAPING', 'Landscaping'),
+        ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
+        ('PLUMBING', 'Plumbing'),
+        ('ELECTRICAL', 'Electrical')
+    )
+
+engineering_sheet_types = (
+        ('DETAILS', 'Details'),
+        ('PLAN', 'Plan'),
+        ('TITLE', 'Title'),
+        ('KEY', 'Key'),
+        ('INDEX', 'Index'),
+        ('ELEVATIONS', 'Elevations'),
+        ('NOTES', 'Notes'),
+        ('SECTIONS', 'Sections'),
+        ('SYMBOLS', 'Symbols')
+    )
+
+
 class GridCell(models.Model):
     def __str__(self):
         return "%s" % self.name
@@ -42,7 +66,7 @@ class FileModel(models.Model):
 
 class Assignment(models.Model):
     def __str__(self):
-        return "%s %s" % (self.grid_cell, self.file.name)
+        return "%s" % self.grid_cell
 
     class Meta:
         ordering = ('grid_cell', 'file', 'date_assigned', 'comment',)
@@ -54,24 +78,17 @@ class Assignment(models.Model):
             on_delete=models.CASCADE,
             null=False
     )
-    file = models.ForeignKey(
-            FileModel,
-            on_delete=models.CASCADE,
-            null=False
-    )
 
     base_name = models.CharField(max_length=50, blank=True)
 
     date_assigned = models.DateField(auto_now_add=True,
                                      null=True)
-
     comment = models.CharField(
         max_length=255,
         blank=True
     )
 
 
-# Models that inherit from the above
 class EngineeringDiscipline(models.Model):
     def __str__(self):
         return "{}".format(self.get_name_display())
@@ -80,16 +97,7 @@ class EngineeringDiscipline(models.Model):
         ordering = ('name',)
         app_label = 'fileApp'
 
-    name = models.CharField(max_length=125, blank=True, unique=True, choices=(
-        ('MISC', 'Miscellaneous'),
-        ('CIVIL', 'Civil'),
-        ('ARCH', 'Architectural'),
-        ('STRUCTURAL', 'Structural'),
-        ('LANDSCAPING', 'Landscaping'),
-        ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
-        ('PLUMBING', 'Plumbing'),
-        ('ELECTRICAL', 'Electrical')
-    ))
+    name = models.CharField(max_length=125, blank=True, unique=True, choices=engineering_discipline_choices)
 
 
 class EngineeringSheetType(models.Model):
@@ -100,18 +108,10 @@ class EngineeringSheetType(models.Model):
         ordering = ('name',)
         app_label = 'fileApp'
 
-    name = models.CharField(max_length=125, blank=True, unique=True, choices=(
-        ('DETAILS', 'Details'),
-        ('PLAN', 'Plan'),
-        ('TITLE', 'Title'),
-        ('INDEX', 'Index'),
-        ('ELEVATIONS', 'Elevations'),
-        ('NOTES', 'Notes'),
-        ('SECTIONS', 'Sections'),
-        ('SYMBOLS', 'Symbols')
-    ))
+    name = models.CharField(max_length=125, blank=True, unique=True, choices=engineering_sheet_types)
 
 
+# Models that inherit from the above
 class EngineeringFileModel(FileModel):
     def __str__(self):
         return "{}".format(self.base_name)
@@ -151,6 +151,8 @@ class EngineeringFileModel(FileModel):
 
 
 class EngineeringAssignment(Assignment):
+    def __str__(self):
+        return "%s %s" % (self.grid_cell, self.file)
 
     file = models.ForeignKey(
         EngineeringFileModel,

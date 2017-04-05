@@ -73,7 +73,7 @@ class EngSerializer(serializers.ModelSerializer):
     class Meta:
         model = EngineeringFileModel
         fields = ('project_title', 'grid_cells', 'project_description', 'project_date', 'sheet_title', 'sheet_type',
-                  'sheet_description', 'vendor', 'discipline', 'airport', 'funding_type', 'grant_number')
+                  'sheet_description', 'vendor', 'discipline', 'airport', 'funding_type', 'grant_number', 'file_path')
         depth = 1
         read_only_fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'mime')
 
@@ -108,14 +108,20 @@ class EngSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         file_path = validated_data['file_path']
-        base_name = os.path.basename(file_path)
-        file_type = base_name.split(".")[-1]
-        size = buildDocStore.convert_size(os.path.getsize(file_path))
-        mime = mimetypes.guess_type(file_path)[0]
-        if mime is None:
-            mime = "UNK"
-        comment = validated_data['comment']
-
+        if os.path.exists(file_path):
+            base_name = os.path.basename(file_path)
+            file_type = base_name.split(".")[-1]
+            size = function_definitions.convert_size(os.path.getsize(file_path))
+            mime = mimetypes.guess_type(file_path)[0]
+            if mime is None:
+                mime = ''
+            comment = validated_data['comment']
+        else:
+            base_name = file_path.split("\\")[-1]
+            file_type = base_name.split(".")[-1]
+            size = ''
+            mime = ''
+            comment = 'eDoc system unable to locate file using the file_path'
         _file = EngineeringFileModel.objects.create(
             file_path=file_path,
             base_name=base_name,
@@ -130,14 +136,13 @@ class EngSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         file_path = validated_data.get('file_path', instance.file_path)
-        base_name = os.path.basename(file_path)
-
         instance.file_path = file_path
-        instance.base_name = base_name
-        instance.file_type = base_name.split(".")[-1]
-        instance.size = function_definitions.convert_size(os.path.getsize(file_path))
-        instance.mime = mimetypes.guess_type(file_path)[0]
-
+        if os.path.exists(file_path):
+            base_name = os.path.basename(file_path)
+            instance.base_name = base_name
+            instance.file_type = base_name.split(".")[-1]
+            instance.size = function_definitions.convert_size(os.path.getsize(file_path))
+            instance.mime = mimetypes.guess_type(file_path)[0]
         instance.comment = validated_data.get('comment', instance.comment)
         instance.save()
         return instance
