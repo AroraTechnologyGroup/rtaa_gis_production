@@ -24,11 +24,14 @@ environ = "staging"
 
 
 def system_paths(environ):
-    arcmap_path = r"C:\Python27\ArcGIS10.5\python.exe"
-    mxd_script = r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
-
-
-
+    arcmap_path = {
+        "staging": r"C:\Python27\ArcGIS10.5\python.exe"
+    }
+    arcmap_path = arcmap_path[environ]
+    mxd_script = {
+        "staging": r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
+    }
+    mxd_script = mxd_script[environ]
     media_dir = {
         "home": "C:/Users/rich/PycharmProjects/rtaa_gis/rtaa_gis/media",
         "work": "C:/GitHub/rtaa_gis/rtaa_gis/media",
@@ -78,6 +81,8 @@ def system_paths(environ):
     mxdx_script = mxdx_script[environ]
 
     return {
+        "arcmap_path": arcmap_path,
+        "mxd_script": mxd_script,
         "arcpro_path": arcpro_path,
         "mxdx_script": mxdx_script,
         "gdb_path": gdb_path,
@@ -96,47 +101,39 @@ def get_username(request):
         username = "Anonymous"
     return username
 
-logger = logging.getLogger(__package__)
+
+def insert_token(webmap, token):
+    op_layers = webmap["operationalLayers"]
+    new_ops = list()
+
+    for x in op_layers:
+        keys = x.keys()
+        if "url" in keys:
+            service_url = x["url"]
+            if "https://services.arcgisonline.com" in service_url:
+                new_ops.append(x)
+            else:
+                x['token'] = token
+                new_ops.append(x)
+        else:
+            new_ops.append(x)
+
+    webmap["operationalLayers"] = new_ops
+    return webmap
 
 
-# Create your views here.
-@api_view(['POST'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
-@ensure_csrf_cookie
-def print_map(request, format=None):
-    username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, username)
+def create_print_folder(username):
+    out_folder = os.path.join(MEDIA_ROOT, "{}\\prints".format(username))
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
-
-    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                         username="data_owner",
-                         password="GIS@RTAA123!")
-
-    token = gis._con._token
-    logger.info(token)
-    data = request.POST
-
-    webmap = data['Web_Map_as_JSON']
-    map_obj = json.loads(webmap)
-    for x in map_obj["operationalLayers"]:
-        if "token" in x.keys():
-            print(x["token"])
-            x["token"] = token
-            print(x["token"])
-
-    format = data['Format']
-    layout_template = data['Layout_Template']
-    data = mapping.export_map(web_map_as_json=webmap, format=format,
-                       layout_template=layout_template,
-                       gis=gis)
-
-    file = data.download(out_folder)
-    file_name = os.path.basename(file)
-
     os.chdir(out_folder)
-    mime_type = mimetypes.guess_type(file)
+    return out_folder
+
+
+def name_file(out_folder, file):
+    file_name = os.path.basename(file)
+    logger.info("Downloaded file named {}".format(file_name))
+    os.chdir(out_folder)
     extension = file.split(".")[-1]
     base_name = "GISViewer_export"
     full_name = "{}.{}".format(base_name, extension)
@@ -151,11 +148,48 @@ def print_map(request, format=None):
                 if not os.path.exists(full_name):
                     i = True
 
-
     try:
         os.rename(file_name, full_name)
     except OSError:
-        logging.error("printed map unable to be saved with correct filename")
+        logger.error("printed map unable to be saved with correct filename")
+
+    return full_name
+
+logger = logging.getLogger(__package__)
+
+
+# Create your views here.
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_map(request, format=None):
+    username = get_username(request)
+    out_folder = create_print_folder(username=username)
+
+    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                         username="data_owner",
+                         password="GIS@RTAA123!")
+
+    token = gis._con._token
+    # logger.info(token)
+    data = request.POST
+
+    webmap = data['Web_Map_as_JSON']
+    map_obj = json.loads(webmap)
+    map_obj = insert_token(map_obj, token)
+    map_json = json.dumps(map_obj)
+    # logger.info(map_json)
+
+    format = data['Format']
+    layout_template = data['Layout_Template']
+    # layout_template = "A3 Landscape"
+    data = mapping.export_map(web_map_as_json=map_json, format=format,
+                       layout_template=layout_template,
+                       gis=gis)
+
+    file = data.download(out_folder)
+    full_name = name_file(out_folder=out_folder, file=file)
 
     response = Response()
     # This format must be identical to the DataFile object returned by the esri print examples
@@ -166,7 +200,7 @@ def print_map(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/{}/{}".format(protocol, request.META["HTTP_HOST"], out_folder, full_name)
+    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
 
     response.data = {
         "messages": [],
@@ -186,29 +220,39 @@ def print_map(request, format=None):
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
-    v = system_paths()
+    username = get_username(request)
+    out_folder = create_print_folder(username=username)
+
+    v = system_paths(environ)
     arcmap_path = v["arcmap_path"]
     mxd_script = v["mxd_script"]
 
-    username = get_username(request)
+    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                         username="data_owner",
+                         password="GIS@RTAA123!")
+
+    token = gis._con._token
     data = request.POST
     webmap = data['Web_Map_as_JSON']
-    out_folder = os.path.join(MEDIA_ROOT, username)
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
-    os.chdir(out_folder)
 
-    temp_file = open('webmap.json', 'w')
-    temp_file.write(webmap)
-    temp_file.close()
+    map_obj = json.loads(webmap)
+    map_obj = insert_token(map_obj, token)
+    map_json = json.dumps(map_obj)
+    temp_file = os.path.join(out_folder, "webmap.json")
+    if os.path.exists(temp_file):
+        os.remove(temp_file)
+    f = open(temp_file, 'w')
+    f.write(map_json)
+    f.close()
 
     format = data['Format']
     layout_template = data['Layout_Template']
 
-    args = [arcmap_path, mxd_script, '-username', username, '-media', MEDIA_ROOT, '-layout', layout_template, '-format', format]
+    args = [arcmap_path, mxd_script, '-media_dir', MEDIA_ROOT, '-username', username, '-layout', layout_template, '-format', format]
     proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
     out, err = proc.communicate()
 
+    name_file(out_folder=out_folder, file=out.decode())
     response = Response()
     # This format must be identical to the DataFile object returned by the esri print examples
     host = request.META["HTTP_HOST"]
@@ -218,7 +262,7 @@ def print_mxd(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
 
     response.data = {
         "messages": [],
@@ -266,7 +310,7 @@ def print_mxdx(request, format=None):
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
         os.chdir(out_folder)
-        temp_file = open('webmap.json', 'w')
+        temp_file = open('webmap_good.json', 'w')
         temp_file.write(u"{}".format(json.dumps(webmap)))
         temp_file.close()
     except Exception as e:
