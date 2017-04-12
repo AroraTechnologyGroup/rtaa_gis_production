@@ -18,7 +18,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
-# APPEND_SLASH = False
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -42,22 +41,23 @@ EMAIL_HOST = "aspmx.l.google.com"
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 
-SECURE_SSL_REDIRECT =False
+SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
-CSRF_TRUSTED_ORIGINS = ['gisapps.aroraengineers.com:443', '127.0.0.1:8080', 'gisapps.aroraengineers.com', 'gisapps.aroraengineers.com:8443']
-CSRF_COOKIE_DOMAIN = ['https://localhost:3003', '127.0.0.1:8080', 'gisapps.aroraengineers.com']
+CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'localhost:3003',
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com')
+# CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERRER = False
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_REPLACE_HTTPS_REFERRER = True
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
-    'https://gisapps.aroraengineers.com',
-    'https://gisapps.aroraengineers.com:8443',
-    'https://localhost:3003',
+    'gisapps.aroraengineers.com',
+    'gisapps.aroraengineers.com:8443',
+    'localhost:3003',
     'localhost:3001',
     'gisapps.aroraengineers.com:8004',
-    # 'https://gisapps.aroraengineers.com:3344',
+    'gisapps.aroraengineers.com:3344',
     'localhost:3344',
 )
 CORS_ALLOW_HEADERS = (
@@ -83,7 +83,8 @@ ALLOWED_HOSTS = [
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = False
