@@ -21,7 +21,6 @@ import mimetypes
 import json
 import shlex
 import threading
-from .utils.webmap2MXDX import ArcProPrint
 
 
 environ = "production"
@@ -69,27 +68,9 @@ def system_paths(environ):
     }
     layer_dir = layer_dir[environ]
 
-    arcpro_path = {
-        "work": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "home": r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "staging": r"C:\inetpub\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "production": r"C:\inetpub\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-    }
-    arcpro_path = arcpro_path[environ]
-
-    mxdx_script = {
-        "work": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "home": r"G:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "staging": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "production": r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
-    }
-    mxdx_script = mxdx_script[environ]
-
     return {
         "arcmap_path": arcmap_path,
         "mxd_script": mxd_script,
-        "arcpro_path": arcpro_path,
-        "mxdx_script": mxdx_script,
         "gdb_path": gdb_path,
         "layer_dir": layer_dir,
         "default_project": default_project,
@@ -163,57 +144,12 @@ def name_file(out_folder, file):
 logger = logging.getLogger(__package__)
 
 
-class ArcproCaller:
-    def __init__(self, args):
-        self.args = args
-
-    def call(self):
-        proc = subprocess.Popen(self.args, bufsize=-1, start_new_session=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        pid = proc.pid
-        logger.info("this is the PID :: {}".format(pid))
-        out, err = proc.communicate()
-        returncode = proc.returncode
-        logger.info("return code :: {}".format(returncode))
-        while returncode is None:
-            proc.wait(1)
-        if err:
-            logger.error("Error during Popen communicate :: {}".format(err))
-
-        logger.info("This is the output :: {}".format(out))
-        out_file = out.decode().replace("\n", "")
-        out_file = out_file.replace("\r", "")
-        return out_file
-
-
-class ThreadManager:
-    def __init__(self, **kwargs):
-        self.username = kwargs.get('username', "")
-        self.media_dir = kwargs.get('media_dir', "")
-        self.webmap = kwargs.get('webmap', "")
-        self.gdb_path = kwargs.get('gdb_path', "")
-        self.default_project = kwargs.get('default_project', "")
-        self.layer_dir = kwargs.get('layer_dir', "")
-        self.layout = kwargs.get('layout', "")
-
-    def print_worker(self):
-        p = ArcProPrint(username=self.username,
-                        media=self.media_dir,
-                        webmap_as_json=self.webmap,
-                        gdbPath=self.gdb_path,
-                        defaultProject=self.default_project,
-                        layerDir=self.layer_dir,
-                        layout=self.layout)
-        logger.info(p)
-        out_file = p.print_page()
-        return out_file
-
-
 # Create your views here.
 @api_view(['POST'])
 # @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
-def print_map(request, format=None):
+def print_agol(request, format=None):
     username = get_username(request)
     out_folder = create_print_folder(username=username)
 
@@ -323,89 +259,6 @@ def print_mxd(request, format=None):
             "paramName": "Output_File",
             "dataType": "GPDataFile"
         }]
-    }
-    return response
-
-
-@api_view(['POST', 'GET'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
-@ensure_csrf_cookie
-def print_mxdx(request, format=None):
-    v = system_paths(environ)
-    arcpro_path = v["arcpro_path"]
-    mxdx_script = v["mxdx_script"]
-    default_project = v["default_project"]
-    gdb_path = v["gdb_path"]
-    layer_dir = v["layer_dir"]
-
-    data = request.POST
-    if not len(data):
-        data = request.query_params
-
-    # write the web map json to a file to bypass command line string limitations
-    webmap = data['Web_Map_as_JSON']
-
-    try:
-        webmap = json.loads(webmap)
-
-        layout = data['Layout_Template']
-        username = get_username(request)
-        out_folder = os.path.join(MEDIA_ROOT, username)
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-
-        out_folder = os.path.join(out_folder, 'prints')
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-        os.chdir(out_folder)
-        temp_file = open('webmap_good.json', 'w')
-        temp_file.write(u"{}".format(json.dumps(webmap)))
-        temp_file.close()
-    except Exception as e:
-        logger.error(e)
-
-    format = data['Format']
-    layout_template = data['Layout_Template']
-
-    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-        '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
-
-    logger.info(args)
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
-
-    out = proc.communicate()[0]
-
-    logger.info(out)
-    response = Response()
-    response['Cache-Control'] = 'no-cache'
-
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
-
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
-
-    while proc.returncode is None:
-        logger.info("print process return code :: {}".format(proc.returncode))
-        proc.wait(1)
-
-    out_file = out.decode().replace("\n", "")
-    out_file = out_file.replace("\r", "")
-
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
-
-    response.data = {
-    "messages": [],
-    "results": [{
-        "value": {
-            "url": url
-        },
-        "paramName": "Output_File",
-        "dataType": "GPDataFile"
-    }]
     }
     return response
 
