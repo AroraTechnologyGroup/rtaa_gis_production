@@ -55,8 +55,6 @@ CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
     'localhost:3001',
-    'gisapps.aroraengineers.com:8004',
-    'gisapps.aroraengineers.com:8443',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
 )
