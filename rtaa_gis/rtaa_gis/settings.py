@@ -52,7 +52,8 @@ CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'https://gis.renoairport.net',
-    'localhost'
+    'localhost',
+    '127.0.0.1'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
