@@ -77,6 +77,7 @@ class HomePage(APIView):
 def user_groups(request, format=None):
     try:
         name = request.META['REMOTE_USER']
+        name = "GISAPPS\\{}".format(name)
     except KeyError:
         name = request.user.username
 
