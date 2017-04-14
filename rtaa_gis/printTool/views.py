@@ -109,7 +109,11 @@ def insert_token(webmap, token):
 
 
 def create_print_folder(username):
-    out_folder = os.path.join(MEDIA_ROOT, "{}\\prints".format(username))
+    user_folder = os.path.join(MEDIA_ROOT, username)
+    if not os.path.exists(user_folder):
+        os.mkdir(user_folder)
+
+    out_folder = os.path.join(user_folder, "prints")
     if not os.path.exists(out_folder):
         os.mkdir(out_folder)
     os.chdir(out_folder)
