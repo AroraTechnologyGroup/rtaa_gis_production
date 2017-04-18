@@ -108,18 +108,6 @@ def insert_token(webmap, token):
     return webmap
 
 
-def create_print_folder(username):
-    user_folder = os.path.join(MEDIA_ROOT, username)
-    if not os.path.exists(user_folder):
-        os.mkdir(user_folder)
-
-    out_folder = os.path.join(user_folder, "prints")
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
-    os.chdir(out_folder)
-    return out_folder
-
-
 def name_file(out_folder, file):
     file_name = os.path.basename(file)
     logger.info("Downloaded file named {}".format(file_name))
@@ -155,7 +143,7 @@ logger = logging.getLogger(__package__)
 @ensure_csrf_cookie
 def print_agol(request, format=None):
     username = get_username(request)
-    out_folder = create_print_folder(username=username)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
@@ -190,7 +178,7 @@ def print_agol(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
+    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
 
     response.data = {
         "messages": [],
@@ -211,7 +199,7 @@ def print_agol(request, format=None):
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
     username = get_username(request)
-    out_folder = create_print_folder(username=username)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     v = system_paths(environ)
     arcmap_path = v["arcmap_path"]
@@ -252,7 +240,7 @@ def print_mxd(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
 
     response.data = {
         "messages": [],
@@ -272,7 +260,7 @@ def print_mxd(request, format=None):
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
     username = get_username(request)
-    print_dir = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+    print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
 
     response = Response()
     response.data = list()
@@ -290,7 +278,7 @@ def getPrintList(request, format=None):
             protocol = "https"
 
         for out_file in pdfs:
-            url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+            url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
             response.data.append({"url": url})
     else:
         create_print_folder(username)
@@ -305,7 +293,7 @@ def delete_file(request, format=None):
     username = get_username(request)
     data = request.POST
     file_name = data["filename"].replace("\n", "")
-    outfolder = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+    outfolder = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
     response = Response()
 
     if os.path.exists(outfolder):
