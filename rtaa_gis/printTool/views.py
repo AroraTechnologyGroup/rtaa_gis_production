@@ -143,7 +143,7 @@ logger = logging.getLogger(__package__)
 @ensure_csrf_cookie
 def print_agol(request, format=None):
     username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, 'users/{}'.format(username))
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
@@ -178,7 +178,7 @@ def print_agol(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
+    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
 
     response.data = {
         "messages": [],
@@ -199,7 +199,7 @@ def print_agol(request, format=None):
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
     username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, 'users/{}'.format(username))
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     v = system_paths(environ)
     arcmap_path = v["arcmap_path"]
@@ -240,7 +240,7 @@ def print_mxd(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
 
     response.data = {
         "messages": [],
@@ -278,7 +278,7 @@ def getPrintList(request, format=None):
             protocol = "https"
 
         for out_file in pdfs:
-            url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+            url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
             response.data.append({"url": url})
     else:
         os.mkdir(print_dir)

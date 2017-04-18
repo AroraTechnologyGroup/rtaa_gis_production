@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.views import APIView
-from rest_framework.renderers import TemplateHTMLRenderer
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from django.template.response import TemplateResponse
 from rest_framework.response import Response
 from django.shortcuts import redirect
@@ -24,7 +24,7 @@ logger = logging.getLogger(__package__)
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class HomePage(APIView):
     """View that renders the opening homepage"""
-    renderer_classes = (TemplateHTMLRenderer,)
+    renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (AllowAny,)
     template = r'home/home_body.html'
 
@@ -80,6 +80,10 @@ class HomePage(APIView):
         user_dir = os.path.join(users_dir, local_name)
         if not os.path.exists(user_dir):
             os.mkdir(user_dir)
+        # make the print directory for the user
+        print_dir = os.path.join(user_dir, "prints")
+        if not os.path.exists(print_dir):
+            os.mkdir(print_dir)
 
         # return the list of groups that the user belongs to
         final_groups = user_obj.groups.all()
