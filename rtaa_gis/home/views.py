@@ -118,7 +118,7 @@ def clear_users(request, format=None):
     users = User.objects.all()
     removed = []
     for user in users:
-        if user.username.split("\\")[0] == "GISAPPS":
+        if user.username.split("\\")[0] == "RENOAIRPORT":
             user.delete()
             removed.append(user.username)
     return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
