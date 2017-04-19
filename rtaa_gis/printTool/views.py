@@ -266,7 +266,10 @@ def getPrintList(request, format=None):
     response.data = list()
     if os.path.exists(print_dir):
         files = os.listdir(print_dir)
-        pdfs = [f for f in files if f.endswith(".pdf")]
+        selection = []
+        for x in [".png", ".pdf", ".jpg", ".gif", ".eps", ".svg", ".svgz"]:
+            selection.extend([f for f in files if f.endswith(x)])
+
         response['Cache-Control'] = 'no-cache'
 
         # This format must be identical to the DataFile object returned by the esri print examples
@@ -277,7 +280,7 @@ def getPrintList(request, format=None):
         else:
             protocol = "https"
 
-        for out_file in pdfs:
+        for out_file in selection:
             url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
             response.data.append({"url": url})
     else:
