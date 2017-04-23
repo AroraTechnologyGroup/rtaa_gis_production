@@ -12,14 +12,18 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 from django.urls import reverse
+import urllib
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
+# BASE_URL = '/rtaa_gis'
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
+# MEDIA_URL = urllib.parse.urljoin(BASE_URL, '/media/')
+# STATIC_URL = urllib.parse.urljoin(BASE_URL, '/static/')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -75,12 +79,17 @@ CORS_EXPOSE_HEADERS = (
 
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
+    '10.0.0.5',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '172.72.118.217'
 ]
 
+USE_X_FORWARDED_HOST = True
+# FORCE_SCRIPT_NAME = "/rtaa_gis"
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
@@ -88,6 +97,8 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = False
     CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
+    # MEDIA_URL = urllib.parse.urljoin(BASE_URL, MEDIA_URL)
+    # STATIC_URL = urllib.parse.urljoin(BASE_URL, STATIC_URL)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -243,7 +254,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "WARNING",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -253,7 +264,7 @@ LOGGING = {
     'loggers': {
         'fileApp': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': "DEBUG",
             'propogate': True
         },
         'printTool': {
@@ -263,12 +274,12 @@ LOGGING = {
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': "DEBUG",
             'propogate': True
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'INFO'
+            'level': "DEBUG"
         }
     },
 }
