@@ -2,10 +2,8 @@ import os
 from os import path
 import shutil
 
-if path.exists("G:\\GitHub\\CalciteRTAA\\dist"):
-    loc = "G:\\GitHub"
-else:
-    loc = path.dirname(path.dirname(path.dirname(path.dirname(path.dirname(path.abspath(__file__))))))
+
+loc = "C:\\GitHub"
 
 dist = path.join(loc, "CalciteRTAA\\dist")
 

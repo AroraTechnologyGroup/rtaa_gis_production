@@ -1,21 +1,97 @@
-@import url("https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.36/css/calcite-web-no-fonts.css");
-@import url("//fonts.googleapis.com/css?family=Maven+Pro");
-@import "../templates/resources/card_template.styl";
-@import "../templates/resources/homepage_banner_template.styl";
-@import "../templates/resources/page_banner_template.styl";
+@import url("https://s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-beta.13/css/calcite-web-no-fonts.css")
+@import url("//fonts.googleapis.com/css?family=Maven+Pro")
 
-html {
-    overflow-x: hidden;
+.sub-nav  {
+	background-color: #9BC19C;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    border: 0;
-    padding: 0;
+.page-banner {
+	margin-bottom: auto
 }
 
-.footer {
-    padding-bottom: 3px;
+.rtaa_logo {
+	height: 60px;
+	width: 120px;
+}
+
+#homepage-banner {
+	width: 100%;
+  background-image: url("../../app/img/header_banner_resize.png")
+  background-size: cover
+	display: flex;
+	flex-direction: row;
+	justify-content: center
+}
+
+#homepage-banner .column-24 {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+}
+
+.card {
+	outline: 1px solid #F8F8F8;
+}
+
+.card .card-image {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+
+
+.card-header {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+
+h1 {
+	font-family: 'Maven Pro';
+	font-size: 23px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+
+h3 {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 500;
+	line-height: 23px;
+}
+
+p {
+	font-family: 'Maven Pro';
+	font-size: 14px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
+}
+
+blockquote {
+	font-family: 'Maven Pro';
+	font-size: 17px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
+}
+
+pre {
+	font-family: 'Maven Pro';
+	font-size: 11px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: 400;
+	line-height: 23px;
 }
