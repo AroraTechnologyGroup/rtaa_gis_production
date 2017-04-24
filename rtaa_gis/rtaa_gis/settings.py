@@ -19,11 +19,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
-# BASE_URL = '/rtaa_gis'
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-# MEDIA_URL = urllib.parse.urljoin(BASE_URL, '/media/')
-# STATIC_URL = urllib.parse.urljoin(BASE_URL, '/static/')
+BASE_URL = '/rtaa_gis'
+# STATIC_URL = '/static/'
+# MEDIA_URL = '/media/'
+MEDIA_URL = BASE_URL + '/media/'
+STATIC_URL = BASE_URL + '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -85,7 +85,7 @@ ALLOWED_HOSTS = [
     '172.72.118.217'
 ]
 
-USE_X_FORWARDED_HOST = True
+# USE_X_FORWARDED_HOST = True
 # FORCE_SCRIPT_NAME = "/rtaa_gis"
 
 # SECURITY WARNING: don't run with debug turned on in production!
