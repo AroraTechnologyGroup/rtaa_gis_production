@@ -5,7 +5,7 @@ import shutil
 
 loc = "C:\\GitHub"
 
-dist = path.join(loc, "CalciteRTAA\\dist")
+dist = path.join(loc, "rtaa_gis_dojo\\dist")
 
 dojo = path.join(dist, "dojo\\dojo.js")
 dojo_resources = path.join(dist, "dojo\\resources")

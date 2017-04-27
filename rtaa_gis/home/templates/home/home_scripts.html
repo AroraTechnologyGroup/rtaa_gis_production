@@ -23,7 +23,7 @@
             var node = query(".loader")[0];
             domClass.remove(node, 'is-active');
             {% if request.user.is_authenticated %}
-                var link = domConstruct.create("a", {href: "/#home"});
+                var link = domConstruct.create("a", {href: "/#/home"});
                 link.click();
                 domConstruct.destroy(link);
             {% endif %}

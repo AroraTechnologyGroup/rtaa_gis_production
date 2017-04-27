@@ -14,23 +14,29 @@ import os
 from django.urls import reverse
 import urllib
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
-BASE_URL = '/rtaa_gis'
-# STATIC_URL = '/static/'
-# MEDIA_URL = '/media/'
-MEDIA_URL = BASE_URL + '/media/'
-STATIC_URL = BASE_URL + '/static/'
+# This setting gets used in templates to build correct hyperlinks
+BASE_URL = '/rtaa_gis/'
+if "PYCHARM_HOSTED" in list(os.environ.keys()):
+    if os.environ["PYCHARM_HOSTED"]:
+        BASE_URL = '/'
+
+MEDIA_URL = BASE_URL + 'media/'
+STATIC_URL = BASE_URL + 'static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = r'/'
+LOGIN_REDIRECT_URL = BASE_URL
 
 FCGI_DEBUG = True
 FCGI_LOG = True
@@ -49,7 +55,7 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com')
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004')
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
@@ -87,9 +93,6 @@ ALLOWED_HOSTS = [
 
 # USE_X_FORWARDED_HOST = True
 # FORCE_SCRIPT_NAME = "/rtaa_gis"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False

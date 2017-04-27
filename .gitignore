@@ -25,14 +25,5 @@ rtaa_gis/media/
 **/static/fileApp/pdf.worker.js
 **/fixtures/data/
 **/creds.json
-**/static/**/img/
-!**/rtaa_logo.png
-!**/airspace_app.png
-!**/eDoc_app.png
-!**/favicon.ico
-!**/header_banner.png
-!/rtaa_gis/home/static/home/app/img/thumbnails/eDoc_app.png
-!/rtaa_gis/home/static/home/app/img/thumbnails/airspace_app.png
-!/rtaa_gis/home/static/home/app/img/thumbnails/
-!/rtaa_gis/home/static/home/app/img/logo/
-
+!**/home/static/home/
+**/static/registration/
