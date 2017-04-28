@@ -1,10 +1,18 @@
 import os
 from os import path
 import shutil
+import sys
+import django
+import subprocess
+from subprocess import PIPE
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rtaa_gis.settings")
+django.setup()
+from django.conf import settings
 
-
-loc = "C:\\GitHub"
-
+BASE_DIR = settings.BASE_DIR
+PYTHON_PATH = settings.PYTHON_PATH
+loc = r"C:\\GitHub"
 dist = path.join(loc, "rtaa_gis_dojo\\dist")
 
 dojo = path.join(dist, "dojo\\dojo.js")
@@ -35,3 +43,15 @@ for x in [app_resources, app_images, app_templates]:
 for dirpath, dirnames, filenames in os.walk(target_folder):
     print(filenames)
 
+kwargs = dict()
+kwargs['stderr'] = PIPE
+kwargs['stdout'] = PIPE
+kwargs['universal_newlines'] = True
+
+manage_script = os.path.join(BASE_DIR, "manage.py")
+proc = subprocess.Popen("{} {} collectstatic --no-input".format(PYTHON_PATH, manage_script), **kwargs)
+(out, err) = proc.communicate()
+if out:
+    print(out)
+if err:
+    print(err)

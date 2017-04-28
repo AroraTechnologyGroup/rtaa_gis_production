@@ -2059,7 +2059,8 @@ define([
 	'app/PageBanner',
 	'app/namedFunctions',
 	'dojo/text!./ldap.json',
-	'dijit/layout/ContentPane'
+	'dijit/layout/ContentPane',
+	'dijit/_WidgetBase'
 	], function(
 		registry,
 		declare,
@@ -2086,117 +2087,125 @@ define([
 		PageBanner,
 		namedFunctions,
 		ldapConfig,
-		ContentPane
+		ContentPane,
+		_WidgetBase
 		) {
-
-		var unload = function() {
-			registry.forEach(function(widget, index, hash) {
-				registry.remove(widget);
-				domConstruct.destroy(widget.domNode);
-			});
-		};
-
-		baseUnload.addOnUnload(unload);
-
-		var app = {};
-		lang.mixin(app, new namedFunctions());
-
-		var ldap_url;
-		var ldap_config = JSON.parse(ldapConfig);
-		if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
-			ldap_url = ldap_config.test_url;
-		} else if (window.location.port === "8443") {
-			ldap_url = ldap_config.production_url;
-		} else if (window.location.port === "8004") {
-			ldap_url = ldap_config.staging_url;
-		}
-	
-		var header_pane = new ContentPane({
-			id: "header-pane",
-			style: "top: 0"
-		}, 'headerPane');
-		header_pane.startup();
-		var main_content = new ContentPane({
-					id: 'main-content'
-				}, 'main-content');
-		main_content.startup();
-
-		app.getGroups(ldap_url).then(function(groups) {
-
-		router.register("home", function(evt) {
-			evt.preventDefault();
-			console.log('loading ' + evt.newPath);
-			// var handle = topic.subscribe("/dojo/hashchange", function(hash) {
-			// 				app.unloadContent();
-			// 				handle.remove()
-			// 			});
-			app.buildTitleBar(evt);
-		});
-
-		router.register("gisportal/home", function(evt) {
-			evt.preventDefault();
-			console.log('loading ' + evt.newPath);
-			app.buildGISPortal(evt, groups).then(function(e) {
-				console.log(e);
-				router.go("gisportal/published-layers");
-			});
-		}, function(err) {
-			console.log(err);
-		});
-
-		router.register("gisportal/published-layers", function(evt) {
-			evt.preventDefault();
-			console.log("loading "+evt.newPath);
-			app.buildGISPortal(evt, groups).then(function(e) {
-				app.buildDataBrowser(evt, Card, groups).then(function(e) {
-					console.log(e);
+		return declare([_WidgetBase], {
+			unload: function() {
+				registry.forEach(function(widget, index, hash) {
+					registry.remove(widget);
+					domConstruct.destroy(widget.domNode);
 				});
-			});
+			},
+			postCreate: function() {
+				baseUnload.addOnUnload(this.unload);
+				var header_pane = new ContentPane({
+					id: "header-pane",
+					style: "top: 0"
+				}, 'headerPane');
+				header_pane.startup();
+				var main_content = new ContentPane({
+							id: 'main-content'
+						}, 'main-content');
+				main_content.startup();
+			},
+			startup: function() {
+				this.inherited(arguments);
+				var deferred = new Deferred();
+				var self = this;
+				var app = {};
+				var ldap_url;
+				var ldap_config = JSON.parse(ldapConfig);
+				if (Array.indexOf(['localhost', '127.0.0.1'], window.location.hostname) !== -1) {
+					ldap_url = ldap_config.test_url;
+				} else if (window.location.port === "") {
+					ldap_url = ldap_config.production_url;
+				} else if (window.location.port === "8004") {
+					ldap_url = ldap_config.staging_url;
+				}
+				lang.mixin(app, new namedFunctions());
+				app.getGroups(ldap_url).then(function(groups) {
 
-		});
-
-		router.register("gisportal/publishing-tools", function(evt) {
-			evt.preventDefault();
-			console.log("loading "+evt.newPath);
-			app.buildGISPortal(evt, groups).then(function(e) {
-				app.buildBackEndAPIs(evt, Card, groups).then(function(e) {
-					console.log(e);
+					app.router = self.build_router(app, groups);
+					deferred.resolve(app);
 				});
-			});
+				return deferred.promise;
+			},
 
+			build_router: function(obj, groups) {
+				
+				router.register("home", function(evt) {
+					evt.preventDefault();
+					console.log('loading ' + evt.newPath);
+					// var handle = topic.subscribe("/dojo/hashchange", function(hash) {
+					// 				obj.unloadContent();
+					// 				handle.remove()
+					// 			});
+					obj.buildTitleBar(evt);
+				});
+
+				router.register("gisportal/home", function(evt) {
+					evt.preventDefault();
+					console.log('loading ' + evt.newPath);
+					obj.buildGISPortal(evt, groups).then(function(e) {
+						console.log(e);
+						hash("gisportal/viewer");
+					});
+				}, function(err) {
+					console.log(err);
+				});
+
+				router.register("gisportal/viewer", function(evt) {
+					evt.preventDefault();
+					console.log("loading "+evt.newPath);
+					obj.buildGISPortal(evt, groups).then(function(e) {
+						obj.buildDataBrowser(evt, Card, groups).then(function(e) {
+							console.log(e);
+						});
+					});
+
+				});
+
+				router.register("gisportal/publishing-tools", function(evt) {
+					evt.preventDefault();
+					console.log("loading "+evt.newPath);
+					obj.buildGISPortal(evt, groups).then(function(e) {
+						obj.buildBackEndAPIs(evt, Card, groups).then(function(e) {
+							console.log(e);
+						});
+					});
+
+				});
+
+				router.register("applications/home", function(evt) {
+					evt.preventDefault();
+					console.log("loading "+evt.newPath);
+					obj.buildApplications(evt, Card, groups).then(function(e) {
+						console.log(e);
+					});
+				});
+
+				
+				router.register("web-resources/home", function(evt) {
+					evt.preventDefault();
+					console.log('loading '+evt.newPath);
+					obj.buildWebResources(evt, groups).then(function(e) {
+						console.log(e);
+					});
+				});
+
+				router.register("help/home", function(evt) {
+					evt.preventDefault();
+					console.log('loading '+evt.newPath);
+					obj.buildHelp().then(function(e) {
+						console.log(e);
+					});
+				});
+
+				router.startup();
+				return router;
+			}
 		});
-
-		router.register("applications/home", function(evt) {
-			evt.preventDefault();
-			console.log("loading "+evt.newPath);
-			app.buildApplications(evt, Card, groups).then(function(e) {
-				console.log(e);
-			});
-		});
-
-		
-		router.register("web-resources/home", function(evt) {
-			evt.preventDefault();
-			console.log('loading '+evt.newPath);
-			app.buildWebResources(evt, groups).then(function(e) {
-				console.log(e);
-			});
-		});
-
-		router.register("help/home", function(evt) {
-			evt.preventDefault();
-			console.log('loading '+evt.newPath);
-			app.buildHelp().then(function(e) {
-				console.log(e);
-			});
-		});
-
-		router.startup();
-		router.go('home');
-		app.router = router;
-		});
-		return app;
-
 });
 
 },
@@ -15221,7 +15230,8 @@ define([
 	'dojo/on',
 	'app/HomepageBanner',
 	'app/PageBanner',
-	'dijit/layout/ContentPane'
+	'dijit/layout/ContentPane',
+	'dojo/text!./application_cards.json'
 	], function(
 		registry,
 		declare,
@@ -15245,7 +15255,8 @@ define([
 		on,
 		HomepageBanner,
 		PageBanner,
-		ContentPane
+		ContentPane,
+		app_cards
 		) {
 
 		return declare([], {
@@ -15455,10 +15466,10 @@ define([
 					
 					var routes = [{
 								title: 'Data Viewer',
-								href: '/#/gisportal/published-layers'
+								href: 'gisportal/viewer'
 							}, {
 								title: 'Publishing Tools',
-								href: '/#/gisportal/publishing-tools'
+								href: 'gisportal/publishing-tools'
 							}];
 				
 
@@ -15494,7 +15505,7 @@ define([
 				{
 					id: "Data Viewer",
 					imgSrc: 'static/home/app/img/thumbnails/data_viewer.png',
-					href: 'https://gisapps.aroraengineers.com/rtaa_data_viewer',
+					href: 'https://gisapps.aroraengineers.com/rtaa_viewer',
 					header: 'Data Viewer',
 					content1: 'Sign into ArcGIS Online and browse the available Published Layers',
 					content2: '*only available to GIS_admin members',
@@ -15550,59 +15561,8 @@ define([
 						// console.log(err);
 					}
 
-					var cards = [
-						// {
-						// 	id: "GIS Data Viewer",
-						// 	imgSrc: "static/home/app/img/background.png",
-						// 	href: "",
-						// 	header: "GIS Data Viewer",
-						// 	content1: "View and Interact with layers",
-						// 	content2: "* available to all users",
-						// 	back_url: "applications/home"
-						// }, 
-						{
-							id: "eDoc Search Tool",
-							imgSrc: "static/home/app/img/background.png",
-							href: 'https://gisapps.aroraengineers.com/eDoc',
-							header: 'eDoc Search Tool',
-							content1: "Use this tool to assign files to grid cells",
-							content2: "* available to specific groups",
-							back_url: "applications/home"
-						} 
-						// {
-						// 	id: 'Airspace',
-						// 	imgSrc: "static/home/app/img/background.png",
-						// 	href: "",
-						// 	header: 'Airspace',
-						// 	content1: "View and Interact with Airspace data",
-						// 	content2: "* available to specific groups",
-						// 	back_url: "applications/home"
-						// }, {
-						// 	id: 'Economic Dev.',
-						// 	imgSrc: "static/home/app/img/background.png",
-						// 	href: "",
-						// 	header: 'Economic Development',
-						// 	content1: "View and Interact with GIS Data for Economic Development",
-						// 	content2: "* available to specific groups",
-						// 	back_url: "applications/home"
-						// }, {
-						// 	id: 'Airfield Signage and Marking',
-						// 	imgSrc: "static/home/app/img/background.png",
-						// 	href: "",
-						// 	header: 'Airfield Signage',
-						// 	content1: "View and Interact with the airfield signage data",
-						// 	content2: "* available to specific groups",
-						// 	back_url: "applications/home"
-						// }, {
-						// 	id: 'Mobile Collection',
-						// 	imgSrc: "static/home/app/img/background.png",
-						// 	href: "",
-						// 	header: 'Mobile Collection',
-						// 	content1: "Mobile app for collecting locations and attributes of features",
-						// 	content2: "* available to specific groups",
-						// 	back_url: "applications/home"
-						// }
-						];
+					// these are loaded from dojo/text!./application_cards.json
+					var cards = JSON.parse(app_cards);
 
 					self.header = new PageBanner({
 						id: 'applications-banner',
@@ -15648,13 +15608,13 @@ define([
 						title: 'Online Resource Library',
 						routes: [{
 							title: 'State Level GIS Data',
-							href: '/#web-resources/state-level'
+							href: 'web-resources/state-level'
 						}, {
 							title: 'County Level GIS Data',
-							href: '/#web-resources/county-level'
+							href: 'web-resources/county-level'
 						}, {
 							title: 'ESRI Online Resources',
-							href: '/#web-resources/esri-resources'
+							href: 'web-resources/esri-resources'
 						}]
 					});
 
@@ -15682,16 +15642,16 @@ define([
 						title: 'Help Documentation',
 						routes: [{
 							title: 'Technical Details',
-							href: '/#help/tech-details'
+							href: 'help/tech-details'
 						}, {
 							title: 'About this Site',
-							href: '/#help/about'
+							href: 'help/about'
 						}, {
 							title: 'Request Help Ticket',
-							href: '/#help/request-ticket'
+							href: 'help/request-ticket'
 						}, {
 							title: 'Tutorials',
-							href: '/#help/tutorials'
+							href: 'help/tutorials'
 						}]
 					});
 
@@ -18991,20 +18951,30 @@ define([
   "dojo/_base/lang",
   "dojo/dom-construct",
   "dojo/dom-style",
+  "dojo/query",
   "dojo/_base/array",
   "dijit/_WidgetBase",
   "dijit/_OnDijitClickMixin",
   "dijit/_TemplatedMixin",
+  "dojo/hash",
+  "dojo/router",
+  "dojo/on",
+  "dojo/topic",
   "dojo/text!./templates/PageBanner_template.html"
 ], function(
   declare,
   lang,
   domConstruct,
   domStyle,
+  query,
   Array,
   _WidgetBase,
   _OnDijitClickMixin,
   _TemplatedMixin,
+  hash,
+  router,
+  on,
+  topic,
   template
 ) {
   return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
@@ -19023,10 +18993,19 @@ define([
     postCreate: function() {
       var routes = this.routes;
       var targetNode = this.routeNode;
+     
       if (routes.length >= 1) {
         Array.forEach(routes, function(e) {
-          var string = "<a class='sub-nav-link' href="+e.href+">"+e.title+"</a>";
-          domConstruct.place(string, targetNode, 'last');
+          var link = domConstruct.toDom("<a class='sub-nav-link'>"+e.title+"</a>");
+          on(link, 'click', function(evt) {
+            evt.preventDefault();
+            var current = hash();
+            if (e.href !== current) {
+              hash(e.href, true);
+              
+            }
+          });
+          domConstruct.place(link, targetNode, 'last');
         });
       }
     }
@@ -41453,6 +41432,7 @@ define(["./Credential","./domUtils","./lang","./urlUtils","dijit/Dialog","dijit/
 },
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"https://gisapps.aroraengineers.com/rtaa_viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"* available to all users\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"https://gisapps.aroraengineers.com/eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}\r\n]\r\n\t",
 'url:app/templates/Card_template.html':"<div class=\"card card-wide\">\r\n\t<figure class=\"card-wide-image-wrap\">\r\n\t\t<img class=\"card-wide-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t${header}\r\n\t\t</div>\r\n\t</figure>\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${href}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com:8004/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",

@@ -15,8 +15,8 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+DEBUG = True
+PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
@@ -55,18 +55,20 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004')
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
+                        'gisapps.aroraengineers.com:443')
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
-    'https://gisapps.aroraengineers.com',
+    'https://gisapps.aroraengineers.com:443',
     'localhost:3003',
     'localhost:3001',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
+    'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
@@ -92,7 +94,8 @@ ALLOWED_HOSTS = [
 ]
 
 # USE_X_FORWARDED_HOST = True
-# FORCE_SCRIPT_NAME = "/rtaa_gis"
+FORCE_SCRIPT_NAME = "/rtaa_gis"
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
@@ -100,8 +103,6 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = False
     CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
-    # MEDIA_URL = urllib.parse.urljoin(BASE_URL, MEDIA_URL)
-    # STATIC_URL = urllib.parse.urljoin(BASE_URL, STATIC_URL)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -257,7 +258,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "WARNING",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
