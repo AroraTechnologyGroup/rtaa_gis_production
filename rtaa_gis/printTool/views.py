@@ -21,7 +21,7 @@ import mimetypes
 import json
 import shlex
 import threading
-
+from django.conf import settings
 
 environ = "production"
 username = "gissetup"
@@ -240,7 +240,7 @@ def print_mxd(request, format=None):
     else:
         protocol = "https"
 
-    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    url = "{}/users/{}/prints/{}".format(settings.MEDIA_URL, username, "layout.pdf")
 
     response.data = {
         "messages": [],
@@ -281,7 +281,9 @@ def getPrintList(request, format=None):
             protocol = "https"
 
         for out_file in selection:
-            url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+            url = "{}://{}/{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"],
+                                                               request.META["SCRIPT_NAME"],
+                                                               username, out_file)
             response.data.append({"url": url})
     else:
         response.data.append("Error, print directory not found")

@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 # This setting gets used in templates to build correct hyperlinks
-BASE_URL = '/rtaa_gis/'
+BASE_URL = '/rtaa_prod/'
 if "PYCHARM_HOSTED" in list(os.environ.keys()):
     if os.environ["PYCHARM_HOSTED"]:
         BASE_URL = '/'
@@ -94,7 +94,7 @@ ALLOWED_HOSTS = [
 ]
 
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_gis"
+# FORCE_SCRIPT_NAME = "/rtaa_prod"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
