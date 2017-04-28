@@ -1,5 +1,6 @@
 <!-- footer of the home page -->
-<footer class="footer avenir-regular" role="contentinfo">
+{% load static %}
+<div class="footer avenir-regular" role="contentinfo">
     <div class="grid-container">
       <nav class="column-9 tablet-leader-1">
         <h6><span>Regional Information</span></h6>
@@ -21,7 +22,7 @@
 
       <nav class="column-3 right last tablet-leader-1">
           <a target="_blank" href="http://renoairport.com/">
-            <img class="rtaa_logo" src="../static/home/app/img/logo/logo_green.jpg"/>
+            <img class="rtaa_logo" src="{% static "home/app/img/logo/rtaa_logo.png" %}"/>
           </a>
         <section class="footer-social-nav gutter-left-3 right">
           <a target="_blank" class="icon-social-twitter" href="https://twitter.com/RenoAirport"></a>
@@ -31,4 +32,4 @@
         </section>
       </nav>
     </div>
-</footer>
+</div>

@@ -16,7 +16,8 @@ import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
@@ -55,20 +56,18 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443')
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004')
 # CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
-    'https://gisapps.aroraengineers.com:443',
+    'https://gisapps.aroraengineers.com',
     'localhost:3003',
     'localhost:3001',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
-    'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
@@ -94,8 +93,7 @@ ALLOWED_HOSTS = [
 ]
 
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_gis"
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# FORCE_SCRIPT_NAME = "/rtaa_gis"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
@@ -166,17 +164,6 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'HOST': 'gis.aroraengineers.com',
-        'PORT': '1433',
-        'USER': 'gissetup',
-        'PASSWORD': 'AroraGIS123!',
-        'NAME': 'rtaa_gis_prod',
-        'OPTIONS': {
-            'driver': 'SQL Server Native Client 11.0'
-        }
-    }
     # 'azure_sql_server': {
     #     'ENGINE': 'sql_server.pyodbc',
     #     'NAME': 'eDocDiscovery',
@@ -195,10 +182,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    # 'sqlite': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 }
 
 
@@ -269,7 +256,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "WARNING",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

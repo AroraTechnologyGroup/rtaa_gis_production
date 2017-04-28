@@ -14,6 +14,7 @@ from rest_framework.decorators import api_view, permission_classes, renderer_cla
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 import logging
 from rtaa_gis.settings import MEDIA_ROOT
+from rtaa_gis.settings import BASE_URL
 from datetime import datetime
 from rest_framework_jsonp.renderers import JSONPRenderer
 import os
@@ -88,7 +89,8 @@ class HomePage(APIView):
         # return the list of groups that the user belongs to
         final_groups = user_obj.groups.all()
         final_groups = [x.name for x in final_groups]
-        resp.data = {"groups": final_groups}
+
+        resp.data = {"project_name": BASE_URL, "groups": final_groups}
         return resp
 
 
