@@ -23,9 +23,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 # This setting gets used in templates to build correct hyperlinks
 BASE_URL = '/rtaa_prod/'
-if "PYCHARM_HOSTED" in list(os.environ.keys()):
-    if os.environ["PYCHARM_HOSTED"]:
-        BASE_URL = '/'
+if DEBUG:
+    BASE_URL = '/'
 
 MEDIA_URL = BASE_URL + 'media/'
 STATIC_URL = BASE_URL + 'static/'

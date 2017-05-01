@@ -37,10 +37,6 @@ class HomePage(APIView):
         except KeyError:
             name = request.user.username
 
-        # for dev with dojo, if username is '', set it to siteadmin
-        if name == '':
-            name = 'siteadmin'
-
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
 

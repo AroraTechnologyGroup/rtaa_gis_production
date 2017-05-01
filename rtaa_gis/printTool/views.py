@@ -170,15 +170,17 @@ def print_agol(request, format=None):
     full_name = name_file(out_folder=out_folder, file=file)
 
     response = Response()
-    # This format must be identical to the DataFile object returned by the esri print examples
+
     host = request.META["HTTP_HOST"]
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
 
     if host == "127.0.0.1:8080":
         protocol = "http"
     else:
         protocol = "https"
 
-    url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
 
     response.data = {
         "messages": [],
@@ -230,7 +232,7 @@ def print_mxd(request, format=None):
     proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
     out, err = proc.communicate()
 
-    name_file(out_folder=out_folder, file=out.decode())
+    full_name = name_file(out_folder=out_folder, file=out.decode())
     response = Response()
     # This format must be identical to the DataFile object returned by the esri print examples
     host = request.META["HTTP_HOST"]
@@ -239,8 +241,10 @@ def print_mxd(request, format=None):
         protocol = "http"
     else:
         protocol = "https"
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
 
-    url = "{}/users/{}/prints/{}".format(settings.MEDIA_URL, username, "layout.pdf")
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
 
     response.data = {
         "messages": [],
@@ -271,19 +275,16 @@ def getPrintList(request, format=None):
             selection.extend([f for f in files if f.endswith(x)])
 
         response['Cache-Control'] = 'no-cache'
-
-        # This format must be identical to the DataFile object returned by the esri print examples
         host = request.META["HTTP_HOST"]
-
         if host == "127.0.0.1:8080":
             protocol = "http"
         else:
             protocol = "https"
+        media_url = settings.MEDIA_URL.lstrip("/")
+        media_url = media_url.rstrip("/")
 
         for out_file in selection:
-            url = "{}://{}/{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"],
-                                                               request.META["SCRIPT_NAME"],
-                                                               username, out_file)
+            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
             response.data.append({"url": url})
     else:
         response.data.append("Error, print directory not found")
