@@ -99,7 +99,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to siteadmin
     if name == '':
-        name = 'siteadmin'
+        name = 'gissetup'
 
     user_obj = User.objects.get(username=name)
 
