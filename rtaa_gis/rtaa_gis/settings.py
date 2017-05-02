@@ -53,20 +53,24 @@ SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
+# CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
                         'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443')
-# CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
+
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
-    'https://gisapps.aroraengineers.com:443',
+    'https://gisapps.aroraengineers.com',
     'localhost:3003',
     'localhost:3001',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
+    'https://gis.renoairport.net',
+    'localhost',
+    '127.0.0.1',
     'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
@@ -87,6 +91,7 @@ CORS_EXPOSE_HEADERS = (
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
     '10.0.0.5',
+    'gis.renoairport.net',
     'localhost',
     '127.0.0.1',
     '172.72.118.217'
@@ -165,17 +170,6 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'HOST': 'gis.aroraengineers.com',
-        'PORT': '1433',
-        'USER': 'gissetup',
-        'PASSWORD': 'AroraGIS123!',
-        'NAME': 'rtaa_gis_prod',
-        'OPTIONS': {
-            'driver': 'SQL Server Native Client 11.0'
-        }
-    }
     # 'azure_sql_server': {
     #     'ENGINE': 'sql_server.pyodbc',
     #     'NAME': 'eDocDiscovery',
@@ -194,10 +188,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    # 'sqlite': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
 }
 
 

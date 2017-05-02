@@ -42,7 +42,7 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
-        query = LDAPQuery(local_name, 'gisapps.aroraengineers.com')
+        query = LDAPQuery(local_name, 'renoairport.net')
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
         logger.info("username = {}".format(name))
@@ -115,7 +115,7 @@ def clear_users(request, format=None):
     users = User.objects.all()
     removed = []
     for user in users:
-        if user.username.split("\\")[0] == "GISAPPS":
+        if user.username.split("\\")[0] == "RENOAIRPORT":
             user.delete()
             removed.append(user.username)
     return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
