@@ -284,7 +284,7 @@ def getPrintList(request, format=None):
             url = "{}://{}/media/users/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
             response.data.append({"url": url})
     else:
-        create_print_folder(username)
+        response.data.append("Error, print directory not found")
 
     return response
 

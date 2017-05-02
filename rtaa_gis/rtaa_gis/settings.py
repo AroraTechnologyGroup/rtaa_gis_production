@@ -255,7 +255,7 @@ LOGGING = {
         },
         'printTool': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propogate': True
         },
         'home': {
