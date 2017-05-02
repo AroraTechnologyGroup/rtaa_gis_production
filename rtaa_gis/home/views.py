@@ -42,7 +42,7 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
-        query = LDAPQuery(local_name, 'renoairport.net')
+        query = LDAPQuery(local_name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
         logger.info("username = {}".format(name))
@@ -99,7 +99,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to siteadmin
     if name == '':
-        name = 'gissetup'
+        name = 'siteadmin'
 
     user_obj = User.objects.get(username=name)
 

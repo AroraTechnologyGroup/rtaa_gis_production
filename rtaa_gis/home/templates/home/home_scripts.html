@@ -6,7 +6,7 @@
         function (Array, app, hash, query, domClass, domConstruct, dom, on) {
             var myApp = new app();
             myApp.startup().then(function(e) {
-                hash("applications/home");
+                hash("home");
                 // disable the loader gif
                 var node = query(".loader")[0];
                 domClass.remove(node, 'is-active');

@@ -17,6 +17,7 @@ import urllib
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
