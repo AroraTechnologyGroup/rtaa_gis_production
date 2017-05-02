@@ -20,7 +20,7 @@
         {% endif %}
     {% endif %}
 
-    <form data-dojo-type="dijit/form/Form" method="post" action="{{ login }}">
+    <form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
     {% csrf_token %}
     <table>
     <tr>

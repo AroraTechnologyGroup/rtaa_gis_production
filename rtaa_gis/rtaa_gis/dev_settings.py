@@ -16,15 +16,17 @@ import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 # This setting gets used in templates to build correct hyperlinks
-BASE_URL = '/rtaa_prod/'
-if DEBUG:
-    BASE_URL = '/'
+BASE_URL = '/rtaa_gis/'
+if "PYCHARM_HOSTED" in list(os.environ.keys()):
+    if os.environ["PYCHARM_HOSTED"]:
+        BASE_URL = '/'
 
 MEDIA_URL = BASE_URL + 'media/'
 STATIC_URL = BASE_URL + 'static/'
@@ -53,11 +55,9 @@ SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
-# CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
-
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004')
+# CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
@@ -68,10 +68,6 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3001',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
-    'https://gis.renoairport.net',
-    'localhost',
-    '127.0.0.1',
-    'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
@@ -91,15 +87,13 @@ CORS_EXPOSE_HEADERS = (
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
     '10.0.0.5',
-    'gis.renoairport.net',
     'localhost',
     '127.0.0.1',
     '172.72.118.217'
 ]
 
 # USE_X_FORWARDED_HOST = True
-# FORCE_SCRIPT_NAME = "/rtaa_prod"
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# FORCE_SCRIPT_NAME = "/rtaa_gis"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
@@ -262,7 +256,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "WARNING",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

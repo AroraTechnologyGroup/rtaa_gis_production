@@ -13,10 +13,10 @@ from django.utils.decorators import method_decorator
 from rest_framework.decorators import api_view, permission_classes, renderer_classes
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 import logging
-from rtaa_gis.settings import MEDIA_ROOT
 from datetime import datetime
-from rest_framework_jsonp.renderers import JSONPRenderer
+from rest_framework_jsonp.renderers import JSONRenderer
 import os
+from django.conf import settings
 
 logger = logging.getLogger(__package__)
 
@@ -36,10 +36,6 @@ class HomePage(APIView):
             name = request.META['REMOTE_USER']
         except KeyError:
             name = request.user.username
-
-        # for dev with dojo, if username is '', set it to siteadmin
-        if name == '':
-            name = 'siteadmin'
 
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
@@ -74,7 +70,7 @@ class HomePage(APIView):
                     print(e)
 
         # Create user's folder in the media root
-        users_dir = os.path.join(MEDIA_ROOT, 'users')
+        users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
         if not os.path.exists(users_dir):
             os.mkdir(users_dir)
         user_dir = os.path.join(users_dir, local_name)
@@ -88,7 +84,8 @@ class HomePage(APIView):
         # return the list of groups that the user belongs to
         final_groups = user_obj.groups.all()
         final_groups = [x.name for x in final_groups]
-        resp.data = {"groups": final_groups}
+
+        resp.data = {"project_name": settings.BASE_URL, "groups": final_groups}
         return resp
 
 

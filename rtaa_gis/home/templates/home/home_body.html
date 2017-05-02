@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{%  load static %}
 
 {% block icon %}
-    <link rel="shortcut icon" href="../static/home/app/img/icons/favicon.ico">
+    <link rel="shortcut icon" href="{%  static "home/app/img/icons/favicon.ico" %}">
 {% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" type="text/css" href="../static/home/app/resources/app.css"/>
-    <link rel="stylesheet" type="text/css" href="../static/home/resources/home_main.css"/>
+    <link rel="stylesheet" type="text/css" href="{%  static "home/app/resources/app.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{%  static "home/resources/home_main.css" %}"/>
 {% endblock %}
 
 {% block title %}
@@ -19,13 +20,13 @@
           <nav class="drawer-nav" role="navigation">
             <aside class="side-nav">
               <h2 class="side-nav-title">RTAA GIS</h2>
-              <a href="/#home" class="side-nav-link">HomePage</a>
+              <a href="{{ project_name }}#home" class="side-nav-link">HomePage</a>
                 {% if "GIS_admin" in groups %}
-              <a href="/#gisportal/home" class="side-nav-link">GIS Portal</a>
+              <a href="{{ project_name }}#gisportal/home" class="side-nav-link">GIS Admin</a>
                 {% endif %}
-              <a href="/#applications/home" class="side-nav-link">Applications</a>
-              <a href="/#web-resources/home" class="side-nav-link">Web Resources</a>
-              <a href="/#help/home" class="side-nav-link">Help</a>
+              <a href="{{ project_name }}#applications/home" class="side-nav-link">Applications</a>
+              <a href="{{ project_name }}#web-resources/home" class="side-nav-link">Web Resources</a>
+              <a href="{{ project_name }}#help/home" class="side-nav-link">Help</a>
             </aside>
           </nav>
         </div>
@@ -35,18 +36,18 @@
             <div class="grid-container">
               <div class="column-24">
                 <div class="tablet-hide">
-                  <a href="/#home" class="top-nav-title">RTAA GIS</a>
+                  <a href="{{ project_name }}#home" class="top-nav-title">RTAA GIS</a>
                   <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
                       {% if 'GIS_admin' in groups %}
-                    <a class="top-nav-link" href="/#gisportal/home">GIS Portal</a>
+                    <a class="top-nav-link" href="{{ project_name }}#gisportal/home">GIS Admin</a>
                       {% endif %}
-                    <a class="top-nav-link" href="/#applications/home">Applications</a>
-                    <a class="top-nav-link" href="/#web-resources/home">Web Resources</a>
-                    <a class="top-nav-link" href="/#help/home">Help</a>
+                    <a class="top-nav-link" href="{{ project_name }}#applications/home">Applications</a>
+                    <a class="top-nav-link" href="{{ project_name }}#web-resources/home">Web Resources</a>
+                    <a class="top-nav-link" href="{{ project_name }}#help/home">Help</a>
                   </nav>
                 </div>
                 <div class="tablet-show">
-                  <a href="/" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
+                  <a href="{{ project_name }}" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
                 </div>
 
                 {% if request.user.is_authenticated %}
@@ -66,7 +67,7 @@
                                 {% load admin_urls %}
                                 <a class="dropdown-link" href="{% url 'admin:index' %}">Admin Site</a>
                             {% endif %}
-                            <a class="dropdown-link" href="/#help/home">Support</a>
+                            <a class="dropdown-link" href="{{ project_name }}#help/home">Support</a>
 
 {#                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>#}
                         </nav>
