@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -171,6 +171,17 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'HOST': 'gis.aroraengineers.com',
+    #     'PORT': '1433',
+    #     'USER': 'gissetup',
+    #     'PASSWORD': 'AroraGIS123!',
+    #     'NAME': 'rtaa_gis_prod',
+    #     'OPTIONS': {
+    #         'driver': 'SQL Server Native Client 11.0'
+    #     }
+    # }
     # 'azure_sql_server': {
     #     'ENGINE': 'sql_server.pyodbc',
     #     'NAME': 'eDocDiscovery',
@@ -190,9 +201,9 @@ DATABASES = {
     #     'PORT': '5432'
     # },
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
 
 
