@@ -98,7 +98,7 @@ ALLOWED_HOSTS = [
 ]
 
 # USE_X_FORWARDED_HOST = True
-# FORCE_SCRIPT_NAME = "/rtaa_prod"
+# FORCE_SCRIPT_NAME = "/applications"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
