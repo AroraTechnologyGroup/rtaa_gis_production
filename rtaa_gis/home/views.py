@@ -42,7 +42,7 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
-        query = LDAPQuery(local_name, 'renoairport.net')
+        query = LDAPQuery(local_name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
         logger.info("username = {}".format(name))
@@ -99,7 +99,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to siteadmin
     if name == '':
-        name = 'siteadmin'
+        name = 'GIS_QC'
 
     user_obj = User.objects.get(username=name)
 
@@ -115,7 +115,7 @@ def clear_users(request, format=None):
     users = User.objects.all()
     removed = []
     for user in users:
-        if user.username.split("\\")[0] == "RENOAIRPORT":
+        if user.username.split("\\")[0] == "GISAPPS":
             user.delete()
             removed.append(user.username)
     return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
