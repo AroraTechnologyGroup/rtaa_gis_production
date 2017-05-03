@@ -44,7 +44,7 @@ class LDAPQuery:
 
         slicegroup = list()
         try:
-            conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
+            conn = Connection(self.server, user="RENOAIRPORT\\AroraTeam", password="@R0r@G1$", authentication=NTLM,
                               auto_bind=True)
             # conn = Connection(self.server, auto_bind=True)
             conn.bind()
@@ -52,7 +52,7 @@ class LDAPQuery:
             total_entries = 0
             try:
                 conn.search(
-                    search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
+                    search_base="dc=renoairport, dc=net",
                     search_filter="(&(objectclass=user)(cn={}))".format(self.username),
                     search_scope=SUBTREE,
                     attributes=ldap3.ALL_ATTRIBUTES,
