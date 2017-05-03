@@ -21,7 +21,7 @@
             <aside class="side-nav">
               <h2 class="side-nav-title">RTAA GIS</h2>
               <a href="{{ project_name }}#home" class="side-nav-link">HomePage</a>
-                {% if "GIS_admin" in groups %}
+                {% if "_RTAA GIS" in groups %}
               <a href="{{ project_name }}#gisportal/home" class="side-nav-link">GIS Admin</a>
                 {% endif %}
               <a href="{{ project_name }}#applications/home" class="side-nav-link">Applications</a>
@@ -38,7 +38,7 @@
                 <div class="tablet-hide">
                   <a href="{{ project_name }}#home" class="top-nav-title">RTAA GIS</a>
                   <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
-                      {% if 'GIS_admin' in groups %}
+                      {% if '_RTAA GIS' in groups %}
                     <a class="top-nav-link" href="{{ project_name }}#gisportal/home">GIS Admin</a>
                       {% endif %}
                     <a class="top-nav-link" href="{{ project_name }}#applications/home">Applications</a>

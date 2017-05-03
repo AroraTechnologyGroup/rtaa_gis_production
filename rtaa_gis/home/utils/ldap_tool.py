@@ -44,7 +44,7 @@ class LDAPQuery:
 
         slicegroup = list()
         try:
-            conn = Connection(self.server, user="GISAPPS\\GIS_QC", password="GIS_QC", authentication=NTLM,
+            conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
                               auto_bind=True)
             # conn = Connection(self.server, auto_bind=True)
             conn.bind()
