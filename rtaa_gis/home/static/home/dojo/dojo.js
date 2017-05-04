@@ -15430,7 +15430,7 @@ define([
 					} else {
 						pane = registry.byId('header-pane');
 					}
-					
+
 					if (registry.byId('homepage-banner') === undefined) {
 						self.header = new HomepageBanner({
 							id: 'homepage-banner',
@@ -15448,7 +15448,7 @@ define([
 					// remove cards that are not active
 					var active_cards = Array.filter(cards, function(e) {
 						return e.active && !e.isAdmin;
-					}); 
+					});
 
 					self.loadCards(Card, active_cards).then(function(e) {
 						console.log(e);
@@ -15522,7 +15522,7 @@ define([
 				// remove cards that are not active
 				var active_cards = Array.filter(cards, function(e) {
 					return e.active && e.isAdmin;
-				}); 
+				});
 
 				self.loadCards(Card, active_cards).then(function(e) {
 					console.log(e);
