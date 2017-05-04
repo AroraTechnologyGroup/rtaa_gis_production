@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 
 admin.autodiscover()
 
-
 urlpatterns = [
     url(r'^', include('home.urls')),
     url(r'^print/', include('printTool.urls')),
