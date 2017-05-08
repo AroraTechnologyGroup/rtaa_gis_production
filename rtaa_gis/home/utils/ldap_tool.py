@@ -53,7 +53,7 @@ class LDAPQuery:
             try:
                 conn.search(
                     search_base="dc=renoairport, dc=net",
-                    search_filter="(&(objectclass=user)(cn={}))".format(self.username),
+                    search_filter="(&(objectclass=user)(sAMAccountName={}))".format(self.username),
                     search_scope=SUBTREE,
                     attributes=ldap3.ALL_ATTRIBUTES,
                 )
