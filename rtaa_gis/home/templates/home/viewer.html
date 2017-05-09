@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <Title>RTAA GIS Viewer</Title>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="{%  static "home/app/resources/app.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{%  static "home/resources/home_main.css" %}"/>
+{% endblock %}
+
+{% block header_nav %}
+    <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
+      <nav class="drawer-nav" role="navigation">
+        <aside class="side-nav">
+          <h2 class="side-nav-title">RTAA GIS</h2>
+          <a href="{{ project_name }}#home" class="side-nav-link">HomePage</a>
+            {% if "_RTAA GIS" in groups %}
+          <a href="{{ project_name }}#gisportal/home" class="side-nav-link">GIS Admin</a>
+            {% endif %}
+          <a href="{{ project_name }}#applications/home" class="side-nav-link">Applications</a>
+          <a href="{{ project_name }}#web-resources/home" class="side-nav-link">Web Resources</a>
+          <a href="{{ project_name }}#help/home" class="side-nav-link">Help</a>
+        </aside>
+      </nav>
+    </div>
+
+    <div style="overflow: visible">
+      <header class="top-nav animate-in-down">
+        <div class="grid-container">
+          <div class="column-24">
+            <div class="tablet-hide">
+              <a href="{{ project_name }}#home" class="top-nav-title">RTAA GIS</a>
+              <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
+                  {% if '_RTAA GIS' in groups %}
+                <a class="top-nav-link" href="{{ project_name }}#gisportal/home">GIS Admin</a>
+                  {% endif %}
+                <a class="top-nav-link" href="{{ project_name }}#applications/home">Applications</a>
+                <a class="top-nav-link" href="{{ project_name }}#web-resources/home">Web Resources</a>
+                <a class="top-nav-link" href="{{ project_name }}#help/home">Help</a>
+              </nav>
+            </div>
+            <div class="tablet-show">
+              <a href="{{ project_name }}" class="icon-ui-menu top-nav-title js-drawer-toggle" data-drawer="top-nav">RTAA GIS</a>
+            </div>
+
+            {% if request.user.is_authenticated %}
+                <div class="right dropdown js-dropdown">
+                    <a href="" class="top-nav-link dropdown-btn js-dropdown-toggle text-ellipsis user-nav-name">
+                        {{ request.user.username }}
+                    </a>
+                    <nav class="dropdown-menu dropdown-right">
+                        <div class="dropdown-link">
+                            <p class="trailer-0">{{ request.user.username }} on {%  now "DATE_FORMAT" %}</p>
+                            <small>profile information</small>
+                            {%  for group in groups %}
+                                <p class="trailer-0"> {{ group }}</p>
+                            {% endfor %}
+                        </div>
+                        {% if request.user.is_staff %}
+                            {% load admin_urls %}
+                            <a class="dropdown-link" href="{% url 'admin:index' %}">Admin Site</a>
+                        {% endif %}
+                        <a class="dropdown-link" href="{{ project_name }}#help/home">Support</a>
+
+{#                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>#}
+                    </nav>
+                </div>
+            {% else %}
+                <nav class="right sign-in">
+                    <a href="{% url 'home:login' %}" class="btn btn-small btn-clear">Sign-In</a>
+                </nav>
+            {% endif %}
+
+          </div>
+        </div>
+      </header>
+    </div>
+{% endblock %}
+
+{% block busy_indicator %}
+    <!-- busy indicator -->
+    <div class="loader is-active padding-leader-3 padding-trailer-3">
+      <div class="loader-bars"></div>
+      <div class="loader-text">Loading</div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="grid-container">
+        <div id="main-content" class="column-24">
+            <iframe class="mappingFrame" src="/gisviewer"></iframe>
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+{% block scripts %}{% endblock %}

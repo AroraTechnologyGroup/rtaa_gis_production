@@ -53,7 +53,7 @@ class LDAPQuery:
             try:
                 conn.search(
                     search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
-                    search_filter="(&(objectclass=user)(cn={}))".format(self.username),
+                    search_filter="(&(objectclass=user)(sAMAccountName={}))".format(self.username),
                     search_scope=SUBTREE,
                     attributes=ldap3.ALL_ATTRIBUTES,
                 )
@@ -87,7 +87,7 @@ class LDAPQuery:
         return slicegroup
 
 if __name__ == "__main__":
-    query = LDAPQuery("RENOAIRPORT\\AroraTeam", "renoairport.net")
+    query = LDAPQuery("GISAPPS\\GIS_QC", "gisapps.aroraengineers.com")
     x = query.get_groups()
     print(x)
 
