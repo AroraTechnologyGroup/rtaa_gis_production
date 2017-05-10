@@ -21,7 +21,6 @@ from django.conf import settings
 logger = logging.getLogger(__package__)
 
 
-
 @api_view(['GET', 'POST'])
 def user_groups(request, format=None):
     try:
@@ -60,7 +59,7 @@ class HomePage(APIView):
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (AllowAny,)
     template = r'home/home_body.html'
-    app_url = ""
+    app_name = ""
 
     def get(self, request, format=None):
 
@@ -119,5 +118,9 @@ class HomePage(APIView):
         final_groups = user_obj.groups.all()
         final_groups = [x.name for x in final_groups]
 
-        resp.data = {"project_name": settings.BASE_URL, "groups": final_groups, "app_url": self.app_url}
+        project_name = settings.BASE_URL.strip('/')
+        server_url = settings.LDAP_URL
+        app_name = self.app_name.strip('/')
+        resp.data = {"project_name": project_name, "server_url": server_url,
+                     "groups": final_groups, "app_name": app_name}
         return resp
