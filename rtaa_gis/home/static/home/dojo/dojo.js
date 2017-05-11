@@ -2178,15 +2178,6 @@ define([
 					});
 
 				});
-
-				router.register("applications/home", function(evt) {
-					evt.preventDefault();
-					console.log("loading "+evt.newPath);
-					obj.buildApplications(evt, Card, groups).then(function(e) {
-						console.log(e);
-					});
-				});
-
 				
 				router.register("web-resources/home", function(evt) {
 					evt.preventDefault();
@@ -15168,31 +15159,26 @@ define([
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
-      declare.safeMixin(this.options, options);
-      var imgSrc = this.options.imgSrc;
-      var path = this.options.path;
-      var back_url = this.options.back_url;
+
+      var imgSrc = options.imgSrc;
+      var path = options.path;
+      var back_url = options.back_url;
       var pathname = window.location.pathname.split("/")[1];
       var port = window.location.port;
       if (pathname !== "index.html") {
         var new_imgSrc = "static/home/" + imgSrc;
         var new_path = pathname + "/" + path;
         var new_back_url = pathname + "/" + back_url;
-        this.set("imgSrc", new_imgSrc);
-        this.set("path", new_path);
-        this.set("back_url", new_back_url);
+        options.imgSrc = new_imgSrc;
+        options.path = new_path;
+        options.back_url = new_back_url;
       } else {
-        this.set("imgSrc", imgSrc);
-        this.set("path", path);
-        this.set("back_url", back_url);
+        options.imgSrc = imgSrc;
+        options.path = path;
+        options.back_url = back_url;
       }
-
-      this.set("header", this.options.header);
-      this.set("content1", this.options.content1);
-      this.set("content2", this.options.content2);
-      this.set("srcNodeRef", this.srcNodeRef);
       this.id = this.options.id;
-      
+      declare.safeMixin(this.options, options);
     },
     postCreate: function() {
       var self = this;
@@ -15207,7 +15193,7 @@ define([
           if (pathname === "index.html" || port === "8080") {
             url = "http://127.0.0.1:8080/" + self.path;
           } else {
-            url = origin + '/' + self.path;
+            url = self.path;
           }
           window.open(url, '_self', "", false);
           

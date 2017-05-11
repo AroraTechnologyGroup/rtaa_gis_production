@@ -15,7 +15,7 @@
       <nav class="drawer-nav" role="navigation">
         <aside class="side-nav">
           <h2 class="side-nav-title">RTAA GIS</h2>
-          <a href="{% url 'home:index' %}" class="side-nav-link">HomePage</a>
+          <a href="{% url 'home:index' %}#home" class="side-nav-link">HomePage</a>
             <div class="dropdown js-dropdown">
                 <button class="btn btn-transparent dropdown-btn js-dropdown-toggle" tabindex="0" aria-haspopup="true" aria-expanded="false">
                     App Selector
@@ -39,7 +39,7 @@
         <div class="grid-container">
           <div class="column-24">
             <div class="tablet-hide">
-              <a href="{% url 'home:index' %}" class="top-nav-title">RTAA GIS</a>
+              <a href="{% url 'home:index' %}#home" class="top-nav-title">Home</a>
               <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
                 <div class="dropdown js-dropdown">
                     <button class="btn btn-transparent dropdown-btn js-dropdown-toggle" tabindex="0" aria-haspopup="true" aria-expanded="false">
@@ -105,7 +105,7 @@
 
 {% block content %}
     <div class="iframe-container">
-        <iframe sandbox="allow-same-origin allow-scripts" allowfullscreen class="mappingFrame" src="https://gisapps.aroraengineers.com/{{ app_name }}"></iframe>
+        <iframe allowfullscreen class="mappingFrame" src="https://{{ server_url }}/{{ app_name }}"></iframe>
     </div>
 {% endblock %}
 
