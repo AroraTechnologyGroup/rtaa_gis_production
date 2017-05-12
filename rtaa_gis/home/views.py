@@ -118,9 +118,7 @@ class HomePage(APIView):
         final_groups = user_obj.groups.all()
         final_groups = [x.name for x in final_groups]
 
-        project_name = settings.BASE_URL.strip('/')
         server_url = settings.LDAP_URL
         app_name = self.app_name.strip('/')
-        resp.data = {"project_name": project_name, "server_url": server_url,
-                     "groups": final_groups, "app_name": app_name}
+        resp.data = {"server_url": server_url, "groups": final_groups, "app_name": app_name}
         return resp

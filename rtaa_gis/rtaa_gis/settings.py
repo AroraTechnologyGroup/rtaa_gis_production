@@ -16,6 +16,9 @@ import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+# USE_X_FORWARDED_HOST = True
+FORCE_SCRIPT_NAME = "/rtaa_gis/"
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,12 +26,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 # This setting gets used in templates to build correct hyperlinks
-BASE_URL = '/rtaa_gis/'
 if DEBUG:
-    BASE_URL = '/'
+    FORCE_SCRIPT_NAME = '/'
 
-MEDIA_URL = BASE_URL + 'media/'
-STATIC_URL = BASE_URL + 'static/'
+MEDIA_URL = FORCE_SCRIPT_NAME + 'media/'
+STATIC_URL = FORCE_SCRIPT_NAME + 'static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -36,7 +38,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = BASE_URL
+LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
 FCGI_LOG = True
@@ -97,10 +99,6 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '172.72.118.217'
 ]
-
-# USE_X_FORWARDED_HOST = True
-# FORCE_SCRIPT_NAME = "/rtaa_prod"
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False

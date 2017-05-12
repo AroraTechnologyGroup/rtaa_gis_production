@@ -2121,9 +2121,9 @@ define([
 				} else if (window.location.hostname === "gis.renoairport.net") {
 					ldap_url = ldap_config.rtaa_url;
 				} else if (window.location.hostname === "gisapps.aroraengineers.com") {
-					if (window.location.port === "8004") {
+					if (window.location.pathname === "/rtaa_gis/") {
 						ldap_url = ldap_config.staging_url;
-					} else if (window.location.port === "") {
+					} else if (window.location.pathname === "/rtaa_prod/") {
 						ldap_url = ldap_config.production_url;
 					}
 				}
@@ -15165,16 +15165,18 @@ define([
       var back_url = options.back_url;
       var pathname = window.location.pathname.split("/")[1];
       var port = window.location.port;
+      var origin = window.location.origin;
+      var url;
       if (pathname !== "index.html") {
         var new_imgSrc = "static/home/" + imgSrc;
         var new_path = pathname + "/" + path;
         var new_back_url = pathname + "/" + back_url;
         options.imgSrc = new_imgSrc;
-        options.path = new_path;
+        options.path = origin + "/" + new_path + "/";
         options.back_url = new_back_url;
       } else {
         options.imgSrc = imgSrc;
-        options.path = path;
+        options.path = origin + "/" + path + "/";
         options.back_url = back_url;
       }
       this.id = this.options.id;

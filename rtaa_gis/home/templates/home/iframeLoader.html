@@ -78,9 +78,7 @@
                             {% load admin_urls %}
                             <a class="dropdown-link" href="{% url 'admin:index' %}">Admin Site</a>
                         {% endif %}
-                        <a class="dropdown-link" href="{{ project_name }}#help/home">Support</a>
-
-{#                            <a class="dropdown-link" href="{% url 'home:logout' %}">Logout</a>#}
+                        <a class="dropdown-link" href="{% url 'home:index' %}#help/home">Support</a>
                     </nav>
                 </div>
             {% else %}
