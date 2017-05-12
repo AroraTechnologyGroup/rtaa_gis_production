@@ -17,6 +17,7 @@ from datetime import datetime
 from rest_framework_jsonp.renderers import JSONRenderer
 import os
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger(__package__)
 
@@ -54,6 +55,7 @@ def clear_users(request, format=None):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
