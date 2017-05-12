@@ -2121,9 +2121,9 @@ define([
 				} else if (window.location.hostname === "gis.renoairport.net") {
 					ldap_url = ldap_config.rtaa_url;
 				} else if (window.location.hostname === "gisapps.aroraengineers.com") {
-					if (window.location.port === "8004") {
+					if (window.location.pathname === "/rtaa_gis/") {
 						ldap_url = ldap_config.staging_url;
-					} else if (window.location.port === "") {
+					} else if (window.location.pathname === "/rtaa_prod/") {
 						ldap_url = ldap_config.production_url;
 					}
 				}
@@ -2178,15 +2178,6 @@ define([
 					});
 
 				});
-
-				router.register("applications/home", function(evt) {
-					evt.preventDefault();
-					console.log("loading "+evt.newPath);
-					obj.buildApplications(evt, Card, groups).then(function(e) {
-						console.log(e);
-					});
-				});
-
 				
 				router.register("web-resources/home", function(evt) {
 					evt.preventDefault();
@@ -15161,23 +15152,35 @@ define([
     id: null,
     options: {
       imgSrc: null,
-      href: null,
+      path: null,
       header: null,
       content1: null,
       content2: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
-      declare.safeMixin(this.options, options);
-      this.set("imgSrc", this.options.imgSrc);
-      this.set("header", this.options.header);
-      this.set("content1", this.options.content1);
-      this.set("content2", this.options.content2);
-      this.set("href", this.options.href);
-      this.set("srcNodeRef", this.srcNodeRef);
-      this.set("back_url", this.back_url);
+
+      var imgSrc = options.imgSrc;
+      var path = options.path;
+      var back_url = options.back_url;
+      var pathname = window.location.pathname.split("/")[1];
+      var port = window.location.port;
+      var origin = window.location.origin;
+      var url;
+      if (pathname !== "index.html") {
+        var new_imgSrc = "static/home/" + imgSrc;
+        var new_path = pathname + "/" + path;
+        var new_back_url = pathname + "/" + back_url;
+        options.imgSrc = new_imgSrc;
+        options.path = origin + "/" + new_path + "/";
+        options.back_url = new_back_url;
+      } else {
+        options.imgSrc = imgSrc;
+        options.path = origin + "/" + path + "/";
+        options.back_url = back_url;
+      }
       this.id = this.options.id;
-      
+      declare.safeMixin(this.options, options);
     },
     postCreate: function() {
       var self = this;
@@ -15185,10 +15188,16 @@ define([
       self.on("mouseup", function(evt) {
         evt.preventDefault();
         if (mouse.isLeft(event)) {
-          self.unloadSection().then(function(e) {
-            self.loadIframe(self.back_url);
-            console.log(event);
-          });
+          var pathname = window.location.pathname.split("/")[1];
+          var port = window.location.port;
+          var origin = window.location.origin;
+          var url;
+          if (pathname === "index.html" || port === "8080") {
+            url = "http://127.0.0.1:8080/" + self.path;
+          } else {
+            url = self.path;
+          }
+          window.open(url, '_self', "", false);
           
         } else if (mouse.isRight(event)) {
          
@@ -15315,7 +15324,7 @@ define([
 					var div = domConstruct.create('div');
 					var new_card = new Card({
 						id: e.id,
-						href: e.href,
+						path: e.path,
 						content1: e.content1,
 						content2: e.content2,
 						imgSrc: e.imgSrc,
@@ -15547,7 +15556,7 @@ define([
 				// {
 				// 	id: "eDoc Rest API",
 				// 	imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
-				// 	href: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
+				// 	path: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
 				// 	header: 'eDoc Rest API',
 				// 	content1: 'Interact with the eDoc Rest API through this graphical api page.',
 				// 	content2: 'available for members of the GIS_admin group'
@@ -41448,8 +41457,8 @@ define(["./Credential","./domUtils","./lang","./urlUtils","dijit/Dialog","dijit/
 },
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"https://gis.renoairport.net/gisviewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"* available to all users\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"href\": \"https://gis.renoairport.net/gisviewer\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"*only available to GIS_admin members\",\r\n\t\t\"back_url\": \"gisportal/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"href\": \"\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}\r\n]\r\n\t",
-'url:app/templates/Card_template.html':"<div class=\"card card-wide\">\r\n\t<figure class=\"card-wide-image-wrap\">\r\n\t\t<img class=\"card-wide-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t${header}\r\n\t\t</div>\r\n\t</figure>\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${href}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"* available to all users\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"*only available to GIS_admin members\",\r\n\t\t\"back_url\": \"gisportal/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/eDoc_app.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/airspace_app.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/eConDev.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"active\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"static/home/app/img/background.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}\r\n]\r\n\t",
+'url:app/templates/Card_template.html':"<div class=\"card card-wide\">\r\n\t<figure class=\"card-wide-image-wrap\">\r\n\t\t<img class=\"card-wide-image\" src='${imgSrc}' alt='${header}'>\r\n\t\t<div class=\"card-image-caption\">\r\n\t\t\t${header}\r\n\t\t</div>\r\n\t</figure>\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",

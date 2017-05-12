@@ -17,16 +17,51 @@ from datetime import datetime
 from rest_framework_jsonp.renderers import JSONRenderer
 import os
 from django.conf import settings
+from django.views.decorators.cache import never_cache
 
 logger = logging.getLogger(__package__)
 
 
+@api_view(['GET', 'POST'])
+def user_groups(request, format=None):
+    try:
+        name = request.META['REMOTE_USER']
+        logger.info("username = {}".format(name))
+    except KeyError:
+        name = request.user.username
+
+    # for testing, if username is '', set it to siteadmin
+    if name == '':
+        name = 'gissetup'
+
+    user_obj = User.objects.get(username=name)
+
+    users_groups = user_obj.groups.all()
+    if len(users_groups):
+        return Response([x.name for x in users_groups])
+    else:
+        return Response(['anonymous'])
+
+
+@api_view(['GET', 'POST'])
+def clear_users(request, format=None):
+    users = User.objects.all()
+    removed = []
+    for user in users:
+        if user.username.split("\\")[0] == "GISAPPS":
+            user.delete()
+            removed.append(user.username)
+    return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
+
+
 @method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (AllowAny,)
     template = r'home/home_body.html'
+    app_name = ""
 
     def get(self, request, format=None):
 
@@ -85,37 +120,7 @@ class HomePage(APIView):
         final_groups = user_obj.groups.all()
         final_groups = [x.name for x in final_groups]
 
-        resp.data = {"project_name": settings.BASE_URL, "groups": final_groups}
+        server_url = settings.LDAP_URL
+        app_name = self.app_name.strip('/')
+        resp.data = {"server_url": server_url, "groups": final_groups, "app_name": app_name}
         return resp
-
-
-@api_view(['GET', 'POST'])
-def user_groups(request, format=None):
-    try:
-        name = request.META['REMOTE_USER']
-        logger.info("username = {}".format(name))
-    except KeyError:
-        name = request.user.username
-
-    # for testing, if username is '', set it to siteadmin
-    if name == '':
-        name = 'gissetup'
-
-    user_obj = User.objects.get(username=name)
-
-    users_groups = user_obj.groups.all()
-    if len(users_groups):
-        return Response([x.name for x in users_groups])
-    else:
-        return Response(['anonymous'])
-
-
-@api_view(['GET', 'POST'])
-def clear_users(request, format=None):
-    users = User.objects.all()
-    removed = []
-    for user in users:
-        if user.username.split("\\")[0] == "GISAPPS":
-            user.delete()
-            removed.append(user.username)
-    return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
