@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
+from django.conf import settings
 from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
 from .models import FileModel, GridCell, Assignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
@@ -71,7 +71,7 @@ def create_response_object(in_path, extension):
     elif extension in DOC_VIEWER_TYPES:
         # TODO MSWORD Documents should not be written to the hard drive
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
+            temp_location = "{}\\{}".format(settings.MEDIA_ROOT, "_fileApp")
             basename = os.path.basename(in_path).replace(extension, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
             word = win32com.client.DispatchEx("Word.Application")
@@ -98,7 +98,7 @@ def create_response_object(in_path, extension):
     elif extension in TABLE_VIEWER_TYPES:
         # TODO MSEXCEL File should not be written to the hard drive
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
+            temp_location = "{}\\{}".format(settings.MEDIA_ROOT, "_fileApp")
             basename = os.path.basename(in_path).replace(extension, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
 
