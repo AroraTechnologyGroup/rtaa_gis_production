@@ -25,3 +25,5 @@ rtaa_gis/media/
 **/static/fileApp/pdf.worker.js
 **/fixtures/data/
 **/creds.json
+!**/home/static/home/
+**/static/registration/

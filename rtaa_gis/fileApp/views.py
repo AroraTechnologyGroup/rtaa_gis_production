@@ -30,7 +30,7 @@ import platform
 if platform.system() == 'Windows':
     import win32com.client
     import pythoncom
-
+    pass
 
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)

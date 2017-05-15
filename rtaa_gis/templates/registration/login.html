@@ -1,11 +1,20 @@
-{% extends "home/home_body.html" %}
+{% extends "base.html" %}
+{%  load static %}
 
 {% block title %}
     <Title>RTAA GIS Login Page</Title>
 {% endblock %}
 
+{% block icon %}
+    <link rel="shortcut icon" href="{%  static "home/app/img/icons/favicon.ico" %}">
+{% endblock %}
 
-{% block main_content %}
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="{%  static "home/app/resources/app.css" %}"/>
+    <link rel="stylesheet" type="text/css" href="{%  static "home/resources/home_main.css" %}"/>
+{% endblock %}
+
+{% block content %}
 <div class="leader-3 pre-8 column-8">
     {% if form.errors %}
     <p>Your username and password didn't match. Please try again.</p>
@@ -20,7 +29,7 @@
         {% endif %}
     {% endif %}
 
-    <form data-dojo-type="dijit/form/Form" method="post" action="{{ login }}">
+    <form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
     {% csrf_token %}
     <table>
     <tr>

@@ -21,7 +21,6 @@ from django.conf.urls.static import static
 
 admin.autodiscover()
 
-
 urlpatterns = [
     url(r'^', include('home.urls')),
     url(r'^print/', include('printTool.urls')),
@@ -30,6 +29,10 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
+
+# urlpatterns = [
+#     url(r'^rtaa_gis/', include(site_urlpatterns))
+# ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

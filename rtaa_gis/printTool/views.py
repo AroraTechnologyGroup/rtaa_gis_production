@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
@@ -19,8 +20,11 @@ from datetime import datetime
 import mimetypes
 import json
 import shlex
+import threading
+from django.conf import settings
 
-environ = "staging"
+environ = "production"
+username = "gissetup"
 
 
 def system_paths(environ):
@@ -64,27 +68,9 @@ def system_paths(environ):
     }
     layer_dir = layer_dir[environ]
 
-    arcpro_path = {
-        "work": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "home": r"G:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "staging": r"C:\inetpub\Pro\bin\Python\envs\arcgispro-py3\python.exe",
-        "production": r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
-    }
-    arcpro_path = arcpro_path[environ]
-
-    mxdx_script = {
-        "work": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "home": r"G:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "staging": r"C:\GitHub\arcpro\printing\webmap2MXDX.py",
-        "production": r"C:\GitHub\arcpro\printing\webmap2MXDX.py"
-    }
-    mxdx_script = mxdx_script[environ]
-
     return {
         "arcmap_path": arcmap_path,
         "mxd_script": mxd_script,
-        "arcpro_path": arcpro_path,
-        "mxdx_script": mxdx_script,
         "gdb_path": gdb_path,
         "layer_dir": layer_dir,
         "default_project": default_project,
@@ -122,14 +108,6 @@ def insert_token(webmap, token):
     return webmap
 
 
-def create_print_folder(username):
-    out_folder = os.path.join(MEDIA_ROOT, "{}\\prints".format(username))
-    if not os.path.exists(out_folder):
-        os.mkdir(out_folder)
-    os.chdir(out_folder)
-    return out_folder
-
-
 def name_file(out_folder, file):
     file_name = os.path.basename(file)
     logger.info("Downloaded file named {}".format(file_name))
@@ -163,9 +141,9 @@ logger = logging.getLogger(__package__)
 # @renderer_classes((JSONPRenderer,))
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
-def print_map(request, format=None):
+def print_agol(request, format=None):
     username = get_username(request)
-    out_folder = create_print_folder(username=username)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
@@ -192,15 +170,17 @@ def print_map(request, format=None):
     full_name = name_file(out_folder=out_folder, file=file)
 
     response = Response()
-    # This format must be identical to the DataFile object returned by the esri print examples
+
     host = request.META["HTTP_HOST"]
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
 
     if host == "127.0.0.1:8080":
         protocol = "http"
     else:
         protocol = "https"
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, full_name)
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
 
     response.data = {
         "messages": [],
@@ -221,7 +201,7 @@ def print_map(request, format=None):
 @ensure_csrf_cookie
 def print_mxd(request, format=None):
     username = get_username(request)
-    out_folder = create_print_folder(username=username)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
     v = system_paths(environ)
     arcmap_path = v["arcmap_path"]
@@ -252,7 +232,7 @@ def print_mxd(request, format=None):
     proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
     out, err = proc.communicate()
 
-    name_file(out_folder=out_folder, file=out.decode())
+    full_name = name_file(out_folder=out_folder, file=out.decode())
     response = Response()
     # This format must be identical to the DataFile object returned by the esri print examples
     host = request.META["HTTP_HOST"]
@@ -261,8 +241,10 @@ def print_mxd(request, format=None):
         protocol = "http"
     else:
         protocol = "https"
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
 
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, "layout.pdf")
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
 
     response.data = {
         "messages": [],
@@ -278,116 +260,34 @@ def print_mxd(request, format=None):
 
 
 @api_view(['POST', 'GET'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
-@ensure_csrf_cookie
-def print_mxdx(request, format=None):
-    v = system_paths(environ)
-    arcpro_path = v["arcpro_path"]
-    mxdx_script = v["mxdx_script"]
-    default_project = v["default_project"]
-    gdb_path = v["gdb_path"]
-    layer_dir = v["layer_dir"]
-
-    data = request.POST
-    if not len(data):
-        data = request.query_params
-
-    # write the web map json to a file to bypass command line string limitations
-    webmap = data['Web_Map_as_JSON']
-
-    try:
-        webmap = json.loads(webmap)
-
-        layout = data['Layout_Template']
-
-        username = get_username(request)
-        out_folder = os.path.join(MEDIA_ROOT, username)
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-
-        out_folder = os.path.join(out_folder, 'prints')
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-        os.chdir(out_folder)
-        temp_file = open('webmap_good.json', 'w')
-        temp_file.write(u"{}".format(json.dumps(webmap)))
-        temp_file.close()
-    except Exception as e:
-        logger.error(e)
-
-    format = data['Format']
-    layout_template = data['Layout_Template']
-
-    args = [arcpro_path, mxdx_script, '-username', username, '-media', MEDIA_ROOT,
-        '-gdbPath', gdb_path, '-layerDir', layer_dir, '-defaultProject', default_project, '-layout', layout]
-
-    logger.info(args)
-    proc = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
-
-    out = proc.communicate()[0]
-
-    logger.info(out)
-    response = Response()
-    response['Cache-Control'] = 'no-cache'
-
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
-
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
-
-    while proc.returncode is None:
-        logger.info("print process return code :: {}".format(proc.returncode))
-        proc.wait(1)
-
-    out_file = out.decode().replace("\n", "")
-    out_file = out_file.replace("\r", "")
-
-    url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
-
-    response.data = {
-    "messages": [],
-    "results": [{
-        "value": {
-            "url": url
-        },
-        "paramName": "Output_File",
-        "dataType": "GPDataFile"
-    }]
-    }
-    return response
-
-
-@api_view(['POST', 'GET'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
     username = get_username(request)
-    print_dir = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+    print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
 
     response = Response()
     response.data = list()
     if os.path.exists(print_dir):
         files = os.listdir(print_dir)
-        pdfs = [f for f in files if f.endswith(".pdf")]
+        selection = []
+        for x in [".png", ".pdf", ".jpg", ".gif", ".eps", ".svg", ".svgz"]:
+            selection.extend([f for f in files if f.endswith(x)])
+
         response['Cache-Control'] = 'no-cache'
-
-        # This format must be identical to the DataFile object returned by the esri print examples
         host = request.META["HTTP_HOST"]
-
         if host == "127.0.0.1:8080":
             protocol = "http"
         else:
             protocol = "https"
+        media_url = settings.MEDIA_URL.lstrip("/")
+        media_url = media_url.rstrip("/")
 
-        for out_file in pdfs:
-            url = "{}://{}/media/{}/prints/{}".format(protocol, request.META["HTTP_HOST"], username, out_file)
+        for out_file in selection:
+            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
             response.data.append({"url": url})
     else:
-        os.mkdir(print_dir)
+        response.data.append("Error, print directory not found")
 
     return response
 
@@ -399,12 +299,17 @@ def delete_file(request, format=None):
     username = get_username(request)
     data = request.POST
     file_name = data["filename"].replace("\n", "")
-    outfolder = os.path.join(MEDIA_ROOT, "{}/{}".format(username, "prints"))
+    outfolder = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
+    response = Response()
+
     if os.path.exists(outfolder):
         os.chdir(outfolder)
-
         if os.path.exists(file_name):
             os.remove(file_name)
-            return Response(data="Temp File {} Deleted from Server".format(file_name))
+            data = "Temp File {} Deleted from Server".format(file_name)
+        else:
+            data = "File not found in user's print folder"
     else:
-        return Response(data="Failed to located user's media folder")
+        data = "Failed to located user's media folder"
+    response.data = data
+    return response

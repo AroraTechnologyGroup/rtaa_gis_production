@@ -12,21 +12,33 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 from django.urls import reverse
+import urllib
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+# USE_X_FORWARDED_HOST = True
+FORCE_SCRIPT_NAME = "/rtaa_gis/"
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
+# This setting gets used in templates to build correct hyperlinks
+if DEBUG:
+    FORCE_SCRIPT_NAME = '/'
+
+MEDIA_URL = FORCE_SCRIPT_NAME + 'media/'
+STATIC_URL = FORCE_SCRIPT_NAME + 'static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login/'
-LOGIN_REDIRECT_URL = r'/'
+LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
 FCGI_LOG = True
@@ -44,9 +56,11 @@ SECRET_KEY = 'bo0*s)^co9abj49*kpp(+91&98v25=0s3#3bv-3-l(2hg9q!5c'
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
+# CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
 CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com')
-# CSRF_COOKIE_DOMAIN = ['.aroraengineers.com']
+                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
+
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
@@ -55,10 +69,12 @@ CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
     'localhost:3001',
-    'gisapps.aroraengineers.com:8004',
-    'gisapps.aroraengineers.com:8443',
     'https://gisapps.aroraengineers.com:3344',
     'localhost:3344',
+    'https://gis.renoairport.net',
+    'localhost',
+    '127.0.0.1',
+    'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
@@ -77,12 +93,12 @@ CORS_EXPOSE_HEADERS = (
 
 ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
+    '10.0.0.5',
+    'gis.renoairport.net',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '172.72.118.217'
 ]
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
@@ -172,9 +188,9 @@ DATABASES = {
     #     'PORT': '5432'
     # },
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
 
 
@@ -255,7 +271,7 @@ LOGGING = {
     'loggers': {
         'fileApp': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': "DEBUG",
             'propogate': True
         },
         'printTool': {
@@ -265,12 +281,12 @@ LOGGING = {
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': 'INFO',
+            'level': "DEBUG",
             'propogate': True
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'INFO'
+            'level': "DEBUG"
         }
     },
 }
@@ -286,4 +302,4 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
