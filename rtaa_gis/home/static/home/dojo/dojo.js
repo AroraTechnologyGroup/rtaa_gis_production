@@ -15369,61 +15369,6 @@ define([
 				return deferred.promise;
 			},
 
-			loadIframe: function(back_url) {
-				var self = this;
-				self.unloadIframe().then(function(e) {
-				console.log(e);
-				var pane = new ContentPane({
-				  id: "iframe-pane",
-				  style: {
-				    position: "relative",
-				    width: "100%",
-				    height: "90vh",
-				    overflow: "hidden"
-				  }
-				});
-				pane.startup();
-				pane.set('content', domConstruct.create("iframe",  {
-				    src: self.href,
-				    frameborder: 0,
-				    height: '100%',
-				    width: '100%',
-				    allowfullscreen: true
-				}));
-				pane.placeAt(dom.byId('main-content'));
-				aspect.after(pane, 'resize', function(evt) {
-					domStyle.set(pane.domNode, "height", "90vh");
-					});
-				});
-				var target = query(".top-nav-list")[0];
-
-				var node = domConstruct.create("button", {
-					class: "btn-green",
-					innerHTML: "back to apps"
-				}, target);
-
-				on(node, 'click', function(e) {
-					self.unloadIframe().then(function(e) {
-						router.go(self.back_url);
-						domConstruct.destroy(node);
-					});
-				});
-			},
-
-			unloadIframe: function() {
-				var self = this;
-				var deferred = new Deferred();
-				var iframe_pane = registry.byId("iframe-pane");
-				if (iframe_pane !== undefined) {
-					iframe_pane.destroy();
-					registry.remove(iframe_pane);
-					deferred.resolve("iframe-pane removed from registry");
-				} else {
-					deferred.resolve("iframe-pane not found");
-				}
-				return deferred.promise;
-			},
-
 			buildTitleBar: function(evt, Card) {
 				var self = this;
 				var deferred = new Deferred();
@@ -15532,9 +15477,9 @@ define([
 
 				// these are loaded from dojo/text!./application_cards.json
 				var cards = JSON.parse(app_cards);
-				// remove cards that are not admin
+				// remove cards that ARE admin
 				var reg_cards = Array.filter(cards, function(e) {
-					return !e.isAdmin;
+					return e.isAdmin;
 				}); 
 
 				self.loadCards(Card, reg_cards).then(function(e) {
