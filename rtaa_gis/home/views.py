@@ -30,7 +30,7 @@ def user_groups(request, format=None):
     except KeyError:
         name = request.user.username
 
-    # for testing, if username is '', set it to siteadmin
+    # for testing, if username is '', set it to superuser from django admin
     if name == '':
         name = 'gissetup'
 

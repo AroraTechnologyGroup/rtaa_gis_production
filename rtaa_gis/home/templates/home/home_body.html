@@ -55,7 +55,7 @@
                         </a>
                         <nav class="dropdown-menu dropdown-right">
                             <div class="dropdown-link">
-                                <p class="trailer-0">{{ request.user.username }} on {%  now "DATE_FORMAT" %}</p>
+                                <p class="trailer-0">{{ request.user.username }} on the {% now "jS \o\f F" %}</p>
                                 <small>profile information</small>
                                 {%  for group in groups %}
                                     <p class="trailer-0"> {{ group }}</p>

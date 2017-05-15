@@ -3,8 +3,8 @@ import sys
 import logging
 import traceback
 from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
-from .serializers import FileSerializer, GridSerializer, AssignmentSerializer
-from .models import FileModel, GridCell, Assignment
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
+from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
@@ -132,130 +132,10 @@ def create_response_object(in_path, extension):
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class IOViewSet(viewsets.ViewSet):
-    """This view is used to download files"""
-    # TODO group download file requests into a zip file
-    queryset = FileModel.objects.all()
-
-    @detail_route()
-    def _download(self, request, pk=None):
-        """download a file as attachment"""
-        if request.user.is_authenticated():
-            file_obj = FileModel.objects.filter(id__exact=str(pk))
-            file_path = file_obj[0].file_path
-            mime_type = file_obj[0].mime
-            base_name = file_obj[0].base_name
-            filename_header = base_name.encode('utf_8')
-            # response is the file binary / the request is made from an dojo anchor html element with
-            # the file download option enabled
-            fp = File(open(file_path, 'rb'))
-            response = HttpResponse(fp.read(), content_type=mime_type)
-            response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
-            return response
-        else:
-            return redirect(reverse('home:login'))
-
-    @list_route(methods=['post'])
-    def _upload(self, request):
-        """TODO - upload files"""
-        if request.user.is_authenticated():
-            return
-        else:
-            return redirect(reverse('home:login'))
-
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class FileViewSet(viewsets.ModelViewSet):
-    """This view returns all of the files without pagination, use this view
-    to manage the client-side data stores"""
-    queryset = FileModel.objects.all()
-    serializer_class = FileSerializer
-    filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
-    renderer_classes = (JSONPRenderer,)
-
-    @detail_route()
-    def _grids(self, request, pk=None):
-        """grid cells that the file as been assigned to"""
-        if request.user.is_authenticated():
-            queryset = Assignment.objects.filter(file_id__exact=str(pk))
-            grid_cells = [x.grid_cell for x in queryset]
-            serializer = GridSerializer(grid_cells, many=True)
-            return Response(serializer.data)
-        else:
-            return redirect(reverse('home:login'))
-
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
 class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
-    queryset = FileModel.objects.all()
-    serializer_class = FileSerializer
     filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
     pagination_class = StandardResultsSetPagination
-
-    @detail_route(methods=['get',])
-    def _view(self, request, pk=None):
-        """Return a pdf or image as an http response"""
-        if request.user.is_authenticated():
-            """Returns either an image http response or a pdf http response"""
-            file_obj = FileModel.objects.filter(id__exact=str(pk))
-            base_name = file_obj[0].base_name
-            extension = base_name.split(".")[-1].lower()
-            file_path = file_obj[0].file_path.replace("\\", '/')
-            response = create_response_object(file_path, extension)
-            return response
-        else:
-            return redirect(reverse('home:login'))
-
-    @list_route(methods=['get',])
-    def _build(self, request):
-        """Traverse through the list of paths in the buildDocStore.py file and build the sqlite db"""
-        if request.user.is_authenticated():
-            # TODO streaming http response to update a chart showing statistics of created file object types
-            trainer.stop_monitors()
-            tool = buildDocStore.FileStoreBuilder()
-            tool.build_store()
-            trainer.start_monitors()
-            return Response("build successful")
-
-        else:
-            return redirect(reverse('home:login'))
-
-    @detail_route(methods=['get',])
-    def _delete(self, request, pk=None):
-        """Remove the specified file and its assignments from the sqlite database"""
-        if request.user.is_authenticated():
-            _file = FileModel.objects.filter(id__exact=str(pk))[0]
-            path = _file.file_path
-            if os.path.exists(path):
-                _file.delete()
-                return Response("{} has been deleted".format(path))
-        else:
-            return redirect(reverse('home:login'))
-
-    @detail_route(methods=['get',])
-    def _grids(self, request, pk=None):
-        """Grid cells that the file has been assigned to"""
-        if request.user.is_authenticated():
-            queryset = Assignment.objects.filter(file_id__exact=str(pk))
-            grid_cells = [x.grid_cell for x in queryset]
-            serializer = GridSerializer(grid_cells, many=True)
-            return Response(serializer.data)
-        else:
-            return redirect(reverse('home:login'))
-
-    @list_route(methods=['get',])
-    def _clean(self, request):
-        """Remove files that are not included in the TOP_DIRs; or are non-existent"""
-        if request.user.is_authenticated():
-            # TODO create return from File Store Builder showing stats from the removed files
-            trainer.stop_monitors()
-            tool = buildDocStore.FileStoreBuilder()
-            tool.clean_store()
-            trainer.start_monitors()
-            return Response("The Store has been cleaned")
-        else:
-            return redirect(reverse('home:login'))
 
     @list_route(methods=['get',])
     def _stop_monitors(self, request):
@@ -277,7 +157,7 @@ class PagedFileViewSet(viewsets.ModelViewSet):
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class GridViewSet(viewsets.ModelViewSet):
+class EngGridViewSet(viewsets.ModelViewSet):
     """Grid Cells within the ArcGIS Online Map Grid"""
     queryset = GridCell.objects.all()
     serializer_class = GridSerializer
@@ -287,9 +167,9 @@ class GridViewSet(viewsets.ModelViewSet):
     def _files(self, request, pk=None):
         """Files that have been assigned to the specified grid cell"""
         if request.user.is_authenticated():
-            queryset = Assignment.objects.filter(grid_cell_id__exact=str(pk))
+            queryset = EngineeringAssignment.objects.filter(grid_cell_id__exact=str(pk))
             file_models = [x.file for x in queryset]
-            serializer = FileSerializer(file_models, many=True)
+            serializer = EngSerializer(file_models, many=True)
             return Response(serializer.data)
         else:
             return redirect(reverse('home:login'))
@@ -308,12 +188,12 @@ class GridViewSet(viewsets.ModelViewSet):
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class AssignmentViewSet(viewsets.ModelViewSet):
+class EngAssignmentViewSet(viewsets.ModelViewSet):
     """This view is used to manage the assignments of files to grid cells"""
     # TODO - verify that duplicate assignments are not supported
     # TODO - conflate the comments if duplicates are attempted
-    queryset = Assignment.objects.all()
-    serializer_class = AssignmentSerializer
+    queryset = EngineeringAssignment.objects.all()
+    serializer_class = EngAssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
     renderer_classes = (JSONPRenderer,)
 
@@ -327,15 +207,15 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             file_pks = [data]
         cell_value = request.POST['grid_cell']
         grid_cell = GridCell.objects.get(pk=cell_value)
-        pre_assignments = len(Assignment.objects.all())
+        pre_assignments = len(EngineeringAssignment.objects.all())
 
         for x in file_pks:
-            file = FileModel.objects.get(pk=x)
-            obj = Assignment.objects.filter(file=file).filter(grid_cell=grid_cell)
+            file = EngineeringFileModel.objects.get(pk=x)
+            obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=grid_cell)
             for x in obj:
                 x.delete()
 
-        post_assignments = len(Assignment.objects.all())
+        post_assignments = len(EngineeringAssignment.objects.all())
 
         resp = {}
         num_removed = pre_assignments - post_assignments
@@ -356,25 +236,148 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         file_pks = request.POST['files'].split(",")
         cell_value = request.POST['grid_cell']
 
-        pre_assignments = len(Assignment.objects.all())
+        pre_assignments = len(EngineeringAssignment.objects.all())
 
         new_assignments = list()
 
         for x in file_pks:
-            file = FileModel.objects.get(pk=x)
+            file = EngineeringFileModel.objects.get(pk=x)
             grid = GridCell.objects.get(pk=cell_value)
             kwargs = dict()
             kwargs['file'] = file
             kwargs['grid_cell'] = grid
-            base_name = FileModel.objects.get(pk=x).base_name
+            base_name = EngineeringFileModel.objects.get(pk=x).base_name
             kwargs['base_name'] = base_name
-            assign = Assignment.objects.create(**kwargs)
+            assign = EngineeringAssignment.objects.create(**kwargs)
             new_assignments.append(assign.pk)
 
-        post_assignments = len(Assignment.objects.all())
+        post_assignments = len(EngineeringAssignment.objects.all())
         if post_assignments > pre_assignments:
-            assignments = Assignment.objects.filter(pk__in=new_assignments)
-            serializer = AssignmentSerializer(assignments, many=True, context={'request': request})
+            assignments = EngineeringAssignment.objects.filter(pk__in=new_assignments)
+            serializer = EngAssignmentSerializer(assignments, many=True, context={'request': request})
             return Response(serializer.data)
         else:
             return Response({"status": "Assignments were not created!"})
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class EngViewSet(viewsets.ModelViewSet):
+    queryset = EngineeringFileModel.objects.all()
+    serializer_class = EngSerializer
+    filter_fields = ('project_title', 'sheet_name', 'airport')
+    renderer_classes = (JSONPRenderer,)
+
+    @detail_route()
+    def _grids(self, request, pk=None):
+        """grid cells that the file as been assigned to"""
+        if request.user.is_authenticated():
+            queryset = EngineeringAssignment.objects.filter(file_id__exact=str(pk))
+            grid_cells = [x.grid_cell for x in queryset]
+            serializer = GridSerializer(grid_cells, many=True)
+            return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class PagedEngViewSet(PagedFileViewSet):
+    queryset = EngineeringFileModel.objects.all()
+    serializer_class = EngSerializer
+    filter_fields = ('project_title', 'sheet_name', 'airport')
+
+    @detail_route(methods=['get', ])
+    def _view(self, request, pk=None):
+        """Return a pdf or image as an http response"""
+        if request.user.is_authenticated():
+            """Returns either an image http response or a pdf http response"""
+            file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
+            base_name = file_obj[0].base_name
+            extension = base_name.split(".")[-1].lower()
+            file_path = file_obj[0].file_path.replace("\\", '/')
+            response = create_response_object(file_path, extension)
+            return response
+        else:
+            return redirect(reverse('home:login'))
+
+    @list_route(methods=['get', ])
+    def _build(self, request):
+        """Traverse through the list of paths in the buildDocStore.py file and build the sqlite db"""
+        if request.user.is_authenticated():
+            # TODO streaming http response to update a chart showing statistics of created file object types
+            trainer.stop_monitors()
+            tool = buildDocStore.FileStoreBuilder()
+            tool.build_store()
+            trainer.start_monitors()
+            return Response("build successful")
+
+        else:
+            return redirect(reverse('home:login'))
+
+    @detail_route(methods=['get', ])
+    def _delete(self, request, pk=None):
+        """Remove the specified file and its assignments from the sqlite database"""
+        if request.user.is_authenticated():
+            _file = EngineeringFileModel.objects.filter(id__exact=str(pk))[0]
+            path = _file.file_path
+            if os.path.exists(path):
+                _file.delete()
+                return Response("{} has been deleted".format(path))
+        else:
+            return redirect(reverse('home:login'))
+
+    @detail_route(methods=['get', ])
+    def _grids(self, request, pk=None):
+        """Grid cells that the file has been assigned to"""
+        if request.user.is_authenticated():
+            queryset = EngineeringAssignment.objects.filter(file_id__exact=str(pk))
+            grid_cells = [x.grid_cell for x in queryset]
+            serializer = GridSerializer(grid_cells, many=True)
+            return Response(serializer.data)
+        else:
+            return redirect(reverse('home:login'))
+
+    @list_route(methods=['get', ])
+    def _clean(self, request):
+        """Remove files that are not included in the TOP_DIRs; or are non-existent"""
+        if request.user.is_authenticated():
+            # TODO create return from File Store Builder showing stats from the removed files
+            trainer.stop_monitors()
+            tool = buildDocStore.FileStoreBuilder()
+            tool.clean_store()
+            trainer.start_monitors()
+            return Response("The Store has been cleaned")
+        else:
+            return redirect(reverse('home:login'))
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class EngIOViewSet(viewsets.ViewSet):
+    """This view is used to download files"""
+    # TODO group download file requests into a zip file
+    queryset = EngineeringFileModel.objects.all()
+
+    @detail_route()
+    def _download(self, request, pk=None):
+        """download a file as attachment"""
+        if request.user.is_authenticated():
+            file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
+            file_path = file_obj[0].file_path
+            mime_type = file_obj[0].mime
+            base_name = file_obj[0].base_name
+            filename_header = base_name.encode('utf_8')
+            # response is the file binary / the request is made from an dojo anchor html element with
+            # the file download option enabled
+            fp = File(open(file_path, 'rb'))
+            response = HttpResponse(fp.read(), content_type=mime_type)
+            response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
+            return response
+        else:
+            return redirect(reverse('home:login'))
+
+    @list_route(methods=['post'])
+    def _upload(self, request):
+        """TODO - upload files"""
+        if request.user.is_authenticated():
+            return
+        else:
+            return redirect(reverse('home:login'))
