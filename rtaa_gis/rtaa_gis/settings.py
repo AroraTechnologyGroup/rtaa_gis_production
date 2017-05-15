@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 FORCE_SCRIPT_NAME = "/rtaa_gis/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
