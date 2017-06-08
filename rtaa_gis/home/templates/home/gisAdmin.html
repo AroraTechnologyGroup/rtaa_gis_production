@@ -1,0 +1,31 @@
+{% extends 'home/home_body.html' %}
+{% load static %}
+
+{% block title %}
+    <Title>GIS Admin Portal</Title>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://js.arcgis.com/4.3/esri/css/main.css">
+{% endblock %}
+
+{% block header_nav %}
+    {{ block.super }}
+{% endblock %}
+
+{% block busy_indicator %}
+    {{ block.super }}
+{% endblock %}
+
+{% block main_content %}
+
+{% endblock %}
+
+{% block footer %}
+    {{ block.super }}
+{% endblock %}
+
+{% block scripts %}
+    {% include 'home/gisAdmin_scripts.html' %}
+{% endblock %}
