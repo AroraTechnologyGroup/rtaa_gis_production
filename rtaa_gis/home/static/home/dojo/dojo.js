@@ -2039,6 +2039,7 @@ define([
 	"dojo/_base/lang",
 	"dojo/_base/unload",
 	'dojo/parser',
+	"dojo/window",
 	'dojo/dom',
 	"dojo/dom-style",
 	'dojo/dom-construct',
@@ -2067,6 +2068,7 @@ define([
 		lang,
 		baseUnload,
 		parser,
+		win,
 		dom,
 		domStyle,
 		domConstruct,
@@ -2146,38 +2148,45 @@ define([
 					});
 				});
 
+				////////////////////////////////////////////////////////////////
 				router.register("gisportal/home", function(evt) {
 					evt.preventDefault();
 					console.log('loading ' + evt.newPath);
 					obj.buildGISPortal(evt, groups).then(function(e) {
 						console.log(e);
-						hash("gisportal/viewer");
 					});
 				}, function(err) {
 					console.log(err);
 				});
 
-				router.register("gisportal/viewer", function(evt) {
+				router.register("gisportal/analytics", function(evt) {
+					evt.preventDefault();
+					console.log('loading ' + evt.newPath);
+					// scroll to analytics div
+					win.scrollIntoView('analytics');
+				});
+
+				router.register("gisportal/2dviewer", function(evt) {
 					evt.preventDefault();
 					console.log("loading "+evt.newPath);
-					obj.buildGISPortal(evt, groups).then(function(e) {
-						obj.buildDataBrowser(evt, Card, groups).then(function(e) {
-							console.log(e);
-						});
-					});
+					// scroll to 2dviewer div
+					win.scrollIntoView('viewer2d');
+				});
 
+				router.register("gisportal/3dviewer", function(evt) {
+					evt.preventDefault();
+					console.log("loading "+evt.newPath);
+					// scroll to 3d viewer div
+					win.scrollIntoView('viewer3d');
 				});
 
 				router.register("gisportal/publishing-tools", function(evt) {
 					evt.preventDefault();
 					console.log("loading "+evt.newPath);
-					obj.buildGISPortal(evt, groups).then(function(e) {
-						obj.buildBackEndAPIs(evt, Card, groups).then(function(e) {
-							console.log(e);
-						});
-					});
-
+					// scroll to publishing tool div
+					win.scrollIntoView('publishing');
 				});
+				/////////////////////////////////////////////////////////////////
 				
 				router.register("web-resources/home", function(evt) {
 					evt.preventDefault();
@@ -11067,6 +11076,804 @@ define(['./has'], function(has){
 });
 
 },
+'dojo/window':function(){
+define(["./_base/lang", "./sniff", "./_base/window", "./dom", "./dom-geometry", "./dom-style", "./dom-construct"],
+	function(lang, has, baseWindow, dom, geom, style, domConstruct){
+
+	// feature detection
+	/* not needed but included here for future reference
+	has.add("rtl-innerVerticalScrollBar-on-left", function(win, doc){
+		var	body = baseWindow.body(doc),
+			scrollable = domConstruct.create('div', {
+				style: {overflow:'scroll', overflowX:'hidden', direction:'rtl', visibility:'hidden', position:'absolute', left:'0', width:'64px', height:'64px'}
+			}, body, "last"),
+			center = domConstruct.create('center', {
+				style: {overflow:'hidden', direction:'ltr'}
+			}, scrollable, "last"),
+			inner = domConstruct.create('div', {
+				style: {overflow:'visible', display:'inline' }
+			}, center, "last");
+		inner.innerHTML="&nbsp;";
+		var midPoint = Math.max(inner.offsetLeft, geom.position(inner).x);
+		var ret = midPoint >= 32;
+		center.removeChild(inner);
+		scrollable.removeChild(center);
+		body.removeChild(scrollable);
+		return ret;
+	});
+	*/
+	has.add("rtl-adjust-position-for-verticalScrollBar", function(win, doc){
+		var	body = baseWindow.body(doc),
+			scrollable = domConstruct.create('div', {
+				style: {overflow:'scroll', overflowX:'visible', direction:'rtl', visibility:'hidden', position:'absolute', left:'0', top:'0', width:'64px', height:'64px'}
+			}, body, "last"),
+			div = domConstruct.create('div', {
+				style: {overflow:'hidden', direction:'ltr'}
+			}, scrollable, "last"),
+			ret = geom.position(div).x != 0;
+		scrollable.removeChild(div);
+		body.removeChild(scrollable);
+		return ret;
+	});
+
+	has.add("position-fixed-support", function(win, doc){
+		// IE6, IE7+quirks, and some older mobile browsers don't support position:fixed
+		var	body = baseWindow.body(doc),
+			outer = domConstruct.create('span', {
+				style: {visibility:'hidden', position:'fixed', left:'1px', top:'1px'}
+			}, body, "last"),
+			inner = domConstruct.create('span', {
+				style: {position:'fixed', left:'0', top:'0'}
+			}, outer, "last"),
+			ret = geom.position(inner).x != geom.position(outer).x;
+		outer.removeChild(inner);
+		body.removeChild(outer);
+		return ret;
+	});
+
+	// module:
+	//		dojo/window
+
+	var window = {
+		// summary:
+		//		TODOC
+
+		getBox: function(/*Document?*/ doc){
+			// summary:
+			//		Returns the dimensions and scroll position of the viewable area of a browser window
+
+			doc = doc || baseWindow.doc;
+
+			var
+				scrollRoot = (doc.compatMode == 'BackCompat') ? baseWindow.body(doc) : doc.documentElement,
+				// get scroll position
+				scroll = geom.docScroll(doc), // scrollRoot.scrollTop/Left should work
+				w, h;
+
+			if(has("touch")){ // if(scrollbars not supported)
+				var uiWindow = window.get(doc);   // use UI window, not dojo.global window
+				// on mobile, scrollRoot.clientHeight <= uiWindow.innerHeight <= scrollRoot.offsetHeight, return uiWindow.innerHeight
+				w = uiWindow.innerWidth || scrollRoot.clientWidth; // || scrollRoot.clientXXX probably never evaluated
+				h = uiWindow.innerHeight || scrollRoot.clientHeight;
+			}else{
+				// on desktops, scrollRoot.clientHeight <= scrollRoot.offsetHeight <= uiWindow.innerHeight, return scrollRoot.clientHeight
+				// uiWindow.innerWidth/Height includes the scrollbar and cannot be used
+				w = scrollRoot.clientWidth;
+				h = scrollRoot.clientHeight;
+			}
+			return {
+				l: scroll.x,
+				t: scroll.y,
+				w: w,
+				h: h
+			};
+		},
+
+		get: function(/*Document*/ doc){
+			// summary:
+			//		Get window object associated with document doc.
+			// doc:
+			//		The document to get the associated window for.
+
+			// In some IE versions (at least 6.0), document.parentWindow does not return a
+			// reference to the real window object (maybe a copy), so we must fix it as well
+			// We use IE specific execScript to attach the real window reference to
+			// document._parentWindow for later use
+			if(has("ie") && window !== document.parentWindow){
+				/*
+				In IE 6, only the variable "window" can be used to connect events (others
+				may be only copies).
+				*/
+				doc.parentWindow.execScript("document._parentWindow = window;", "Javascript");
+				//to prevent memory leak, unset it after use
+				//another possibility is to add an onUnload handler which seems overkill to me (liucougar)
+				var win = doc._parentWindow;
+				doc._parentWindow = null;
+				return win;	//	Window
+			}
+
+			return doc.parentWindow || doc.defaultView;	//	Window
+		},
+
+		scrollIntoView: function(/*DomNode*/ node, /*Object?*/ pos){
+			// summary:
+			//		Scroll the passed node into view using minimal movement, if it is not already.
+
+			// Don't rely on node.scrollIntoView working just because the function is there since
+			// it forces the node to the page's bottom or top (and left or right in IE) without consideration for the minimal movement.
+			// WebKit's node.scrollIntoViewIfNeeded doesn't work either for inner scrollbars in right-to-left mode
+			// and when there's a fixed position scrollable element
+
+			try{ // catch unexpected/unrecreatable errors (#7808) since we can recover using a semi-acceptable native method
+				node = dom.byId(node);
+				var	doc = node.ownerDocument || baseWindow.doc,	// TODO: why baseWindow.doc?  Isn't node.ownerDocument always defined?
+					body = baseWindow.body(doc),
+					html = doc.documentElement || body.parentNode,
+					isIE = has("ie") || has("trident"),
+					isWK = has("webkit");
+				// if an untested browser, then use the native method
+				if(node == body || node == html){ return; }
+				if(!(has("mozilla") || isIE || isWK || has("opera") || has("trident") || has("edge"))
+						&& ("scrollIntoView" in node)){
+					node.scrollIntoView(false); // short-circuit to native if possible
+					return;
+				}
+				var	backCompat = doc.compatMode == 'BackCompat',
+					rootWidth = Math.min(body.clientWidth || html.clientWidth, html.clientWidth || body.clientWidth),
+					rootHeight = Math.min(body.clientHeight || html.clientHeight, html.clientHeight || body.clientHeight),
+					scrollRoot = (isWK || backCompat) ? body : html,
+					nodePos = pos || geom.position(node),
+					el = node.parentNode,
+					isFixed = function(el){
+						return (isIE <= 6 || (isIE == 7 && backCompat))
+							? false
+							: (has("position-fixed-support") && (style.get(el, 'position').toLowerCase() == "fixed"));
+					},
+					self = this,
+					scrollElementBy = function(el, x, y){
+						if(el.tagName == "BODY" || el.tagName == "HTML"){
+							self.get(el.ownerDocument).scrollBy(x, y);
+						}else{
+							x && (el.scrollLeft += x);
+							y && (el.scrollTop += y);
+						}
+					};
+				if(isFixed(node)){ return; } // nothing to do
+				while(el){
+					if(el == body){ el = scrollRoot; }
+					var	elPos = geom.position(el),
+						fixedPos = isFixed(el),
+						rtl = style.getComputedStyle(el).direction.toLowerCase() == "rtl";
+
+					if(el == scrollRoot){
+						elPos.w = rootWidth; elPos.h = rootHeight;
+						if(scrollRoot == html && (isIE || has("trident")) && rtl){
+							elPos.x += scrollRoot.offsetWidth-elPos.w;// IE workaround where scrollbar causes negative x
+						}
+						elPos.x = 0;
+						elPos.y = 0;
+					}else{
+						var pb = geom.getPadBorderExtents(el);
+						elPos.w -= pb.w; elPos.h -= pb.h; elPos.x += pb.l; elPos.y += pb.t;
+						var clientSize = el.clientWidth,
+							scrollBarSize = elPos.w - clientSize;
+						if(clientSize > 0 && scrollBarSize > 0){
+							if(rtl && has("rtl-adjust-position-for-verticalScrollBar")){
+								elPos.x += scrollBarSize;
+							}
+							elPos.w = clientSize;
+						}
+						clientSize = el.clientHeight;
+						scrollBarSize = elPos.h - clientSize;
+						if(clientSize > 0 && scrollBarSize > 0){
+							elPos.h = clientSize;
+						}
+					}
+					if(fixedPos){ // bounded by viewport, not parents
+						if(elPos.y < 0){
+							elPos.h += elPos.y; elPos.y = 0;
+						}
+						if(elPos.x < 0){
+							elPos.w += elPos.x; elPos.x = 0;
+						}
+						if(elPos.y + elPos.h > rootHeight){
+							elPos.h = rootHeight - elPos.y;
+						}
+						if(elPos.x + elPos.w > rootWidth){
+							elPos.w = rootWidth - elPos.x;
+						}
+					}
+					// calculate overflow in all 4 directions
+					var	l = nodePos.x - elPos.x, // beyond left: < 0
+//						t = nodePos.y - Math.max(elPos.y, 0), // beyond top: < 0
+						t = nodePos.y - elPos.y, // beyond top: < 0
+						r = l + nodePos.w - elPos.w, // beyond right: > 0
+						bot = t + nodePos.h - elPos.h; // beyond bottom: > 0
+					var s, old;
+					if(r * l > 0 && (!!el.scrollLeft || el == scrollRoot || el.scrollWidth > el.offsetHeight)){
+						s = Math[l < 0? "max" : "min"](l, r);
+						if(rtl && ((isIE == 8 && !backCompat) || has("trident") >= 5)){ s = -s; }
+						old = el.scrollLeft;
+						scrollElementBy(el, s, 0);
+						s = el.scrollLeft - old;
+						nodePos.x -= s;
+					}
+					if(bot * t > 0 && (!!el.scrollTop || el == scrollRoot || el.scrollHeight > el.offsetHeight)){
+						s = Math.ceil(Math[t < 0? "max" : "min"](t, bot));
+						old = el.scrollTop;
+						scrollElementBy(el, 0, s);
+						s = el.scrollTop - old;
+						nodePos.y -= s;
+					}
+					el = (el != scrollRoot) && !fixedPos && el.parentNode;
+				}
+			}catch(error){
+				console.error('scrollIntoView: ' + error);
+				node.scrollIntoView(false);
+			}
+		}
+	};
+
+	 1  && lang.setObject("dojo.window", window);
+
+	return window;
+});
+
+},
+'dojo/dom-geometry':function(){
+define(["./sniff", "./_base/window","./dom", "./dom-style"],
+		function(has, win, dom, style){
+	// module:
+	//		dojo/dom-geometry
+
+	// the result object
+	var geom = {
+		// summary:
+		//		This module defines the core dojo DOM geometry API.
+	};
+
+	// Box functions will assume this model.
+	// On IE/Opera, BORDER_BOX will be set if the primary document is in quirks mode.
+	// Can be set to change behavior of box setters.
+
+	// can be either:
+	//	"border-box"
+	//	"content-box" (default)
+	geom.boxModel = "content-box";
+
+	// We punt per-node box mode testing completely.
+	// If anybody cares, we can provide an additional (optional) unit
+	// that overrides existing code to include per-node box sensitivity.
+
+	// Opera documentation claims that Opera 9 uses border-box in BackCompat mode.
+	// but experiments (Opera 9.10.8679 on Windows Vista) indicate that it actually continues to use content-box.
+	// IIRC, earlier versions of Opera did in fact use border-box.
+	// Opera guys, this is really confusing. Opera being broken in quirks mode is not our fault.
+
+	if(has("ie") /*|| has("opera")*/){
+		// client code may have to adjust if compatMode varies across iframes
+		geom.boxModel = document.compatMode == "BackCompat" ? "border-box" : "content-box";
+	}
+
+	geom.getPadExtents = function getPadExtents(/*DomNode*/ node, /*Object*/ computedStyle){
+		// summary:
+		//		Returns object with special values specifically useful for node
+		//		fitting.
+		// description:
+		//		Returns an object with `w`, `h`, `l`, `t` properties:
+		//	|		l/t/r/b = left/top/right/bottom padding (respectively)
+		//	|		w = the total of the left and right padding
+		//	|		h = the total of the top and bottom padding
+		//		If 'node' has position, l/t forms the origin for child nodes.
+		//		The w/h are used for calculating boxes.
+		//		Normally application code will not need to invoke this
+		//		directly, and will use the ...box... functions instead.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node), px = style.toPixelValue,
+			l = px(node, s.paddingLeft), t = px(node, s.paddingTop), r = px(node, s.paddingRight), b = px(node, s.paddingBottom);
+		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
+	};
+
+	var none = "none";
+
+	geom.getBorderExtents = function getBorderExtents(/*DomNode*/ node, /*Object*/ computedStyle){
+		// summary:
+		//		returns an object with properties useful for noting the border
+		//		dimensions.
+		// description:
+		//		- l/t/r/b = the sum of left/top/right/bottom border (respectively)
+		//		- w = the sum of the left and right border
+		//		- h = the sum of the top and bottom border
+		//
+		//		The w/h are used for calculating boxes.
+		//		Normally application code will not need to invoke this
+		//		directly, and will use the ...box... functions instead.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var px = style.toPixelValue, s = computedStyle || style.getComputedStyle(node),
+			l = s.borderLeftStyle != none ? px(node, s.borderLeftWidth) : 0,
+			t = s.borderTopStyle != none ? px(node, s.borderTopWidth) : 0,
+			r = s.borderRightStyle != none ? px(node, s.borderRightWidth) : 0,
+			b = s.borderBottomStyle != none ? px(node, s.borderBottomWidth) : 0;
+		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
+	};
+
+	geom.getPadBorderExtents = function getPadBorderExtents(/*DomNode*/ node, /*Object*/ computedStyle){
+		// summary:
+		//		Returns object with properties useful for box fitting with
+		//		regards to padding.
+		// description:
+		//		- l/t/r/b = the sum of left/top/right/bottom padding and left/top/right/bottom border (respectively)
+		//		- w = the sum of the left and right padding and border
+		//		- h = the sum of the top and bottom padding and border
+		//
+		//		The w/h are used for calculating boxes.
+		//		Normally application code will not need to invoke this
+		//		directly, and will use the ...box... functions instead.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node),
+			p = geom.getPadExtents(node, s),
+			b = geom.getBorderExtents(node, s);
+		return {
+			l: p.l + b.l,
+			t: p.t + b.t,
+			r: p.r + b.r,
+			b: p.b + b.b,
+			w: p.w + b.w,
+			h: p.h + b.h
+		};
+	};
+
+	geom.getMarginExtents = function getMarginExtents(node, computedStyle){
+		// summary:
+		//		returns object with properties useful for box fitting with
+		//		regards to box margins (i.e., the outer-box).
+		//
+		//		- l/t = marginLeft, marginTop, respectively
+		//		- w = total width, margin inclusive
+		//		- h = total height, margin inclusive
+		//
+		//		The w/h are used for calculating boxes.
+		//		Normally application code will not need to invoke this
+		//		directly, and will use the ...box... functions instead.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node), px = style.toPixelValue,
+			l = px(node, s.marginLeft), t = px(node, s.marginTop), r = px(node, s.marginRight), b = px(node, s.marginBottom);
+		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
+	};
+
+	// Box getters work in any box context because offsetWidth/clientWidth
+	// are invariant wrt box context
+	//
+	// They do *not* work for display: inline objects that have padding styles
+	// because the user agent ignores padding (it's bogus styling in any case)
+	//
+	// Be careful with IMGs because they are inline or block depending on
+	// browser and browser mode.
+
+	// Although it would be easier to read, there are not separate versions of
+	// _getMarginBox for each browser because:
+	// 1. the branching is not expensive
+	// 2. factoring the shared code wastes cycles (function call overhead)
+	// 3. duplicating the shared code wastes bytes
+
+	geom.getMarginBox = function getMarginBox(/*DomNode*/ node, /*Object*/ computedStyle){
+		// summary:
+		//		returns an object that encodes the width, height, left and top
+		//		positions of the node's margin box.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node), me = geom.getMarginExtents(node, s),
+			l = node.offsetLeft - me.l, t = node.offsetTop - me.t, p = node.parentNode, px = style.toPixelValue, pcs;
+
+		if((has("ie") == 8 && !has("quirks"))){
+			// IE 8 offsetLeft/Top includes the parent's border
+			if(p){
+				pcs = style.getComputedStyle(p);
+				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
+				t -= pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
+			}
+		}
+		return {l: l, t: t, w: node.offsetWidth + me.w, h: node.offsetHeight + me.h};
+	};
+
+	geom.getContentBox = function getContentBox(node, computedStyle){
+		// summary:
+		//		Returns an object that encodes the width, height, left and top
+		//		positions of the node's content box, irrespective of the
+		//		current box model.
+		// node: DOMNode
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		// clientWidth/Height are important since the automatically account for scrollbars
+		// fallback to offsetWidth/Height for special cases (see #3378)
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node), w = node.clientWidth, h,
+			pe = geom.getPadExtents(node, s), be = geom.getBorderExtents(node, s), l = node.offsetLeft + pe.l + be.l,
+			t = node.offsetTop + pe.t + be.t;
+		if(!w){
+			w = node.offsetWidth - be.w;
+			h = node.offsetHeight - be.h;
+		}else{
+			h = node.clientHeight;
+		}
+
+		if((has("ie") == 8 && !has("quirks"))){
+			// IE 8 offsetLeft/Top includes the parent's border
+			var p = node.parentNode, px = style.toPixelValue, pcs;
+			if(p){
+				pcs = style.getComputedStyle(p);
+				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
+				t -= pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
+			}
+		}
+
+		return {l: l, t: t, w: w - pe.w, h: h - pe.h};
+	};
+
+	// Box setters depend on box context because interpretation of width/height styles
+	// vary wrt box context.
+	//
+	// The value of boxModel is used to determine box context.
+	// boxModel can be set directly to change behavior.
+	//
+	// Beware of display: inline objects that have padding styles
+	// because the user agent ignores padding (it's a bogus setup anyway)
+	//
+	// Be careful with IMGs because they are inline or block depending on
+	// browser and browser mode.
+	//
+	// Elements other than DIV may have special quirks, like built-in
+	// margins or padding, or values not detectable via computedStyle.
+	// In particular, margins on TABLE do not seems to appear
+	// at all in computedStyle on Mozilla.
+
+	function setBox(/*DomNode*/ node, /*Number?*/ l, /*Number?*/ t, /*Number?*/ w, /*Number?*/ h, /*String?*/ u){
+		// summary:
+		//		sets width/height/left/top in the current (native) box-model
+		//		dimensions. Uses the unit passed in u.
+		// node:
+		//		DOM Node reference. Id string not supported for performance
+		//		reasons.
+		// l:
+		//		left offset from parent.
+		// t:
+		//		top offset from parent.
+		// w:
+		//		width in current box model.
+		// h:
+		//		width in current box model.
+		// u:
+		//		unit measure to use for other measures. Defaults to "px".
+		u = u || "px";
+		var s = node.style;
+		if(!isNaN(l)){
+			s.left = l + u;
+		}
+		if(!isNaN(t)){
+			s.top = t + u;
+		}
+		if(w >= 0){
+			s.width = w + u;
+		}
+		if(h >= 0){
+			s.height = h + u;
+		}
+	}
+
+	function isButtonTag(/*DomNode*/ node){
+		// summary:
+		//		True if the node is BUTTON or INPUT.type="button".
+		return node.tagName.toLowerCase() == "button" ||
+			node.tagName.toLowerCase() == "input" && (node.getAttribute("type") || "").toLowerCase() == "button"; // boolean
+	}
+
+	function usesBorderBox(/*DomNode*/ node){
+		// summary:
+		//		True if the node uses border-box layout.
+
+		// We could test the computed style of node to see if a particular box
+		// has been specified, but there are details and we choose not to bother.
+
+		// TABLE and BUTTON (and INPUT type=button) are always border-box by default.
+		// If you have assigned a different box to either one via CSS then
+		// box functions will break.
+
+		return geom.boxModel == "border-box" || node.tagName.toLowerCase() == "table" || isButtonTag(node); // boolean
+	}
+
+	geom.setContentSize = function setContentSize(/*DomNode*/ node, /*Object*/ box, /*Object*/ computedStyle){
+		// summary:
+		//		Sets the size of the node's contents, irrespective of margins,
+		//		padding, or borders.
+		// node: DOMNode
+		// box: Object
+		//		hash with optional "w", and "h" properties for "width", and "height"
+		//		respectively. All specified properties should have numeric values in whole pixels.
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var w = box.w, h = box.h;
+		if(usesBorderBox(node)){
+			var pb = geom.getPadBorderExtents(node, computedStyle);
+			if(w >= 0){
+				w += pb.w;
+			}
+			if(h >= 0){
+				h += pb.h;
+			}
+		}
+		setBox(node, NaN, NaN, w, h);
+	};
+
+	var nilExtents = {l: 0, t: 0, w: 0, h: 0};
+
+	geom.setMarginBox = function setMarginBox(/*DomNode*/ node, /*Object*/ box, /*Object*/ computedStyle){
+		// summary:
+		//		sets the size of the node's margin box and placement
+		//		(left/top), irrespective of box model. Think of it as a
+		//		passthrough to setBox that handles box-model vagaries for
+		//		you.
+		// node: DOMNode
+		// box: Object
+		//		hash with optional "l", "t", "w", and "h" properties for "left", "right", "width", and "height"
+		//		respectively. All specified properties should have numeric values in whole pixels.
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var s = computedStyle || style.getComputedStyle(node), w = box.w, h = box.h,
+		// Some elements have special padding, margin, and box-model settings.
+		// To use box functions you may need to set padding, margin explicitly.
+		// Controlling box-model is harder, in a pinch you might set dojo/dom-geometry.boxModel.
+			pb = usesBorderBox(node) ? nilExtents : geom.getPadBorderExtents(node, s),
+			mb = geom.getMarginExtents(node, s);
+		if(has("webkit")){
+			// on Safari (3.1.2), button nodes with no explicit size have a default margin
+			// setting an explicit size eliminates the margin.
+			// We have to swizzle the width to get correct margin reading.
+			if(isButtonTag(node)){
+				var ns = node.style;
+				if(w >= 0 && !ns.width){
+					ns.width = "4px";
+				}
+				if(h >= 0 && !ns.height){
+					ns.height = "4px";
+				}
+			}
+		}
+		if(w >= 0){
+			w = Math.max(w - pb.w - mb.w, 0);
+		}
+		if(h >= 0){
+			h = Math.max(h - pb.h - mb.h, 0);
+		}
+		setBox(node, box.l, box.t, w, h);
+	};
+
+	// =============================
+	// Positioning
+	// =============================
+
+	geom.isBodyLtr = function isBodyLtr(/*Document?*/ doc){
+		// summary:
+		//		Returns true if the current language is left-to-right, and false otherwise.
+		// doc: Document?
+		//		Optional document to query.   If unspecified, use win.doc.
+		// returns: Boolean
+
+		doc = doc || win.doc;
+		return (win.body(doc).dir || doc.documentElement.dir || "ltr").toLowerCase() == "ltr"; // Boolean
+	};
+
+	geom.docScroll = function docScroll(/*Document?*/ doc){
+		// summary:
+		//		Returns an object with {node, x, y} with corresponding offsets.
+		// doc: Document?
+		//		Optional document to query.   If unspecified, use win.doc.
+		// returns: Object
+
+		doc = doc || win.doc;
+		var node = win.doc.parentWindow || win.doc.defaultView;   // use UI window, not dojo.global window.   TODO: use dojo/window::get() except for circular dependency problem
+		return "pageXOffset" in node ? {x: node.pageXOffset, y: node.pageYOffset } :
+			(node = has("quirks") ? win.body(doc) : doc.documentElement) &&
+				{x: geom.fixIeBiDiScrollLeft(node.scrollLeft || 0, doc), y: node.scrollTop || 0 };
+	};
+
+	geom.getIeDocumentElementOffset = function(/*Document?*/ doc){
+		// summary:
+		//		Deprecated method previously used for IE6-IE7.  Now, just returns `{x:0, y:0}`.
+		return {
+			x: 0,
+			y: 0
+		};
+	};
+
+	geom.fixIeBiDiScrollLeft = function fixIeBiDiScrollLeft(/*Integer*/ scrollLeft, /*Document?*/ doc){
+		// summary:
+		//		In RTL direction, scrollLeft should be a negative value, but IE
+		//		returns a positive one. All codes using documentElement.scrollLeft
+		//		must call this function to fix this error, otherwise the position
+		//		will offset to right when there is a horizontal scrollbar.
+		// scrollLeft: Number
+		// doc: Document?
+		//		Optional document to query.   If unspecified, use win.doc.
+		// returns: Number
+
+		// In RTL direction, scrollLeft should be a negative value, but IE
+		// returns a positive one. All codes using documentElement.scrollLeft
+		// must call this function to fix this error, otherwise the position
+		// will offset to right when there is a horizontal scrollbar.
+
+		doc = doc || win.doc;
+		var ie = has("ie");
+		if(ie && !geom.isBodyLtr(doc)){
+			var qk = has("quirks"),
+				de = qk ? win.body(doc) : doc.documentElement,
+				pwin = win.global;	// TODO: use winUtils.get(doc) after resolving circular dependency b/w dom-geometry.js and dojo/window.js
+			if(ie == 6 && !qk && pwin.frameElement && de.scrollHeight > de.clientHeight){
+				scrollLeft += de.clientLeft; // workaround ie6+strict+rtl+iframe+vertical-scrollbar bug where clientWidth is too small by clientLeft pixels
+			}
+			return (ie < 8 || qk) ? (scrollLeft + de.clientWidth - de.scrollWidth) : -scrollLeft; // Integer
+		}
+		return scrollLeft; // Integer
+	};
+
+	geom.position = function(/*DomNode*/ node, /*Boolean?*/ includeScroll){
+		// summary:
+		//		Gets the position and size of the passed element relative to
+		//		the viewport (if includeScroll==false), or relative to the
+		//		document root (if includeScroll==true).
+		//
+		// description:
+		//		Returns an object of the form:
+		//		`{ x: 100, y: 300, w: 20, h: 15 }`.
+		//		If includeScroll==true, the x and y values will include any
+		//		document offsets that may affect the position relative to the
+		//		viewport.
+		//		Uses the border-box model (inclusive of border and padding but
+		//		not margin).  Does not act as a setter.
+		// node: DOMNode|String
+		// includeScroll: Boolean?
+		// returns: Object
+
+		node = dom.byId(node);
+		var	db = win.body(node.ownerDocument),
+			ret = node.getBoundingClientRect();
+		ret = {x: ret.left, y: ret.top, w: ret.right - ret.left, h: ret.bottom - ret.top};
+
+		if(has("ie") < 9){
+			// fixes the position in IE, quirks mode
+			ret.x -= (has("quirks") ? db.clientLeft + db.offsetLeft : 0);
+			ret.y -= (has("quirks") ? db.clientTop + db.offsetTop : 0);
+		}
+
+		// account for document scrolling
+		// if offsetParent is used, ret value already includes scroll position
+		// so we may have to actually remove that value if !includeScroll
+		if(includeScroll){
+			var scroll = geom.docScroll(node.ownerDocument);
+			ret.x += scroll.x;
+			ret.y += scroll.y;
+		}
+
+		return ret; // Object
+	};
+
+	// random "private" functions wildly used throughout the toolkit
+
+	geom.getMarginSize = function getMarginSize(/*DomNode*/ node, /*Object*/ computedStyle){
+		// summary:
+		//		returns an object that encodes the width and height of
+		//		the node's margin box
+		// node: DOMNode|String
+		// computedStyle: Object?
+		//		This parameter accepts computed styles object.
+		//		If this parameter is omitted, the functions will call
+		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
+		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
+		//		computedStyle parameter. Wherever possible, reuse the returned
+		//		object of dojo/dom-style.getComputedStyle().
+
+		node = dom.byId(node);
+		var me = geom.getMarginExtents(node, computedStyle || style.getComputedStyle(node));
+		var size = node.getBoundingClientRect();
+		return {
+			w: (size.right - size.left) + me.w,
+			h: (size.bottom - size.top) + me.h
+		};
+	};
+
+	geom.normalizeEvent = function(event){
+		// summary:
+		//		Normalizes the geometry of a DOM event, normalizing the pageX, pageY,
+		//		offsetX, offsetY, layerX, and layerX properties
+		// event: Object
+		if(!("layerX" in event)){
+			event.layerX = event.offsetX;
+			event.layerY = event.offsetY;
+		}
+
+		if(!("pageX" in event)){
+			// FIXME: scroll position query is duped from dojo/_base/html to
+			// avoid dependency on that entire module. Now that HTML is in
+			// Base, we should convert back to something similar there.
+			var se = event.target;
+			var doc = (se && se.ownerDocument) || document;
+			// DO NOT replace the following to use dojo/_base/window.body(), in IE, document.documentElement should be used
+			// here rather than document.body
+			var docBody = has("quirks") ? doc.body : doc.documentElement;
+			event.pageX = event.clientX + geom.fixIeBiDiScrollLeft(docBody.scrollLeft || 0, doc);
+			event.pageY = event.clientY + (docBody.scrollTop || 0);
+		}
+	};
+
+	// TODO: evaluate separate getters/setters for position and sizes?
+
+	return geom;
+});
+
+},
 'dojo/dom-style':function(){
 define(["./sniff", "./dom", "./_base/window"], function(has, dom, win){
 	// module:
@@ -12697,560 +13504,6 @@ define(["./kernel", "../on", "../has", "../dom-geometry"], function(dojo, on, ha
 	}
 
 	return ret;
-});
-
-},
-'dojo/dom-geometry':function(){
-define(["./sniff", "./_base/window","./dom", "./dom-style"],
-		function(has, win, dom, style){
-	// module:
-	//		dojo/dom-geometry
-
-	// the result object
-	var geom = {
-		// summary:
-		//		This module defines the core dojo DOM geometry API.
-	};
-
-	// Box functions will assume this model.
-	// On IE/Opera, BORDER_BOX will be set if the primary document is in quirks mode.
-	// Can be set to change behavior of box setters.
-
-	// can be either:
-	//	"border-box"
-	//	"content-box" (default)
-	geom.boxModel = "content-box";
-
-	// We punt per-node box mode testing completely.
-	// If anybody cares, we can provide an additional (optional) unit
-	// that overrides existing code to include per-node box sensitivity.
-
-	// Opera documentation claims that Opera 9 uses border-box in BackCompat mode.
-	// but experiments (Opera 9.10.8679 on Windows Vista) indicate that it actually continues to use content-box.
-	// IIRC, earlier versions of Opera did in fact use border-box.
-	// Opera guys, this is really confusing. Opera being broken in quirks mode is not our fault.
-
-	if(has("ie") /*|| has("opera")*/){
-		// client code may have to adjust if compatMode varies across iframes
-		geom.boxModel = document.compatMode == "BackCompat" ? "border-box" : "content-box";
-	}
-
-	geom.getPadExtents = function getPadExtents(/*DomNode*/ node, /*Object*/ computedStyle){
-		// summary:
-		//		Returns object with special values specifically useful for node
-		//		fitting.
-		// description:
-		//		Returns an object with `w`, `h`, `l`, `t` properties:
-		//	|		l/t/r/b = left/top/right/bottom padding (respectively)
-		//	|		w = the total of the left and right padding
-		//	|		h = the total of the top and bottom padding
-		//		If 'node' has position, l/t forms the origin for child nodes.
-		//		The w/h are used for calculating boxes.
-		//		Normally application code will not need to invoke this
-		//		directly, and will use the ...box... functions instead.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node), px = style.toPixelValue,
-			l = px(node, s.paddingLeft), t = px(node, s.paddingTop), r = px(node, s.paddingRight), b = px(node, s.paddingBottom);
-		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
-	};
-
-	var none = "none";
-
-	geom.getBorderExtents = function getBorderExtents(/*DomNode*/ node, /*Object*/ computedStyle){
-		// summary:
-		//		returns an object with properties useful for noting the border
-		//		dimensions.
-		// description:
-		//		- l/t/r/b = the sum of left/top/right/bottom border (respectively)
-		//		- w = the sum of the left and right border
-		//		- h = the sum of the top and bottom border
-		//
-		//		The w/h are used for calculating boxes.
-		//		Normally application code will not need to invoke this
-		//		directly, and will use the ...box... functions instead.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var px = style.toPixelValue, s = computedStyle || style.getComputedStyle(node),
-			l = s.borderLeftStyle != none ? px(node, s.borderLeftWidth) : 0,
-			t = s.borderTopStyle != none ? px(node, s.borderTopWidth) : 0,
-			r = s.borderRightStyle != none ? px(node, s.borderRightWidth) : 0,
-			b = s.borderBottomStyle != none ? px(node, s.borderBottomWidth) : 0;
-		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
-	};
-
-	geom.getPadBorderExtents = function getPadBorderExtents(/*DomNode*/ node, /*Object*/ computedStyle){
-		// summary:
-		//		Returns object with properties useful for box fitting with
-		//		regards to padding.
-		// description:
-		//		- l/t/r/b = the sum of left/top/right/bottom padding and left/top/right/bottom border (respectively)
-		//		- w = the sum of the left and right padding and border
-		//		- h = the sum of the top and bottom padding and border
-		//
-		//		The w/h are used for calculating boxes.
-		//		Normally application code will not need to invoke this
-		//		directly, and will use the ...box... functions instead.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node),
-			p = geom.getPadExtents(node, s),
-			b = geom.getBorderExtents(node, s);
-		return {
-			l: p.l + b.l,
-			t: p.t + b.t,
-			r: p.r + b.r,
-			b: p.b + b.b,
-			w: p.w + b.w,
-			h: p.h + b.h
-		};
-	};
-
-	geom.getMarginExtents = function getMarginExtents(node, computedStyle){
-		// summary:
-		//		returns object with properties useful for box fitting with
-		//		regards to box margins (i.e., the outer-box).
-		//
-		//		- l/t = marginLeft, marginTop, respectively
-		//		- w = total width, margin inclusive
-		//		- h = total height, margin inclusive
-		//
-		//		The w/h are used for calculating boxes.
-		//		Normally application code will not need to invoke this
-		//		directly, and will use the ...box... functions instead.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node), px = style.toPixelValue,
-			l = px(node, s.marginLeft), t = px(node, s.marginTop), r = px(node, s.marginRight), b = px(node, s.marginBottom);
-		return {l: l, t: t, r: r, b: b, w: l + r, h: t + b};
-	};
-
-	// Box getters work in any box context because offsetWidth/clientWidth
-	// are invariant wrt box context
-	//
-	// They do *not* work for display: inline objects that have padding styles
-	// because the user agent ignores padding (it's bogus styling in any case)
-	//
-	// Be careful with IMGs because they are inline or block depending on
-	// browser and browser mode.
-
-	// Although it would be easier to read, there are not separate versions of
-	// _getMarginBox for each browser because:
-	// 1. the branching is not expensive
-	// 2. factoring the shared code wastes cycles (function call overhead)
-	// 3. duplicating the shared code wastes bytes
-
-	geom.getMarginBox = function getMarginBox(/*DomNode*/ node, /*Object*/ computedStyle){
-		// summary:
-		//		returns an object that encodes the width, height, left and top
-		//		positions of the node's margin box.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node), me = geom.getMarginExtents(node, s),
-			l = node.offsetLeft - me.l, t = node.offsetTop - me.t, p = node.parentNode, px = style.toPixelValue, pcs;
-
-		if((has("ie") == 8 && !has("quirks"))){
-			// IE 8 offsetLeft/Top includes the parent's border
-			if(p){
-				pcs = style.getComputedStyle(p);
-				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
-				t -= pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
-			}
-		}
-		return {l: l, t: t, w: node.offsetWidth + me.w, h: node.offsetHeight + me.h};
-	};
-
-	geom.getContentBox = function getContentBox(node, computedStyle){
-		// summary:
-		//		Returns an object that encodes the width, height, left and top
-		//		positions of the node's content box, irrespective of the
-		//		current box model.
-		// node: DOMNode
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		// clientWidth/Height are important since the automatically account for scrollbars
-		// fallback to offsetWidth/Height for special cases (see #3378)
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node), w = node.clientWidth, h,
-			pe = geom.getPadExtents(node, s), be = geom.getBorderExtents(node, s), l = node.offsetLeft + pe.l + be.l,
-			t = node.offsetTop + pe.t + be.t;
-		if(!w){
-			w = node.offsetWidth - be.w;
-			h = node.offsetHeight - be.h;
-		}else{
-			h = node.clientHeight;
-		}
-
-		if((has("ie") == 8 && !has("quirks"))){
-			// IE 8 offsetLeft/Top includes the parent's border
-			var p = node.parentNode, px = style.toPixelValue, pcs;
-			if(p){
-				pcs = style.getComputedStyle(p);
-				l -= pcs.borderLeftStyle != none ? px(node, pcs.borderLeftWidth) : 0;
-				t -= pcs.borderTopStyle != none ? px(node, pcs.borderTopWidth) : 0;
-			}
-		}
-
-		return {l: l, t: t, w: w - pe.w, h: h - pe.h};
-	};
-
-	// Box setters depend on box context because interpretation of width/height styles
-	// vary wrt box context.
-	//
-	// The value of boxModel is used to determine box context.
-	// boxModel can be set directly to change behavior.
-	//
-	// Beware of display: inline objects that have padding styles
-	// because the user agent ignores padding (it's a bogus setup anyway)
-	//
-	// Be careful with IMGs because they are inline or block depending on
-	// browser and browser mode.
-	//
-	// Elements other than DIV may have special quirks, like built-in
-	// margins or padding, or values not detectable via computedStyle.
-	// In particular, margins on TABLE do not seems to appear
-	// at all in computedStyle on Mozilla.
-
-	function setBox(/*DomNode*/ node, /*Number?*/ l, /*Number?*/ t, /*Number?*/ w, /*Number?*/ h, /*String?*/ u){
-		// summary:
-		//		sets width/height/left/top in the current (native) box-model
-		//		dimensions. Uses the unit passed in u.
-		// node:
-		//		DOM Node reference. Id string not supported for performance
-		//		reasons.
-		// l:
-		//		left offset from parent.
-		// t:
-		//		top offset from parent.
-		// w:
-		//		width in current box model.
-		// h:
-		//		width in current box model.
-		// u:
-		//		unit measure to use for other measures. Defaults to "px".
-		u = u || "px";
-		var s = node.style;
-		if(!isNaN(l)){
-			s.left = l + u;
-		}
-		if(!isNaN(t)){
-			s.top = t + u;
-		}
-		if(w >= 0){
-			s.width = w + u;
-		}
-		if(h >= 0){
-			s.height = h + u;
-		}
-	}
-
-	function isButtonTag(/*DomNode*/ node){
-		// summary:
-		//		True if the node is BUTTON or INPUT.type="button".
-		return node.tagName.toLowerCase() == "button" ||
-			node.tagName.toLowerCase() == "input" && (node.getAttribute("type") || "").toLowerCase() == "button"; // boolean
-	}
-
-	function usesBorderBox(/*DomNode*/ node){
-		// summary:
-		//		True if the node uses border-box layout.
-
-		// We could test the computed style of node to see if a particular box
-		// has been specified, but there are details and we choose not to bother.
-
-		// TABLE and BUTTON (and INPUT type=button) are always border-box by default.
-		// If you have assigned a different box to either one via CSS then
-		// box functions will break.
-
-		return geom.boxModel == "border-box" || node.tagName.toLowerCase() == "table" || isButtonTag(node); // boolean
-	}
-
-	geom.setContentSize = function setContentSize(/*DomNode*/ node, /*Object*/ box, /*Object*/ computedStyle){
-		// summary:
-		//		Sets the size of the node's contents, irrespective of margins,
-		//		padding, or borders.
-		// node: DOMNode
-		// box: Object
-		//		hash with optional "w", and "h" properties for "width", and "height"
-		//		respectively. All specified properties should have numeric values in whole pixels.
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var w = box.w, h = box.h;
-		if(usesBorderBox(node)){
-			var pb = geom.getPadBorderExtents(node, computedStyle);
-			if(w >= 0){
-				w += pb.w;
-			}
-			if(h >= 0){
-				h += pb.h;
-			}
-		}
-		setBox(node, NaN, NaN, w, h);
-	};
-
-	var nilExtents = {l: 0, t: 0, w: 0, h: 0};
-
-	geom.setMarginBox = function setMarginBox(/*DomNode*/ node, /*Object*/ box, /*Object*/ computedStyle){
-		// summary:
-		//		sets the size of the node's margin box and placement
-		//		(left/top), irrespective of box model. Think of it as a
-		//		passthrough to setBox that handles box-model vagaries for
-		//		you.
-		// node: DOMNode
-		// box: Object
-		//		hash with optional "l", "t", "w", and "h" properties for "left", "right", "width", and "height"
-		//		respectively. All specified properties should have numeric values in whole pixels.
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var s = computedStyle || style.getComputedStyle(node), w = box.w, h = box.h,
-		// Some elements have special padding, margin, and box-model settings.
-		// To use box functions you may need to set padding, margin explicitly.
-		// Controlling box-model is harder, in a pinch you might set dojo/dom-geometry.boxModel.
-			pb = usesBorderBox(node) ? nilExtents : geom.getPadBorderExtents(node, s),
-			mb = geom.getMarginExtents(node, s);
-		if(has("webkit")){
-			// on Safari (3.1.2), button nodes with no explicit size have a default margin
-			// setting an explicit size eliminates the margin.
-			// We have to swizzle the width to get correct margin reading.
-			if(isButtonTag(node)){
-				var ns = node.style;
-				if(w >= 0 && !ns.width){
-					ns.width = "4px";
-				}
-				if(h >= 0 && !ns.height){
-					ns.height = "4px";
-				}
-			}
-		}
-		if(w >= 0){
-			w = Math.max(w - pb.w - mb.w, 0);
-		}
-		if(h >= 0){
-			h = Math.max(h - pb.h - mb.h, 0);
-		}
-		setBox(node, box.l, box.t, w, h);
-	};
-
-	// =============================
-	// Positioning
-	// =============================
-
-	geom.isBodyLtr = function isBodyLtr(/*Document?*/ doc){
-		// summary:
-		//		Returns true if the current language is left-to-right, and false otherwise.
-		// doc: Document?
-		//		Optional document to query.   If unspecified, use win.doc.
-		// returns: Boolean
-
-		doc = doc || win.doc;
-		return (win.body(doc).dir || doc.documentElement.dir || "ltr").toLowerCase() == "ltr"; // Boolean
-	};
-
-	geom.docScroll = function docScroll(/*Document?*/ doc){
-		// summary:
-		//		Returns an object with {node, x, y} with corresponding offsets.
-		// doc: Document?
-		//		Optional document to query.   If unspecified, use win.doc.
-		// returns: Object
-
-		doc = doc || win.doc;
-		var node = win.doc.parentWindow || win.doc.defaultView;   // use UI window, not dojo.global window.   TODO: use dojo/window::get() except for circular dependency problem
-		return "pageXOffset" in node ? {x: node.pageXOffset, y: node.pageYOffset } :
-			(node = has("quirks") ? win.body(doc) : doc.documentElement) &&
-				{x: geom.fixIeBiDiScrollLeft(node.scrollLeft || 0, doc), y: node.scrollTop || 0 };
-	};
-
-	geom.getIeDocumentElementOffset = function(/*Document?*/ doc){
-		// summary:
-		//		Deprecated method previously used for IE6-IE7.  Now, just returns `{x:0, y:0}`.
-		return {
-			x: 0,
-			y: 0
-		};
-	};
-
-	geom.fixIeBiDiScrollLeft = function fixIeBiDiScrollLeft(/*Integer*/ scrollLeft, /*Document?*/ doc){
-		// summary:
-		//		In RTL direction, scrollLeft should be a negative value, but IE
-		//		returns a positive one. All codes using documentElement.scrollLeft
-		//		must call this function to fix this error, otherwise the position
-		//		will offset to right when there is a horizontal scrollbar.
-		// scrollLeft: Number
-		// doc: Document?
-		//		Optional document to query.   If unspecified, use win.doc.
-		// returns: Number
-
-		// In RTL direction, scrollLeft should be a negative value, but IE
-		// returns a positive one. All codes using documentElement.scrollLeft
-		// must call this function to fix this error, otherwise the position
-		// will offset to right when there is a horizontal scrollbar.
-
-		doc = doc || win.doc;
-		var ie = has("ie");
-		if(ie && !geom.isBodyLtr(doc)){
-			var qk = has("quirks"),
-				de = qk ? win.body(doc) : doc.documentElement,
-				pwin = win.global;	// TODO: use winUtils.get(doc) after resolving circular dependency b/w dom-geometry.js and dojo/window.js
-			if(ie == 6 && !qk && pwin.frameElement && de.scrollHeight > de.clientHeight){
-				scrollLeft += de.clientLeft; // workaround ie6+strict+rtl+iframe+vertical-scrollbar bug where clientWidth is too small by clientLeft pixels
-			}
-			return (ie < 8 || qk) ? (scrollLeft + de.clientWidth - de.scrollWidth) : -scrollLeft; // Integer
-		}
-		return scrollLeft; // Integer
-	};
-
-	geom.position = function(/*DomNode*/ node, /*Boolean?*/ includeScroll){
-		// summary:
-		//		Gets the position and size of the passed element relative to
-		//		the viewport (if includeScroll==false), or relative to the
-		//		document root (if includeScroll==true).
-		//
-		// description:
-		//		Returns an object of the form:
-		//		`{ x: 100, y: 300, w: 20, h: 15 }`.
-		//		If includeScroll==true, the x and y values will include any
-		//		document offsets that may affect the position relative to the
-		//		viewport.
-		//		Uses the border-box model (inclusive of border and padding but
-		//		not margin).  Does not act as a setter.
-		// node: DOMNode|String
-		// includeScroll: Boolean?
-		// returns: Object
-
-		node = dom.byId(node);
-		var	db = win.body(node.ownerDocument),
-			ret = node.getBoundingClientRect();
-		ret = {x: ret.left, y: ret.top, w: ret.right - ret.left, h: ret.bottom - ret.top};
-
-		if(has("ie") < 9){
-			// fixes the position in IE, quirks mode
-			ret.x -= (has("quirks") ? db.clientLeft + db.offsetLeft : 0);
-			ret.y -= (has("quirks") ? db.clientTop + db.offsetTop : 0);
-		}
-
-		// account for document scrolling
-		// if offsetParent is used, ret value already includes scroll position
-		// so we may have to actually remove that value if !includeScroll
-		if(includeScroll){
-			var scroll = geom.docScroll(node.ownerDocument);
-			ret.x += scroll.x;
-			ret.y += scroll.y;
-		}
-
-		return ret; // Object
-	};
-
-	// random "private" functions wildly used throughout the toolkit
-
-	geom.getMarginSize = function getMarginSize(/*DomNode*/ node, /*Object*/ computedStyle){
-		// summary:
-		//		returns an object that encodes the width and height of
-		//		the node's margin box
-		// node: DOMNode|String
-		// computedStyle: Object?
-		//		This parameter accepts computed styles object.
-		//		If this parameter is omitted, the functions will call
-		//		dojo/dom-style.getComputedStyle to get one. It is a better way, calling
-		//		dojo/dom-style.getComputedStyle once, and then pass the reference to this
-		//		computedStyle parameter. Wherever possible, reuse the returned
-		//		object of dojo/dom-style.getComputedStyle().
-
-		node = dom.byId(node);
-		var me = geom.getMarginExtents(node, computedStyle || style.getComputedStyle(node));
-		var size = node.getBoundingClientRect();
-		return {
-			w: (size.right - size.left) + me.w,
-			h: (size.bottom - size.top) + me.h
-		};
-	};
-
-	geom.normalizeEvent = function(event){
-		// summary:
-		//		Normalizes the geometry of a DOM event, normalizing the pageX, pageY,
-		//		offsetX, offsetY, layerX, and layerX properties
-		// event: Object
-		if(!("layerX" in event)){
-			event.layerX = event.offsetX;
-			event.layerY = event.offsetY;
-		}
-
-		if(!("pageX" in event)){
-			// FIXME: scroll position query is duped from dojo/_base/html to
-			// avoid dependency on that entire module. Now that HTML is in
-			// Base, we should convert back to something similar there.
-			var se = event.target;
-			var doc = (se && se.ownerDocument) || document;
-			// DO NOT replace the following to use dojo/_base/window.body(), in IE, document.documentElement should be used
-			// here rather than document.body
-			var docBody = has("quirks") ? doc.body : doc.documentElement;
-			event.pageX = event.clientX + geom.fixIeBiDiScrollLeft(docBody.scrollLeft || 0, doc);
-			event.pageY = event.clientY + (docBody.scrollTop || 0);
-		}
-	};
-
-	// TODO: evaluate separate getters/setters for position and sizes?
-
-	return geom;
 });
 
 },
@@ -15108,9 +15361,9 @@ define(["./_base/lang", "./_base/array", "./dom"], function(lang, array, dom){
 },
 'app/Card':function(){
 define([
-  "app/namedFunctions",
   "dojo/_base/declare",
   "dojo/_base/lang",
+  "dojo/_base/array",
   "dojo/dom-construct",
   "dojo/dom-class",
   "dojo/dom",
@@ -15127,9 +15380,9 @@ define([
   "dijit/layout/ContentPane",
   "dojo/text!./templates/Card_template.html"
 ], function(
-  namedFunctions,
   declare,
   lang,
+  Array,
   domConstruct,
   domClass,
   dom,
@@ -15150,757 +15403,67 @@ define([
   return declare([_WidgetBase, _TemplatedMixin], {
     templateString: template,
     id: null,
+    baseClass: "_Card",
     options: {
       imgSrc: null,
       path: null,
       header: null,
       content1: null,
-      content2: null
+      content2: null,
+      isActive: null,
+      isAdmin: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
 
       var imgSrc = options.imgSrc;
       var path = options.path;
-      var back_url = options.back_url;
-      var pathname = window.location.pathname.split("/")[1];
       var port = window.location.port;
+      var pathname = window.location.pathname.split("/")[1];
       var origin = window.location.origin;
       var url;
-      if (pathname !== "index.html") {
+      if (Array.indexOf([8000, 8080, 3000], port) === -1) {
         var new_imgSrc = "static/home/" + imgSrc;
         var new_path = pathname + "/" + path;
-        var new_back_url = pathname + "/" + back_url;
         options.imgSrc = new_imgSrc;
         options.path = origin + "/" + new_path + "/";
-        options.back_url = new_back_url;
-      } else {
-        options.imgSrc = imgSrc;
-        options.path = origin + "/" + path + "/";
-        options.back_url = back_url;
-      }
+      } 
+      
       this.id = this.options.id;
       declare.safeMixin(this.options, options);
     },
     postCreate: function() {
       var self = this;
-      lang.mixin(this, new namedFunctions());
-      self.on("mouseup", function(evt) {
-        evt.preventDefault();
-        if (mouse.isLeft(event)) {
-          var pathname = window.location.pathname.split("/")[1];
-          var port = window.location.port;
-          var origin = window.location.origin;
-          var url;
-          if (pathname === "index.html" || port === "8080") {
-            url = "http://127.0.0.1:8080/" + self.path;
-          } else {
-            url = self.path;
+      if (self.isActive) {
+        self.on("mouseup", function(evt) {
+          evt.preventDefault();
+          if (mouse.isLeft(event)) {
+            var pathname = window.location.pathname.split("/")[1];
+            var port = window.location.port;
+            var origin = window.location.origin;
+            var url;
+            if (pathname === "index.html" || port === "8080") {
+              url = "http://127.0.0.1:8080/" + self.path;
+            } else {
+              url = self.path;
+            }
+            window.open(url, '_self', "", false);
+            
+          } else if (mouse.isRight(event)) {
+           
+            console.log(event);
           }
-          window.open(url, '_self', "", false);
-          
-        } else if (mouse.isRight(event)) {
-         
-          console.log(event);
-        }
-      });
-      self.on(mouse.enter, function(evt) {
-        console.log(evt);
-        domClass.add(self.domNode, "hover");
-      });
-      self.on(mouse.leave, function(evt) {
-        console.log(evt);
-        domClass.remove(self.domNode, "hover");
-      });
+        });
+        self.on(mouse.enter, function(evt) {
+          console.log(evt);
+          domClass.add(self.domNode, "hover");
+        });
+        self.on(mouse.leave, function(evt) {
+          console.log(evt);
+          domClass.remove(self.domNode, "hover");
+        });
+      }
     }   
-  });
-});
-
-},
-'app/namedFunctions':function(){
-define([
-	'dijit/registry',
-	"dojo/_base/declare",
-	"dojo/aspect",
-	'dojo/parser',
-	"dojo/cookie",
-	'dojo/dom',
-	"dojo/dom-style",
-	'dojo/dom-construct',
-	'dojo/html',
-	'dojo/router',
-	"dojo/request",
-	'dojo/query',
-	'dojo/dom-class',
-	'dojo/dom-attr',
-	'dojo/_base/array',
-	'dojo/promise/all',
-	'dojo/Deferred',
-	'dojo/hash',
-	'dojo/topic',
-	'dojo/on',
-	'app/HomepageBanner',
-	'app/PageBanner',
-	'dijit/layout/ContentPane',
-	'dojo/text!./application_cards.json'
-	], function(
-		registry,
-		declare,
-		aspect,
-		parser,
-		cookie,
-		dom,
-		domStyle,
-		domConstruct,
-		html,
-		router,
-		request,
-		query,
-		domClass,
-		domAttr,
-		Array,
-		all,
-		Deferred,
-		hash,
-		topic,
-		on,
-		HomepageBanner,
-		PageBanner,
-		ContentPane,
-		app_cards
-		) {
-
-		return declare([], {
-			
-			unloadBanner: function() {
-				var deferred = new Deferred();
-				(function() {
-					if (registry.byId('header-pane') !== undefined) {
-						var obj = registry.byId('header-pane');
-						domConstruct.empty(obj.containerNode);
-						deferred.resolve(true);
-				} else {
-				  deferred.resolve(false);
-				}
-				})();
-				return deferred.promise;
-			},
-
-			unloadContent: function() {
-			var deferred = new Deferred();
-				(function() {
-					
-					if (registry.byId('main-content') !== undefined) {
-						var obj = registry.byId('main-content');
-						domConstruct.empty(obj.containerNode);
-						deferred.resolve(true);
-					} else {
-						deferred.resolve('no widgets were found in main-content domNode');
-					}
-				})();
-				return deferred.promise;
-		    },
-
-			unloadSection: function() {
-				var self = this;
-				var deferred = new Deferred();
-				all([self.unloadBanner(), self.unloadContent()]).then(function(arr) {
-					deferred.resolve("page cleaned, ready for new page load");
-				}, function(err) {
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-			},
-
-			loadCards: function(Card, objects) {
-				// each card object has [baseClass, imgSrc, href, header, content]
-				var mainDeferred = new Deferred();
-				var pane = registry.byId('main-content');
-				domClass.add(pane.domNode, "block-group block-group-4-up tablet-block-group-3-up phone-block-group-1-up");
-				var nodelist = Array.map(objects, function(e) {
-					var deferred = new Deferred();
-					if (registry.byId(e.id) !== undefined) {
-						registry.byId(e.id).destroyRecursive();
-					}
-					var div = domConstruct.create('div');
-					var new_card = new Card({
-						id: e.id,
-						path: e.path,
-						content1: e.content1,
-						content2: e.content2,
-						imgSrc: e.imgSrc,
-						header: e.header,
-						back_url: e.back_url
-					}, div);
-					return deferred.resolve(new_card);
-				});
-
-				all(nodelist).then(function(arr) {
-					Array.forEach(arr, function(e) {
-						pane.addChild(e);
-					});
-					mainDeferred.resolve(pane);
-				});
-				return mainDeferred.promise;
-			},
-
-			getGroups: function(url) {
-				var deferred = new Deferred();
-				
-				(function() {
-					request(url, {
-						method: "POST",
-						preventCache: true,
-						handleAs: 'json',
-						headers: {
-				            "X-Requested-With": null,
-				            "X-CSRFToken": cookie('csrftoken')
-				        }
-					}).then(function(data) {
-						console.log(data);
-						deferred.resolve(data);
-					}, function(err) {
-						console.log(err);
-						deferred.cancel(err);
-					});
-				})();
-
-				return deferred.promise;
-			},
-
-			loadIframe: function(back_url) {
-				var self = this;
-				self.unloadIframe().then(function(e) {
-				console.log(e);
-				var pane = new ContentPane({
-				  id: "iframe-pane",
-				  style: {
-				    position: "relative",
-				    width: "100%",
-				    height: "90vh",
-				    overflow: "hidden"
-				  }
-				});
-				pane.startup();
-				pane.set('content', domConstruct.create("iframe",  {
-				    src: self.href,
-				    frameborder: 0,
-				    height: '100%',
-				    width: '100%',
-				    allowfullscreen: true
-				}));
-				pane.placeAt(dom.byId('main-content'));
-				aspect.after(pane, 'resize', function(evt) {
-					domStyle.set(pane.domNode, "height", "90vh");
-					});
-				});
-				var target = query(".top-nav-list")[0];
-
-				var node = domConstruct.create("button", {
-					class: "btn-green",
-					innerHTML: "back to apps"
-				}, target);
-
-				on(node, 'click', function(e) {
-					self.unloadIframe().then(function(e) {
-						router.go(self.back_url);
-						domConstruct.destroy(node);
-					});
-				});
-			},
-
-			unloadIframe: function() {
-				var self = this;
-				var deferred = new Deferred();
-				var iframe_pane = registry.byId("iframe-pane");
-				if (iframe_pane !== undefined) {
-					iframe_pane.destroy();
-					registry.remove(iframe_pane);
-					deferred.resolve("iframe-pane removed from registry");
-				} else {
-					deferred.resolve("iframe-pane not found");
-				}
-				return deferred.promise;
-			},
-
-			buildTitleBar: function(evt, Card) {
-				var self = this;
-				var deferred = new Deferred();
-				var footer = query("#footer-container");
-				// slide the footer back into view
-				domClass.remove(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					var pane;
-					if (registry.byId('header-pane') === undefined) {
-						pane = new ContentPane({
-							style: "display: flex",
-							id: 'header-pane'
-						}, 'headerPane');
-						pane.startup();
-					} else {
-						pane = registry.byId('header-pane');
-					}
-					
-					if (registry.byId('homepage-banner') === undefined) {
-						self.header = new HomepageBanner({
-							id: 'homepage-banner',
-							title: 'Reno-Tahoe Airport Authority',
-							subtitle: 'Web Application Portal'
-						});
-					} else {
-						self.header = registry.byId('homepage-banner');
-					}
-
-					pane.set('content', self.header);
-
-					// these are loaded from dojo/text!./application_cards.json
-					var cards = JSON.parse(app_cards);
-					// remove cards that are not active
-					var active_cards = Array.filter(cards, function(e) {
-						return e.active && !e.isAdmin;
-					}); 
-
-					self.loadCards(Card, active_cards).then(function(e) {
-						console.log(e);
-						deferred.resolve(pane);
-					}, function(err) {
-						console.log(err);
-						deferred.cancel(err);
-					});
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(pane);
-				});
-				return deferred.promise;
-			},
-
-			buildGISPortal: function(evt, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				// slide the footer out of view
-				var footer = query("#footer-container");
-				domClass.add(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					try {
-						registry.byId('gisportal-banner').destroyRecursive();
-					} catch(err) {
-						console.log(err);
-					}
-					
-					// if the user is admin, allow for browse data and backend api
-					
-					var routes = [{
-								title: 'Data Viewer',
-								href: 'gisportal/viewer'
-							}, {
-								title: 'Publishing Tools',
-								href: 'gisportal/publishing-tools'
-							}];
-				
-
-					self.header = new PageBanner({
-							id: 'gisportal-banner',
-							baseClass: 'text-white font-size-4 page-banner',
-							title: 'Geographic Information Systems',
-							routes: routes
-						});
-
-					
-					var pane = registry.byId('header-pane');
-					pane.set('content', self.header);
-					pane.resize();
-					deferred.resolve(pane.content);
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-
-			},
-
-			buildDataBrowser: function(evt, Card, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				if (registry.byId('gisportal-banner') !== undefined) {
-					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Admin: Online Data Viewer';
-					registry.byId('gisportal-banner').set('title', 'Admin: Online Data Viewer');
-				}
-
-				// these are loaded from dojo/text!./application_cards.json
-				var cards = JSON.parse(app_cards);
-				// remove cards that are not active
-				var active_cards = Array.filter(cards, function(e) {
-					return e.active && e.isAdmin;
-				}); 
-
-				self.loadCards(Card, active_cards).then(function(e) {
-					console.log(e);
-					deferred.resolve(e);
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-			},
-
-			buildBackEndAPIs: function(evt, Card, groups) {
-				var self = this;
-
-				var deferred = new Deferred();
-				if (registry.byId('gisportal-banner') !== undefined) {
-					var nodeList = query("h1", 'gisportal-banner');
-					nodeList[0].innerText = 'Admin: Publishing Tools';
-					registry.byId('gisportal-banner').set('title', 'Admin: Publishing Tools');
-				}
-				self.loadCards(Card, [
-				// {
-				// 	id: "eDoc Rest API",
-				// 	imgSrc: 'static/home/app/img/thumbnails/restapi_app.png',
-				// 	path: 'https://gisapps.aroraengineers.com:8004/edoc/swag',
-				// 	header: 'eDoc Rest API',
-				// 	content1: 'Interact with the eDoc Rest API through this graphical api page.',
-				// 	content2: 'available for members of the GIS_admin group'
-				// }
-				]).then(function(e) {
-					console.log(e);
-					deferred.resolve(e);
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-			},
-
-			buildApplications: function(evt, Card, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				var footer = query("#footer-container");
-				domClass.add(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					try {
-						registry.byId('applications-banner').destroyRecursive();
-					} catch(err) {
-						// console.log(err);
-					}
-
-					// these are loaded from dojo/text!./application_cards.json
-					var cards = JSON.parse(app_cards);
-					// remove cards that are not active
-					var active_cards = Array.filter(cards, function(e) {
-						return e.active && !e.isAdmin;
-					});
-					self.header = new PageBanner({
-						id: 'applications-banner',
-						baseClass: 'text-white font-size-4 page-banner',
-						title: "Web Mapping Applications",
-						routes: []
-					});
-
-					var pane = registry.byId('header-pane');
-					pane.set('content', self.header);
-					// set overflow scroll on main-content
-					self.loadCards(Card, active_cards).then(function(e) {
-						console.log(e);
-						deferred.resolve(e);
-					}, function(err) {
-						console.log(err);
-						deferred.cancel(err);
-					});
-
-				}, function(err) {
-					console.log(err);
-					deferred.cancel(err);
-				});
-				return deferred.promise;
-			},
-
-			
-
-			buildWebResources: function(evt, Card, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				var footer = query("#footer-container");
-				domClass.add(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					try {
-						registry.byId('web-resources-banner').destroyRecursive();
-					} catch(err) {
-						console.log(err);
-					}
-					self.header = new PageBanner({
-						id: 'web-resources-banner',
-						baseClass: 'text-white font-size-4 page-banner',
-						title: 'Online Resource Library',
-						routes: [{
-							title: 'State Level GIS Data',
-							href: 'web-resources/state-level'
-						}, {
-							title: 'County Level GIS Data',
-							href: 'web-resources/county-level'
-						}, {
-							title: 'ESRI Online Resources',
-							href: 'web-resources/esri-resources'
-						}]
-					});
-
-					var pane = registry.byId('header-pane');
-					pane.set('content', self.header);
-					deferred.resolve(pane);
-				});
-				return deferred.promise;
-			},
-
-			buildHelp: function(evt, Card, groups) {
-				var self = this;
-				var deferred = new Deferred();
-				var footer = query("#footer-container");
-				domClass.add(footer[0], 'animate-out-up');
-				self.unloadSection().then(function(e) {
-					try {
-						registry.byId('help-banner').destroyRecursive();
-					} catch(err) {
-						console.log(err);
-					}
-					self.header = new PageBanner({
-						id: 'help-banner',
-						baseClass: 'text-white font-size-4 page-banner',
-						title: 'Help Documentation',
-						routes: [{
-							title: 'Technical Details',
-							href: 'help/tech-details'
-						}, {
-							title: 'About this Site',
-							href: 'help/about'
-						}, {
-							title: 'Request Help Ticket',
-							href: 'help/request-ticket'
-						}, {
-							title: 'Tutorials',
-							href: 'help/tutorials'
-						}]
-					});
-
-					var pane = registry.byId('header-pane');
-					pane.set('content', self.header);
-					deferred.resolve(pane);
-				});
-				return deferred.promise;
-			}
-		});
-	});
-},
-'dojo/cookie':function(){
-define(["./_base/kernel", "./regexp"], function(dojo, regexp){
-
-// module:
-//		dojo/cookie
-
-/*=====
-var __cookieProps = {
-	// expires: Date|String|Number?
-	//		If a number, the number of days from today at which the cookie
-	//		will expire. If a date, the date past which the cookie will expire.
-	//		If expires is in the past, the cookie will be deleted.
-	//		If expires is omitted or is 0, the cookie will expire when the browser closes.
-	// path: String?
-	//		The path to use for the cookie.
-	// domain: String?
-	//		The domain to use for the cookie.
-	// secure: Boolean?
-	//		Whether to only send the cookie on secure connections
-};
-=====*/
-
-
-dojo.cookie = function(/*String*/name, /*String?*/ value, /*__cookieProps?*/ props){
-	// summary:
-	//		Get or set a cookie.
-	// description:
-	//		If one argument is passed, returns the value of the cookie
-	//		For two or more arguments, acts as a setter.
-	// name:
-	//		Name of the cookie
-	// value:
-	//		Value for the cookie
-	// props:
-	//		Properties for the cookie
-	// example:
-	//		set a cookie with the JSON-serialized contents of an object which
-	//		will expire 5 days from now:
-	//	|	require(["dojo/cookie", "dojo/json"], function(cookie, json){
-	//	|		cookie("configObj", json.stringify(config, {expires: 5 }));
-	//	|	});
-	//
-	// example:
-	//		de-serialize a cookie back into a JavaScript object:
-	//	|	require(["dojo/cookie", "dojo/json"], function(cookie, json){
-	//	|		config = json.parse(cookie("configObj"));
-	//	|	});
-	//
-	// example:
-	//		delete a cookie:
-	//	|	require(["dojo/cookie"], function(cookie){
-	//	|		cookie("configObj", null, {expires: -1});
-	//	|	});
-	var c = document.cookie, ret;
-	if(arguments.length == 1){
-		var matches = c.match(new RegExp("(?:^|; )" + regexp.escapeString(name) + "=([^;]*)"));
-		ret = matches ? decodeURIComponent(matches[1]) : undefined; 
-	}else{
-		props = props || {};
-// FIXME: expires=0 seems to disappear right away, not on close? (FF3)  Change docs?
-		var exp = props.expires;
-		if(typeof exp == "number"){
-			var d = new Date();
-			d.setTime(d.getTime() + exp*24*60*60*1000);
-			exp = props.expires = d;
-		}
-		if(exp && exp.toUTCString){ props.expires = exp.toUTCString(); }
-
-		value = encodeURIComponent(value);
-		var updatedCookie = name + "=" + value, propName;
-		for(propName in props){
-			updatedCookie += "; " + propName;
-			var propValue = props[propName];
-			if(propValue !== true){ updatedCookie += "=" + propValue; }
-		}
-		document.cookie = updatedCookie;
-	}
-	return ret; // String|undefined
-};
-
-dojo.cookie.isSupported = function(){
-	// summary:
-	//		Use to determine if the current browser supports cookies or not.
-	//
-	//		Returns true if user allows cookies.
-	//		Returns false if user doesn't allow cookies.
-
-	if(!("cookieEnabled" in navigator)){
-		this("__djCookieTest__", "CookiesAllowed");
-		navigator.cookieEnabled = this("__djCookieTest__") == "CookiesAllowed";
-		if(navigator.cookieEnabled){
-			this("__djCookieTest__", "", {expires: -1});
-		}
-	}
-	return navigator.cookieEnabled;
-};
-
-return dojo.cookie;
-});
-
-},
-'dojo/regexp':function(){
-define(["./_base/kernel", "./_base/lang"], function(dojo, lang){
-
-// module:
-//		dojo/regexp
-
-var regexp = {
-	// summary:
-	//		Regular expressions and Builder resources
-};
-lang.setObject("dojo.regexp", regexp);
-
-regexp.escapeString = function(/*String*/str, /*String?*/except){
-	// summary:
-	//		Adds escape sequences for special characters in regular expressions
-	// except:
-	//		a String with special characters to be left unescaped
-
-	return str.replace(/([\.$?*|{}\(\)\[\]\\\/\+\-^])/g, function(ch){
-		if(except && except.indexOf(ch) != -1){
-			return ch;
-		}
-		return "\\" + ch;
-	}); // String
-};
-
-regexp.buildGroupRE = function(/*Object|Array*/arr, /*Function*/re, /*Boolean?*/nonCapture){
-	// summary:
-	//		Builds a regular expression that groups subexpressions
-	// description:
-	//		A utility function used by some of the RE generators. The
-	//		subexpressions are constructed by the function, re, in the second
-	//		parameter.  re builds one subexpression for each elem in the array
-	//		a, in the first parameter. Returns a string for a regular
-	//		expression that groups all the subexpressions.
-	// arr:
-	//		A single value or an array of values.
-	// re:
-	//		A function. Takes one parameter and converts it to a regular
-	//		expression.
-	// nonCapture:
-	//		If true, uses non-capturing match, otherwise matches are retained
-	//		by regular expression. Defaults to false
-
-	// case 1: a is a single value.
-	if(!(arr instanceof Array)){
-		return re(arr); // String
-	}
-
-	// case 2: a is an array
-	var b = [];
-	for(var i = 0; i < arr.length; i++){
-		// convert each elem to a RE
-		b.push(re(arr[i]));
-	}
-
-	 // join the REs as alternatives in a RE group.
-	return regexp.group(b.join("|"), nonCapture); // String
-};
-
-regexp.group = function(/*String*/expression, /*Boolean?*/nonCapture){
-	// summary:
-	//		adds group match to expression
-	// nonCapture:
-	//		If true, uses non-capturing match, otherwise matches are retained
-	//		by regular expression.
-	return "(" + (nonCapture ? "?:":"") + expression + ")"; // String
-};
-
-return regexp;
-});
-
-},
-'app/HomepageBanner':function(){
-define([
-  "dojo/_base/declare",
-  "dojo/parser",
-  "dojo/_base/lang",
-  "dojo/_base/array",
-  "dojo/dom-construct",
-  "dijit/_WidgetBase",
-  "dijit/_OnDijitClickMixin",
-  "dijit/_TemplatedMixin",
-  "dojo/text!./templates/HomepageBanner_template.html"
-], function(
-  declare,
-  parser,
-  lang,
-  Array,
-  domConstruct,
-  _WidgetBase,
-  _OnDijitClickMixin,
-  _TemplatedMixin,
-  template
-) {
-  return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
-    templateString: template,
-    options: {
-      title: null,
-      subtitle: null
-    },
-
-    constructor: function(options) {
-      declare.safeMixin(this.options, options);
-      this.set("title", this.options.title);
-      this.set("subtitle", this.options.subtitle);
-    },
-
-    postCreate: function() {
-    }
   });
 });
 
@@ -18971,74 +18534,6 @@ define([
 });
 
 },
-'app/PageBanner':function(){
-define([
-  "dojo/_base/declare",
-  "dojo/_base/lang",
-  "dojo/dom-construct",
-  "dojo/dom-style",
-  "dojo/query",
-  "dojo/_base/array",
-  "dijit/_WidgetBase",
-  "dijit/_OnDijitClickMixin",
-  "dijit/_TemplatedMixin",
-  "dojo/hash",
-  "dojo/router",
-  "dojo/on",
-  "dojo/topic",
-  "dojo/text!./templates/PageBanner_template.html"
-], function(
-  declare,
-  lang,
-  domConstruct,
-  domStyle,
-  query,
-  Array,
-  _WidgetBase,
-  _OnDijitClickMixin,
-  _TemplatedMixin,
-  hash,
-  router,
-  on,
-  topic,
-  template
-) {
-  return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
-    templateString: template,
-    options: {
-      title: null,
-      routes: []
-    },
-    constructor: function(options) {
-      this.inherited(arguments);
-      declare.safeMixin(this.options, options);
-      this.set("title", this.options.title);
-      this.set("subtitle", this.options.subtitle);
-      this.set("routes", this.options.routes);
-    },
-    postCreate: function() {
-      var routes = this.routes;
-      var targetNode = this.routeNode;
-     
-      if (routes.length >= 1) {
-        Array.forEach(routes, function(e) {
-          var link = domConstruct.toDom("<a class='sub-nav-link'>"+e.title+"</a>");
-          on(link, 'click', function(evt) {
-            evt.preventDefault();
-            var current = hash();
-            if (e.href !== current) {
-              hash(e.href, true);
-              
-            }
-          });
-          domConstruct.place(link, targetNode, 'last');
-        });
-      }
-    }
-  });
-});
-
-},
 'dijit/layout/ContentPane':function(){
 define([
 	"dojo/_base/kernel", // kernel.deprecated
@@ -20502,250 +19997,6 @@ define([
 	});
 
 	return singleton;
-});
-
-},
-'dojo/window':function(){
-define(["./_base/lang", "./sniff", "./_base/window", "./dom", "./dom-geometry", "./dom-style", "./dom-construct"],
-	function(lang, has, baseWindow, dom, geom, style, domConstruct){
-
-	// feature detection
-	/* not needed but included here for future reference
-	has.add("rtl-innerVerticalScrollBar-on-left", function(win, doc){
-		var	body = baseWindow.body(doc),
-			scrollable = domConstruct.create('div', {
-				style: {overflow:'scroll', overflowX:'hidden', direction:'rtl', visibility:'hidden', position:'absolute', left:'0', width:'64px', height:'64px'}
-			}, body, "last"),
-			center = domConstruct.create('center', {
-				style: {overflow:'hidden', direction:'ltr'}
-			}, scrollable, "last"),
-			inner = domConstruct.create('div', {
-				style: {overflow:'visible', display:'inline' }
-			}, center, "last");
-		inner.innerHTML="&nbsp;";
-		var midPoint = Math.max(inner.offsetLeft, geom.position(inner).x);
-		var ret = midPoint >= 32;
-		center.removeChild(inner);
-		scrollable.removeChild(center);
-		body.removeChild(scrollable);
-		return ret;
-	});
-	*/
-	has.add("rtl-adjust-position-for-verticalScrollBar", function(win, doc){
-		var	body = baseWindow.body(doc),
-			scrollable = domConstruct.create('div', {
-				style: {overflow:'scroll', overflowX:'visible', direction:'rtl', visibility:'hidden', position:'absolute', left:'0', top:'0', width:'64px', height:'64px'}
-			}, body, "last"),
-			div = domConstruct.create('div', {
-				style: {overflow:'hidden', direction:'ltr'}
-			}, scrollable, "last"),
-			ret = geom.position(div).x != 0;
-		scrollable.removeChild(div);
-		body.removeChild(scrollable);
-		return ret;
-	});
-
-	has.add("position-fixed-support", function(win, doc){
-		// IE6, IE7+quirks, and some older mobile browsers don't support position:fixed
-		var	body = baseWindow.body(doc),
-			outer = domConstruct.create('span', {
-				style: {visibility:'hidden', position:'fixed', left:'1px', top:'1px'}
-			}, body, "last"),
-			inner = domConstruct.create('span', {
-				style: {position:'fixed', left:'0', top:'0'}
-			}, outer, "last"),
-			ret = geom.position(inner).x != geom.position(outer).x;
-		outer.removeChild(inner);
-		body.removeChild(outer);
-		return ret;
-	});
-
-	// module:
-	//		dojo/window
-
-	var window = {
-		// summary:
-		//		TODOC
-
-		getBox: function(/*Document?*/ doc){
-			// summary:
-			//		Returns the dimensions and scroll position of the viewable area of a browser window
-
-			doc = doc || baseWindow.doc;
-
-			var
-				scrollRoot = (doc.compatMode == 'BackCompat') ? baseWindow.body(doc) : doc.documentElement,
-				// get scroll position
-				scroll = geom.docScroll(doc), // scrollRoot.scrollTop/Left should work
-				w, h;
-
-			if(has("touch")){ // if(scrollbars not supported)
-				var uiWindow = window.get(doc);   // use UI window, not dojo.global window
-				// on mobile, scrollRoot.clientHeight <= uiWindow.innerHeight <= scrollRoot.offsetHeight, return uiWindow.innerHeight
-				w = uiWindow.innerWidth || scrollRoot.clientWidth; // || scrollRoot.clientXXX probably never evaluated
-				h = uiWindow.innerHeight || scrollRoot.clientHeight;
-			}else{
-				// on desktops, scrollRoot.clientHeight <= scrollRoot.offsetHeight <= uiWindow.innerHeight, return scrollRoot.clientHeight
-				// uiWindow.innerWidth/Height includes the scrollbar and cannot be used
-				w = scrollRoot.clientWidth;
-				h = scrollRoot.clientHeight;
-			}
-			return {
-				l: scroll.x,
-				t: scroll.y,
-				w: w,
-				h: h
-			};
-		},
-
-		get: function(/*Document*/ doc){
-			// summary:
-			//		Get window object associated with document doc.
-			// doc:
-			//		The document to get the associated window for.
-
-			// In some IE versions (at least 6.0), document.parentWindow does not return a
-			// reference to the real window object (maybe a copy), so we must fix it as well
-			// We use IE specific execScript to attach the real window reference to
-			// document._parentWindow for later use
-			if(has("ie") && window !== document.parentWindow){
-				/*
-				In IE 6, only the variable "window" can be used to connect events (others
-				may be only copies).
-				*/
-				doc.parentWindow.execScript("document._parentWindow = window;", "Javascript");
-				//to prevent memory leak, unset it after use
-				//another possibility is to add an onUnload handler which seems overkill to me (liucougar)
-				var win = doc._parentWindow;
-				doc._parentWindow = null;
-				return win;	//	Window
-			}
-
-			return doc.parentWindow || doc.defaultView;	//	Window
-		},
-
-		scrollIntoView: function(/*DomNode*/ node, /*Object?*/ pos){
-			// summary:
-			//		Scroll the passed node into view using minimal movement, if it is not already.
-
-			// Don't rely on node.scrollIntoView working just because the function is there since
-			// it forces the node to the page's bottom or top (and left or right in IE) without consideration for the minimal movement.
-			// WebKit's node.scrollIntoViewIfNeeded doesn't work either for inner scrollbars in right-to-left mode
-			// and when there's a fixed position scrollable element
-
-			try{ // catch unexpected/unrecreatable errors (#7808) since we can recover using a semi-acceptable native method
-				node = dom.byId(node);
-				var	doc = node.ownerDocument || baseWindow.doc,	// TODO: why baseWindow.doc?  Isn't node.ownerDocument always defined?
-					body = baseWindow.body(doc),
-					html = doc.documentElement || body.parentNode,
-					isIE = has("ie") || has("trident"),
-					isWK = has("webkit");
-				// if an untested browser, then use the native method
-				if(node == body || node == html){ return; }
-				if(!(has("mozilla") || isIE || isWK || has("opera") || has("trident") || has("edge"))
-						&& ("scrollIntoView" in node)){
-					node.scrollIntoView(false); // short-circuit to native if possible
-					return;
-				}
-				var	backCompat = doc.compatMode == 'BackCompat',
-					rootWidth = Math.min(body.clientWidth || html.clientWidth, html.clientWidth || body.clientWidth),
-					rootHeight = Math.min(body.clientHeight || html.clientHeight, html.clientHeight || body.clientHeight),
-					scrollRoot = (isWK || backCompat) ? body : html,
-					nodePos = pos || geom.position(node),
-					el = node.parentNode,
-					isFixed = function(el){
-						return (isIE <= 6 || (isIE == 7 && backCompat))
-							? false
-							: (has("position-fixed-support") && (style.get(el, 'position').toLowerCase() == "fixed"));
-					},
-					self = this,
-					scrollElementBy = function(el, x, y){
-						if(el.tagName == "BODY" || el.tagName == "HTML"){
-							self.get(el.ownerDocument).scrollBy(x, y);
-						}else{
-							x && (el.scrollLeft += x);
-							y && (el.scrollTop += y);
-						}
-					};
-				if(isFixed(node)){ return; } // nothing to do
-				while(el){
-					if(el == body){ el = scrollRoot; }
-					var	elPos = geom.position(el),
-						fixedPos = isFixed(el),
-						rtl = style.getComputedStyle(el).direction.toLowerCase() == "rtl";
-
-					if(el == scrollRoot){
-						elPos.w = rootWidth; elPos.h = rootHeight;
-						if(scrollRoot == html && (isIE || has("trident")) && rtl){
-							elPos.x += scrollRoot.offsetWidth-elPos.w;// IE workaround where scrollbar causes negative x
-						}
-						elPos.x = 0;
-						elPos.y = 0;
-					}else{
-						var pb = geom.getPadBorderExtents(el);
-						elPos.w -= pb.w; elPos.h -= pb.h; elPos.x += pb.l; elPos.y += pb.t;
-						var clientSize = el.clientWidth,
-							scrollBarSize = elPos.w - clientSize;
-						if(clientSize > 0 && scrollBarSize > 0){
-							if(rtl && has("rtl-adjust-position-for-verticalScrollBar")){
-								elPos.x += scrollBarSize;
-							}
-							elPos.w = clientSize;
-						}
-						clientSize = el.clientHeight;
-						scrollBarSize = elPos.h - clientSize;
-						if(clientSize > 0 && scrollBarSize > 0){
-							elPos.h = clientSize;
-						}
-					}
-					if(fixedPos){ // bounded by viewport, not parents
-						if(elPos.y < 0){
-							elPos.h += elPos.y; elPos.y = 0;
-						}
-						if(elPos.x < 0){
-							elPos.w += elPos.x; elPos.x = 0;
-						}
-						if(elPos.y + elPos.h > rootHeight){
-							elPos.h = rootHeight - elPos.y;
-						}
-						if(elPos.x + elPos.w > rootWidth){
-							elPos.w = rootWidth - elPos.x;
-						}
-					}
-					// calculate overflow in all 4 directions
-					var	l = nodePos.x - elPos.x, // beyond left: < 0
-//						t = nodePos.y - Math.max(elPos.y, 0), // beyond top: < 0
-						t = nodePos.y - elPos.y, // beyond top: < 0
-						r = l + nodePos.w - elPos.w, // beyond right: > 0
-						bot = t + nodePos.h - elPos.h; // beyond bottom: > 0
-					var s, old;
-					if(r * l > 0 && (!!el.scrollLeft || el == scrollRoot || el.scrollWidth > el.offsetHeight)){
-						s = Math[l < 0? "max" : "min"](l, r);
-						if(rtl && ((isIE == 8 && !backCompat) || has("trident") >= 5)){ s = -s; }
-						old = el.scrollLeft;
-						scrollElementBy(el, s, 0);
-						s = el.scrollLeft - old;
-						nodePos.x -= s;
-					}
-					if(bot * t > 0 && (!!el.scrollTop || el == scrollRoot || el.scrollHeight > el.offsetHeight)){
-						s = Math.ceil(Math[t < 0? "max" : "min"](t, bot));
-						old = el.scrollTop;
-						scrollElementBy(el, 0, s);
-						s = el.scrollTop - old;
-						nodePos.y -= s;
-					}
-					el = (el != scrollRoot) && !fixedPos && el.parentNode;
-				}
-			}catch(error){
-				console.error('scrollIntoView: ' + error);
-				node.scrollIntoView(false);
-			}
-		}
-	};
-
-	 1  && lang.setObject("dojo.window", window);
-
-	return window;
 });
 
 },
@@ -24821,1511 +24072,2468 @@ define({ root:
 });
 
 },
-'dojox/gfx/path':function(){
-define(["./_base", "dojo/_base/lang","dojo/_base/declare", "./matrix", "./shape"],
-	function(g, lang, declare, matrix, shapeLib){
+'app/HomepageBanner':function(){
+define([
+  "dojo/_base/declare",
+  "dojo/parser",
+  "dojo/_base/lang",
+  "dojo/_base/array",
+  "dojo/dom-construct",
+  "dijit/_WidgetBase",
+  "dijit/_OnDijitClickMixin",
+  "dijit/_TemplatedMixin",
+  "dojo/text!./templates/HomepageBanner_template.html"
+], function(
+  declare,
+  parser,
+  lang,
+  Array,
+  domConstruct,
+  _WidgetBase,
+  _OnDijitClickMixin,
+  _TemplatedMixin,
+  template
+) {
+  return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
+    templateString: template,
+    baseClass: "_HomepageBanner",
+    options: {
+      title: null,
+      subtitle: null
+    },
 
-	// module:
-	//		dojox/gfx/path
+    constructor: function(options) {
+      declare.safeMixin(this.options, options);
+      this.set("title", this.options.title);
+      this.set("subtitle", this.options.subtitle);
+    },
 
-	var Path = declare("dojox.gfx.path.Path", shapeLib.Shape, {
-		// summary:
-		//		a generalized path shape
-
-		constructor: function(rawNode){
-			// summary:
-			//		a path constructor
-			// rawNode: Node
-			//		a DOM node to be used by this path object
-			this.shape = lang.clone(g.defaultPath);
-			this.segments = [];
-			this.tbbox = null;
-			this.absolute = true;
-			this.last = {};
-			this.rawNode = rawNode;
-			this.segmented = false;
-		},
-
-		// mode manipulations
-		setAbsoluteMode: function(mode){
-			// summary:
-			//		sets an absolute or relative mode for path points
-			// mode: Boolean
-			//		true/false or "absolute"/"relative" to specify the mode
-			this._confirmSegmented();
-			this.absolute = typeof mode == "string" ? (mode == "absolute") : mode;
-			return this; // self
-		},
-		getAbsoluteMode: function(){
-			// summary:
-			//		returns a current value of the absolute mode
-			this._confirmSegmented();
-			return this.absolute; // Boolean
-		},
-
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box {x, y, width, height} or null
-			this._confirmSegmented();
-			return (this.bbox && ("l" in this.bbox)) ? {x: this.bbox.l, y: this.bbox.t, width: this.bbox.r - this.bbox.l, height: this.bbox.b - this.bbox.t} : null; // dojox/gfx.Rectangle
-		},
-
-		_getRealBBox: function(){
-			// summary:
-			//		returns an array of four points or null
-			//		four points represent four corners of the untransformed bounding box
-			this._confirmSegmented();
-			if(this.tbbox){
-				return this.tbbox;	// Array
-			}
-			var bbox = this.bbox, matrix = this._getRealMatrix();
-			this.bbox = null;
-			for(var i = 0, len = this.segments.length; i < len; ++i){
-				this._updateWithSegment(this.segments[i], matrix);
-			}
-			var t = this.bbox;
-			this.bbox = bbox;
-			this.tbbox = t ? [
-				{x: t.l, y: t.t},
-				{x: t.r, y: t.t},
-				{x: t.r, y: t.b},
-				{x: t.l, y: t.b}
-			] : null;
-			return this.tbbox;	// Array
-		},
-
-		getLastPosition: function(){
-			// summary:
-			//		returns the last point in the path, or null
-			this._confirmSegmented();
-			return "x" in this.last ? this.last : null; // Object
-		},
-
-		_applyTransform: function(){
-			this.tbbox = null;
-			return this.inherited(arguments);
-		},
-
-		// segment interpretation
-		_updateBBox: function(x, y, m){
-			// summary:
-			//		updates the bounding box of path with new point
-			// x: Number
-			//		an x coordinate
-			// y: Number
-			//		a y coordinate
-
-			if(m){
-				var t = matrix.multiplyPoint(m, x, y);
-				x = t.x;
-				y = t.y;
-			}
-
-			// we use {l, b, r, t} representation of a bbox
-			if(this.bbox && ("l" in this.bbox)){
-				if(this.bbox.l > x) this.bbox.l = x;
-				if(this.bbox.r < x) this.bbox.r = x;
-				if(this.bbox.t > y) this.bbox.t = y;
-				if(this.bbox.b < y) this.bbox.b = y;
-			}else{
-				this.bbox = {l: x, b: y, r: x, t: y};
-			}
-		},
-		_updateWithSegment: function(segment, matrix){
-			// summary:
-			//		updates the bounding box of path with new segment
-			// segment: Object
-			//		a segment
-			var n = segment.args, l = n.length, i;
-			// update internal variables: bbox, absolute, last
-			switch(segment.action){
-				case "M":
-				case "L":
-				case "C":
-				case "S":
-				case "Q":
-				case "T":
-					for(i = 0; i < l; i += 2){
-						this._updateBBox(n[i], n[i + 1], matrix);
-					}
-					this.last.x = n[l - 2];
-					this.last.y = n[l - 1];
-					this.absolute = true;
-					break;
-				case "H":
-					for(i = 0; i < l; ++i){
-						this._updateBBox(n[i], this.last.y, matrix);
-					}
-					this.last.x = n[l - 1];
-					this.absolute = true;
-					break;
-				case "V":
-					for(i = 0; i < l; ++i){
-						this._updateBBox(this.last.x, n[i], matrix);
-					}
-					this.last.y = n[l - 1];
-					this.absolute = true;
-					break;
-				case "m":
-					var start = 0;
-					if(!("x" in this.last)){
-						this._updateBBox(this.last.x = n[0], this.last.y = n[1], matrix);
-						start = 2;
-					}
-					for(i = start; i < l; i += 2){
-						this._updateBBox(this.last.x += n[i], this.last.y += n[i + 1], matrix);
-					}
-					this.absolute = false;
-					break;
-				case "l":
-				case "t":
-					for(i = 0; i < l; i += 2){
-						this._updateBBox(this.last.x += n[i], this.last.y += n[i + 1], matrix);
-					}
-					this.absolute = false;
-					break;
-				case "h":
-					for(i = 0; i < l; ++i){
-						this._updateBBox(this.last.x += n[i], this.last.y, matrix);
-					}
-					this.absolute = false;
-					break;
-				case "v":
-					for(i = 0; i < l; ++i){
-						this._updateBBox(this.last.x, this.last.y += n[i], matrix);
-					}
-					this.absolute = false;
-					break;
-				case "c":
-					for(i = 0; i < l; i += 6){
-						this._updateBBox(this.last.x + n[i], this.last.y + n[i + 1], matrix);
-						this._updateBBox(this.last.x + n[i + 2], this.last.y + n[i + 3], matrix);
-						this._updateBBox(this.last.x += n[i + 4], this.last.y += n[i + 5], matrix);
-					}
-					this.absolute = false;
-					break;
-				case "s":
-				case "q":
-					for(i = 0; i < l; i += 4){
-						this._updateBBox(this.last.x + n[i], this.last.y + n[i + 1], matrix);
-						this._updateBBox(this.last.x += n[i + 2], this.last.y += n[i + 3], matrix);
-					}
-					this.absolute = false;
-					break;
-				case "A":
-					for(i = 0; i < l; i += 7){
-						this._updateBBox(n[i + 5], n[i + 6], matrix);
-					}
-					this.last.x = n[l - 2];
-					this.last.y = n[l - 1];
-					this.absolute = true;
-					break;
-				case "a":
-					for(i = 0; i < l; i += 7){
-						this._updateBBox(this.last.x += n[i + 5], this.last.y += n[i + 6], matrix);
-					}
-					this.absolute = false;
-					break;
-			}
-			// add an SVG path segment
-			var path = [segment.action];
-			for(i = 0; i < l; ++i){
-				path.push(g.formatNumber(n[i], true));
-			}
-			if(typeof this.shape.path == "string"){
-				this.shape.path += path.join("");
-			}else{
-				for(i = 0, l = path.length; i < l; ++i){
-					this.shape.path.push(path[i]);
-				}
-			}
-		},
-
-		// a dictionary, which maps segment type codes to a number of their arguments
-		_validSegments: {m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0},
-
-		_pushSegment: function(action, args){
-			// summary:
-			//		adds a segment
-			// action: String
-			//		valid SVG code for a segment's type
-			// args: Array
-			//		a list of parameters for this segment
-			this.tbbox = null;
-			var group = this._validSegments[action.toLowerCase()], segment;
-			if(typeof group == "number"){
-				if(group){
-					if(args.length >= group){
-						segment = {action: action, args: args.slice(0, args.length - args.length % group)};
-						this.segments.push(segment);
-						this._updateWithSegment(segment);
-					}
-				}else{
-					segment = {action: action, args: []};
-					this.segments.push(segment);
-					this._updateWithSegment(segment);
-				}
-			}
-		},
-
-		_collectArgs: function(array, args){
-			// summary:
-			//		converts an array of arguments to plain numeric values
-			// array: Array
-			//		an output argument (array of numbers)
-			// args: Array
-			//		an input argument (can be values of Boolean, Number, dojox/gfx.Point, or an embedded array of them)
-			for(var i = 0; i < args.length; ++i){
-				var t = args[i];
-				if(typeof t == "boolean"){
-					array.push(t ? 1 : 0);
-				}else if(typeof t == "number"){
-					array.push(t);
-				}else if(t instanceof Array){
-					this._collectArgs(array, t);
-				}else if("x" in t && "y" in t){
-					array.push(t.x, t.y);
-				}
-			}
-		},
-
-		// segments
-		moveTo: function(){
-			// summary:
-			//		forms a move segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "M" : "m", args);
-			return this; // self
-		},
-		lineTo: function(){
-			// summary:
-			//		forms a line segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "L" : "l", args);
-			return this; // self
-		},
-		hLineTo: function(){
-			// summary:
-			//		forms a horizontal line segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "H" : "h", args);
-			return this; // self
-		},
-		vLineTo: function(){
-			// summary:
-			//		forms a vertical line segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "V" : "v", args);
-			return this; // self
-		},
-		curveTo: function(){
-			// summary:
-			//		forms a curve segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "C" : "c", args);
-			return this; // self
-		},
-		smoothCurveTo: function(){
-			// summary:
-			//		forms a smooth curve segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "S" : "s", args);
-			return this; // self
-		},
-		qCurveTo: function(){
-			// summary:
-			//		forms a quadratic curve segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "Q" : "q", args);
-			return this; // self
-		},
-		qSmoothCurveTo: function(){
-			// summary:
-			//		forms a quadratic smooth curve segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "T" : "t", args);
-			return this; // self
-		},
-		arcTo: function(){
-			// summary:
-			//		forms an elliptic arc segment
-			this._confirmSegmented();
-			var args = [];
-			this._collectArgs(args, arguments);
-			this._pushSegment(this.absolute ? "A" : "a", args);
-			return this; // self
-		},
-		closePath: function(){
-			// summary:
-			//		closes a path
-			this._confirmSegmented();
-			this._pushSegment("Z", []);
-			return this; // self
-		},
-
-		_confirmSegmented: function() {
-			if (!this.segmented) {
-				var path = this.shape.path;
-				// switch to non-updating version of path building
-				this.shape.path = [];
-				this._setPath(path);
-				// switch back to the string path
-				this.shape.path = this.shape.path.join("");
-				// become segmented
-				this.segmented = true;
-			}
-		},
-
-		// setShape
-		_setPath: function(path){
-			// summary:
-			//		forms a path using an SVG path string
-			// path: String
-			//		an SVG path string
-			var p = lang.isArray(path) ? path : path.match(g.pathSvgRegExp);
-			this.segments = [];
-			this.absolute = true;
-			this.bbox = {};
-			this.last = {};
-			if(!p) return;
-			// create segments
-			var action = "",	// current action
-				args = [],		// current arguments
-				l = p.length;
-			for(var i = 0; i < l; ++i){
-				var t = p[i], x = parseFloat(t);
-				if(isNaN(x)){
-					if(action){
-						this._pushSegment(action, args);
-					}
-					args = [];
-					action = t;
-				}else{
-					args.push(x);
-				}
-			}
-			this._pushSegment(action, args);
-		},
-		setShape: function(newShape){
-			// summary:
-			//		forms a path using a shape
-			// newShape: Object
-			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
-			this.inherited(arguments, [typeof newShape == "string" ? {path: newShape} : newShape]);
-
-			this.segmented = false;
-			this.segments = [];
-			if(!g.lazyPathSegmentation){
-				this._confirmSegmented();
-			}
-			return this; // self
-		},
-
-		// useful constant for descendants
-		_2PI: Math.PI * 2
-	});
-
-	var TextPath = declare("dojox.gfx.path.TextPath", Path, {
-		// summary:
-		//		a generalized TextPath shape
-
-		constructor: function(rawNode){
-			// summary:
-			//		a TextPath shape constructor
-			// rawNode: Node
-			//		a DOM node to be used by this TextPath object
-			if(!("text" in this)){
-				this.text = lang.clone(g.defaultTextPath);
-			}
-			if(!("fontStyle" in this)){
-				this.fontStyle = lang.clone(g.defaultFont);
-			}
-		},
-		getText: function(){
-			// summary:
-			//		returns the current text object or null
-			return this.text;	// Object
-		},
-		setText: function(newText){
-			// summary:
-			//		sets a text to be drawn along the path
-			this.text = g.makeParameters(this.text,
-				typeof newText == "string" ? {text: newText} : newText);
-			this._setText();
-			return this;	// self
-		},
-		getFont: function(){
-			// summary:
-			//		returns the current font object or null
-			return this.fontStyle;	// Object
-		},
-		setFont: function(newFont){
-			// summary:
-			//		sets a font for text
-			this.fontStyle = typeof newFont == "string" ?
-				g.splitFontString(newFont) :
-				g.makeParameters(g.defaultFont, newFont);
-			this._setFont();
-			return this;	// self
-		}
-	});
-
-	/*=====
-	g.Path = Path;
-	g.TextPath = TextPath;
-	=====*/
-
-	return g.path = {
-		// summary:
-		//		This module contains the core graphics Path API.
-		//		Path command format follows the W3C SVG 1.0 Path api.
-
-		Path: Path,
-		TextPath: TextPath
-	};
+    postCreate: function() {
+    }
+  });
 });
 
 },
-'dojox/gfx/_base':function(){
-define(["dojo/_base/kernel", "dojo/_base/lang", "dojo/_base/Color", "dojo/_base/sniff", "dojo/_base/window",
-	    "dojo/_base/array","dojo/dom", "dojo/dom-construct","dojo/dom-geometry"],
-function(kernel, lang, Color, has, win, arr, dom, domConstruct, domGeom){
-	// module:
-	//		dojox/gfx
-	// summary:
-	//		This module contains common core Graphics API used by different graphics renderers.
-
-	var g = lang.getObject("dojox.gfx", true),
-		b = g._base = {};
-	
-	// candidates for dojox.style (work on VML and SVG nodes)
-	g._hasClass = function(/*DomNode*/node, /*String*/classStr){
-		// summary:
-		//		Returns whether or not the specified classes are a portion of the
-		//		class list currently applied to the node.
-		
-		// return (new RegExp('(^|\\s+)'+classStr+'(\\s+|$)')).test(node.className)	// Boolean
-		var cls = node.getAttribute("className");
-		return cls && (" " + cls + " ").indexOf(" " + classStr + " ") >= 0;  // Boolean
-	};
-	g._addClass = function(/*DomNode*/node, /*String*/classStr){
-		// summary:
-		//		Adds the specified classes to the end of the class list on the
-		//		passed node.
-		var cls = node.getAttribute("className") || "";
-		if(!cls || (" " + cls + " ").indexOf(" " + classStr + " ") < 0){
-			node.setAttribute("className", cls + (cls ? " " : "") + classStr);
-		}
-	};
-	g._removeClass = function(/*DomNode*/node, /*String*/classStr){
-		// summary:
-		//		Removes classes from node.
-		var cls = node.getAttribute("className");
-		if(cls){
-			node.setAttribute(
-				"className",
-				cls.replace(new RegExp('(^|\\s+)' + classStr + '(\\s+|$)'), "$1$2")
-			);
-		}
-	};
-
-	// candidate for dojox.html.metrics (dynamic font resize handler is not implemented here)
-
-	//		derived from Morris John's emResized measurer
-	b._getFontMeasurements = function(){
-		// summary:
-		//		Returns an object that has pixel equivilents of standard font
-		//		size values.
-		var heights = {
-			'1em': 0, '1ex': 0, '100%': 0, '12pt': 0, '16px': 0, 'xx-small': 0,
-			'x-small': 0, 'small': 0, 'medium': 0, 'large': 0, 'x-large': 0,
-			'xx-large': 0
-		};
-		var p, oldStyle;	
-		if(has("ie")){
-			//	We do a font-size fix if and only if one isn't applied already.
-			// NOTE: If someone set the fontSize on the HTML Element, this will kill it.
-			oldStyle = win.doc.documentElement.style.fontSize || "";
-			if(!oldStyle){
-				win.doc.documentElement.style.fontSize="100%";
-			}
-		}
-
-		//		set up the measuring node.
-		var div = domConstruct.create("div", {style: {
-				position: "absolute",
-				left: "0",
-				top: "-100px",
-				width: "30px",
-				height: "1000em",
-				borderWidth: "0",
-				margin: "0",
-				padding: "0",
-				outline: "none",
-				lineHeight: "1",
-				overflow: "hidden"
-			}}, win.body());
-
-		//		do the measurements.
-		for(p in heights){
-			div.style.fontSize = p;
-			heights[p] = Math.round(div.offsetHeight * 12/16) * 16/12 / 1000;
-		}
-
-		if(has("ie")){
-			// Restore the font to its old style.
-			win.doc.documentElement.style.fontSize = oldStyle;
-		}
-		win.body().removeChild(div);
-		return heights; //object
-	};
-
-	var fontMeasurements = null;
-
-	b._getCachedFontMeasurements = function(recalculate){
-		if(recalculate || !fontMeasurements){
-			fontMeasurements = b._getFontMeasurements();
-		}
-		return fontMeasurements;
-	};
-
-	// candidate for dojox.html.metrics
-
-	var measuringNode = null, empty = {};
-	b._getTextBox = function(	/*String*/ text,
-								/*Object*/ style,
-								/*String?*/ className){
-		var m, s, al = arguments.length;
-		var i, box;
-		if(!measuringNode){
-			measuringNode = domConstruct.create("div", {style: {
-				position: "absolute",
-				top: "-10000px",
-				left: "0",
-				visibility: "hidden"
-			}}, win.body());
-		}
-		m = measuringNode;
-		// reset styles
-		m.className = "";
-		s = m.style;
-		s.borderWidth = "0";
-		s.margin = "0";
-		s.padding = "0";
-		s.outline = "0";
-		// set new style
-		if(al > 1 && style){
-			for(i in style){
-				if(i in empty){ continue; }
-				s[i] = style[i];
-			}
-		}
-		// set classes
-		if(al > 2 && className){
-			m.className = className;
-		}
-		// take a measure
-		m.innerHTML = text;
-
-		if(m.getBoundingClientRect){
-			var bcr = m.getBoundingClientRect();
-			box = {l: bcr.left, t: bcr.top, w: bcr.width || (bcr.right - bcr.left), h: bcr.height || (bcr.bottom - bcr.top)};
-		}else{
-			box = domGeom.getMarginBox(m);
-		}
-		m.innerHTML = "";
-		return box;
-	};
-
-	b._computeTextLocation = function(/*g.defaultTextShape*/textShape, /*Number*/width, /*Number*/height, /*Boolean*/fixHeight) {
-		var loc = {}, align = textShape.align;
-		switch (align) {
-			case 'end':
-				loc.x = textShape.x - width;
-				break;
-			case 'middle':
-				loc.x = textShape.x - width / 2;
-				break;
-			default:
-				loc.x = textShape.x;
-				break;
-		}
-		var c = fixHeight ? 0.75 : 1;
-		loc.y = textShape.y - height*c; // **rough** approximation of the ascent...
-		return loc;
-	};
-	b._computeTextBoundingBox = function(/*shape.Text*/s){
-		// summary:
-		//		Compute the bbox of the given shape.Text instance. Note that this method returns an
-		//		approximation of the bbox, and should be used when the underlying renderer cannot provide precise metrics.
-		if(!g._base._isRendered(s)){
-			return {x:0, y:0, width:0, height:0};
-		}
-		var loc, textShape = s.getShape(),
-			font = s.getFont() || g.defaultFont,
-			w = s.getTextWidth(),
-			h = g.normalizedLength(font.size);
-		loc = b._computeTextLocation(textShape, w, h, true);
-		return {
-			x: loc.x,
-			y: loc.y,
-			width: w,
-			height: h
-		};
-	};
-	b._isRendered = function(/*Shape*/s){
-		var p = s.parent;
-		while(p && p.getParent){
-			p = p.parent;
-		}
-		return p !== null;
-	};
-
-	// candidate for dojo.dom
-
-	var uniqueId = 0;
-	b._getUniqueId = function(){
-		// summary:
-		//		returns a unique string for use with any DOM element
-		var id;
-		do{
-			id = kernel._scopeName + "xUnique" + (++uniqueId);
-		}while(dom.byId(id));
-		return id;
-	};
-
-	// IE10
-
-	var touchActionProp = has("pointer-events") ? "touchAction" : has("MSPointer") ? "msTouchAction" : null;
-	b._fixMsTouchAction = touchActionProp ? function(/*dojox/gfx/shape.Surface*/surface){
-		surface.rawNode.style[touchActionProp] = "none";
-	} : function() {};
-
-	/*=====
-	g.Stroke = {
-		// summary:
-		//		A stroke defines stylistic properties that are used when drawing a path.
-
-		// color: String
-		//		The color of the stroke, default value 'black'.
-		color: "black",
-
-		// style: String
-		//		The style of the stroke, one of 'solid', ... . Default value 'solid'.
-		style: "solid",
-
-		// width: Number
-		//		The width of a stroke, default value 1.
-		width: 1,
-
-		// cap: String
-		//		The endcap style of the path. One of 'butt', 'round', ... . Default value 'butt'.
-		cap: "butt",
-
-		// join: Number
-		//		The join style to use when combining path segments. Default value 4.
-		join: 4
-	};
-	
-	g.Fill = {
-		// summary:
-		//		Defines how to fill a shape. Four types of fills can be used: solid, linear gradient, radial gradient and pattern.
-		//		See dojox/gfx.LinearGradient, dojox/gfx.RadialGradient and dojox/gfx.Pattern respectively for more information about the properties supported by each type.
-		
-		// type: String?
-		//		The type of fill. One of 'linear', 'radial', 'pattern' or undefined. If not specified, a solid fill is assumed.
-		type:"",
-		
-		// color: String|dojo/Color?
-		//		The color of a solid fill type.
-		color:null,
-		
-	};
-	
-	g.LinearGradient = {
-		// summary:
-		//		An object defining the default stylistic properties used for Linear Gradient fills.
-		//		Linear gradients are drawn along a virtual line, which results in appearance of a rotated pattern in a given direction/orientation.
-
-		// type: String
-		//		Specifies this object is a Linear Gradient, value 'linear'
-		type: "linear",
-
-		// x1: Number
-		//		The X coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
-		x1: 0,
-
-		// y1: Number
-		//		The Y coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
-		y1: 0,
-
-		// x2: Number
-		//		The X coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
-		x2: 100,
-
-		// y2: Number
-		//		The Y coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
-		y2: 100,
-
-		// colors: Array
-		//		An array of colors at given offsets (from the start of the line).  The start of the line is
-		//		defined at offest 0 with the end of the line at offset 1.
-		//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
-		colors: []
-	};
-	
-	g.RadialGradient = {
-		// summary:
-		//		Specifies the properties for RadialGradients using in fills patterns.
-
-		// type: String
-		//		Specifies this is a RadialGradient, value 'radial'
-		type: "radial",
-
-		// cx: Number
-		//		The X coordinate of the center of the radial gradient, default value 0.
-		cx: 0,
-
-		// cy: Number
-		//		The Y coordinate of the center of the radial gradient, default value 0.
-		cy: 0,
-
-		// r: Number
-		//		The radius to the end of the radial gradient, default value 100.
-		r: 100,
-
-		// colors: Array
-		//		An array of colors at given offsets (from the center of the radial gradient).
-		//		The center is defined at offest 0 with the outer edge of the gradient at offset 1.
-		//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
-		colors: []
-	};
-	
-	g.Pattern = {
-		// summary:
-		//		An object specifying the default properties for a Pattern using in fill operations.
-
-		// type: String
-		//		Specifies this object is a Pattern, value 'pattern'.
-		type: "pattern",
-
-		// x: Number
-		//		The X coordinate of the position of the pattern, default value is 0.
-		x: 0,
-
-		// y: Number
-		//		The Y coordinate of the position of the pattern, default value is 0.
-		y: 0,
-
-		// width: Number
-		//		The width of the pattern image, default value is 0.
-		width: 0,
-
-		// height: Number
-		//		The height of the pattern image, default value is 0.
-		height: 0,
-
-		// src: String
-		//		A url specifying the image to use for the pattern.
-		src: ""
-	};
-
-	g.Text = {
-		//	summary:
-		//		A keyword argument object defining both the text to be rendered in a VectorText shape,
-		//		and specifying position, alignment, and fitting.
-		//	text: String
-		//		The text to be rendered.
-		//	x: Number?
-		//		The left coordinate for the text's bounding box.
-		//	y: Number?
-		//		The top coordinate for the text's bounding box.
-		//	width: Number?
-		//		The width of the text's bounding box.
-		//	height: Number?
-		//		The height of the text's bounding box.
-		//	align: String?
-		//		The alignment of the text, as defined in SVG. Can be "start", "end" or "middle".
-		//	fitting: Number?
-		//		How the text is to be fitted to the bounding box. Can be 0 (no fitting), 1 (fitting based on
-		//		passed width of the bounding box and the size of the font), or 2 (fit text to the bounding box,
-		//		and ignore any size parameters).
-		//	leading: Number?
-		//		The leading to be used between lines in the text.
-		//	decoration: String?
-		//		Any text decoration to be used.
-	};
-
-	g.Font = {
-		// summary:
-		//		An object specifying the properties for a Font used in text operations.
-	
-		// type: String
-		//		Specifies this object is a Font, value 'font'.
-		type: "font",
-	
-		// style: String
-		//		The font style, one of 'normal', 'bold', default value 'normal'.
-		style: "normal",
-	
-		// variant: String
-		//		The font variant, one of 'normal', ... , default value 'normal'.
-		variant: "normal",
-	
-		// weight: String
-		//		The font weight, one of 'normal', ..., default value 'normal'.
-		weight: "normal",
-	
-		// size: String
-		//		The font size (including units), default value '10pt'.
-		size: "10pt",
-	
-		// family: String
-		//		The font family, one of 'serif', 'sanserif', ..., default value 'serif'.
-		family: "serif"
-	};
-
-	=====*/
-
-	lang.mixin(g, {
-		// summary:
-		//		defines constants, prototypes, and utility functions for the core Graphics API
-
-		// default shapes, which are used to fill in missing parameters
-		defaultPath: {
-			// summary:
-			//		Defines the default Path prototype object.
-
-			// type: String
-			//		Specifies this object is a Path, default value 'path'.
-			type: "path", 
-
-			// path: String
-			//		The path commands. See W32C SVG 1.0 specification.
-			//		Defaults to empty string value.
-			path: ""
-		},
-		defaultPolyline: {
-			// summary:
-			//		Defines the default PolyLine prototype.
-
-			// type: String
-			//		Specifies this object is a PolyLine, default value 'polyline'.
-			type: "polyline",
-
-			// points: Array
-			//		An array of point objects [{x:0,y:0},...] defining the default polyline's line segments. Value is an empty array [].
-			points: []
-		},
-		defaultRect: {
-			// summary:
-			//		Defines the default Rect prototype.
-
-			// type: String
-			//		Specifies this default object is a type of Rect. Value is 'rect'
-			type: "rect",
-
-			// x: Number
-			//		The X coordinate of the default rectangles position, value 0.
-			x: 0,
-
-			// y: Number
-			//		The Y coordinate of the default rectangle's position, value 0.
-			y: 0,
-
-			// width: Number
-			//		The width of the default rectangle, value 100.
-			width: 100,
-
-			// height: Number
-			//		The height of the default rectangle, value 100.
-			height: 100,
-
-			// r: Number
-			//		The corner radius for the default rectangle, value 0.
-			r: 0
-		},
-		defaultEllipse: {
-			// summary:
-			//		Defines the default Ellipse prototype.
-
-			// type: String
-			//		Specifies that this object is a type of Ellipse, value is 'ellipse'
-			type: "ellipse",
-
-			// cx: Number
-			//		The X coordinate of the center of the ellipse, default value 0.
-			cx: 0,
-
-			// cy: Number
-			//		The Y coordinate of the center of the ellipse, default value 0.
-			cy: 0,
-
-			// rx: Number
-			//		The radius of the ellipse in the X direction, default value 200.
-			rx: 200,
-
-			// ry: Number
-			//		The radius of the ellipse in the Y direction, default value 200.
-			ry: 100
-		},
-		defaultCircle: {
-			// summary:
-			//		An object defining the default Circle prototype.
-
-			// type: String
-			//		Specifies this object is a circle, value 'circle'
-			type: "circle",
-
-			// cx: Number
-			//		The X coordinate of the center of the circle, default value 0.
-			cx: 0,
-			// cy: Number
-			//		The Y coordinate of the center of the circle, default value 0.
-			cy: 0,
-
-			// r: Number
-			//		The radius, default value 100.
-			r: 100
-		},
-		defaultLine: {
-			// summary:
-			//		An object defining the default Line prototype.
-
-			// type: String
-			//		Specifies this is a Line, value 'line'
-			type: "line",
-
-			// x1: Number
-			//		The X coordinate of the start of the line, default value 0.
-			x1: 0,
-
-			// y1: Number
-			//		The Y coordinate of the start of the line, default value 0.
-			y1: 0,
-
-			// x2: Number
-			//		The X coordinate of the end of the line, default value 100.
-			x2: 100,
-
-			// y2: Number
-			//		The Y coordinate of the end of the line, default value 100.
-			y2: 100
-		},
-		defaultImage: {
-			// summary:
-			//		Defines the default Image prototype.
-
-			// type: String
-			//		Specifies this object is an image, value 'image'.
-			type: "image",
-
-			// x: Number
-			//		The X coordinate of the image's position, default value 0.
-			x: 0,
-
-			// y: Number
-			//		The Y coordinate of the image's position, default value 0.
-			y: 0,
-
-			// width: Number
-			//		The width of the image, default value 0.
-			width: 0,
-
-			// height: Number
-			//		The height of the image, default value 0.
-			height: 0,
-
-			// src: String
-			//		The src url of the image, defaults to empty string.
-			src: ""
-		},
-		defaultText: {
-			// summary:
-			//		Defines the default Text prototype.
-
-			// type: String
-			//		Specifies this is a Text shape, value 'text'.
-			type: "text",
-
-			// x: Number
-			//		The X coordinate of the text position, default value 0.
-			x: 0,
-
-			// y: Number
-			//		The Y coordinate of the text position, default value 0.
-			y: 0,
-
-			// text: String
-			//		The text to be displayed, default value empty string.
-			text: "",
-
-			// align:	String
-			//		The horizontal text alignment, one of 'start', 'end', 'center'. Default value 'start'.
-			align: "start",
-
-			// decoration: String
-			//		The text decoration , one of 'none', ... . Default value 'none'.
-			decoration: "none",
-
-			// rotated: Boolean
-			//		Whether the text is rotated, boolean default value false.
-			rotated: false,
-
-			// kerning: Boolean
-			//		Whether kerning is used on the text, boolean default value true.
-			kerning: true
-		},
-		defaultTextPath: {
-			// summary:
-			//		Defines the default TextPath prototype.
-
-			// type: String
-			//		Specifies this is a TextPath, value 'textpath'.
-			type: "textpath",
-
-			// text: String
-			//		The text to be displayed, default value empty string.
-			text: "",
-
-			// align: String
-			//		The horizontal text alignment, one of 'start', 'end', 'center'. Default value 'start'.
-			align: "start",
-
-			// decoration: String
-			//		The text decoration , one of 'none', ... . Default value 'none'.
-			decoration: "none",
-
-			// rotated: Boolean
-			//		Whether the text is rotated, boolean default value false.
-			rotated: false,
-
-			// kerning: Boolean
-			//		Whether kerning is used on the text, boolean default value true.
-			kerning: true
-		},
-
-		// default stylistic attributes
-		defaultStroke: {
-			// summary:
-			//		A stroke defines stylistic properties that are used when drawing a path.
-			//		This object defines the default Stroke prototype.
-			// type: String
-			//		Specifies this object is a type of Stroke, value 'stroke'.
-			type: "stroke",
-
-			// color: String
-			//		The color of the stroke, default value 'black'.
-			color: "black",
-
-			// style: String
-			//		The style of the stroke, one of 'solid', ... . Default value 'solid'.
-			style: "solid",
-
-			// width: Number
-			//		The width of a stroke, default value 1.
-			width: 1,
-
-			// cap: String
-			//		The endcap style of the path. One of 'butt', 'round', ... . Default value 'butt'.
-			cap: "butt",
-
-			// join: Number
-			//		The join style to use when combining path segments. Default value 4.
-			join: 4
-		},
-		defaultLinearGradient: {
-			// summary:
-			//		An object defining the default stylistic properties used for Linear Gradient fills.
-			//		Linear gradients are drawn along a virtual line, which results in appearance of a rotated pattern in a given direction/orientation.
-
-			// type: String
-			//		Specifies this object is a Linear Gradient, value 'linear'
-			type: "linear",
-
-			// x1: Number
-			//		The X coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
-			x1: 0,
-
-			// y1: Number
-			//		The Y coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
-			y1: 0,
-
-			// x2: Number
-			//		The X coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
-			x2: 100,
-
-			// y2: Number
-			//		The Y coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
-			y2: 100,
-
-			// colors: Array
-			//		An array of colors at given offsets (from the start of the line).  The start of the line is
-			//		defined at offest 0 with the end of the line at offset 1.
-			//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
-			colors: [
-				{ offset: 0, color: "black" }, { offset: 1, color: "white" }
-			]
-		},
-		defaultRadialGradient: {
-			// summary:
-			//		An object specifying the default properties for RadialGradients using in fills patterns.
-
-			// type: String
-			//		Specifies this is a RadialGradient, value 'radial'
-			type: "radial",
-
-			// cx: Number
-			//		The X coordinate of the center of the radial gradient, default value 0.
-			cx: 0,
-
-			// cy: Number
-			//		The Y coordinate of the center of the radial gradient, default value 0.
-			cy: 0,
-
-			// r: Number
-			//		The radius to the end of the radial gradient, default value 100.
-			r: 100,
-
-			// colors: Array
-			//		An array of colors at given offsets (from the center of the radial gradient).
-			//		The center is defined at offest 0 with the outer edge of the gradient at offset 1.
-			//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
-			colors: [
-				{ offset: 0, color: "black" }, { offset: 1, color: "white" }
-			]
-		},
-		defaultPattern: {
-			// summary:
-			//		An object specifying the default properties for a Pattern using in fill operations.
-
-			// type: String
-			//		Specifies this object is a Pattern, value 'pattern'.
-			type: "pattern",
-
-			// x: Number
-			//		The X coordinate of the position of the pattern, default value is 0.
-			x: 0,
-
-			// y: Number
-			//		The Y coordinate of the position of the pattern, default value is 0.
-			y: 0,
-
-			// width: Number
-			//		The width of the pattern image, default value is 0.
-			width: 0,
-
-			// height: Number
-			//		The height of the pattern image, default value is 0.
-			height: 0,
-
-			// src: String
-			//		A url specifying the image to use for the pattern.
-			src: ""
-		},
-		defaultFont: {
-			// summary:
-			//		An object specifying the default properties for a Font used in text operations.
-
-			// type: String
-			//		Specifies this object is a Font, value 'font'.
-			type: "font",
-
-			// style: String
-			//		The font style, one of 'normal', 'bold', default value 'normal'.
-			style: "normal",
-
-			// variant: String
-			//		The font variant, one of 'normal', ... , default value 'normal'.
-			variant: "normal",
-
-			// weight: String
-			//		The font weight, one of 'normal', ..., default value 'normal'.
-			weight: "normal",
-
-			// size: String
-			//		The font size (including units), default value '10pt'.
-			size: "10pt",
-
-			// family: String
-			//		The font family, one of 'serif', 'sanserif', ..., default value 'serif'.
-			family: "serif"
-		},
-
-		getDefault: (function(){
-			// summary:
-			//		Returns a function used to access default memoized prototype objects (see them defined above).
-			var typeCtorCache = {};
-			// a memoized delegate()
-			return function(/*String*/ type){
-				var t = typeCtorCache[type];
-				if(t){
-					return new t();
+'app/PageBanner':function(){
+define([
+  "dojo/_base/declare",
+  "dojo/_base/lang",
+  "dojo/dom-construct",
+  "dojo/dom-style",
+  "dojo/dom-class",
+  "dojo/query",
+  "dojo/_base/array",
+  "dijit/_WidgetBase",
+  "dijit/_OnDijitClickMixin",
+  "dijit/_TemplatedMixin",
+  "dojo/hash",
+  "dojo/router",
+  "dojo/on",
+  "dojo/topic",
+  "dojo/text!./templates/PageBanner_template.html"
+], function(
+  declare,
+  lang,
+  domConstruct,
+  domStyle,
+  domClass,
+  query,
+  Array,
+  _WidgetBase,
+  _OnDijitClickMixin,
+  _TemplatedMixin,
+  hash,
+  router,
+  on,
+  topic,
+  template
+) {
+  return declare([_WidgetBase, _OnDijitClickMixin, _TemplatedMixin], {
+    templateString: template,
+    baseClass: "_PageBanner",
+    options: {
+      title: null,
+      routes: []
+    },
+    constructor: function(options) {
+      this.inherited(arguments);
+      declare.safeMixin(this.options, options);
+      this.set("title", this.options.title);
+      this.set("subtitle", this.options.subtitle);
+      this.set("routes", this.options.routes);
+    },
+    postCreate: function() {
+      var self = this;
+      var routes = self.routes;
+      var targetNode = self.routeNode;
+      domClass.add(self.domNode, self.class);
+      if (routes.length >= 1) {
+        Array.forEach(routes, function(e) {
+          var link = domConstruct.toDom("<a class='sub-nav-link'>"+e.title+"</a>");
+          on(link, 'click', function(evt) {
+            evt.preventDefault();
+            var current = hash();
+            if (e.href !== current) {
+              hash(e.href, true);
+              
+            }
+          });
+          domConstruct.place(link, targetNode, 'last');
+        });
+      }
+    }
+  });
+});
+
+},
+'app/namedFunctions':function(){
+define([
+	'dijit/registry',
+	"dojo/_base/declare",
+	'dojo/window',
+	"dojo/_base/unload",
+	"dojo/aspect",
+	'dojo/json',
+	'dojo/parser',
+	"dojo/cookie",
+	'dojo/dom',
+	"dojo/dom-style",
+	'dojo/dom-construct',
+	'dojo/html',
+	'dojo/router',
+	"dojo/request",
+	'dojo/query',
+	'dojo/dom-class',
+	'dojo/dom-attr',
+	'dojo/_base/array',
+	'dojo/promise/all',
+	'dojo/Deferred',
+	'dojo/hash',
+	'dojo/topic',
+	'dojo/on',
+	'app/HomepageBanner',
+	'app/PageBanner',
+	'app/Analytics',
+	'app/Viewer3d',
+	'app/PublishingTools',
+	'esri/IdentityManager',
+	'esri/arcgis/OAuthInfo',
+	'dijit/layout/ContentPane',
+	'dojo/text!./application_cards.json'
+	], function(
+		registry,
+		declare,
+		win,
+		baseUnload,
+		aspect,
+		JSON,
+		parser,
+		cookie,
+		dom,
+		domStyle,
+		domConstruct,
+		html,
+		router,
+		request,
+		query,
+		domClass,
+		domAttr,
+		Array,
+		all,
+		Deferred,
+		hash,
+		topic,
+		on,
+		HomepageBanner,
+		PageBanner,
+		Analytics,
+		Viewer3d,
+		PublishingTools,
+		esriId,
+		OAuthInfo,
+		ContentPane,
+		app_cards
+		) {
+
+		return declare([], {
+			
+			unloadBanner: function() {
+				var deferred = new Deferred();
+				(function() {
+					if (registry.byId('header-pane') !== undefined) {
+						var obj = registry.byId('header-pane');
+						domConstruct.empty(obj.containerNode);
+						domClass.remove(obj.containerNode);
+						deferred.resolve(true);
+				} else {
+				  deferred.resolve(false);
 				}
-				t = typeCtorCache[type] = new Function();
-				t.prototype = g[ "default" + type ];
-				return new t();
-			}
-		})(),
+				})();
+				return deferred.promise;
+			},
 
-		normalizeColor: function(/*dojo/Color|Array|string|Object*/ color){
-			// summary:
-			//		converts any legal color representation to normalized
-			//		dojo/Color object
-			// color:
-			//		A color representation.
-			return (color instanceof Color) ? color : new Color(color); // dojo/Color
-		},
-		normalizeParameters: function(existed, update){
-			// summary:
-			//		updates an existing object with properties from an 'update'
-			//		object
-			// existed: Object
-			//		the target object to be updated
-			// update: Object
-			//		the 'update' object, whose properties will be used to update
-			//		the existed object
-			var x;
-			if(update){
-				var empty = {};
-				for(x in existed){
-					if(x in update && !(x in empty)){
-						existed[x] = update[x];
+			unloadContent: function() {
+			var deferred = new Deferred();
+				(function() {
+					
+					if (registry.byId('main-content') !== undefined) {
+						var obj = registry.byId('main-content');
+						domConstruct.empty(obj.containerNode);
+						domClass.remove(obj.containerNode);
+						deferred.resolve(true);
+					} else {
+						deferred.resolve('no widgets were found in main-content domNode');
 					}
-				}
-			}
-			return existed;	// Object
-		},
-		makeParameters: function(defaults, update){
-			// summary:
-			//		copies the original object, and all copied properties from the
-			//		'update' object
-			// defaults: Object
-			//		the object to be cloned before updating
-			// update: Object
-			//		the object, which properties are to be cloned during updating
-			// returns: Object
-			//      new object with new and default properties
-			var i = null;
-			if(!update){
-				// return dojo.clone(defaults);
-				return lang.delegate(defaults);
-			}
-			var result = {};
-			for(i in defaults){
-				if(!(i in result)){
-					result[i] = lang.clone((i in update) ? update[i] : defaults[i]);
-				}
-			}
-			return result; // Object
-		},
-		formatNumber: function(x, addSpace){
-			// summary:
-			//		converts a number to a string using a fixed notation
-			// x: Number
-			//		number to be converted
-			// addSpace: Boolean
-			//		whether to add a space before a positive number
-			// returns: String
-			//      the formatted value
-			var val = x.toString();
-			if(val.indexOf("e") >= 0){
-				val = x.toFixed(4);
-			}else{
-				var point = val.indexOf(".");
-				if(point >= 0 && val.length - point > 5){
-					val = x.toFixed(4);
-				}
-			}
-			if(x < 0){
-				return val; // String
-			}
-			return addSpace ? " " + val : val; // String
-		},
-		// font operations
-		makeFontString: function(font){
-			// summary:
-			//		converts a font object to a CSS font string
-			// font: Object
-			//		font object (see dojox/gfx.defaultFont)
-			return font.style + " " + font.variant + " " + font.weight + " " + font.size + " " + font.family; // Object
-		},
-		splitFontString: function(str){
-			// summary:
-			//		converts a CSS font string to a font object
-			// description:
-			//		Converts a CSS font string to a gfx font object. The CSS font
-			//		string components should follow the W3C specified order
-			//		(see http://www.w3.org/TR/CSS2/fonts.html#font-shorthand):
-			//		style, variant, weight, size, optional line height (will be
-			//		ignored), and family. Note that the Font.size attribute is limited to numeric CSS length.
-			// str: String
-			//		a CSS font string.
-			// returns: Object
-			//      object in dojox/gfx.defaultFont format
-			var font = g.getDefault("Font");
-			var t = str.split(/\s+/);
-			do{
-				if(t.length < 5){ break; }
-				font.style   = t[0];
-				font.variant = t[1];
-				font.weight  = t[2];
-				var i = t[3].indexOf("/");
-				font.size = i < 0 ? t[3] : t[3].substring(0, i);
-				var j = 4;
-				if(i < 0){
-					if(t[4] == "/"){
-						j = 6;
-					}else if(t[4].charAt(0) == "/"){
-						j = 5;
-					}
-				}
-				if(j < t.length){
-					font.family = t.slice(j).join(" ");
-				}
-			}while(false);
-			return font;	// Object
-		},
-		// length operations
+				})();
+				return deferred.promise;
+		    },
 
-		// cm_in_pt: Number
-		//		points per centimeter (constant)
-		cm_in_pt: 72 / 2.54,
-
-		// mm_in_pt: Number
-		//		points per millimeter (constant)
-		mm_in_pt: 7.2 / 2.54,
-
-		px_in_pt: function(){
-			// summary:
-			//		returns the current number of pixels per point.
-			return g._base._getCachedFontMeasurements()["12pt"] / 12;	// Number
-		},
-
-		pt2px: function(len){
-			// summary:
-			//		converts points to pixels
-			// len: Number
-			//		a value in points
-			return len * g.px_in_pt();	// Number
-		},
-
-		px2pt: function(len){
-			// summary:
-			//		converts pixels to points
-			// len: Number
-			//		a value in pixels
-			return len / g.px_in_pt();	// Number
-		},
-
-		normalizedLength: function(len) {
-			// summary:
-			//		converts any length value to pixels
-			// len: String
-			//		a length, e.g., '12pc'
-			// returns: Number
-			//      pixels
-			if(len.length === 0){ return 0; }
-			if(len.length > 2){
-				var px_in_pt = g.px_in_pt();
-				var val = parseFloat(len);
-				switch(len.slice(-2)){
-					case "px": return val;
-					case "pt": return val * px_in_pt;
-					case "in": return val * 72 * px_in_pt;
-					case "pc": return val * 12 * px_in_pt;
-					case "mm": return val * g.mm_in_pt * px_in_pt;
-					case "cm": return val * g.cm_in_pt * px_in_pt;
-				}
-			}
-			return parseFloat(len);	// Number
-		},
-
-		// pathVmlRegExp: RegExp
-		//		a constant regular expression used to split a SVG/VML path into primitive components
-		// tags:
-		//		private
-		pathVmlRegExp: /([A-Za-z]+)|(\d+(\.\d+)?)|(\.\d+)|(-\d+(\.\d+)?)|(-\.\d+)/g,
-
-		// pathVmlRegExp: RegExp
-		//		a constant regular expression used to split a SVG/VML path into primitive components
-		// tags:
-		//		private
-		pathSvgRegExp: /([A-DF-Za-df-z])|([-+]?\d*[.]?\d+(?:[eE][-+]?\d+)?)/g,
-
-		equalSources: function(a, b){
-			// summary:
-			//		compares event sources, returns true if they are equal
-			// a: Object
-			//		first event source
-			// b: Object
-			//		event source to compare against a
-			// returns: Boolean
-			//      true, if objects are truthy and the same
-			return a && b && a === b;
-		},
-
-		switchTo: function(/*String|Object*/ renderer){
-			// summary:
-			//		switch the graphics implementation to the specified renderer.
-			// renderer:
-			//		Either the string name of a renderer (eg. 'canvas', 'svg, ...) or the renderer
-			//		object to switch to.
-			var ns = typeof renderer == "string" ? g[renderer] : renderer;
-			if(ns){
-				// If more options are added, update the docblock at the end of shape.js!
-				arr.forEach(["Group", "Rect", "Ellipse", "Circle", "Line",
-            "Polyline", "Image", "Text", "Path", "TextPath", "EsriPath",
-						"Surface", "createSurface", "fixTarget"], function(name){
-					g[name] = ns[name];
+			unloadSection: function() {
+				var self = this;
+				var deferred = new Deferred();
+				all([self.unloadBanner(), self.unloadContent()]).then(function(arr) {
+					deferred.resolve("page cleaned, ready for new page load");
+				}, function(err) {
+					deferred.cancel(err);
 				});
-				if(typeof renderer == "string"){
-					g.renderer = renderer;
-				}else{
-					arr.some(["svg","vml","canvas","canvasWithEvents","silverlight"], function(r){
-						return (g.renderer = g[r] && g[r].Surface === g.Surface ? r : null);
+				return deferred.promise;
+			},
+
+			loadCards: function(Card, objects) {
+				// each card object has [baseClass, imgSrc, href, header, content]
+				var mainDeferred = new Deferred();
+				var pane = registry.byId('main-content');
+
+				domClass.add(pane.domNode, "block-group block-group-3-up tablet-block-group-2-up phone-block-group-1-up");
+				var nodelist = Array.map(objects, function(e) {
+					var deferred = new Deferred();
+					if (registry.byId(e.id) !== undefined) {
+						registry.byId(e.id).destroyRecursive();
+					}
+					var div = domConstruct.create('div');
+					var new_card = new Card({
+						id: e.id,
+						path: e.path,
+						content1: e.content1,
+						content2: e.content2,
+						imgSrc: e.imgSrc,
+						header: e.header,
+						isAdmin: e.isAdmin,
+						isActive: e.isActive
+					}, div);
+					return deferred.resolve(new_card);
+				});
+
+				all(nodelist).then(function(arr) {
+					Array.forEach(arr, function(e) {
+						pane.addChild(e);
 					});
+					mainDeferred.resolve(pane);
+				});
+				return mainDeferred.promise;
+			},
+
+			getGroups: function(url) {
+				var deferred = new Deferred();
+				
+				(function() {
+					request(url, {
+						method: "POST",
+						preventCache: true,
+						handleAs: 'json',
+						headers: {
+				            "X-Requested-With": null,
+				            "X-CSRFToken": cookie('csrftoken')
+				        }
+					}).then(function(data) {
+						console.log(data);
+						deferred.resolve(data);
+					}, function(err) {
+						console.log(err);
+						deferred.cancel(err);
+					});
+				})();
+				return deferred.promise;
+			},
+
+			buildTitleBar: function(evt, Card) {
+				var self = this;
+				var deferred = new Deferred();
+				var footer = query("#footer-container");
+				// slide the footer back into view
+				domClass.remove(footer[0], 'animate-out-up');
+				self.unloadSection().then(function(e) {
+					var pane;
+					if (registry.byId('header-pane') === undefined) {
+						pane = new ContentPane({
+							style: "display: flex",
+							id: 'header-pane'
+						}, 'headerPane');
+						pane.startup();
+					} else {
+						pane = registry.byId('header-pane');
+					}
+					
+					if (registry.byId('homepage-banner') === undefined) {
+						self.header = new HomepageBanner({
+							id: 'homepage-banner',
+							title: 'Reno-Tahoe Airport Authority',
+							subtitle: 'Web Application Portal'
+						});
+					} else {
+						self.header = registry.byId('homepage-banner');
+					}
+
+					pane.set('content', self.header);
+
+					// these are loaded from dojo/text!./application_cards.json
+					var cards = JSON.parse(app_cards);
+
+					// remove cards that are not admin
+					var reg_cards = Array.filter(cards, function(e) {
+						return !e.isAdmin;
+					}); 
+
+					self.loadCards(Card, reg_cards).then(function(e) {
+						console.log(e);
+						deferred.resolve(pane);
+					}, function(err) {
+						console.log(err);
+						deferred.cancel(err);
+					});
+				}, function(err) {
+					console.log(err);
+					deferred.cancel(pane);
+				});
+				return deferred.promise;
+			},
+
+			buildGISPortal: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				// slide the footer out of view
+				var footer = query("#footer-container");
+				domClass.add(footer[0], 'animate-out-up');
+				self.unloadSection().then(function(e) {
+					try {
+						registry.byId('gisportal-banner').destroyRecursive();
+					} catch(err) {
+						console.log(err);
+					}
+					
+					// if the user is admin, allow for browse data and backend api
+					
+					var routes = [{
+								title: 'Site Analytics',
+								href: 'gisportal/analytics'
+							}, {
+								title: '2D Data Viewer',
+								href: 'gisportal/2dviewer'
+							}, {
+								title: '3D Data Viewer',
+								href: 'gisportal/3dviewer'
+							}, {
+								title: 'Publishing Tools',
+								href: 'gisportal/publishing-tools'
+							}];
+				
+					self.header = new PageBanner({
+							id: 'gisportal-banner',
+							class: 'text-white font-size-4 page-banner',
+							title: 'Geographic Information Systems',
+							routes: routes
+						});
+
+					var pane = registry.byId('header-pane');
+					pane.set('content', self.header);
+					pane.resize();
+					
+					// create the sticky buttons to navigate the page
+					var nav_btns = domConstruct.create("div", {
+						class: "js-sticky scroll-show is-sticky",
+						"data-top": "50px",
+						"innerHTML": "<a href='#'>Back to Top</a>"
+					}, 'main-content');
+
+					self.buildAnalytics(evt, groups).then(function(resp) {
+						self.build2dViewer(evt, groups).then(function(resp2) {
+							self.build3dViewer(evt, groups).then(function(resp3) {
+								self.buildBackEndAPIs(evt, groups).then(function(resp4) {
+									console.log("all gisportal loaded");
+									deferred.resolve(resp4);
+								}, function(err) {
+									console.log(err);
+								});
+							}, function(err) {
+								console.log(err);
+							});
+						}, function(err) {
+							console.log(err);
+						});
+					}, function(err) {
+						console.log(err);
+					});
+				}, function(err) {
+					console.log(err);
+					deferred.cancel(err);
+				});
+				return deferred.promise;
+			},
+
+			buildAnalytics: function(event, gr) {
+				var self = this;
+				var deferred = new Deferred();
+				var analytics = new Analytics();
+				analytics.startup().then(function(e) {
+					domConstruct.place(analytics.domNode, 'main-content');
+					deferred.resolve(e);
+				});
+				return deferred.promise;
+			},
+
+			build2dViewer: function(event, gr) {
+				var self = this;
+				var deferred = new Deferred();
+				self.loadIframe('viewer2d', "https://gisapps.aroraengineers.com/rtaa_admin_viewer").then(function(e) {
+					deferred.resolve();
+				});
+				return deferred.promise;
+			},
+
+			build3dViewer: function(event, gr) {
+				var self = this;
+				var deferred = new Deferred();
+				var viewer3d = new Viewer3d();
+				viewer3d.startup().then(function(e) {
+					domConstruct.place(viewer3d.domNode, 'main-content', "last");
+					deferred.resolve(e);
+				});
+				return deferred.promise;
+			},
+
+			buildBackEndAPIs: function(event, gr) {
+				var self = this;
+				var deferred = new Deferred();
+				var publishing = new PublishingTools();
+				publishing.startup().then(function(e) {
+					domConstruct.place(publishing.domNode, 'main-content', "last");
+					deferred.resolve(e);
+				});
+				return deferred.promise;
+			},
+
+			buildWebResources: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var footer = query("#footer-container");
+				domClass.add(footer[0], 'animate-out-up');
+				self.unloadSection().then(function(e) {
+					try {
+						registry.byId('web-resources-banner').destroyRecursive();
+					} catch(err) {
+						console.log(err);
+					}
+					self.header = new PageBanner({
+						id: 'web-resources-banner',
+						class: 'text-white font-size-4 page-banner',
+						title: 'Online Resource Library',
+						routes: [{
+							title: 'State Level GIS Data',
+							href: 'web-resources/state-level'
+						}, {
+							title: 'County Level GIS Data',
+							href: 'web-resources/county-level'
+						}, {
+							title: 'ESRI Online Resources',
+							href: 'web-resources/esri-resources'
+						}]
+					});
+
+					var pane = registry.byId('header-pane');
+					pane.set('content', self.header);
+					deferred.resolve(pane);
+				});
+				return deferred.promise;
+			},
+
+			buildHelp: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var footer = query("#footer-container");
+				domClass.add(footer[0], 'animate-out-up');
+				self.unloadSection().then(function(e) {
+					try {
+						registry.byId('help-banner').destroyRecursive();
+					} catch(err) {
+						console.log(err);
+					}
+					self.header = new PageBanner({
+						id: 'help-banner',
+						class: 'text-white font-size-4 page-banner',
+						title: 'Help Documentation',
+						routes: [{
+							title: 'Technical Details',
+							href: 'help/tech-details'
+						}, {
+							title: 'About this Site',
+							href: 'help/about'
+						}, {
+							title: 'Request Help Ticket',
+							href: 'help/request-ticket'
+						}, {
+							title: 'Tutorials',
+							href: 'help/tutorials'
+						}]
+					});
+
+					var pane = registry.byId('header-pane');
+					pane.set('content', self.header);
+					deferred.resolve(pane);
+				});
+				return deferred.promise;
+			},	
+					
+			loadIframe: function(id, url) {
+				var self = this;
+				var deferred = new Deferred();
+				baseUnload.addOnUnload(function() {
+					if (registry.byId(id)) {
+						registry.byId(id).destroyRecursive();
+					}
+				});
+				self.unloadIframe().then(function(e) {
+				console.log(e);
+				var pane = new ContentPane({
+				  id: id,
+				  style: {
+				    position: "relative",
+				    width: "100%",
+				    height: "100vh",
+				    overflow: "hidden"
+				  }
+				});
+				pane.startup();
+				pane.set('content', domConstruct.create("iframe",  {
+				    src: url,
+				    margin: 0,
+				    frameborder: 0,
+				    height: '100%',
+				    width: '100%',
+				    allowfullscreen: true
+				}));
+				pane.placeAt(dom.byId('main-content'));
+				aspect.after(pane, 'resize', function(evt) {
+					domStyle.set(pane.domNode, "height", "90vh");
+					});
+				});
+				
+				deferred.resolve();
+				return deferred.promise;
+			},
+
+			unloadIframe: function() {
+				var self = this;
+				var deferred = new Deferred();
+				var iframe_pane = registry.byId("iframe-pane");
+				if (iframe_pane !== undefined) {
+					iframe_pane.destroy();
+					registry.remove(iframe_pane);
+					deferred.resolve("iframe-pane removed from registry");
+				} else {
+					deferred.resolve("iframe-pane not found");
+				}
+				return deferred.promise;
+			}
+		});
+	});
+},
+'dojo/cookie':function(){
+define(["./_base/kernel", "./regexp"], function(dojo, regexp){
+
+// module:
+//		dojo/cookie
+
+/*=====
+var __cookieProps = {
+	// expires: Date|String|Number?
+	//		If a number, the number of days from today at which the cookie
+	//		will expire. If a date, the date past which the cookie will expire.
+	//		If expires is in the past, the cookie will be deleted.
+	//		If expires is omitted or is 0, the cookie will expire when the browser closes.
+	// path: String?
+	//		The path to use for the cookie.
+	// domain: String?
+	//		The domain to use for the cookie.
+	// secure: Boolean?
+	//		Whether to only send the cookie on secure connections
+};
+=====*/
+
+
+dojo.cookie = function(/*String*/name, /*String?*/ value, /*__cookieProps?*/ props){
+	// summary:
+	//		Get or set a cookie.
+	// description:
+	//		If one argument is passed, returns the value of the cookie
+	//		For two or more arguments, acts as a setter.
+	// name:
+	//		Name of the cookie
+	// value:
+	//		Value for the cookie
+	// props:
+	//		Properties for the cookie
+	// example:
+	//		set a cookie with the JSON-serialized contents of an object which
+	//		will expire 5 days from now:
+	//	|	require(["dojo/cookie", "dojo/json"], function(cookie, json){
+	//	|		cookie("configObj", json.stringify(config, {expires: 5 }));
+	//	|	});
+	//
+	// example:
+	//		de-serialize a cookie back into a JavaScript object:
+	//	|	require(["dojo/cookie", "dojo/json"], function(cookie, json){
+	//	|		config = json.parse(cookie("configObj"));
+	//	|	});
+	//
+	// example:
+	//		delete a cookie:
+	//	|	require(["dojo/cookie"], function(cookie){
+	//	|		cookie("configObj", null, {expires: -1});
+	//	|	});
+	var c = document.cookie, ret;
+	if(arguments.length == 1){
+		var matches = c.match(new RegExp("(?:^|; )" + regexp.escapeString(name) + "=([^;]*)"));
+		ret = matches ? decodeURIComponent(matches[1]) : undefined; 
+	}else{
+		props = props || {};
+// FIXME: expires=0 seems to disappear right away, not on close? (FF3)  Change docs?
+		var exp = props.expires;
+		if(typeof exp == "number"){
+			var d = new Date();
+			d.setTime(d.getTime() + exp*24*60*60*1000);
+			exp = props.expires = d;
+		}
+		if(exp && exp.toUTCString){ props.expires = exp.toUTCString(); }
+
+		value = encodeURIComponent(value);
+		var updatedCookie = name + "=" + value, propName;
+		for(propName in props){
+			updatedCookie += "; " + propName;
+			var propValue = props[propName];
+			if(propValue !== true){ updatedCookie += "=" + propValue; }
+		}
+		document.cookie = updatedCookie;
+	}
+	return ret; // String|undefined
+};
+
+dojo.cookie.isSupported = function(){
+	// summary:
+	//		Use to determine if the current browser supports cookies or not.
+	//
+	//		Returns true if user allows cookies.
+	//		Returns false if user doesn't allow cookies.
+
+	if(!("cookieEnabled" in navigator)){
+		this("__djCookieTest__", "CookiesAllowed");
+		navigator.cookieEnabled = this("__djCookieTest__") == "CookiesAllowed";
+		if(navigator.cookieEnabled){
+			this("__djCookieTest__", "", {expires: -1});
+		}
+	}
+	return navigator.cookieEnabled;
+};
+
+return dojo.cookie;
+});
+
+},
+'dojo/regexp':function(){
+define(["./_base/kernel", "./_base/lang"], function(dojo, lang){
+
+// module:
+//		dojo/regexp
+
+var regexp = {
+	// summary:
+	//		Regular expressions and Builder resources
+};
+lang.setObject("dojo.regexp", regexp);
+
+regexp.escapeString = function(/*String*/str, /*String?*/except){
+	// summary:
+	//		Adds escape sequences for special characters in regular expressions
+	// except:
+	//		a String with special characters to be left unescaped
+
+	return str.replace(/([\.$?*|{}\(\)\[\]\\\/\+\-^])/g, function(ch){
+		if(except && except.indexOf(ch) != -1){
+			return ch;
+		}
+		return "\\" + ch;
+	}); // String
+};
+
+regexp.buildGroupRE = function(/*Object|Array*/arr, /*Function*/re, /*Boolean?*/nonCapture){
+	// summary:
+	//		Builds a regular expression that groups subexpressions
+	// description:
+	//		A utility function used by some of the RE generators. The
+	//		subexpressions are constructed by the function, re, in the second
+	//		parameter.  re builds one subexpression for each elem in the array
+	//		a, in the first parameter. Returns a string for a regular
+	//		expression that groups all the subexpressions.
+	// arr:
+	//		A single value or an array of values.
+	// re:
+	//		A function. Takes one parameter and converts it to a regular
+	//		expression.
+	// nonCapture:
+	//		If true, uses non-capturing match, otherwise matches are retained
+	//		by regular expression. Defaults to false
+
+	// case 1: a is a single value.
+	if(!(arr instanceof Array)){
+		return re(arr); // String
+	}
+
+	// case 2: a is an array
+	var b = [];
+	for(var i = 0; i < arr.length; i++){
+		// convert each elem to a RE
+		b.push(re(arr[i]));
+	}
+
+	 // join the REs as alternatives in a RE group.
+	return regexp.group(b.join("|"), nonCapture); // String
+};
+
+regexp.group = function(/*String*/expression, /*Boolean?*/nonCapture){
+	// summary:
+	//		adds group match to expression
+	// nonCapture:
+	//		If true, uses non-capturing match, otherwise matches are retained
+	//		by regular expression.
+	return "(" + (nonCapture ? "?:":"") + expression + ")"; // String
+};
+
+return regexp;
+});
+
+},
+'app/Analytics':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./analytics_config.json',
+	'dojo/text!./templates/Analytics_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		config,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("analytics::constructor()");
+			},
+			postCreate: function() {
+				this.inherited(arguments);
+				console.log("analytics::postCreate()");
+				var cp = new ContentPane({
+					id: 'analytics',
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%"
+				});
+				cp.set('content', domConstruct.toDom("<h1>Site Analytics</h1>"));
+				cp.placeAt(this.content);
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("analytics::startup()");
+				var deferred = new Deferred();
+				deferred.resolve();
+				return deferred.promise;
+			}
+		});
+	});
+},
+'dijit/_WidgetsInTemplateMixin':function(){
+define([
+	"dojo/_base/array", // forEach()
+	"dojo/aspect", // after()
+	"dojo/_base/declare", // declare()
+	"dojo/_base/lang",	// hitch()
+	"dojo/parser" // parse()
+], function(array, aspect, declare, lang, parser){
+
+	// module:
+	//		dijit/_WidgetsInTemplateMixin
+
+	return declare("dijit._WidgetsInTemplateMixin", null, {
+		// summary:
+		//		Mixin to supplement _TemplatedMixin when template contains widgets
+
+		// _earlyTemplatedStartup: Boolean
+		//		A fallback to preserve the 1.0 - 1.3 behavior of children in
+		//		templates having their startup called before the parent widget
+		//		fires postCreate. Defaults to 'false', causing child widgets to
+		//		have their .startup() called immediately before a parent widget
+		//		.startup(), but always after the parent .postCreate(). Set to
+		//		'true' to re-enable to previous, arguably broken, behavior.
+		_earlyTemplatedStartup: false,
+
+		// contextRequire: Function
+		//		Used to provide a context require to the dojo/parser in order to be
+		//		able to use relative MIDs (e.g. `./Widget`) in the widget's template.
+		contextRequire: null,
+
+		_beforeFillContent: function(){
+			// Short circuit the parser when the template doesn't contain any widgets.  Note that checking against
+			// this.templateString is insufficient because the data-dojo-type=... may appear through a substitution
+			// variable, like in ConfirmDialog, where the widget is hidden inside of the ${!actionBarTemplate}.
+			if(/dojoType|data-dojo-type/i.test(this.domNode.innerHTML)){
+				// Before copying over content, instantiate widgets in template
+				var node = this.domNode;
+
+				if(this.containerNode && !this.searchContainerNode){
+					// Tell parse call below not to look for widgets inside of this.containerNode
+					this.containerNode.stopParser = true;
+				}
+
+				parser.parse(node, {
+					noStart: !this._earlyTemplatedStartup,
+					template: true,
+					inherited: {dir: this.dir, lang: this.lang, textDir: this.textDir},
+					propsThis: this,	// so data-dojo-props of widgets in the template can reference "this" to refer to me
+					contextRequire: this.contextRequire,
+					scope: "dojo"	// even in multi-version mode templates use dojoType/data-dojo-type
+				}).then(lang.hitch(this, function(widgets){
+					this._startupWidgets = widgets;
+
+					// _WidgetBase::destroy() will destroy any supporting widgets under this.domNode.
+					// If we wanted to, we could call this.own() on anything in this._startupWidgets that was moved outside
+					// of this.domNode (like Dialog, which is moved to <body>).
+
+					// Hook up attach points and events for nodes that were converted to widgets
+					for(var i = 0; i < widgets.length; i++){
+						this._processTemplateNode(widgets[i], function(n,p){
+							// callback to get a property of a widget
+							return n[p];
+						}, function(widget, type, callback){
+							// callback to do data-dojo-attach-event to a widget
+							if(type in widget){
+								// back-compat, remove for 2.0
+								return widget.connect(widget, type, callback);
+							}else{
+								// 1.x may never hit this branch, but it's the default for 2.0
+								return widget.on(type, callback, true);
+							}
+						});
+					}
+
+					// Cleanup flag set above, just in case
+					if(this.containerNode && this.containerNode.stopParser){
+						delete this.containerNode.stopParser;
+					}
+				}));
+
+				if(!this._startupWidgets){
+					throw new Error(this.declaredClass + ": parser returned unfilled promise (probably waiting for module auto-load), " +
+						"unsupported by _WidgetsInTemplateMixin.   Must pre-load all supporting widgets before instantiation.");
 				}
 			}
+		},
+
+		_processTemplateNode: function(/*DOMNode|Widget*/ baseNode, getAttrFunc, attachFunc){
+			// Override _AttachMixin._processNode to skip DOMNodes with data-dojo-type set.   They are handled separately
+			// in the _beforeFillContent() code above.
+
+			if(getAttrFunc(baseNode, "dojoType") || getAttrFunc(baseNode, "data-dojo-type")){
+				return true;
+			}
+
+			return this.inherited(arguments);
+		},
+
+		startup: function(){
+			array.forEach(this._startupWidgets, function(w){
+				if(w && !w._started && w.startup){
+					w.startup();
+				}
+			});
+			this._startupWidgets = null;
+			this.inherited(arguments);
 		}
 	});
-	
-	/*=====
-		g.createSurface = function(parentNode, width, height){
+});
+
+},
+'app/Viewer3d':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin',
+	'dojo/text!./templates/Viewer3d_template.html'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin,
+		template
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("viewer3d::constructor()");
+			},
+			postCreate: function() {
+				this.inherited(arguments);
+				console.log("viewer3d::postCreate()");
+				var cp = new ContentPane({
+					id: 'viewer3d',
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%"
+				});
+				// request html page from server and set as content in the pane
+				
+				cp.set('content', domConstruct.toDom("<h1>3d Viewer</h1>"));
+				cp.placeAt(this.content);
+				cp.startup();
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("viewer3d::startup()");
+				var deferred = new Deferred();
+				deferred.resolve();
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/PublishingTools':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin',
+	"dojo/text!./templates/PublishingTools_template.html"
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin,
+		template
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("publishingTools::constructor()");
+			},
+			postCreate: function() {
+				this.inherited(arguments);
+				console.log("publishingTools::postCreate()");
+				var cp = new ContentPane({
+					id: 'publishing',
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%"
+				});
+				cp.set('content', domConstruct.toDom("<h1>Publishing Tools</h1>"));
+				cp.placeAt(this.content);
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("publishingTools::startup()");
+				var deferred = new Deferred();
+				deferred.resolve();
+				return deferred.promise;
+			}
+		});
+	});
+},
+'esri/IdentityManager':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["./IdentityManagerDialog","./kernel","./OAuthSignInHandler","dojo/_base/declare"],function(e,n,i,a){var d=new e;return n.id=a.safeMixin(d,i),n.id});
+},
+'esri/IdentityManagerDialog':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/kernel","dojo/_base/declare","dojo/_base/config","dojo/_base/Deferred","dojo/_base/lang","dojo/has","dojo/dom-attr","dojo/keys","dijit/registry","dijit/Dialog","./kernel","./lang","./domUtils","./Credential","./IdentityManagerBase","dojo/i18n!./nls/jsapi","dojo/query","dijit/form/Button","dijit/form/Form","dijit/form/ValidationTextBox"],function(e,t,r,i,n,s,o,d,a,l,c,_,u,g,b,p){var v=t([b],{declaredClass:"esri.IdentityManager",_eventMap:{"dialog-cancel":["info"]},constructor:function(e){n.mixin(this,e),this.registerConnectEvents()},_dialogContent:"<div data-dojo-type='dijit.form.Form' data-dojo-props='\"class\":\"esriIdForm\"'><div class='dijitDialogPaneContentArea'><div style='padding-bottom: 5px; word-wrap: break-word;'>${info}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><div class='esriErrorMsg' style='display: none; color: white; background-color: #D46464; text-align: center; padding-top: 3px; padding-bottom: 3px;'>${invalidUser}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><table style='width: 100%;'><tr><td><label>${lblUser}</label><br/>"+'<input data-dojo-type=\'dijit.form.ValidationTextBox\' data-dojo-props=\'type:"text", "class":"esriIdUser", required:true, trim:true, style:"width: 100%;", autocapitalize:"none", autocorrect:"off", spellcheck:false\' /></td></tr><tr><td><label>${lblPwd}</label><br/><input data-dojo-type=\'dijit.form.ValidationTextBox\' data-dojo-props=\'type:"password", "class":"esriIdPwd", required:true, style:"width: 100%;"\' /></td></tr></table></div><div class=\'dijitDialogPaneActionBar\'><button data-dojo-type=\'dijit.form.Button\' data-dojo-props=\'type:"button", "class":"esriIdSubmit"\'>${lblOk}</button><button data-dojo-type=\'dijit.form.Button\' data-dojo-props=\'type:"button", "class":"esriIdCancel"\'>${lblCancel}</button></div></div>',onDialogCreate:function(){},onDialogCancel:function(){},signIn:function(e,t,n){this._nls||(this._nls=p.identity),this._loginDialog||(this._loginDialog=this.dialog=this._createLoginDialog(),this.onDialogCreate());var s=this._loginDialog,d=n&&n.error,a=n&&n.token,l=new i(function(){s.onCancel()});if(s.open){var c=new Error("BUSY");return c.code="IdentityManager.1",c.log=r.isDebug,l.errback(c),l}return u.hide(s.errMsg_),d&&403==d.code&&a&&(o.set(s.errMsg_,"innerHTML",this._nls.forbidden),u.show(s.errMsg_)),s.dfd_=l,s.serverInfo_=t,s.resUrl_=e,s.admin_=n&&n.isAdmin,o.set(s.resLink_,{title:e,innerHTML:"("+(this.getResourceName(e)||this._nls.lblItem)+")"}),o.set(s.serverLink_,{title:t.server,innerHTML:(-1!==t.server.toLowerCase().indexOf("arcgis.com")?"ArcGIS Online":t.server)+" "}),s.txtPwd_.set("value",""),s.show(),l},_createLoginDialog:function(){var t=this._nls,i=_.substitute(t,this._dialogContent);i=_.substitute({resource:"<span class='resLink' style='word-wrap: break-word;'></span>",server:"<span class='serverLink' style='word-wrap: break-word;'></span>"},i);var n=new l({title:t.title,content:i,"class":"esriSignInDialog",style:"width: 18em;",esriIdMgr_:this,keypressed_:function(e){e.charOrCode===d.ENTER&&this.execute_()},execute_:function(){var e=this.txtUser_.get("value"),r=this.txtPwd_.get("value"),i=this.dfd_,n=this;if(this.form_.validate()&&e&&r){this.btnSubmit_.set("label",t.lblSigning);var s=c.id.findCredential(n.resUrl_,e),d=function(r){n.btnSubmit_.set("label",t.lblOk),n.btnSubmit_.set("disabled",!1),u.hide(n.errMsg_),n.hide(),l._DialogLevelManager.hide(n);var o=n.serverInfo_;n.dfd_=n.serverInfo_=n.generateDfd_=n.resUrl_=null;var d,a,c,b=s;r&&(d=r.token,a=_.isDefined(r.expires)?Number(r.expires):null,c=!!r.ssl,b?(b.userId=e,b.token=d,b.expires=a,b.validity=r.validity,b.ssl=c,b.creationTime=(new Date).getTime()):b=new g({userId:e,server:o.server,token:d,expires:a,ssl:c,isAdmin:n.admin_,validity:r.validity})),i.callback(b)};if(s&&!s._enqueued)return void d();n.btnSubmit_.set("disabled",!0),n.generateDfd_=c.id.generateToken(this.serverInfo_,{username:e,password:r},{isAdmin:this.admin_}).addCallback(d).addErrback(function(e){n.btnSubmit_.set("disabled",!1),n.generateDfd_=null,n.btnSubmit_.set("label",t.lblOk),o.set(n.errMsg_,"innerHTML",e&&e.code?t.invalidUser:t.noAuthService),u.show(n.errMsg_)})}},cancel_:function(){n.generateDfd_&&n.generateDfd_.cancel();var e=n.dfd_,t=n.resUrl_,i=n.serverInfo_;n.btnSubmit_.set("disabled",!1),n.dfd_=n.serverInfo_=n.generateDfd_=n.resUrl_=null,u.hide(n.errMsg_),l._DialogLevelManager.hide(n),n.esriIdMgr_.onDialogCancel({resourceUrl:t,serverInfo:i});var s=new Error("ABORTED");s.code="IdentityManager.2",s.log=r.isDebug,e.errback(s)}}),s=n.domNode;return n.form_=a.byNode(e.query(".esriIdForm",s)[0]),n.txtUser_=a.byNode(e.query(".esriIdUser",s)[0]),n.txtPwd_=a.byNode(e.query(".esriIdPwd",s)[0]),n.btnSubmit_=a.byNode(e.query(".esriIdSubmit",s)[0]),n.btnCancel_=a.byNode(e.query(".esriIdCancel",s)[0]),n.resLink_=e.query(".resLink",s)[0],n.serverLink_=e.query(".serverLink",s)[0],n.errMsg_=e.query(".esriErrorMsg",s)[0],n.connect(n.txtUser_,"onKeyPress",n.keypressed_),n.connect(n.txtPwd_,"onKeyPress",n.keypressed_),n.connect(n.btnSubmit_,"onClick",n.execute_),n.connect(n.btnCancel_,"onClick",n.onCancel),n.connect(n,"onCancel",n.cancel_),n}});return s("extend-esri")&&(c.IdentityManagerDialog=c.IdentityManager=v),v});
+},
+'dijit/Dialog':function(){
+define([
+	"require",
+	"dojo/_base/array", // array.forEach array.indexOf array.map
+	"dojo/aspect",
+	"dojo/_base/declare", // declare
+	"dojo/Deferred", // Deferred
+	"dojo/dom", // dom.isDescendant
+	"dojo/dom-class", // domClass.add domClass.contains
+	"dojo/dom-geometry", // domGeometry.position
+	"dojo/dom-style", // domStyle.set
+	"dojo/_base/fx", // fx.fadeIn fx.fadeOut
+	"dojo/i18n", // i18n.getLocalization
+	"dojo/keys",
+	"dojo/_base/lang", // lang.mixin lang.hitch
+	"dojo/on",
+	"dojo/ready",
+	"dojo/sniff", // has("ie") has("opera") has("dijit-legacy-requires")
+	"dojo/window", // winUtils.getBox, winUtils.get
+	"dojo/dnd/Moveable", // Moveable
+	"dojo/dnd/TimedMoveable", // TimedMoveable
+	"./focus",
+	"./_base/manager", // manager.defaultDuration
+	"./_Widget",
+	"./_TemplatedMixin",
+	"./_CssStateMixin",
+	"./form/_FormMixin",
+	"./_DialogMixin",
+	"./DialogUnderlay",
+	"./layout/ContentPane",
+	"./layout/utils",
+	"dojo/text!./templates/Dialog.html",
+	"./a11yclick",	// template uses ondijitclick
+	"dojo/i18n!./nls/common"
+], function(require, array, aspect, declare, Deferred,
+			dom, domClass, domGeometry, domStyle, fx, i18n, keys, lang, on, ready, has, winUtils,
+			Moveable, TimedMoveable, focus, manager, _Widget, _TemplatedMixin, _CssStateMixin, _FormMixin, _DialogMixin,
+			DialogUnderlay, ContentPane, utils, template){
+
+	// module:
+	//		dijit/Dialog
+
+	var resolvedDeferred = new Deferred();
+	resolvedDeferred.resolve(true);
+
+	function nop(){}
+
+	var _DialogBase = declare("dijit._DialogBase" + (has("dojo-bidi") ? "_NoBidi" : ""), [_TemplatedMixin, _FormMixin, _DialogMixin, _CssStateMixin], {
+		templateString: template,
+
+		baseClass: "dijitDialog",
+
+		cssStateNodes: {
+			closeButtonNode: "dijitDialogCloseIcon"
+		},
+
+		// Map widget attributes to DOMNode attributes.
+		_setTitleAttr: { node: "titleNode", type: "innerHTML" },
+
+		// open: [readonly] Boolean
+		//		True if Dialog is currently displayed on screen.
+		open: false,
+
+		// duration: Integer
+		//		The time in milliseconds it takes the dialog to fade in and out
+		duration: manager.defaultDuration,
+
+		// refocus: Boolean
+		//		A Toggle to modify the default focus behavior of a Dialog, which
+		//		is to re-focus the element which had focus before being opened.
+		//		False will disable refocusing. Default: true
+		refocus: true,
+
+		// autofocus: Boolean
+		//		A Toggle to modify the default focus behavior of a Dialog, which
+		//		is to focus on the first dialog element after opening the dialog.
+		//		False will disable autofocusing. Default: true
+		autofocus: true,
+
+		// _firstFocusItem: [private readonly] DomNode
+		//		The pointer to the first focusable node in the dialog.
+		//		Set by `dijit/_DialogMixin._getFocusItems()`.
+		_firstFocusItem: null,
+
+		// _lastFocusItem: [private readonly] DomNode
+		//		The pointer to which node has focus prior to our dialog.
+		//		Set by `dijit/_DialogMixin._getFocusItems()`.
+		_lastFocusItem: null,
+
+		// draggable: Boolean
+		//		Toggles the movable aspect of the Dialog. If true, Dialog
+		//		can be dragged by it's title. If false it will remain centered
+		//		in the viewport.
+		draggable: true,
+		_setDraggableAttr: function(/*Boolean*/ val){
+			// Avoid _WidgetBase behavior of copying draggable attribute to this.domNode,
+			// as that prevents text select on modern browsers (#14452)
+			this._set("draggable", val);
+		},
+
+		// maxRatio: Number
+		//		Maximum size to allow the dialog to expand to, relative to viewport size
+		maxRatio: 0.9,
+
+		// closable: Boolean
+		//		Dialog show [x] icon to close itself, and ESC key will close the dialog.
+		closable: true,
+		_setClosableAttr: function(val){
+			this.closeButtonNode.style.display = val ? "" : "none";
+			this._set("closable", val);
+		},
+
+		postMixInProperties: function(){
+			var _nlsResources = i18n.getLocalization("dijit", "common");
+			lang.mixin(this, _nlsResources);
+			this.inherited(arguments);
+		},
+
+		postCreate: function(){
+			domStyle.set(this.domNode, {
+				display: "none",
+				position: "absolute"
+			});
+			this.ownerDocumentBody.appendChild(this.domNode);
+
+			this.inherited(arguments);
+
+			aspect.after(this, "onExecute", lang.hitch(this, "hide"), true);
+			aspect.after(this, "onCancel", lang.hitch(this, "hide"), true);
+
+			this._modalconnects = [];
+		},
+
+		onLoad: function(){
 			// summary:
-			//		creates a surface
-			// parentNode: Node
-			//		a parent node
-			// width: String|Number
-			//		width of surface, e.g., "100px" or 100
-			// height: String|Number
-			//		height of surface, e.g., "100px" or 100
-			// returns: dojox/gfx.Surface
-			//     newly created surface
-		};
-		g.fixTarget = function(){
+			//		Called when data has been loaded from an href.
+			//		Unlike most other callbacks, this function can be connected to (via `dojo.connect`)
+			//		but should *not* be overridden.
+			// tags:
+			//		callback
+
+			// when href is specified we need to reposition the dialog after the data is loaded
+			// and find the focusable elements
+			this.resize();
+			this._position();
+
+			if(this.autofocus && DialogLevelManager.isTop(this)){
+				this._getFocusItems();
+				focus.focus(this._firstFocusItem);
+			}
+
+			this.inherited(arguments);
+		},
+
+		focus: function(){
+			this._getFocusItems();
+			focus.focus(this._firstFocusItem);
+		},
+
+		_endDrag: function(){
+			// summary:
+			//		Called after dragging the Dialog. Saves the position of the dialog in the viewport,
+			//		and also adjust position to be fully within the viewport, so user doesn't lose access to handle
+			var nodePosition = domGeometry.position(this.domNode),
+				viewport = winUtils.getBox(this.ownerDocument);
+			nodePosition.y = Math.min(Math.max(nodePosition.y, 0), (viewport.h - nodePosition.h));
+			nodePosition.x = Math.min(Math.max(nodePosition.x, 0), (viewport.w - nodePosition.w));
+			this._relativePosition = nodePosition;
+			this._position();
+		},
+
+		_setup: function(){
+			// summary:
+			//		Stuff we need to do before showing the Dialog for the first
+			//		time (but we defer it until right beforehand, for
+			//		performance reasons).
 			// tags:
 			//		private
-		};
+
+			var node = this.domNode;
+
+			if(this.titleBar && this.draggable){
+				this._moveable = new ((has("ie") == 6) ? TimedMoveable // prevent overload, see #5285
+					: Moveable)(node, { handle: this.titleBar });
+				aspect.after(this._moveable, "onMoveStop", lang.hitch(this, "_endDrag"), true);
+			}else{
+				domClass.add(node, "dijitDialogFixed");
+			}
+
+			this.underlayAttrs = {
+				dialogId: this.id,
+				"class": array.map(this["class"].split(/\s/),function(s){
+					return s + "_underlay";
+				}).join(" "),
+				_onKeyDown: lang.hitch(this, "_onKey"),
+				ownerDocument: this.ownerDocument
+			};
+		},
+
+		_size: function(){
+			// TODO: remove for 2.0
+			this.resize();
+		},
+
+		_position: function(){
+			// summary:
+			//		Position the dialog in the viewport.  If no relative offset
+			//		in the viewport has been determined (by dragging, for instance),
+			//		center the dialog.  Otherwise, use the Dialog's stored relative offset,
+			//		clipped to fit inside the viewport (which may have been shrunk).
+			//		Finally, adjust position according to viewport's scroll.
+
+			if(!domClass.contains(this.ownerDocumentBody, "dojoMove")){    // don't do anything if called during auto-scroll
+				var node = this.domNode,
+					viewport = winUtils.getBox(this.ownerDocument),
+					p = this._relativePosition,
+					bb = domGeometry.position(node),
+					l = Math.floor(viewport.l + (p ? Math.min(p.x, viewport.w - bb.w) : (viewport.w - bb.w) / 2)),
+					t = Math.floor(viewport.t + (p ? Math.min(p.y, viewport.h - bb.h) : (viewport.h - bb.h) / 2));
+
+				domStyle.set(node, {
+					left: l + "px",
+					top: t + "px"
+				});
+			}
+		},
+
+		_onKey: function(/*Event*/ evt){
+			// summary:
+			//		Handles the keyboard events for accessibility reasons
+			// tags:
+			//		private
+
+			if(evt.keyCode == keys.TAB){
+				this._getFocusItems();
+				var node = evt.target;
+				if(this._firstFocusItem == this._lastFocusItem){
+					// don't move focus anywhere, but don't allow browser to move focus off of dialog either
+					evt.stopPropagation();
+					evt.preventDefault();
+				}else if(node == this._firstFocusItem && evt.shiftKey){
+					// if we are shift-tabbing from first focusable item in dialog, send focus to last item
+					focus.focus(this._lastFocusItem);
+					evt.stopPropagation();
+					evt.preventDefault();
+				}else if(node == this._lastFocusItem && !evt.shiftKey){
+					// if we are tabbing from last focusable item in dialog, send focus to first item
+					focus.focus(this._firstFocusItem);
+					evt.stopPropagation();
+					evt.preventDefault();
+				}
+			}else if(this.closable && evt.keyCode == keys.ESCAPE){
+				this.onCancel();
+				evt.stopPropagation();
+				evt.preventDefault();
+			}
+		},
+
+		show: function(){
+			// summary:
+			//		Display the dialog
+			// returns: dojo/promise/Promise
+			//		Promise object that resolves when the display animation is complete
+
+			if(this.open){
+				return resolvedDeferred.promise;
+			}
+
+			if(!this._started){
+				this.startup();
+			}
+
+			// first time we show the dialog, there's some initialization stuff to do
+			if(!this._alreadyInitialized){
+				this._setup();
+				this._alreadyInitialized = true;
+			}
+
+			if(this._fadeOutDeferred){
+				// There's a hide() operation in progress, so cancel it, but still call DialogLevelManager.hide()
+				// as though the hide() completed, in preparation for the DialogLevelManager.show() call below.
+				this._fadeOutDeferred.cancel();
+				DialogLevelManager.hide(this);
+			}
+
+			// Recenter Dialog if user scrolls browser.  Connecting to document doesn't work on IE, need to use window.
+			// Be sure that event object doesn't get passed to resize() method, because it's expecting an optional
+			// {w: ..., h:...} arg.
+			var win = winUtils.get(this.ownerDocument);
+			this._modalconnects.push(on(win, "scroll", lang.hitch(this, "resize", null)));
+
+			this._modalconnects.push(on(this.domNode, "keydown", lang.hitch(this, "_onKey")));
+
+			domStyle.set(this.domNode, {
+				opacity: 0,
+				display: ""
+			});
+
+			this._set("open", true);
+			this._onShow(); // lazy load trigger
+
+			this.resize();
+			this._position();
+
+			// fade-in Animation object, setup below
+			var fadeIn;
+
+			this._fadeInDeferred = new Deferred(lang.hitch(this, function(){
+				fadeIn.stop();
+				delete this._fadeInDeferred;
+			}));
+			this._fadeInDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
+
+			// If delay is 0, code below will delete this._fadeInDeferred instantly, so grab promise while we can.
+			var promise = this._fadeInDeferred.promise;
+
+			fadeIn = fx.fadeIn({
+				node: this.domNode,
+				duration: this.duration,
+				beforeBegin: lang.hitch(this, function(){
+					DialogLevelManager.show(this, this.underlayAttrs);
+				}),
+				onEnd: lang.hitch(this, function(){
+					if(this.autofocus && DialogLevelManager.isTop(this)){
+						// find focusable items each time dialog is shown since if dialog contains a widget the
+						// first focusable items can change
+						this._getFocusItems();
+						focus.focus(this._firstFocusItem);
+					}
+					this._fadeInDeferred.resolve(true);
+					delete this._fadeInDeferred;
+				})
+			}).play();
+
+			return promise;
+		},
+
+		hide: function(){
+			// summary:
+			//		Hide the dialog
+			// returns: dojo/promise/Promise
+			//		Promise object that resolves when the display animation is complete
+
+			// If we haven't been initialized yet then we aren't showing and we can just return.
+			// Likewise if we are already hidden, or are currently fading out.
+			if(!this._alreadyInitialized || !this.open){
+				return resolvedDeferred.promise;
+			}
+			if(this._fadeInDeferred){
+				this._fadeInDeferred.cancel();
+			}
+
+			// fade-in Animation object, setup below
+			var fadeOut;
+
+			this._fadeOutDeferred = new Deferred(lang.hitch(this, function(){
+				fadeOut.stop();
+				delete this._fadeOutDeferred;
+			}));
+			this._fadeOutDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
+
+			// fire onHide when the promise resolves.
+			this._fadeOutDeferred.then(lang.hitch(this, 'onHide'));
+
+			// If delay is 0, code below will delete this._fadeOutDeferred instantly, so grab promise while we can.
+			var promise = this._fadeOutDeferred.promise;
+
+			fadeOut = fx.fadeOut({
+				node: this.domNode,
+				duration: this.duration,
+				onEnd: lang.hitch(this, function(){
+					this.domNode.style.display = "none";
+					DialogLevelManager.hide(this);
+					this._fadeOutDeferred.resolve(true);
+					delete this._fadeOutDeferred;
+				})
+			}).play();
+
+			if(this._scrollConnected){
+				this._scrollConnected = false;
+			}
+			var h;
+			while(h = this._modalconnects.pop()){
+				h.remove();
+			}
+
+			if(this._relativePosition){
+				delete this._relativePosition;
+			}
+			this._set("open", false);
+
+			return promise;
+		},
+
+		resize: function(dim){
+			// summary:
+			//		Called with no argument when viewport scrolled or viewport size changed.  Adjusts Dialog as
+			//		necessary to keep it visible.
+			//
+			//		Can also be called with an argument (by dojox/layout/ResizeHandle etc.) to explicitly set the
+			//		size of the dialog.
+			// dim: Object?
+			//		Optional dimension object like {w: 200, h: 300}
+
+			if(this.domNode.style.display != "none"){
+
+				this._checkIfSingleChild();
+
+				if(!dim){
+					if(this._shrunk){
+						// If we earlier shrunk the dialog to fit in the viewport, reset it to its natural size
+						if(this._singleChild){
+							if(typeof this._singleChildOriginalStyle != "undefined"){
+								this._singleChild.domNode.style.cssText = this._singleChildOriginalStyle;
+								delete this._singleChildOriginalStyle;
+							}
+						}
+						array.forEach([this.domNode, this.containerNode, this.titleBar, this.actionBarNode], function(node){
+							if(node){	// because titleBar may not be defined
+								domStyle.set(node, {
+									position: "static",
+									width: "auto",
+									height: "auto"
+								});
+							}
+						});
+						this.domNode.style.position = "absolute";
+					}
+
+					// If necessary, shrink Dialog to fit in viewport and have some space around it
+					// to indicate that it's a popup.  This will also compensate for possible scrollbars on viewport.
+					var viewport = winUtils.getBox(this.ownerDocument);
+					viewport.w *= this.maxRatio;
+					viewport.h *= this.maxRatio;
+
+					var bb = domGeometry.position(this.domNode);
+					if(bb.w >= viewport.w || bb.h >= viewport.h){
+						dim = {
+							w: Math.min(bb.w, viewport.w),
+							h: Math.min(bb.h, viewport.h)
+						};
+						this._shrunk = true;
+					}else{
+						this._shrunk = false;
+					}
+				}
+
+				// Code to run if user has requested an explicit size, or the shrinking code above set an implicit size
+				if(dim){
+					// Set this.domNode to specified size
+					domGeometry.setMarginBox(this.domNode, dim);
+
+					// And then size this.containerNode
+					var layoutNodes = [];
+					if(this.titleBar){
+						layoutNodes.push({domNode: this.titleBar, region: "top"});
+					}
+					if(this.actionBarNode){
+						layoutNodes.push({domNode: this.actionBarNode, region: "bottom"});
+					}
+					var centerSize = {domNode: this.containerNode, region: "center"};
+					layoutNodes.push(centerSize);
+
+					var contentDim = utils.marginBox2contentBox(this.domNode, dim);
+					utils.layoutChildren(this.domNode, contentDim, layoutNodes);
+
+					// And then if this.containerNode has a single layout widget child, size it too.
+					// Otherwise, make this.containerNode show a scrollbar if it's overflowing.
+					if(this._singleChild){
+						var cb = utils.marginBox2contentBox(this.containerNode, centerSize);
+						// note: if containerNode has padding singleChildSize will have l and t set,
+						// but don't pass them to resize() or it will doubly-offset the child
+						this._singleChild.resize({w: cb.w, h: cb.h});
+						// TODO: save original size for restoring it on another show()?
+					}else{
+						this.containerNode.style.overflow = "auto";
+						this._layoutChildren();		// send resize() event to all child widgets
+					}
+				}else{
+					this._layoutChildren();		// send resize() event to all child widgets
+				}
+
+				if(!has("touch") && !dim){
+					// If the user has scrolled the viewport then reposition the Dialog.  But don't do it for touch
+					// devices, because it will counteract when a keyboard pops up and then the browser auto-scrolls
+					// the focused node into view.
+					this._position();
+				}
+			}
+		},
+
+		_layoutChildren: function(){
+			// Override _ContentPaneResizeMixin._layoutChildren because even when there's just a single layout child
+			// widget, sometimes we don't want to size it explicitly (i.e. to pass a dim argument to resize())
+
+			array.forEach(this.getChildren(), function(widget){
+				if(widget.resize){
+					widget.resize();
+				}
+			});
+		},
+
+		destroy: function(){
+			if(this._fadeInDeferred){
+				this._fadeInDeferred.cancel();
+			}
+			if(this._fadeOutDeferred){
+				this._fadeOutDeferred.cancel();
+			}
+			if(this._moveable){
+				this._moveable.destroy();
+			}
+			var h;
+			while(h = this._modalconnects.pop()){
+				h.remove();
+			}
+
+			DialogLevelManager.hide(this);
+
+			this.inherited(arguments);
+		}
+	});
+
+	if(has("dojo-bidi")){
+		_DialogBase = declare("dijit._DialogBase", _DialogBase, {
+			_setTitleAttr: function(/*String*/ title){
+				this._set("title", title);
+				this.titleNode.innerHTML = title;
+				this.applyTextDir(this.titleNode);
+			},
+
+			_setTextDirAttr: function(textDir){
+				if(this._created && this.textDir != textDir){
+					this._set("textDir", textDir);
+					this.set("title", this.title);
+				}
+			}
+		});
+	}
+
+	var Dialog = declare("dijit.Dialog", [ContentPane, _DialogBase], {
+		// summary:
+		//		A modal dialog Widget.
+		// description:
+		//		Pops up a modal dialog window, blocking access to the screen
+		//		and also graying out the screen Dialog is extended from
+		//		ContentPane so it supports all the same parameters (href, etc.).
+		// example:
+		// |	<div data-dojo-type="dijit/Dialog" data-dojo-props="href: 'test.html'"></div>
+		// example:
+		// |	var foo = new Dialog({ title: "test dialog", content: "test content" });
+		// |	foo.placeAt(win.body());
+		// |	foo.startup();
+	});
+	Dialog._DialogBase = _DialogBase;	// for monkey patching and dojox/widget/DialogSimple
+
+	var DialogLevelManager = Dialog._DialogLevelManager = {
+		// summary:
+		//		Controls the various active "levels" on the page, starting with the
+		//		stuff initially visible on the page (at z-index 0), and then having an entry for
+		//		each Dialog shown.
+
+		_beginZIndex: 950,
+
+		show: function(/*dijit/_WidgetBase*/ dialog, /*Object*/ underlayAttrs){
+			// summary:
+			//		Call right before fade-in animation for new dialog.
+			//		Saves current focus, displays/adjusts underlay for new dialog,
+			//		and sets the z-index of the dialog itself.
+			//
+			//		New dialog will be displayed on top of all currently displayed dialogs.
+			//
+			//		Caller is responsible for setting focus in new dialog after the fade-in
+			//		animation completes.
+
+			// Save current focus
+			ds[ds.length - 1].focus = focus.curNode;
+
+			// Set z-index a bit above previous dialog
+			var zIndex = ds[ds.length - 1].dialog ? ds[ds.length - 1].zIndex + 2 : Dialog._DialogLevelManager._beginZIndex;
+			domStyle.set(dialog.domNode, 'zIndex', zIndex);
+
+			// Display the underlay, or if already displayed then adjust for this new dialog
+			DialogUnderlay.show(underlayAttrs, zIndex - 1);
+
+			ds.push({dialog: dialog, underlayAttrs: underlayAttrs, zIndex: zIndex});
+		},
+
+		hide: function(/*dijit/_WidgetBase*/ dialog){
+			// summary:
+			//		Called when the specified dialog is hidden/destroyed, after the fade-out
+			//		animation ends, in order to reset page focus, fix the underlay, etc.
+			//		If the specified dialog isn't open then does nothing.
+			//
+			//		Caller is responsible for either setting display:none on the dialog domNode,
+			//		or calling dijit/popup.hide(), or removing it from the page DOM.
+
+			if(ds[ds.length - 1].dialog == dialog){
+				// Removing the top (or only) dialog in the stack, return focus
+				// to previous dialog
+
+				ds.pop();
+
+				var pd = ds[ds.length - 1];	// the new active dialog (or the base page itself)
+
+				// Adjust underlay
+				if(ds.length == 1){
+					// Returning to original page.  Hide the underlay.
+					DialogUnderlay.hide();
+				}else{
+					// Popping back to previous dialog, adjust underlay.
+					DialogUnderlay.show(pd.underlayAttrs, pd.zIndex - 1);
+				}
+
+				// Adjust focus.
+				// TODO: regardless of setting of dialog.refocus, if the exeucte() method set focus somewhere,
+				// don't shift focus back to button.  Note that execute() runs at the start of the fade-out but
+				// this code runs later, at the end of the fade-out.  Menu has code like this.
+				if(dialog.refocus){
+					// If we are returning control to a previous dialog but for some reason
+					// that dialog didn't have a focused field, set focus to first focusable item.
+					// This situation could happen if two dialogs appeared at nearly the same time,
+					// since a dialog doesn't set it's focus until the fade-in is finished.
+					var focus = pd.focus;
+					if(pd.dialog && (!focus || !dom.isDescendant(focus, pd.dialog.domNode))){
+						pd.dialog._getFocusItems();
+						focus = pd.dialog._firstFocusItem;
+					}
+
+					if(focus){
+						// Refocus the button that spawned the Dialog.   This will fail in corner cases including
+						// page unload on IE, because the dijit/form/Button that launched the Dialog may get destroyed
+						// before this code runs.  (#15058)
+						try{
+							focus.focus();
+						}catch(e){
+						}
+					}
+				}
+			}else{
+				// Removing a dialog out of order (#9944, #10705).
+				// Don't need to mess with underlay or z-index or anything.
+				var idx = array.indexOf(array.map(ds, function(elem){
+					return elem.dialog;
+				}), dialog);
+				if(idx != -1){
+					ds.splice(idx, 1);
+				}
+			}
+		},
+
+		isTop: function(/*dijit/_WidgetBase*/ dialog){
+			// summary:
+			//		Returns true if specified Dialog is the top in the task
+			return ds[ds.length - 1].dialog == dialog;
+		}
+	};
+
+	// Stack representing the various active "levels" on the page, starting with the
+	// stuff initially visible on the page (at z-index 0), and then having an entry for
+	// each Dialog shown.
+	// Each element in stack has form {
+	//		dialog: dialogWidget,
+	//		focus: returnFromGetFocus(),
+	//		underlayAttrs: attributes to set on underlay (when this widget is active)
+	// }
+	var ds = Dialog._dialogStack = [
+		{dialog: null, focus: null, underlayAttrs: null}    // entry for stuff at z-index: 0
+	];
+
+	// If focus was accidentally removed from the dialog, such as if the user clicked a blank
+	// area of the screen, or clicked the browser's address bar and then tabbed into the page,
+	// then refocus.   Won't do anything if focus was removed because the Dialog was closed, or
+	// because a new Dialog popped up on top of the old one, or when focus moves to popups
+	focus.watch("curNode", function(attr, oldNode, node){
+ 		// Note: if no dialogs, ds.length==1 but ds[ds.length-1].dialog is null
+		var topDialog = ds[ds.length - 1].dialog;
+
+		// If a node was focused, and there's a Dialog currently showing, and not in the process of fading out...
+		// Ignore focus events on other document though because it's likely an Editor inside of the Dialog.
+		if(node && topDialog && !topDialog._fadeOutDeferred && node.ownerDocument == topDialog.ownerDocument){
+			// If the node that was focused is inside the dialog or in a popup, even a context menu that isn't
+			// technically a descendant of the the dialog, don't do anything.
+			do{
+				if(node == topDialog.domNode || domClass.contains(node, "dijitPopup")){ return; }
+			}while(node = node.parentNode);
+
+			// Otherwise, return focus to the dialog.  Use a delay to avoid confusing dijit/focus code's
+			// own tracking of focus.
+			topDialog.focus();
+		}
+	});
+
+	// Back compat w/1.6, remove for 2.0
+	if(has("dijit-legacy-requires")){
+		ready(0, function(){
+			var requires = ["dijit/TooltipDialog"];
+			require(requires);	// use indirection so modules not rolled into a build
+		});
+	}
+
+	return Dialog;
+});
+
+},
+'dojo/_base/fx':function(){
+define(["./kernel", "./config", /*===== "./declare", =====*/ "./lang", "../Evented", "./Color", "../aspect", "../sniff", "../dom", "../dom-style"],
+	function(dojo, config, /*===== declare, =====*/ lang, Evented, Color, aspect, has, dom, style){
+	// module:
+	//		dojo/_base/fx
+	// notes:
+	//		Animation loosely package based on Dan Pupius' work, contributed under CLA; see
+	//		http://pupius.co.uk/js/Toolkit.Drawing.js
+
+	var _mixin = lang.mixin;
+
+	// Module export
+	var basefx = {
+		// summary:
+		//		This module defines the base dojo/_base/fx implementation.
+	};
+
+	var _Line = basefx._Line = function(/*int*/ start, /*int*/ end){
+		// summary:
+		//		Object used to generate values from a start value to an end value
+		// start: int
+		//		Beginning value for range
+		// end: int
+		//		Ending value for range
+		this.start = start;
+		this.end = end;
+	};
+
+	_Line.prototype.getValue = function(/*float*/ n){
+		// summary:
+		//		Returns the point on the line
+		// n:
+		//		a floating point number greater than 0 and less than 1
+		return ((this.end - this.start) * n) + this.start; // Decimal
+	};
+
+	var Animation = basefx.Animation = function(args){
+		// summary:
+		//		A generic animation class that fires callbacks into its handlers
+		//		object at various states.
+		// description:
+		//		A generic animation class that fires callbacks into its handlers
+		//		object at various states. Nearly all dojo animation functions
+		//		return an instance of this method, usually without calling the
+		//		.play() method beforehand. Therefore, you will likely need to
+		//		call .play() on instances of `Animation` when one is
+		//		returned.
+		// args: Object
+		//		The 'magic argument', mixing all the properties into this
+		//		animation instance.
+
+		_mixin(this, args);
+		if(lang.isArray(this.curve)){
+			this.curve = new _Line(this.curve[0], this.curve[1]);
+		}
+
+	};
+	Animation.prototype = new Evented();
+
+	lang.extend(Animation, {
+		// duration: Integer
+		//		The time in milliseconds the animation will take to run
+		duration: 350,
+
+	/*=====
+		// curve: _Line|Array
+		//		A two element array of start and end values, or a `_Line` instance to be
+		//		used in the Animation.
+		curve: null,
+
+		// easing: Function?
+		//		A Function to adjust the acceleration (or deceleration) of the progress
+		//		across a _Line
+		easing: null,
 	=====*/
-	
-	return g; // defaults object api
+
+		// repeat: Integer?
+		//		The number of times to loop the animation
+		repeat: 0,
+
+		// rate: Integer?
+		//		the time in milliseconds to wait before advancing to next frame
+		//		(used as a fps timer: 1000/rate = fps)
+		rate: 20 /* 50 fps */,
+
+	/*=====
+		// delay: Integer?
+		//		The time in milliseconds to wait before starting animation after it
+		//		has been .play()'ed
+		delay: null,
+
+		// beforeBegin: Event?
+		//		Synthetic event fired before a Animation begins playing (synchronous)
+		beforeBegin: null,
+
+		// onBegin: Event?
+		//		Synthetic event fired as a Animation begins playing (useful?)
+		onBegin: null,
+
+		// onAnimate: Event?
+		//		Synthetic event fired at each interval of the Animation
+		onAnimate: null,
+
+		// onEnd: Event?
+		//		Synthetic event fired after the final frame of the Animation
+		onEnd: null,
+
+		// onPlay: Event?
+		//		Synthetic event fired any time the Animation is play()'ed
+		onPlay: null,
+
+		// onPause: Event?
+		//		Synthetic event fired when the Animation is paused
+		onPause: null,
+
+		// onStop: Event
+		//		Synthetic event fires when the Animation is stopped
+		onStop: null,
+
+	=====*/
+
+		_percent: 0,
+		_startRepeatCount: 0,
+
+		_getStep: function(){
+			var _p = this._percent,
+				_e = this.easing
+			;
+			return _e ? _e(_p) : _p;
+		},
+		_fire: function(/*Event*/ evt, /*Array?*/ args){
+			// summary:
+			//		Convenience function.  Fire event "evt" and pass it the
+			//		arguments specified in "args".
+			// description:
+			//		Convenience function.  Fire event "evt" and pass it the
+			//		arguments specified in "args".
+			//		Fires the callback in the scope of this Animation
+			//		instance.
+			// evt:
+			//		The event to fire.
+			// args:
+			//		The arguments to pass to the event.
+			var a = args||[];
+			if(this[evt]){
+				if(config.debugAtAllCosts){
+					this[evt].apply(this, a);
+				}else{
+					try{
+						this[evt].apply(this, a);
+					}catch(e){
+						// squelch and log because we shouldn't allow exceptions in
+						// synthetic event handlers to cause the internal timer to run
+						// amuck, potentially pegging the CPU. I'm not a fan of this
+						// squelch, but hopefully logging will make it clear what's
+						// going on
+						console.error("exception in animation handler for:", evt);
+						console.error(e);
+					}
+				}
+			}
+			return this; // Animation
+		},
+
+		play: function(/*int?*/ delay, /*Boolean?*/ gotoStart){
+			// summary:
+			//		Start the animation.
+			// delay:
+			//		How many milliseconds to delay before starting.
+			// gotoStart:
+			//		If true, starts the animation from the beginning; otherwise,
+			//		starts it from its current position.
+			// returns: Animation
+			//		The instance to allow chaining.
+
+			var _t = this;
+			if(_t._delayTimer){ _t._clearTimer(); }
+			if(gotoStart){
+				_t._stopTimer();
+				_t._active = _t._paused = false;
+				_t._percent = 0;
+			}else if(_t._active && !_t._paused){
+				return _t;
+			}
+
+			_t._fire("beforeBegin", [_t.node]);
+
+			var de = delay || _t.delay,
+				_p = lang.hitch(_t, "_play", gotoStart);
+
+			if(de > 0){
+				_t._delayTimer = setTimeout(_p, de);
+				return _t;
+			}
+			_p();
+			return _t;	// Animation
+		},
+
+		_play: function(gotoStart){
+			var _t = this;
+			if(_t._delayTimer){ _t._clearTimer(); }
+			_t._startTime = new Date().valueOf();
+			if(_t._paused){
+				_t._startTime -= _t.duration * _t._percent;
+			}
+
+			_t._active = true;
+			_t._paused = false;
+			var value = _t.curve.getValue(_t._getStep());
+			if(!_t._percent){
+				if(!_t._startRepeatCount){
+					_t._startRepeatCount = _t.repeat;
+				}
+				_t._fire("onBegin", [value]);
+			}
+
+			_t._fire("onPlay", [value]);
+
+			_t._cycle();
+			return _t; // Animation
+		},
+
+		pause: function(){
+			// summary:
+			//		Pauses a running animation.
+			var _t = this;
+			if(_t._delayTimer){ _t._clearTimer(); }
+			_t._stopTimer();
+			if(!_t._active){ return _t; /*Animation*/ }
+			_t._paused = true;
+			_t._fire("onPause", [_t.curve.getValue(_t._getStep())]);
+			return _t; // Animation
+		},
+
+		gotoPercent: function(/*Decimal*/ percent, /*Boolean?*/ andPlay){
+			// summary:
+			//		Sets the progress of the animation.
+			// percent:
+			//		A percentage in decimal notation (between and including 0.0 and 1.0).
+			// andPlay:
+			//		If true, play the animation after setting the progress.
+			var _t = this;
+			_t._stopTimer();
+			_t._active = _t._paused = true;
+			_t._percent = percent;
+			if(andPlay){ _t.play(); }
+			return _t; // Animation
+		},
+
+		stop: function(/*boolean?*/ gotoEnd){
+			// summary:
+			//		Stops a running animation.
+			// gotoEnd:
+			//		If true, the animation will end.
+			var _t = this;
+			if(_t._delayTimer){ _t._clearTimer(); }
+			if(!_t._timer){ return _t; /* Animation */ }
+			_t._stopTimer();
+			if(gotoEnd){
+				_t._percent = 1;
+			}
+			_t._fire("onStop", [_t.curve.getValue(_t._getStep())]);
+			_t._active = _t._paused = false;
+			return _t; // Animation
+		},
+
+		destroy: function(){
+			// summary:
+			//		cleanup the animation
+			this.stop();
+		},
+
+		status: function(){
+			// summary:
+			//		Returns a string token representation of the status of
+			//		the animation, one of: "paused", "playing", "stopped"
+			if(this._active){
+				return this._paused ? "paused" : "playing"; // String
+			}
+			return "stopped"; // String
+		},
+
+		_cycle: function(){
+			var _t = this;
+			if(_t._active){
+				var curr = new Date().valueOf();
+				// Allow durations of 0 (instant) by setting step to 1 - see #13798
+				var step = _t.duration === 0 ? 1 : (curr - _t._startTime) / (_t.duration);
+
+				if(step >= 1){
+					step = 1;
+				}
+				_t._percent = step;
+
+				// Perform easing
+				if(_t.easing){
+					step = _t.easing(step);
+				}
+
+				_t._fire("onAnimate", [_t.curve.getValue(step)]);
+
+				if(_t._percent < 1){
+					_t._startTimer();
+				}else{
+					_t._active = false;
+
+					if(_t.repeat > 0){
+						_t.repeat--;
+						_t.play(null, true);
+					}else if(_t.repeat == -1){
+						_t.play(null, true);
+					}else{
+						if(_t._startRepeatCount){
+							_t.repeat = _t._startRepeatCount;
+							_t._startRepeatCount = 0;
+						}
+					}
+					_t._percent = 0;
+					_t._fire("onEnd", [_t.node]);
+					!_t.repeat && _t._stopTimer();
+				}
+			}
+			return _t; // Animation
+		},
+
+		_clearTimer: function(){
+			// summary:
+			//		Clear the play delay timer
+			clearTimeout(this._delayTimer);
+			delete this._delayTimer;
+		}
+
+	});
+
+	// the local timer, stubbed into all Animation instances
+	var ctr = 0,
+		timer = null,
+		runner = {
+			run: function(){}
+		};
+
+	lang.extend(Animation, {
+
+		_startTimer: function(){
+			if(!this._timer){
+				this._timer = aspect.after(runner, "run", lang.hitch(this, "_cycle"), true);
+				ctr++;
+			}
+			if(!timer){
+				timer = setInterval(lang.hitch(runner, "run"), this.rate);
+			}
+		},
+
+		_stopTimer: function(){
+			if(this._timer){
+				this._timer.remove();
+				this._timer = null;
+				ctr--;
+			}
+			if(ctr <= 0){
+				clearInterval(timer);
+				timer = null;
+				ctr = 0;
+			}
+		}
+
+	});
+
+	var _makeFadeable =
+		has("ie") ? function(node){
+			// only set the zoom if the "tickle" value would be the same as the
+			// default
+			var ns = node.style;
+			// don't set the width to auto if it didn't already cascade that way.
+			// We don't want to f anyones designs
+			if(!ns.width.length && style.get(node, "width") == "auto"){
+				ns.width = "auto";
+			}
+		} :
+		function(){};
+
+	basefx._fade = function(/*Object*/ args){
+		// summary:
+		//		Returns an animation that will fade the node defined by
+		//		args.node from the start to end values passed (args.start
+		//		args.end) (end is mandatory, start is optional)
+
+		args.node = dom.byId(args.node);
+		var fArgs = _mixin({ properties: {} }, args),
+			props = (fArgs.properties.opacity = {});
+
+		props.start = !("start" in fArgs) ?
+			function(){
+				return +style.get(fArgs.node, "opacity")||0;
+			} : fArgs.start;
+		props.end = fArgs.end;
+
+		var anim = basefx.animateProperty(fArgs);
+		aspect.after(anim, "beforeBegin", lang.partial(_makeFadeable, fArgs.node), true);
+
+		return anim; // Animation
+	};
+
+	/*=====
+	var __FadeArgs = declare(null, {
+		// node: DOMNode|String
+		//		The node referenced in the animation
+		// duration: Integer?
+		//		Duration of the animation in milliseconds.
+		// easing: Function?
+		//		An easing function.
+	});
+	=====*/
+
+	basefx.fadeIn = function(/*__FadeArgs*/ args){
+		// summary:
+		//		Returns an animation that will fade node defined in 'args' from
+		//		its current opacity to fully opaque.
+		return basefx._fade(_mixin({ end: 1 }, args)); // Animation
+	};
+
+	basefx.fadeOut = function(/*__FadeArgs*/ args){
+		// summary:
+		//		Returns an animation that will fade node defined in 'args'
+		//		from its current opacity to fully transparent.
+		return basefx._fade(_mixin({ end: 0 }, args)); // Animation
+	};
+
+	basefx._defaultEasing = function(/*Decimal?*/ n){
+		// summary:
+		//		The default easing function for Animation(s)
+		return 0.5 + ((Math.sin((n + 1.5) * Math.PI)) / 2);	// Decimal
+	};
+
+	var PropLine = function(properties){
+		// PropLine is an internal class which is used to model the values of
+		// an a group of CSS properties across an animation lifecycle. In
+		// particular, the "getValue" function handles getting interpolated
+		// values between start and end for a particular CSS value.
+		this._properties = properties;
+		for(var p in properties){
+			var prop = properties[p];
+			if(prop.start instanceof Color){
+				// create a reusable temp color object to keep intermediate results
+				prop.tempColor = new Color();
+			}
+		}
+	};
+
+	PropLine.prototype.getValue = function(r){
+		var ret = {};
+		for(var p in this._properties){
+			var prop = this._properties[p],
+				start = prop.start;
+			if(start instanceof Color){
+				ret[p] = Color.blendColors(start, prop.end, r, prop.tempColor).toCss();
+			}else if(!lang.isArray(start)){
+				ret[p] = ((prop.end - start) * r) + start + (p != "opacity" ? prop.units || "px" : 0);
+			}
+		}
+		return ret;
+	};
+
+	/*=====
+	var __AnimArgs = declare(__FadeArgs, {
+		// properties: Object?
+		//		A hash map of style properties to Objects describing the transition,
+		//		such as the properties of _Line with an additional 'units' property
+		properties: {}
+
+		//TODOC: add event callbacks
+	});
+	=====*/
+
+	basefx.animateProperty = function(/*__AnimArgs*/ args){
+		// summary:
+		//		Returns an animation that will transition the properties of
+		//		node defined in `args` depending how they are defined in
+		//		`args.properties`
+		//
+		// description:
+		//		Foundation of most `dojo/_base/fx`
+		//		animations. It takes an object of "properties" corresponding to
+		//		style properties, and animates them in parallel over a set
+		//		duration.
+		//
+		// example:
+		//		A simple animation that changes the width of the specified node.
+		//	|	basefx.animateProperty({
+		//	|		node: "nodeId",
+		//	|		properties: { width: 400 },
+		//	|	}).play();
+		//		Dojo figures out the start value for the width and converts the
+		//		integer specified for the width to the more expressive but
+		//		verbose form `{ width: { end: '400', units: 'px' } }` which you
+		//		can also specify directly. Defaults to 'px' if omitted.
+		//
+		// example:
+		//		Animate width, height, and padding over 2 seconds... the
+		//		pedantic way:
+		//	|	basefx.animateProperty({ node: node, duration:2000,
+		//	|		properties: {
+		//	|			width: { start: '200', end: '400', units:"px" },
+		//	|			height: { start:'200', end: '400', units:"px" },
+		//	|			paddingTop: { start:'5', end:'50', units:"px" }
+		//	|		}
+		//	|	}).play();
+		//		Note 'paddingTop' is used over 'padding-top'. Multi-name CSS properties
+		//		are written using "mixed case", as the hyphen is illegal as an object key.
+		//
+		// example:
+		//		Plug in a different easing function and register a callback for
+		//		when the animation ends. Easing functions accept values between
+		//		zero and one and return a value on that basis. In this case, an
+		//		exponential-in curve.
+		//	|	basefx.animateProperty({
+		//	|		node: "nodeId",
+		//	|		// dojo figures out the start value
+		//	|		properties: { width: { end: 400 } },
+		//	|		easing: function(n){
+		//	|			return (n==0) ? 0 : Math.pow(2, 10 * (n - 1));
+		//	|		},
+		//	|		onEnd: function(node){
+		//	|			// called when the animation finishes. The animation
+		//	|			// target is passed to this function
+		//	|		}
+		//	|	}).play(500); // delay playing half a second
+		//
+		// example:
+		//		Like all `Animation`s, animateProperty returns a handle to the
+		//		Animation instance, which fires the events common to Dojo FX. Use `aspect.after`
+		//		to access these events outside of the Animation definition:
+		//	|	var anim = basefx.animateProperty({
+		//	|		node:"someId",
+		//	|		properties:{
+		//	|			width:400, height:500
+		//	|		}
+		//	|	});
+		//	|	aspect.after(anim, "onEnd", function(){
+		//	|		console.log("animation ended");
+		//	|	}, true);
+		//	|	// play the animation now:
+		//	|	anim.play();
+		//
+		// example:
+		//		Each property can be a function whose return value is substituted along.
+		//		Additionally, each measurement (eg: start, end) can be a function. The node
+		//		reference is passed directly to callbacks.
+		//	|	basefx.animateProperty({
+		//	|		node:"mine",
+		//	|		properties:{
+		//	|			height:function(node){
+		//	|				// shrink this node by 50%
+		//	|				return domGeom.position(node).h / 2
+		//	|			},
+		//	|			width:{
+		//	|				start:function(node){ return 100; },
+		//	|				end:function(node){ return 200; }
+		//	|			}
+		//	|		}
+		//	|	}).play();
+		//
+
+		var n = args.node = dom.byId(args.node);
+		if(!args.easing){ args.easing = dojo._defaultEasing; }
+
+		var anim = new Animation(args);
+		aspect.after(anim, "beforeBegin", lang.hitch(anim, function(){
+			var pm = {};
+			for(var p in this.properties){
+				// Make shallow copy of properties into pm because we overwrite
+				// some values below. In particular if start/end are functions
+				// we don't want to overwrite them or the functions won't be
+				// called if the animation is reused.
+				if(p == "width" || p == "height"){
+					this.node.display = "block";
+				}
+				var prop = this.properties[p];
+				if(lang.isFunction(prop)){
+					prop = prop(n);
+				}
+				prop = pm[p] = _mixin({}, (lang.isObject(prop) ? prop: { end: prop }));
+
+				if(lang.isFunction(prop.start)){
+					prop.start = prop.start(n);
+				}
+				if(lang.isFunction(prop.end)){
+					prop.end = prop.end(n);
+				}
+				var isColor = (p.toLowerCase().indexOf("color") >= 0);
+				function getStyle(node, p){
+					// domStyle.get(node, "height") can return "auto" or "" on IE; this is more reliable:
+					var v = { height: node.offsetHeight, width: node.offsetWidth }[p];
+					if(v !== undefined){ return v; }
+					v = style.get(node, p);
+					return (p == "opacity") ? +v : (isColor ? v : parseFloat(v));
+				}
+				if(!("end" in prop)){
+					prop.end = getStyle(n, p);
+				}else if(!("start" in prop)){
+					prop.start = getStyle(n, p);
+				}
+
+				if(isColor){
+					prop.start = new Color(prop.start);
+					prop.end = new Color(prop.end);
+				}else{
+					prop.start = (p == "opacity") ? +prop.start : parseFloat(prop.start);
+				}
+			}
+			this.curve = new PropLine(pm);
+		}), true);
+		aspect.after(anim, "onAnimate", lang.hitch(style, "set", anim.node), true);
+		return anim; // Animation
+	};
+
+	basefx.anim = function(	/*DOMNode|String*/	node,
+							/*Object*/			properties,
+							/*Integer?*/		duration,
+							/*Function?*/		easing,
+							/*Function?*/		onEnd,
+							/*Integer?*/		delay){
+		// summary:
+		//		A simpler interface to `animateProperty()`, also returns
+		//		an instance of `Animation` but begins the animation
+		//		immediately, unlike nearly every other Dojo animation API.
+		// description:
+		//		Simpler (but somewhat less powerful) version
+		//		of `animateProperty`.  It uses defaults for many basic properties
+		//		and allows for positional parameters to be used in place of the
+		//		packed "property bag" which is used for other Dojo animation
+		//		methods.
+		//
+		//		The `Animation` object returned will be already playing, so
+		//		calling play() on it again is (usually) a no-op.
+		// node:
+		//		a DOM node or the id of a node to animate CSS properties on
+		// duration:
+		//		The number of milliseconds over which the animation
+		//		should run. Defaults to the global animation default duration
+		//		(350ms).
+		// easing:
+		//		An easing function over which to calculate acceleration
+		//		and deceleration of the animation through its duration.
+		//		A default easing algorithm is provided, but you may
+		//		plug in any you wish. A large selection of easing algorithms
+		//		are available in `dojo/fx/easing`.
+		// onEnd:
+		//		A function to be called when the animation finishes
+		//		running.
+		// delay:
+		//		The number of milliseconds to delay beginning the
+		//		animation by. The default is 0.
+		// example:
+		//		Fade out a node
+		//	|	basefx.anim("id", { opacity: 0 });
+		// example:
+		//		Fade out a node over a full second
+		//	|	basefx.anim("id", { opacity: 0 }, 1000);
+		return basefx.animateProperty({ // Animation
+			node: node,
+			duration: duration || Animation.prototype.duration,
+			properties: properties,
+			easing: easing,
+			onEnd: onEnd
+		}).play(delay || 0);
+	};
+
+
+	if( 1 ){
+		_mixin(dojo, basefx);
+		// Alias to drop come 2.0:
+		dojo._Animation = Animation;
+	}
+
+	return basefx;
 });
 
 },
@@ -26561,3670 +26769,1917 @@ define(["./kernel", "./lang", "./array", "./config"], function(dojo, lang, Array
 });
 
 },
-'dojox/gfx/matrix':function(){
-define(["./_base","dojo/_base/lang"], 
-  function(g, lang){
-	var m = g.matrix = {};
+'dojo/dnd/Moveable':function(){
+define([
+	"../_base/array", "../_base/declare", "../_base/lang", "../dom", "../dom-class", "../Evented",
+	"../has", "../on", "../topic", "../touch", "./common", "./Mover", "../_base/window"
+], function(array, declare, lang, dom, domClass, Evented, has, on, topic, touch, dnd, Mover, win){
 
-	// candidates for dojox.math:
-	var _degToRadCache = {};
-	m._degToRad = function(degree){
-		return _degToRadCache[degree] || (_degToRadCache[degree] = (Math.PI * degree / 180));
-	};
-	m._radToDeg = function(radian){ return radian / Math.PI * 180; };
+// module:
+//		dojo/dnd/Moveable
 
-	m.Matrix2D = function(arg){
+var touchActionPropertyName;
+var setTouchAction = function () {};
+
+function setTouchActionPropertyName() {
+	if ("touchAction" in document.body.style) {
+		touchActionPropertyName = "touchAction";
+	}
+	else if ("msTouchAction" in document.body.style) {
+		touchActionPropertyName = "msTouchAction";
+	}
+	setTouchAction = function setTouchAction(/* Node */ node, /* string */ action) {
+		node.style[touchActionPropertyName] = action;
+	}
+	setTouchAction(arguments[0], arguments[1]);
+}
+
+if (has("touch-action")) {
+	// Ensure that the logic to determine "touchActionPropertyName" runs
+	setTouchAction = setTouchActionPropertyName;
+}
+
+var Moveable = declare("dojo.dnd.Moveable", [Evented], {
+	// summary:
+	//		an object, which makes a node movable
+
+	// object attributes (for markup)
+	handle: "",
+	delay: 0,
+	skip: false,
+
+	constructor: function(node, params){
+		// node: Node
+		//		a node (or node's id) to be moved
+		// params: Moveable.__MoveableArgs?
+		//		optional parameters
+		this.node = dom.byId(node);
+		setTouchAction(this.node, "none");
+		if(!params){ params = {}; }
+		this.handle = params.handle ? dom.byId(params.handle) : null;
+		if(!this.handle){ this.handle = this.node; }
+		this.delay = params.delay > 0 ? params.delay : 0;
+		this.skip  = params.skip;
+		this.mover = params.mover ? params.mover : Mover;
+		this.events = [
+			on(this.handle, touch.press, lang.hitch(this, "onMouseDown")),
+			// cancel text selection and text dragging
+			on(this.handle, "dragstart",   lang.hitch(this, "onSelectStart")),
+			on(this.handle, "selectstart",   lang.hitch(this, "onSelectStart"))
+		];
+	},
+
+	// markup methods
+	markupFactory: function(params, node, Ctor){
+		return new Ctor(node, params);
+	},
+
+	// methods
+	destroy: function(){
 		// summary:
-		//		a 2D matrix object
-		// description:
-		//		Normalizes a 2D matrix-like object. If arrays is passed,
-		//		all objects of the array are normalized and multiplied sequentially.
-		// arg: Object
-		//		a 2D matrix-like object, a number, or an array of such objects
-		if(arg){
-			if(typeof arg == "number"){
-				this.xx = this.yy = arg;
-			}else if(arg instanceof Array){
-				if(arg.length > 0){
-					var matrix = m.normalize(arg[0]);
-					// combine matrices
-					for(var i = 1; i < arg.length; ++i){
-						var l = matrix, r = m.normalize(arg[i]);
-						matrix = new m.Matrix2D();
-						matrix.xx = l.xx * r.xx + l.xy * r.yx;
-						matrix.xy = l.xx * r.xy + l.xy * r.yy;
-						matrix.yx = l.yx * r.xx + l.yy * r.yx;
-						matrix.yy = l.yx * r.xy + l.yy * r.yy;
-						matrix.dx = l.xx * r.dx + l.xy * r.dy + l.dx;
-						matrix.dy = l.yx * r.dx + l.yy * r.dy + l.dy;
-					}
-					lang.mixin(this, matrix);
-				}
-			}else{
-				lang.mixin(this, arg);
-			}
-		}
-	};
+		//		stops watching for possible move, deletes all references, so the object can be garbage-collected
+		array.forEach(this.events, function(handle){ handle.remove(); });
+		setTouchAction(this.node, "");
+		this.events = this.node = this.handle = null;
+	},
 
-	// the default (identity) matrix, which is used to fill in missing values
-	lang.extend(m.Matrix2D, {xx: 1, xy: 0, yx: 0, yy: 1, dx: 0, dy: 0});
-
-	lang.mixin(m, {
+	// mouse event processors
+	onMouseDown: function(e){
 		// summary:
-		//		class constants, and methods of dojox/gfx/matrix
-
-		// matrix constants
-
-		// identity: dojox/gfx/matrix.Matrix2D
-		//		an identity matrix constant: identity * (x, y) == (x, y)
-		identity: new m.Matrix2D(),
-
-		// flipX: dojox/gfx/matrix.Matrix2D
-		//		a matrix, which reflects points at x = 0 line: flipX * (x, y) == (-x, y)
-		flipX:    new m.Matrix2D({xx: -1}),
-
-		// flipY: dojox/gfx/matrix.Matrix2D
-		//		a matrix, which reflects points at y = 0 line: flipY * (x, y) == (x, -y)
-		flipY:    new m.Matrix2D({yy: -1}),
-
-		// flipXY: dojox/gfx/matrix.Matrix2D
-		//		a matrix, which reflects points at the origin of coordinates: flipXY * (x, y) == (-x, -y)
-		flipXY:   new m.Matrix2D({xx: -1, yy: -1}),
-
-		// matrix creators
-
-		translate: function(a, b){
-			// summary:
-			//		forms a translation matrix
-			// description:
-			//		The resulting matrix is used to translate (move) points by specified offsets.
-			// a: Number|dojox/gfx.Point
-			//		an x coordinate value, or a point-like object, which specifies offsets for both dimensions
-			// b: Number?
-			//		a y coordinate value
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 1){
-				return new m.Matrix2D({dx: a, dy: b}); // dojox/gfx/matrix.Matrix2D
-			}
-			// branch
-			return new m.Matrix2D({dx: a.x, dy: a.y}); // dojox/gfx/matrix.Matrix2D
-		},
-		scale: function(a, b){
-			// summary:
-			//		forms a scaling matrix
-			// description:
-			//		The resulting matrix is used to scale (magnify) points by specified offsets.
-			// a: Number|dojox/gfx.Point
-			//		a scaling factor used for the x coordinate, or
-			//		a uniform scaling factor used for the both coordinates, or
-			//		a point-like object, which specifies scale factors for both dimensions
-			// b: Number?
-			//		a scaling factor used for the y coordinate
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 1){
-				return new m.Matrix2D({xx: a, yy: b}); // dojox/gfx/matrix.Matrix2D
-			}
-			if(typeof a == "number"){
-				return new m.Matrix2D({xx: a, yy: a}); // dojox/gfx/matrix.Matrix2D
-			}
-			return new m.Matrix2D({xx: a.x, yy: a.y}); // dojox/gfx/matrix.Matrix2D
-		},
-		rotate: function(angle){
-			// summary:
-			//		forms a rotating matrix
-			// description:
-			//		The resulting matrix is used to rotate points
-			//		around the origin of coordinates (0, 0) by specified angle.
-			// angle: Number
-			//		an angle of rotation in radians (>0 for CW)
-			// returns: dojox/gfx/matrix.Matrix2D
-			var c = Math.cos(angle);
-			var s = Math.sin(angle);
-			return new m.Matrix2D({xx: c, xy: -s, yx: s, yy: c}); // dojox/gfx/matrix.Matrix2D
-		},
-		rotateg: function(degree){
-			// summary:
-			//		forms a rotating matrix
-			// description:
-			//		The resulting matrix is used to rotate points
-			//		around the origin of coordinates (0, 0) by specified degree.
-			//		See dojox/gfx/matrix.rotate() for comparison.
-			// degree: Number
-			//		an angle of rotation in degrees (>0 for CW)
-			// returns: dojox/gfx/matrix.Matrix2D
-			return m.rotate(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
-		},
-		skewX: function(angle) {
-			// summary:
-			//		forms an x skewing matrix
-			// description:
-			//		The resulting matrix is used to skew points in the x dimension
-			//		around the origin of coordinates (0, 0) by specified angle.
-			// angle: Number
-			//		a skewing angle in radians
-			// returns: dojox/gfx/matrix.Matrix2D
-			return new m.Matrix2D({xy: Math.tan(angle)}); // dojox/gfx/matrix.Matrix2D
-		},
-		skewXg: function(degree){
-			// summary:
-			//		forms an x skewing matrix
-			// description:
-			//		The resulting matrix is used to skew points in the x dimension
-			//		around the origin of coordinates (0, 0) by specified degree.
-			//		See dojox/gfx/matrix.skewX() for comparison.
-			// degree: Number
-			//		a skewing angle in degrees
-			// returns: dojox/gfx/matrix.Matrix2D
-			return m.skewX(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
-		},
-		skewY: function(angle){
-			// summary:
-			//		forms a y skewing matrix
-			// description:
-			//		The resulting matrix is used to skew points in the y dimension
-			//		around the origin of coordinates (0, 0) by specified angle.
-			// angle: Number
-			//		a skewing angle in radians
-			// returns: dojox/gfx/matrix.Matrix2D
-			return new m.Matrix2D({yx: Math.tan(angle)}); // dojox/gfx/matrix.Matrix2D
-		},
-		skewYg: function(degree){
-			// summary:
-			//		forms a y skewing matrix
-			// description:
-			//		The resulting matrix is used to skew points in the y dimension
-			//		around the origin of coordinates (0, 0) by specified degree.
-			//		See dojox/gfx/matrix.skewY() for comparison.
-			// degree: Number
-			//		a skewing angle in degrees
-			// returns: dojox/gfx/matrix.Matrix2D
-			return m.skewY(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
-		},
-		reflect: function(a, b){
-			// summary:
-			//		forms a reflection matrix
-			// description:
-			//		The resulting matrix is used to reflect points around a vector,
-			//		which goes through the origin.
-			// a: dojox/gfx.Point|Number
-			//		a point-like object, which specifies a vector of reflection, or an X value
-			// b: Number?
-			//		a Y value
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length == 1){
-				b = a.y;
-				a = a.x;
-			}
-			// make a unit vector
-			var a2 = a * a, b2 = b * b, n2 = a2 + b2, xy = 2 * a * b / n2;
-			return new m.Matrix2D({xx: 2 * a2 / n2 - 1, xy: xy, yx: xy, yy: 2 * b2 / n2 - 1}); // dojox/gfx/matrix.Matrix2D
-		},
-		project: function(a, b){
-			// summary:
-			//		forms an orthogonal projection matrix
-			// description:
-			//		The resulting matrix is used to project points orthogonally on a vector,
-			//		which goes through the origin.
-			// a: dojox/gfx.Point|Number
-			//		a point-like object, which specifies a vector of projection, or
-			//		an x coordinate value
-			// b: Number?
-			//		a y coordinate value
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length == 1){
-				b = a.y;
-				a = a.x;
-			}
-			// make a unit vector
-			var a2 = a * a, b2 = b * b, n2 = a2 + b2, xy = a * b / n2;
-			return new m.Matrix2D({xx: a2 / n2, xy: xy, yx: xy, yy: b2 / n2}); // dojox/gfx/matrix.Matrix2D
-		},
-
-		// ensure matrix 2D conformance
-		normalize: function(matrix){
-			// summary:
-			//		converts an object to a matrix, if necessary
-			// description:
-			//		Converts any 2D matrix-like object or an array of
-			//		such objects to a valid dojox/gfx/matrix.Matrix2D object.
-			// matrix: Object
-			//		an object, which is converted to a matrix, if necessary
-			// returns: dojox/gfx/matrix.Matrix2D
-			return (matrix instanceof m.Matrix2D) ? matrix : new m.Matrix2D(matrix); // dojox/gfx/matrix.Matrix2D
-		},
-
-		// common operations
-
-		isIdentity: function(matrix){
-			// summary:
-			//		returns whether the specified matrix is the identity.
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix object to be tested
-			// returns: Boolean
-			return matrix.xx == 1 && matrix.xy == 0 && matrix.yx == 0 && matrix.yy == 1 && matrix.dx == 0 && matrix.dy == 0; // Boolean
-		},
-		clone: function(matrix){
-			// summary:
-			//		creates a copy of a 2D matrix
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix-like object to be cloned
-			// returns: dojox/gfx/matrix.Matrix2D
-			var obj = new m.Matrix2D();
-			for(var i in matrix){
-				if(typeof(matrix[i]) == "number" && typeof(obj[i]) == "number" && obj[i] != matrix[i]) obj[i] = matrix[i];
-			}
-			return obj; // dojox/gfx/matrix.Matrix2D
-		},
-		invert: function(matrix){
-			// summary:
-			//		inverts a 2D matrix
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix-like object to be inverted
-			// returns: dojox/gfx/matrix.Matrix2D
-			var M = m.normalize(matrix),
-				D = M.xx * M.yy - M.xy * M.yx;
-				M = new m.Matrix2D({
-					xx: M.yy/D, xy: -M.xy/D,
-					yx: -M.yx/D, yy: M.xx/D,
-					dx: (M.xy * M.dy - M.yy * M.dx) / D,
-					dy: (M.yx * M.dx - M.xx * M.dy) / D
-				});
-			return M; // dojox/gfx/matrix.Matrix2D
-		},
-		_multiplyPoint: function(matrix, x, y){
-			// summary:
-			//		applies a matrix to a point
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix object to be applied
-			// x: Number
-			//		an x coordinate of a point
-			// y: Number
-			//		a y coordinate of a point
-			// returns: dojox/gfx.Point
-			return {x: matrix.xx * x + matrix.xy * y + matrix.dx, y: matrix.yx * x + matrix.yy * y + matrix.dy}; // dojox/gfx.Point
-		},
-		multiplyPoint: function(matrix, /* Number||Point */ a, /* Number? */ b){
-			// summary:
-			//		applies a matrix to a point
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix object to be applied
-			// a: Number|dojox/gfx.Point
-			//		an x coordinate of a point, or a point
-			// b: Number?
-			//		a y coordinate of a point
-			// returns: dojox/gfx.Point
-			var M = m.normalize(matrix);
-			if(typeof a == "number" && typeof b == "number"){
-				return m._multiplyPoint(M, a, b); // dojox/gfx.Point
-			}
-			return m._multiplyPoint(M, a.x, a.y); // dojox/gfx.Point
-		},
-		multiplyRectangle: function(matrix, /*Rectangle*/ rect){
-			// summary:
-			//		Applies a matrix to a rectangle.
-			// description:
-			//		The method applies the transformation on all corners of the
-			//		rectangle and returns the smallest rectangle enclosing the 4 transformed
-			//		points.
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix object to be applied.
-			// rect: Rectangle
-			//		the rectangle to transform.
-			// returns: dojox/gfx.Rectangle
-			var M = m.normalize(matrix);
-			rect = rect || {x:0, y:0, width:0, height:0}; 
-			if(m.isIdentity(M))
-				return {x: rect.x, y: rect.y, width: rect.width, height: rect.height}; // dojo/gfx.Rectangle
-			var p0 = m.multiplyPoint(M, rect.x, rect.y),
-				p1 = m.multiplyPoint(M, rect.x, rect.y + rect.height),
-				p2 = m.multiplyPoint(M, rect.x + rect.width, rect.y),
-				p3 = m.multiplyPoint(M, rect.x + rect.width, rect.y + rect.height),
-				minx = Math.min(p0.x, p1.x, p2.x, p3.x),
-				miny = Math.min(p0.y, p1.y, p2.y, p3.y),
-				maxx = Math.max(p0.x, p1.x, p2.x, p3.x),
-				maxy = Math.max(p0.y, p1.y, p2.y, p3.y);
-			return{ // dojo/gfx.Rectangle
-				x: minx,
-				y: miny,
-				width: maxx - minx,
-				height: maxy - miny
-			};
-		},
-		multiply: function(matrix){
-			// summary:
-			//		combines matrices by multiplying them sequentially in the given order
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix-like object,
-			//		all subsequent arguments are matrix-like objects too
-			var M = m.normalize(matrix);
-			// combine matrices
-			for(var i = 1; i < arguments.length; ++i){
-				var l = M, r = m.normalize(arguments[i]);
-				M = new m.Matrix2D();
-				M.xx = l.xx * r.xx + l.xy * r.yx;
-				M.xy = l.xx * r.xy + l.xy * r.yy;
-				M.yx = l.yx * r.xx + l.yy * r.yx;
-				M.yy = l.yx * r.xy + l.yy * r.yy;
-				M.dx = l.xx * r.dx + l.xy * r.dy + l.dx;
-				M.dy = l.yx * r.dx + l.yy * r.dy + l.dy;
-			}
-			return M; // dojox/gfx/matrix.Matrix2D
-		},
-
-		// high level operations
-
-		_sandwich: function(matrix, x, y){
-			// summary:
-			//		applies a matrix at a central point
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix-like object, which is applied at a central point
-			// x: Number
-			//		an x component of the central point
-			// y: Number
-			//		a y component of the central point
-			return m.multiply(m.translate(x, y), matrix, m.translate(-x, -y)); // dojox/gfx/matrix.Matrix2D
-		},
-		scaleAt: function(a, b, c, d){
-			// summary:
-			//		scales a picture using a specified point as a center of scaling
-			// description:
-			//		Compare with dojox/gfx/matrix.scale().
-			// a: Number
-			//		a scaling factor used for the x coordinate, or a uniform scaling factor used for both coordinates
-			// b: Number?
-			//		a scaling factor used for the y coordinate
-			// c: Number|Point
-			//		an x component of a central point, or a central point
-			// d: Number
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			switch(arguments.length){
-				case 4:
-					// a and b are scale factor components, c and d are components of a point
-					return m._sandwich(m.scale(a, b), c, d); // dojox/gfx/matrix.Matrix2D
-				case 3:
-					if(typeof c == "number"){
-						return m._sandwich(m.scale(a), b, c); // dojox/gfx/matrix.Matrix2D
-					}
-					return m._sandwich(m.scale(a, b), c.x, c.y); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.scale(a), b.x, b.y); // dojox/gfx/matrix.Matrix2D
-		},
-		rotateAt: function(angle, a, b){
-			// summary:
-			//		rotates a picture using a specified point as a center of rotation
-			// description:
-			//		Compare with dojox/gfx/matrix.rotate().
-			// angle: Number
-			//		an angle of rotation in radians (>0 for CW)
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.rotate(angle), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.rotate(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
-		},
-		rotategAt: function(degree, a, b){
-			// summary:
-			//		rotates a picture using a specified point as a center of rotation
-			// description:
-			//		Compare with dojox/gfx/matrix.rotateg().
-			// degree: Number
-			//		an angle of rotation in degrees (>0 for CW)
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.rotateg(degree), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.rotateg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
-		},
-		skewXAt: function(angle, a, b){
-			// summary:
-			//		skews a picture along the x axis using a specified point as a center of skewing
-			// description:
-			//		Compare with dojox/gfx/matrix.skewX().
-			// angle: Number
-			//		a skewing angle in radians
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.skewX(angle), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.skewX(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
-		},
-		skewXgAt: function(degree, a, b){
-			// summary:
-			//		skews a picture along the x axis using a specified point as a center of skewing
-			// description:
-			//		Compare with dojox/gfx/matrix.skewXg().
-			// degree: Number
-			//		a skewing angle in degrees
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.skewXg(degree), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.skewXg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
-		},
-		skewYAt: function(angle, a, b){
-			// summary:
-			//		skews a picture along the y axis using a specified point as a center of skewing
-			// description:
-			//		Compare with dojox/gfx/matrix.skewY().
-			// angle: Number
-			//		a skewing angle in radians
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.skewY(angle), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.skewY(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
-		},
-		skewYgAt: function(/* Number */ degree, /* Number||Point */ a, /* Number? */ b){
-			// summary:
-			//		skews a picture along the y axis using a specified point as a center of skewing
-			// description:
-			//		Compare with dojox/gfx/matrix.skewYg().
-			// degree: Number
-			//		a skewing angle in degrees
-			// a: Number|dojox/gfx.Point
-			//		an x component of a central point, or a central point
-			// b: Number?
-			//		a y component of a central point
-			// returns: dojox/gfx/matrix.Matrix2D
-			if(arguments.length > 2){
-				return m._sandwich(m.skewYg(degree), a, b); // dojox/gfx/matrix.Matrix2D
-			}
-			return m._sandwich(m.skewYg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		//		event processor for onmousedown/ontouchstart, creates a Mover for the node
+		// e: Event
+		//		mouse/touch event
+		if(this.skip && dnd.isFormElement(e)){ return; }
+		if(this.delay){
+			this.events.push(
+				on(this.handle, touch.move, lang.hitch(this, "onMouseMove")),
+				on(this.handle.ownerDocument, touch.release, lang.hitch(this, "onMouseUp"))
+			);
+			this._lastX = e.pageX;
+			this._lastY = e.pageY;
+		}else{
+			this.onDragDetected(e);
 		}
+		e.stopPropagation();
+		e.preventDefault();
+	},
+	onMouseMove: function(e){
+		// summary:
+		//		event processor for onmousemove/ontouchmove, used only for delayed drags
+		// e: Event
+		//		mouse/touch event
+		if(Math.abs(e.pageX - this._lastX) > this.delay || Math.abs(e.pageY - this._lastY) > this.delay){
+			this.onMouseUp(e);
+			this.onDragDetected(e);
+		}
+		e.stopPropagation();
+		e.preventDefault();
+	},
+	onMouseUp: function(e){
+		// summary:
+		//		event processor for onmouseup, used only for delayed drags
+		// e: Event
+		//		mouse event
+		for(var i = 0; i < 2; ++i){
+			this.events.pop().remove();
+		}
+		e.stopPropagation();
+		e.preventDefault();
+	},
+	onSelectStart: function(e){
+		// summary:
+		//		event processor for onselectevent and ondragevent
+		// e: Event
+		//		mouse event
+		if(!this.skip || !dnd.isFormElement(e)){
+			e.stopPropagation();
+			e.preventDefault();
+		}
+	},
 
-		//TODO: rect-to-rect mapping, scale-to-fit (isotropic and anisotropic versions)
+	// local events
+	onDragDetected: function(/*Event*/ e){
+		// summary:
+		//		called when the drag is detected;
+		//		responsible for creation of the mover
+		new this.mover(this.node, e, this);
+	},
+	onMoveStart: function(/*Mover*/ mover){
+		// summary:
+		//		called before every move operation
+		topic.publish("/dnd/move/start", mover);
+		domClass.add(win.body(), "dojoMove");
+		domClass.add(this.node, "dojoMoveItem");
+	},
+	onMoveStop: function(/*Mover*/ mover){
+		// summary:
+		//		called after every move operation
+		topic.publish("/dnd/move/stop", mover);
+		domClass.remove(win.body(), "dojoMove");
+		domClass.remove(this.node, "dojoMoveItem");
+	},
+	onFirstMove: function(/*===== mover, e =====*/){
+		// summary:
+		//		called during the very first move notification;
+		//		can be used to initialize coordinates, can be overwritten.
+		// mover: Mover
+		// e: Event
 
-	});
-	// propagate Matrix2D up
-	g.Matrix2D = m.Matrix2D;
+		// default implementation does nothing
+	},
+	onMove: function(mover, leftTop /*=====, e =====*/){
+		// summary:
+		//		called during every move notification;
+		//		should actually move the node; can be overwritten.
+		// mover: Mover
+		// leftTop: Object
+		// e: Event
+		this.onMoving(mover, leftTop);
+		var s = mover.node.style;
+		s.left = leftTop.l + "px";
+		s.top  = leftTop.t + "px";
+		this.onMoved(mover, leftTop);
+	},
+	onMoving: function(/*===== mover, leftTop =====*/){
+		// summary:
+		//		called before every incremental move; can be overwritten.
+		// mover: Mover
+		// leftTop: Object
 
-	return m;
+		// default implementation does nothing
+	},
+	onMoved: function(/*===== mover, leftTop =====*/){
+		// summary:
+		//		called after every incremental move; can be overwritten.
+		// mover: Mover
+		// leftTop: Object
+
+		// default implementation does nothing
+	}
 });
 
+/*=====
+Moveable.__MoveableArgs = declare([], {
+	// handle: Node||String
+	//		A node (or node's id), which is used as a mouse handle.
+	//		If omitted, the node itself is used as a handle.
+	handle: null,
 
+	// delay: Number
+	//		delay move by this number of pixels
+	delay: 0,
+
+	// skip: Boolean
+	//		skip move of form elements
+	skip: false,
+
+	// mover: Object
+	//		a constructor of custom Mover
+	mover: dnd.Mover
+});
+=====*/
+
+return Moveable;
+});
 
 },
-'dojox/gfx/shape':function(){
-define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel", "dojo/_base/sniff",
-	"dojo/on", "dojo/_base/array", "dojo/dom-construct", "dojo/_base/Color", "./matrix" ],
-	function(g, lang, declare, kernel, has, on, arr, domConstruct, Color, matrixLib){
-	
-	var isChrome = !!has("chrome");
-    
-	function removeElementAt(arr, index) {
-		if (!isChrome) {
-			return arr.splice(index, 1);
-		}
-		
-		// Ref:
-		// https://gamealchemist.wordpress.com/2013/05/01/lets-get-those-javascript-arrays-to-work-fast/
-		var len = arr.length;
-		
-		if (!len) { 
-			return; 
-		}
-		
-		while (index < len) {
-			arr[index] = arr[index + 1];
-			index++
-		}
-		
-		arr.length--;
+'dojo/dnd/common':function(){
+define(["../sniff", "../_base/kernel", "../_base/lang", "../dom"],
+	function(has, kernel, lang, dom){
+
+// module:
+//		dojo/dnd/common
+
+var exports = lang.getObject("dojo.dnd", true);
+/*=====
+// TODO: for 2.0, replace line above with this code.
+var exports = {
+	// summary:
+	//		TODOC
+};
+=====*/
+
+exports.getCopyKeyState = function(evt){
+	return evt[has("mac") ? "metaKey" : "ctrlKey"]
+};
+
+exports._uniqueId = 0;
+exports.getUniqueId = function(){
+	// summary:
+	//		returns a unique string for use with any DOM element
+	var id;
+	do{
+		id = kernel._scopeName + "Unique" + (++exports._uniqueId);
+	}while(dom.byId(id));
+	return id;
+};
+
+exports._empty = {};
+
+exports.isFormElement = function(/*Event*/ e){
+	// summary:
+	//		returns true if user clicked on a form element
+	var t = e.target;
+	if(t.nodeType == 3 /*TEXT_NODE*/){
+		t = t.parentNode;
 	}
+	return " a button textarea input select option ".indexOf(" " + t.tagName.toLowerCase() + " ") >= 0;	// Boolean
+};
 
-	var shape = g.shape = {
+return exports;
+});
+
+},
+'dojo/dnd/Mover':function(){
+define([
+	"../_base/array", "../_base/declare", "../_base/lang", "../sniff", "../_base/window",
+	"../dom", "../dom-geometry", "../dom-style", "../Evented", "../on", "../touch", "./common", "./autoscroll"
+], function(array, declare, lang, has, win, dom, domGeom, domStyle, Evented, on, touch, dnd, autoscroll){
+
+// module:
+//		dojo/dnd/Mover
+
+return declare("dojo.dnd.Mover", [Evented], {
+	// summary:
+	//		an object which makes a node follow the mouse, or touch-drag on touch devices.
+	//		Used as a default mover, and as a base class for custom movers.
+
+	constructor: function(node, e, host){
+		// node: Node
+		//		a node (or node's id) to be moved
+		// e: Event
+		//		a mouse event, which started the move;
+		//		only pageX and pageY properties are used
+		// host: Object?
+		//		object which implements the functionality of the move,
+		//	 	and defines proper events (onMoveStart and onMoveStop)
+		this.node = dom.byId(node);
+		this.marginBox = {l: e.pageX, t: e.pageY};
+		this.mouseButton = e.button;
+		var h = (this.host = host), d = node.ownerDocument;
+
+		function stopEvent(e){
+			e.preventDefault();
+			e.stopPropagation();
+		}
+
+		this.events = [
+			// At the start of a drag, onFirstMove is called, and then the following
+			// listener is disconnected.
+			on(d, touch.move, lang.hitch(this, "onFirstMove")),
+
+			// These are called continually during the drag
+			on(d, touch.move, lang.hitch(this, "onMouseMove")),
+
+			// And these are called at the end of the drag
+			on(d, touch.release,  lang.hitch(this, "onMouseUp")),
+
+			// cancel text selection and text dragging
+			on(d, "dragstart",   stopEvent),
+			on(d.body, "selectstart", stopEvent)
+		];
+
+		// Tell autoscroll that a drag is starting
+		autoscroll.autoScrollStart(d);
+
+		// notify that the move has started
+		if(h && h.onMoveStart){
+			h.onMoveStart(this);
+		}
+	},
+	// mouse event processors
+	onMouseMove: function(e){
 		// summary:
-		//		This module contains the core graphics Shape API.
-		//		Different graphics renderer implementation modules (svg, canvas, vml, silverlight, etc.) extend this
-		//		basic api to provide renderer-specific implementations for each shape.
-	};
-
-	shape.Shape = declare("dojox.gfx.shape.Shape", null, {
+		//		event processor for onmousemove/ontouchmove
+		// e: Event
+		//		mouse/touch event
+		autoscroll.autoScroll(e);
+		var m = this.marginBox;
+		this.host.onMove(this, {l: m.l + e.pageX, t: m.t + e.pageY}, e);
+		e.preventDefault();
+		e.stopPropagation();
+	},
+	onMouseUp: function(e){
+		if(has("webkit") && has("mac") && this.mouseButton == 2 ?
+				e.button == 0 : this.mouseButton == e.button){ // TODO Should condition be met for touch devices, too?
+			this.destroy();
+		}
+		e.preventDefault();
+		e.stopPropagation();
+	},
+	// utilities
+	onFirstMove: function(e){
 		// summary:
-		//		a Shape object, which knows how to apply
-		//		graphical attributes and transformations
-	
-		constructor: function(){
-			// rawNode: Node
-			//		underlying graphics-renderer-specific implementation object (if applicable)
-			this.rawNode = null;
+		//		makes the node absolute; it is meant to be called only once.
+		//		relative and absolutely positioned nodes are assumed to use pixel units
+		var s = this.node.style, l, t, h = this.host;
+		switch(s.position){
+			case "relative":
+			case "absolute":
+				// assume that left and top values are in pixels already
+				l = Math.round(parseFloat(s.left)) || 0;
+				t = Math.round(parseFloat(s.top)) || 0;
+				break;
+			default:
+				s.position = "absolute";	// enforcing the absolute mode
+				var m = domGeom.getMarginBox(this.node);
+				// event.pageX/pageY (which we used to generate the initial
+				// margin box) includes padding and margin set on the body.
+				// However, setting the node's position to absolute and then
+				// doing domGeom.marginBox on it *doesn't* take that additional
+				// space into account - so we need to subtract the combined
+				// padding and margin.  We use getComputedStyle and
+				// _getMarginBox/_getContentBox to avoid the extra lookup of
+				// the computed style.
+				var b = win.doc.body;
+				var bs = domStyle.getComputedStyle(b);
+				var bm = domGeom.getMarginBox(b, bs);
+				var bc = domGeom.getContentBox(b, bs);
+				l = m.l - (bc.l - bm.l);
+				t = m.t - (bc.t - bm.t);
+				break;
+		}
+		this.marginBox.l = l - this.marginBox.l;
+		this.marginBox.t = t - this.marginBox.t;
+		if(h && h.onFirstMove){
+			h.onFirstMove(this, e);
+		}
 
-			// shape: Object
-			//		an abstract shape object
-			//		(see dojox/gfx.defaultPath,
-			//		dojox/gfx.defaultPolyline,
-			//		dojox/gfx.defaultRect,
-			//		dojox/gfx.defaultEllipse,
-			//		dojox/gfx.defaultCircle,
-			//		dojox/gfx.defaultLine,
-			//		or dojox/gfx.defaultImage)
-			this.shape = null;
-	
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a transformation matrix
-			this.matrix = null;
-	
-			// fillStyle: dojox/gfx.Fill
-			//		a fill object
-			//		(see dojox/gfx.defaultLinearGradient,
-			//		dojox/gfx.defaultRadialGradient,
-			//		dojox/gfx.defaultPattern,
-			//		or dojo/Color)
-			this.fillStyle = null;
-	
-			// strokeStyle: dojox/gfx.Stroke
-			//		a stroke object
-			//		(see dojox/gfx.defaultStroke)
-			this.strokeStyle = null;
-	
-			// bbox: dojox/gfx.Rectangle
-			//		a bounding box of this shape
-			//		(see dojox/gfx.defaultRect)
-			this.bbox = null;
-	
-			// virtual group structure
-	
-			// parent: Object
-			//		a parent or null
-			//		(see dojox/gfx/shape.Surface,
-			//		or dojox/gfx.Group)
-			this.parent = null;
-	
-			// parentMatrix: dojox/gfx/matrix.Matrix2D
-			//		a transformation matrix inherited from the parent
-			this.parentMatrix = null;
+		// Disconnect touch.move that call this function
+		this.events.shift().remove();
+	},
+	destroy: function(){
+		// summary:
+		//		stops the move, deletes all references, so the object can be garbage-collected
+		array.forEach(this.events, function(handle){ handle.remove(); });
+		// undo global settings
+		var h = this.host;
+		if(h && h.onMoveStop){
+			h.onMoveStop(this);
+		}
+		// destroy objects
+		this.events = this.node = this.host = null;
+	}
+});
 
-			if(has("gfxRegistry")){
-				var uid = shape.register(this);
-				this.getUID = function(){
-					return uid;
+});
+
+},
+'dojo/dnd/autoscroll':function(){
+define(["../_base/lang", "../sniff", "../_base/window", "../dom-geometry", "../dom-style", "../window"],
+	function(lang, has, win, domGeom, domStyle, winUtils){
+
+// module:
+//		dojo/dnd/autoscroll
+
+var exports = {
+	// summary:
+	//		Used by dojo/dnd/Manager to scroll document or internal node when the user
+	//		drags near the edge of the viewport or a scrollable node
+};
+lang.setObject("dojo.dnd.autoscroll", exports);
+
+exports.getViewport = winUtils.getBox;
+
+exports.V_TRIGGER_AUTOSCROLL = 32;
+exports.H_TRIGGER_AUTOSCROLL = 32;
+
+exports.V_AUTOSCROLL_VALUE = 16;
+exports.H_AUTOSCROLL_VALUE = 16;
+
+// These are set by autoScrollStart().
+// Set to default values in case autoScrollStart() isn't called. (back-compat, remove for 2.0)
+var viewport,
+	doc = win.doc,
+	maxScrollTop = Infinity,
+	maxScrollLeft = Infinity;
+
+exports.autoScrollStart = function(d){
+	// summary:
+	//		Called at the start of a drag.
+	// d: Document
+	//		The document of the node being dragged.
+
+	doc = d;
+	viewport = winUtils.getBox(doc);
+
+	// Save height/width of document at start of drag, before it gets distorted by a user dragging an avatar past
+	// the document's edge
+	var html = win.body(doc).parentNode;
+	maxScrollTop = Math.max(html.scrollHeight - viewport.h, 0);
+	maxScrollLeft = Math.max(html.scrollWidth - viewport.w, 0);	// usually 0
+};
+
+exports.autoScroll = function(e){
+	// summary:
+	//		a handler for mousemove and touchmove events, which scrolls the window, if
+	//		necessary
+	// e: Event
+	//		mousemove/touchmove event
+
+	// FIXME: needs more docs!
+	var v = viewport || winUtils.getBox(doc), // getBox() call for back-compat, in case autoScrollStart() wasn't called
+		html = win.body(doc).parentNode,
+		dx = 0, dy = 0;
+	if(e.clientX < exports.H_TRIGGER_AUTOSCROLL){
+		dx = -exports.H_AUTOSCROLL_VALUE;
+	}else if(e.clientX > v.w - exports.H_TRIGGER_AUTOSCROLL){
+		dx = Math.min(exports.H_AUTOSCROLL_VALUE, maxScrollLeft - html.scrollLeft);	// don't scroll past edge of doc
+	}
+	if(e.clientY < exports.V_TRIGGER_AUTOSCROLL){
+		dy = -exports.V_AUTOSCROLL_VALUE;
+	}else if(e.clientY > v.h - exports.V_TRIGGER_AUTOSCROLL){
+		dy = Math.min(exports.V_AUTOSCROLL_VALUE, maxScrollTop - html.scrollTop);	// don't scroll past edge of doc
+	}
+	window.scrollBy(dx, dy);
+};
+
+exports._validNodes = {"div": 1, "p": 1, "td": 1};
+exports._validOverflow = {"auto": 1, "scroll": 1};
+
+exports.autoScrollNodes = function(e){
+	// summary:
+	//		a handler for mousemove and touchmove events, which scrolls the first available
+	//		Dom element, it falls back to exports.autoScroll()
+	// e: Event
+	//		mousemove/touchmove event
+
+	// FIXME: needs more docs!
+
+	var b, t, w, h, rx, ry, dx = 0, dy = 0, oldLeft, oldTop;
+
+	for(var n = e.target; n;){
+		if(n.nodeType == 1 && (n.tagName.toLowerCase() in exports._validNodes)){
+			var s = domStyle.getComputedStyle(n),
+				overflowX = (s.overflowX.toLowerCase() in exports._validOverflow),
+				overflowY = (s.overflowY.toLowerCase() in exports._validOverflow);
+			if(overflowX || overflowY){
+				b = domGeom.getContentBox(n, s);
+				t = domGeom.position(n, true);
+			}
+			// overflow-x
+			if(overflowX){
+				w = Math.min(exports.H_TRIGGER_AUTOSCROLL, b.w / 2);
+				rx = e.pageX - t.x;
+				if(has("webkit") || has("opera")){
+					// FIXME: this code should not be here, it should be taken into account
+					// either by the event fixing code, or the domGeom.position()
+					// FIXME: this code doesn't work on Opera 9.5 Beta
+					rx += win.body().scrollLeft;
 				}
-			}
-		},
-		
-		destroy: function(){
-			// summary:
-			//		Releases all internal resources owned by this shape. Once this method has been called,
-			//		the instance is considered destroyed and should not be used anymore.
-			if(has("gfxRegistry")){
-				shape.dispose(this);
-			}
-			if(this.rawNode && "__gfxObject__" in this.rawNode){
-				this.rawNode.__gfxObject__ = null;
-			}
-			this.rawNode = null;
-		},
-	
-		// trivial getters
-	
-		getNode: function(){
-			// summary:
-			//		Different graphics rendering subsystems implement shapes in different ways.  This
-			//		method provides access to the underlying graphics subsystem object.  Clients calling this
-			//		method and using the return value must be careful not to try sharing or using the underlying node
-			//		in a general way across renderer implementation.
-			//		Returns the underlying graphics Node, or null if no underlying graphics node is used by this shape.
-			return this.rawNode; // Node
-		},
-		getShape: function(){
-			// summary:
-			//		returns the current Shape object or null
-			//		(see dojox/gfx.defaultPath,
-			//		dojox/gfx.defaultPolyline,
-			//		dojox/gfx.defaultRect,
-			//		dojox/gfx.defaultEllipse,
-			//		dojox/gfx.defaultCircle,
-			//		dojox/gfx.defaultLine,
-			//		or dojox/gfx.defaultImage)
-			return this.shape; // Object
-		},
-		getTransform: function(){
-			// summary:
-			//		Returns the current transformation matrix applied to this Shape or null
-			return this.matrix;	// dojox/gfx/matrix.Matrix2D
-		},
-		getFill: function(){
-			// summary:
-			//		Returns the current fill object or null
-			//		(see dojox/gfx.defaultLinearGradient,
-			//		dojox/gfx.defaultRadialGradient,
-			//		dojox/gfx.defaultPattern,
-			//		or dojo/Color)
-			return this.fillStyle;	// Object
-		},
-		getStroke: function(){
-			// summary:
-			//		Returns the current stroke object or null
-			//		(see dojox/gfx.defaultStroke)
-			return this.strokeStyle;	// Object
-		},
-		getParent: function(){
-			// summary:
-			//		Returns the parent Shape, Group or null if this Shape is unparented.
-			//		(see dojox/gfx/shape.Surface,
-			//		or dojox/gfx.Group)
-			return this.parent;	// Object
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		Returns the bounding box Rectangle for this shape or null if a BoundingBox cannot be
-			//		calculated for the shape on the current renderer or for shapes with no geometric area (points).
-			//		A bounding box is a rectangular geometric region
-			//		defining the X and Y extent of the shape.
-			//		(see dojox/gfx.defaultRect)
-			//		Note that this method returns a direct reference to the attribute of this instance. Therefore you should
-			//		not modify its value directly but clone it instead.
-			return this.bbox;	// dojox/gfx.Rectangle
-		},
-		getTransformedBoundingBox: function(){
-			// summary:
-			//		returns an array of four points or null
-			//		four points represent four corners of the untransformed bounding box
-			var b = this.getBoundingBox();
-			if(!b){
-				return null;	// null
-			}
-			var m = this._getRealMatrix(),
-				gm = matrixLib;
-			return [	// Array
-					gm.multiplyPoint(m, b.x, b.y),
-					gm.multiplyPoint(m, b.x + b.width, b.y),
-					gm.multiplyPoint(m, b.x + b.width, b.y + b.height),
-					gm.multiplyPoint(m, b.x, b.y + b.height)
-				];
-		},
-		getEventSource: function(){
-			// summary:
-			//		returns a Node, which is used as
-			//		a source of events for this shape
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			return this.rawNode;	// Node
-		},
-	
-		// empty settings
-		
-		setClip: function(clip){
-			// summary:
-			//		sets the clipping area of this shape.
-			// description:
-			//		The clipping area defines the shape area that will be effectively visible. Everything that
-			//		would be drawn outside of the clipping area will not be rendered.
-			//		The possible clipping area types are rectangle, ellipse, polyline and path, but all are not
-			//		supported by all the renderers. vml only supports rectangle clipping, while the gfx silverlight renderer does not
-			//		support path clipping.
-			//		The clip parameter defines the clipping area geometry, and should be an object with the following properties:
-			//
-			//		- {x:Number, y:Number, width:Number, height:Number} for rectangular clip
-			//		- {cx:Number, cy:Number, rx:Number, ry:Number} for ellipse clip
-			//		- {points:Array} for polyline clip
-			//		- {d:String} for a path clip.
-			//
-			//		The clip geometry coordinates are expressed in the coordinate system used to draw the shape. In other
-			//		words, the clipping area is defined in the shape parent coordinate system and the shape transform is automatically applied.
-			// example:
-			//		The following example shows how to clip a gfx image with all the possible clip geometry: a rectangle,
-			//		an ellipse, a circle (using the ellipse geometry), a polyline and a path:
-			//
-			//	|	surface.createImage({src:img, width:200,height:200}).setClip({x:10,y:10,width:50,height:50});
-			//	|	surface.createImage({src:img, x:100,y:50,width:200,height:200}).setClip({cx:200,cy:100,rx:20,ry:30});
-			//	|	surface.createImage({src:img, x:0,y:350,width:200,height:200}).setClip({cx:100,cy:425,rx:60,ry:60});
-			//	|	surface.createImage({src:img, x:300,y:0,width:200,height:200}).setClip({points:[350,0,450,50,380,130,300,110]});
-			//	|	surface.createImage({src:img, x:300,y:350,width:200,height:200}).setClip({d:"M 350,350 C314,414 317,557 373,450.0000 z"});
-
-			// clip: Object
-			//		an object that defines the clipping geometry, or null to remove clip.
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			this.clip = clip;
-		},
-		
-		getClip: function(){
-			return this.clip;
-		},
-	
-		setShape: function(shape){
-			// summary:
-			//		sets a shape object
-			//		(the default implementation simply ignores it)
-			// shape: Object
-			//		a shape object
-			//		(see dojox/gfx.defaultPath,
-			//		dojox/gfx.defaultPolyline,
-			//		dojox/gfx.defaultRect,
-			//		dojox/gfx.defaultEllipse,
-			//		dojox/gfx.defaultCircle,
-			//		dojox/gfx.defaultLine,
-			//		or dojox/gfx.defaultImage)
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			this.shape = g.makeParameters(this.shape, shape);
-			this.bbox = null;
-			return this;	// self
-		},
-		setFill: function(fill){
-			// summary:
-			//		sets a fill object
-			//		(the default implementation simply ignores it)
-			// fill: Object
-			//		a fill object
-			//		(see dojox/gfx.defaultLinearGradient,
-			//		dojox/gfx.defaultRadialGradient,
-			//		dojox/gfx.defaultPattern,
-			//		or dojo/_base/Color)
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			if(!fill){
-				// don't fill
-				this.fillStyle = null;
-				return this;	// self
-			}
-			var f = null;
-			if(typeof(fill) == "object" && "type" in fill){
-				// gradient or pattern
-				switch(fill.type){
-					case "linear":
-						f = g.makeParameters(g.defaultLinearGradient, fill);
-						break;
-					case "radial":
-						f = g.makeParameters(g.defaultRadialGradient, fill);
-						break;
-					case "pattern":
-						f = g.makeParameters(g.defaultPattern, fill);
-						break;
-				}
-			}else{
-				// color object
-				f = g.normalizeColor(fill);
-			}
-			this.fillStyle = f;
-			return this;	// self
-		},
-		setStroke: function(stroke){
-			// summary:
-			//		sets a stroke object
-			//		(the default implementation simply ignores it)
-			// stroke: Object
-			//		a stroke object
-			//		(see dojox/gfx.defaultStroke)
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			if(!stroke){
-				// don't stroke
-				this.strokeStyle = null;
-				return this;	// self
-			}
-			// normalize the stroke
-			if(typeof stroke == "string" || lang.isArray(stroke) || stroke instanceof Color){
-				stroke = {color: stroke};
-			}
-			var s = this.strokeStyle = g.makeParameters(g.defaultStroke, stroke);
-			s.color = g.normalizeColor(s.color);
-			return this;	// self
-		},
-		setTransform: function(matrix){
-			// summary:
-			//		sets a transformation matrix
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a matrix or a matrix-like object
-			//		(see an argument of dojox/gfx/matrix.Matrix2D
-			//		constructor for a list of acceptable arguments)
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			this.matrix = matrixLib.clone(matrix ? matrixLib.normalize(matrix) : matrixLib.identity);
-			return this._applyTransform();	// self
-		},
-	
-		_applyTransform: function(){
-			// summary:
-			//		physically sets a matrix
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			return this;	// self
-		},
-	
-		// z-index
-	
-		moveToFront: function(){
-			// summary:
-			//		moves a shape to front of its parent's list of shapes
-			var p = this.getParent();
-			if(p){
-				p._moveChildToFront(this);
-				this._moveToFront();	// execute renderer-specific action
-			}
-			return this;	// self
-		},
-		moveToBack: function(){
-			// summary:
-			//		moves a shape to back of its parent's list of shapes
-			var p = this.getParent();
-			if(p){
-				p._moveChildToBack(this);
-				this._moveToBack();	// execute renderer-specific action
-			}
-			return this;
-		},
-		_moveToFront: function(){
-			// summary:
-			//		renderer-specific hook, see dojox/gfx/shape.Shape.moveToFront()
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-		},
-		_moveToBack: function(){
-			// summary:
-			//		renderer-specific hook, see dojox/gfx/shape.Shape.moveToFront()
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-		},
-	
-		// apply left & right transformation
-	
-		applyRightTransform: function(matrix){
-			// summary:
-			//		multiplies the existing matrix with an argument on right side
-			//		(this.matrix * matrix)
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a matrix or a matrix-like object
-			//		(see an argument of dojox/gfx/matrix.Matrix2D
-			//		constructor for a list of acceptable arguments)
-			return matrix ? this.setTransform([this.matrix, matrix]) : this;	// self
-		},
-		applyLeftTransform: function(matrix){
-			// summary:
-			//		multiplies the existing matrix with an argument on left side
-			//		(matrix * this.matrix)
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a matrix or a matrix-like object
-			//		(see an argument of dojox/gfx/matrix.Matrix2D
-			//		constructor for a list of acceptable arguments)
-			return matrix ? this.setTransform([matrix, this.matrix]) : this;	// self
-		},
-		applyTransform: function(matrix){
-			// summary:
-			//		a shortcut for dojox/gfx/shape.Shape.applyRightTransform
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a matrix or a matrix-like object
-			//		(see an argument of dojox/gfx/matrix.Matrix2D
-			//		constructor for a list of acceptable arguments)
-			return matrix ? this.setTransform([this.matrix, matrix]) : this;	// self
-		},
-	
-		// virtual group methods
-	
-		removeShape: function(silently){
-			// summary:
-			//		removes the shape from its parent's list of shapes
-			// silently: Boolean
-			//		if true, do not redraw a picture yet
-			if(this.parent){
-				this.parent.remove(this, silently);
-			}
-			return this;	// self
-		},
-		_setParent: function(parent, matrix){
-			// summary:
-			//		sets a parent
-			// parent: Object
-			//		a parent or null
-			//		(see dojox/gfx/shape.Surface,
-			//		or dojox/gfx.Group)
-			// matrix: dojox/gfx/matrix.Matrix2D
-			//		a 2D matrix or a matrix-like object
-			this.parent = parent;
-			return this._updateParentMatrix(matrix);	// self
-		},
-		_updateParentMatrix: function(matrix){
-			// summary:
-			//		updates the parent matrix with new matrix
-			// matrix: dojox/gfx/Matrix2D
-			//		a 2D matrix or a matrix-like object
-			this.parentMatrix = matrix ? matrixLib.clone(matrix) : null;
-			return this._applyTransform();	// self
-		},
-		_getRealMatrix: function(){
-			// summary:
-			//		returns the cumulative ('real') transformation matrix
-			//		by combining the shape's matrix with its parent's matrix
-			var m = this.matrix;
-			var p = this.parent;
-			while(p){
-				if(p.matrix){
-					m = matrixLib.multiply(p.matrix, m);
-				}
-				p = p.parent;
-			}
-			return m;	// dojox/gfx/matrix.Matrix2D
-		}
-	});
-	
-	shape._eventsProcessing = {
-		on: function(type, listener){
-			//	summary:
-			//		Connects an event to this shape.
-
-			return on(this.getEventSource(), type, shape.fixCallback(this, g.fixTarget, listener));
-		},
-
-		connect: function(name, object, method){
-			// summary:
-			//		connects a handler to an event on this shape
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-			// redirect to fixCallback to normalize events and add the gfxTarget to the event. The latter
-			// is done by dojox/gfx.fixTarget which is defined by each renderer
-			if(name.substring(0, 2) == "on"){
-				name = name.substring(2);
-			}
-			return this.on(name, method ? lang.hitch(object, method) : object);
-		},
-
-		disconnect: function(token){
-			// summary:
-			//		connects a handler by token from an event on this shape
-			
-			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
-	
-			return token.remove();
-		}
-	};
-	
-	shape.fixCallback = function(gfxElement, fixFunction, scope, method){
-		// summary:
-		//		Wraps the callback to allow for tests and event normalization
-		//		before it gets invoked. This is where 'fixTarget' is invoked.
-		// tags:
-		//      private
-		// gfxElement: Object
-		//		The GFX object that triggers the action (ex.:
-		//		dojox/gfx.Surface and dojox/gfx/shape.Shape). A new event property
-		//		'gfxTarget' is added to the event to reference this object.
-		//		for easy manipulation of GFX objects by the event handlers.
-		// fixFunction: Function
-		//		The function that implements the logic to set the 'gfxTarget'
-		//		property to the event. It should be 'dojox/gfx.fixTarget' for
-		//		most of the cases
-		// scope: Object
-		//		Optional. The scope to be used when invoking 'method'. If
-		//		omitted, a global scope is used.
-		// method: Function|String
-		//		The original callback to be invoked.
-		if(!method){
-			method = scope;
-			scope = null;
-		}
-		if(lang.isString(method)){
-			scope = scope || kernel.global;
-			if(!scope[method]){ throw(['dojox.gfx.shape.fixCallback: scope["', method, '"] is null (scope="', scope, '")'].join('')); }
-			return function(e){  
-				return fixFunction(e,gfxElement) ? scope[method].apply(scope, arguments || []) : undefined; }; // Function
-		}
-		return !scope 
-			? function(e){ 
-				return fixFunction(e,gfxElement) ? method.apply(scope, arguments) : undefined; } 
-			: function(e){ 
-				return fixFunction(e,gfxElement) ? method.apply(scope, arguments || []) : undefined; }; // Function
-	};
-	lang.extend(shape.Shape, shape._eventsProcessing);
-	
-	shape.Container = {
-		// summary:
-		//		a container of shapes, which can be used
-		//		as a foundation for renderer-specific groups, or as a way
-		//		to logically group shapes (e.g, to propagate matricies)
-	
-		_init: function() {
-			// children: Array
-			//		a list of children
-			this.children = [];
-			this._batch = 0;
-		},
-	
-		// group management
-	
-		openBatch: function() {
-			// summary:
-			//		starts a new batch, subsequent new child shapes will be held in
-			//		the batch instead of appending to the container directly.
-			// description:
-			//		Because the canvas renderer has no DOM hierarchy, the canvas implementation differs
-			//		such that it suspends the repaint requests for this container until the current batch is closed by a call to closeBatch().
-			return this;
-		},
-		closeBatch: function() {
-			// summary:
-			//		submits the current batch, append all pending child shapes to DOM
-			// description:
-			//		On canvas, this method flushes the pending redraws queue.
-			return this;
-		},
-		add: function(shape){
-			// summary:
-			//		adds a shape to the list
-			// shape: dojox/gfx/shape.Shape
-			//		the shape to add to the list
-			var oldParent = shape.getParent();
-			if(oldParent){
-				oldParent.remove(shape, true);
-			}
-			this.children.push(shape);
-			return shape._setParent(this, this._getRealMatrix());	// self
-		},
-		remove: function(shape, silently){
-			// summary:
-			//		removes a shape from the list
-			// shape: dojox/gfx/shape.Shape
-			//		the shape to remove
-			// silently: Boolean
-			//		if true, do not redraw a picture yet
-			for(var i = 0; i < this.children.length; ++i){
-				if(this.children[i] == shape){
-					if(silently){
-						// skip for now
-					}else{
-						shape.parent = null;
-						shape.parentMatrix = null;
+				dx = 0;
+				if(rx > 0 && rx < b.w){
+					if(rx < w){
+						dx = -w;
+					}else if(rx > b.w - w){
+						dx = w;
 					}
-					removeElementAt(this.children, i);
-					break;
+					oldLeft = n.scrollLeft;
+					n.scrollLeft = n.scrollLeft + dx;
 				}
 			}
-			return this;	// self
-		},
-		clear: function(/*Boolean?*/ destroy){
-			// summary:
-			//		removes all shapes from a group/surface.
-			// destroy: Boolean
-			//		Indicates whether the children should be destroyed. Optional.
-			var shape;
-			for(var i = 0; i < this.children.length;++i){
-				shape = this.children[i];
-				shape.parent = null;
-				shape.parentMatrix = null;
-				if(destroy){
-					shape.destroy();
+			// overflow-y
+			if(overflowY){
+				//console.log(b.l, b.t, t.x, t.y, n.scrollLeft, n.scrollTop);
+				h = Math.min(exports.V_TRIGGER_AUTOSCROLL, b.h / 2);
+				ry = e.pageY - t.y;
+				if(has("webkit") || has("opera")){
+					// FIXME: this code should not be here, it should be taken into account
+					// either by the event fixing code, or the domGeom.position()
+					// FIXME: this code doesn't work on Opera 9.5 Beta
+					ry += win.body().scrollTop;
 				}
-			}
-			this.children = [];
-			return this;	// self
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		Returns the bounding box Rectangle for this shape.
-			if(this.children){
-				// if this is a composite shape, then sum up all the children
-				var result = null;
-				arr.forEach(this.children, function(shape){
-					var bb = shape.getBoundingBox();
-					if(bb){
-						var ct = shape.getTransform();
-						if(ct){
-							bb = matrixLib.multiplyRectangle(ct, bb);
-						}
-						if(result){
-							// merge two bbox 
-							result.x = Math.min(result.x, bb.x);
-							result.y = Math.min(result.y, bb.y);
-							result.endX = Math.max(result.endX, bb.x + bb.width);
-							result.endY = Math.max(result.endY, bb.y + bb.height);
-						}else{
-							// first bbox 
-							result = {
-								x: bb.x,
-								y: bb.y,
-								endX: bb.x + bb.width,
-								endY: bb.y + bb.height
-							};
-						}
+				dy = 0;
+				if(ry > 0 && ry < b.h){
+					if(ry < h){
+						dy = -h;
+					}else if(ry > b.h - h){
+						dy = h;
 					}
-				});
-				if(result){
-					result.width = result.endX - result.x;
-					result.height = result.endY - result.y;
-				}
-				return result; // dojox/gfx.Rectangle
-			}
-			// unknown/empty bounding box, subclass shall override this impl 
-			return null;
-		},
-		// moving child nodes
-		_moveChildToFront: function(shape){
-			// summary:
-			//		moves a shape to front of the list of shapes
-			// shape: dojox/gfx/shape.Shape
-			//		one of the child shapes to move to the front
-			for(var i = 0; i < this.children.length; ++i){
-				if(this.children[i] == shape){
-					removeElementAt(this.children, i);
-					this.children.push(shape);
-					break;
+					oldTop = n.scrollTop;
+					n.scrollTop  = n.scrollTop  + dy;
 				}
 			}
-			return this;	// self
-		},
-		_moveChildToBack: function(shape){
-			// summary:
-			//		moves a shape to back of the list of shapes
-			// shape: dojox/gfx/shape.Shape
-			//		one of the child shapes to move to the front
-			for(var i = 0; i < this.children.length; ++i){
-				if(this.children[i] == shape){
-					removeElementAt(this.children, i);
-					this.children.unshift(shape);
-					break;
-				}
-			}
-			return this;	// self
+			if(dx || dy){ return; }
 		}
-	};
+		try{
+			n = n.parentNode;
+		}catch(x){
+			n = null;
+		}
+	}
+	exports.autoScroll(e);
+};
 
-	shape.Surface = declare("dojox.gfx.shape.Surface", null, {
-		// summary:
-		//		a surface object to be used for drawings
-		constructor: function(){
-			// underlying node
-			this.rawNode = null;
-			// the parent node
-			this._parent = null;
-			// the list of DOM nodes to be deleted in the case of destruction
-			this._nodes = [];
-			// the list of events to be detached in the case of destruction
-			this._events = [];
-		},
-		destroy: function(){
-			// summary:
-			//		destroy all relevant external resources and release all
-			//		external references to make this object garbage-collectible
-			arr.forEach(this._nodes, domConstruct.destroy);
-			this._nodes = [];
-			arr.forEach(this._events, function(h){ if(h){ h.remove(); } });
-			this._events = [];
-			this.rawNode = null;	// recycle it in _nodes, if it needs to be recycled
-			if(has("ie")){
-				while(this._parent.lastChild){
-					domConstruct.destroy(this._parent.lastChild);
-				}
-			}else{
-				this._parent.innerHTML = "";
-			}
-			this._parent = null;
-		},
-		getEventSource: function(){
-			// summary:
-			//		returns a node, which can be used to attach event listeners
-			return this.rawNode; // Node
-		},
-		_getRealMatrix: function(){
-			// summary:
-			//		always returns the identity matrix
-			return null;	// dojox/gfx/Matrix2D
-		},
-		/*=====
-		 setDimensions: function(width, height){
-			 // summary:
-			 //		sets the width and height of the rawNode
-			 // width: String
-			 //		width of surface, e.g., "100px"
-			 // height: String
-			 //		height of surface, e.g., "100px"
-			 return this;	// self
-		 },
-		 getDimensions: function(){
-			 // summary:
-			 //     gets current width and height in pixels
-			 // returns: Object
-			 //     object with properties "width" and "height"
-		 },
-		 =====*/
-		isLoaded: true,
-		onLoad: function(/*dojox/gfx/shape.Surface*/ surface){
-			// summary:
-			//		local event, fired once when the surface is created
-			//		asynchronously, used only when isLoaded is false, required
-			//		only for Silverlight.
-		},
-		whenLoaded: function(/*Object|Null*/ context, /*Function|String*/ method){
-			var f = lang.hitch(context, method);
-			if(this.isLoaded){
-				f(this);
-			}else{
-				on.once(this, "load", function(surface){
-					f(surface);
-				});
-			}
-		}
-	});
-	lang.extend(shape.Surface, shape._eventsProcessing);
+return exports;
+
+});
+
+},
+'dojo/dnd/TimedMoveable':function(){
+define(["../_base/declare", "./Moveable" /*=====, "./Mover" =====*/], function(declare, Moveable /*=====, Mover =====*/){
+	// module:
+	//		dojo/dnd/TimedMoveable
 
 	/*=====
-	g.Point = declare("dojox/gfx.Point", null, {
-		// summary:
-		//		2D point for drawings - {x, y}
-		// description:
-		//		Do not use this object directly!
-		//		Use the naked object instead: {x: 1, y: 2}.
+	var __TimedMoveableArgs = declare([Moveable.__MoveableArgs], {
+		// timeout: Number
+		//		delay move by this number of ms,
+		//		accumulating position changes during the timeout
+		timeout: 0
 	});
-
-	g.Rectangle = declare("dojox.gfx.Rectangle", null, {
-		// summary:
-		//		rectangle - {x, y, width, height}
-		// description:
-		//		Do not use this object directly!
-		//		Use the naked object instead: {x: 1, y: 2, width: 100, height: 200}.
-	});
-	 =====*/
-
-
-	shape.Rect = declare("dojox.gfx.shape.Rect", shape.Shape, {
-		// summary:
-		//		a generic rectangle
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		The underlying graphics system object (typically a DOM Node)
-			this.shape = g.getDefault("Rect");
-			this.rawNode = rawNode;
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box (its shape in this case)
-			return this.shape;	// dojox/gfx.Rectangle
-		}
-	});
-	
-	shape.Ellipse = declare("dojox.gfx.shape.Ellipse", shape.Shape, {
-		// summary:
-		//		a generic ellipse
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.shape = g.getDefault("Ellipse");
-			this.rawNode = rawNode;
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box
-			if(!this.bbox){
-				var shape = this.shape;
-				this.bbox = {x: shape.cx - shape.rx, y: shape.cy - shape.ry,
-					width: 2 * shape.rx, height: 2 * shape.ry};
-			}
-			return this.bbox;	// dojox/gfx.Rectangle
-		}
-	});
-	
-	shape.Circle = declare("dojox.gfx.shape.Circle", shape.Shape, {
-		// summary:
-		//		a generic circle
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.shape = g.getDefault("Circle");
-			this.rawNode = rawNode;
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box
-			if(!this.bbox){
-				var shape = this.shape;
-				this.bbox = {x: shape.cx - shape.r, y: shape.cy - shape.r,
-					width: 2 * shape.r, height: 2 * shape.r};
-			}
-			return this.bbox;	// dojox/gfx.Rectangle
-		}
-	});
-	
-	shape.Line = declare("dojox.gfx.shape.Line", shape.Shape, {
-		// summary:
-		//		a generic line (do not instantiate it directly)
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.shape = g.getDefault("Line");
-			this.rawNode = rawNode;
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box
-			if(!this.bbox){
-				var shape = this.shape;
-				this.bbox = {
-					x:		Math.min(shape.x1, shape.x2),
-					y:		Math.min(shape.y1, shape.y2),
-					width:	Math.abs(shape.x2 - shape.x1),
-					height:	Math.abs(shape.y2 - shape.y1)
-				};
-			}
-			return this.bbox;	// dojox/gfx.Rectangle
-		}
-	});
-	
-	shape.Polyline = declare("dojox.gfx.shape.Polyline", shape.Shape, {
-		// summary:
-		//		a generic polyline/polygon (do not instantiate it directly)
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.shape = g.getDefault("Polyline");
-			this.rawNode = rawNode;
-		},
-		setShape: function(points, closed){
-			// summary:
-			//		sets a polyline/polygon shape object
-			// points: Object|Array
-			//		a polyline/polygon shape object, or an array of points
-			// closed: Boolean
-			//		close the polyline to make a polygon
-			if(points && points instanceof Array){
-				this.inherited(arguments, [{points: points}]);
-				if(closed && this.shape.points.length){
-					this.shape.points.push(this.shape.points[0]);
-				}
-			}else{
-				this.inherited(arguments, [points]);
-			}
-			return this;	// self
-		},
-		_normalizePoints: function(){
-			// summary:
-			//		normalize points to array of {x:number, y:number}
-			var p = this.shape.points, l = p && p.length;
-			if(l && typeof p[0] == "number"){
-				var points = [];
-				for(var i = 0; i < l; i += 2){
-					points.push({x: p[i], y: p[i + 1]});
-				}
-				this.shape.points = points;
-			}
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box
-			if(!this.bbox && this.shape.points.length){
-				var p = this.shape.points;
-				var l = p.length;
-				var t = p[0];
-				var bbox = {l: t.x, t: t.y, r: t.x, b: t.y};
-				for(var i = 1; i < l; ++i){
-					t = p[i];
-					if(bbox.l > t.x) bbox.l = t.x;
-					if(bbox.r < t.x) bbox.r = t.x;
-					if(bbox.t > t.y) bbox.t = t.y;
-					if(bbox.b < t.y) bbox.b = t.y;
-				}
-				this.bbox = {
-					x:		bbox.l,
-					y:		bbox.t,
-					width:	bbox.r - bbox.l,
-					height:	bbox.b - bbox.t
-				};
-			}
-			return this.bbox;	// dojox/gfx.Rectangle
-		}
-	});
-	
-	shape.Image = declare("dojox.gfx.shape.Image", shape.Shape, {
-		// summary:
-		//		a generic image (do not instantiate it directly)
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.shape = g.getDefault("Image");
-			this.rawNode = rawNode;
-		},
-		getBoundingBox: function(){
-			// summary:
-			//		returns the bounding box (its shape in this case)
-			return this.shape;	// dojox/gfx.Rectangle
-		},
-		setStroke: function(){
-			// summary:
-			//		ignore setting a stroke style
-			return this;	// self
-		},
-		setFill: function(){
-			// summary:
-			//		ignore setting a fill style
-			return this;	// self
-		}
-	});
-	
-	shape.Text = declare(shape.Shape, {
-		// summary:
-		//		a generic text (do not instantiate it directly)
-		constructor: function(rawNode){
-			// rawNode: Node
-			//		a DOM Node
-			this.fontStyle = null;
-			this.shape = g.getDefault("Text");
-			this.rawNode = rawNode;
-		},
-		getFont: function(){
-			// summary:
-			//		returns the current font object or null
-			return this.fontStyle;	// Object
-		},
-		setFont: function(newFont){
-			// summary:
-			//		sets a font for text
-			// newFont: Object
-			//		a font object (see dojox/gfx.defaultFont) or a font string
-			this.fontStyle = typeof newFont == "string" ? g.splitFontString(newFont) :
-				g.makeParameters(g.defaultFont, newFont);
-			this._setFont();
-			return this;	// self
-		},
-		getBoundingBox: function(){
-			var bbox = null, s = this.getShape();
-			if(s.text){
-				bbox = g._base._computeTextBoundingBox(this);
-			}
-			return bbox;
-		}
-	});
-	
-	shape.Creator = {
-		// summary:
-		//		shape creators
-		createShape: function(shape){
-			// summary:
-			//		creates a shape object based on its type; it is meant to be used
-			//		by group-like objects
-			// shape: Object
-			//		a shape descriptor object
-			// returns: dojox/gfx/shape.Shape | Null
-			//      a fully instantiated surface-specific Shape object
-			switch(shape.type){
-				case g.defaultPath.type:		return this.createPath(shape);
-				case g.defaultRect.type:		return this.createRect(shape);
-				case g.defaultCircle.type:	    return this.createCircle(shape);
-				case g.defaultEllipse.type:	    return this.createEllipse(shape);
-				case g.defaultLine.type:		return this.createLine(shape);
-				case g.defaultPolyline.type:	return this.createPolyline(shape);
-				case g.defaultImage.type:		return this.createImage(shape);
-				case g.defaultText.type:		return this.createText(shape);
-				case g.defaultTextPath.type:	return this.createTextPath(shape);
-			}
-			return null;
-		},
-		createGroup: function(){
-			// summary:
-			//		creates a group shape
-			return this.createObject(g.Group);	// dojox/gfx/Group
-		},
-		createRect: function(rect){
-			// summary:
-			//		creates a rectangle shape
-			// rect: Object
-			//		a path object (see dojox/gfx.defaultRect)
-			return this.createObject(g.Rect, rect);	// dojox/gfx/shape.Rect
-		},
-		createEllipse: function(ellipse){
-			// summary:
-			//		creates an ellipse shape
-			// ellipse: Object
-			//		an ellipse object (see dojox/gfx.defaultEllipse)
-			return this.createObject(g.Ellipse, ellipse);	// dojox/gfx/shape.Ellipse
-		},
-		createCircle: function(circle){
-			// summary:
-			//		creates a circle shape
-			// circle: Object
-			//		a circle object (see dojox/gfx.defaultCircle)
-			return this.createObject(g.Circle, circle);	// dojox/gfx/shape.Circle
-		},
-		createLine: function(line){
-			// summary:
-			//		creates a line shape
-			// line: Object
-			//		a line object (see dojox/gfx.defaultLine)
-			return this.createObject(g.Line, line);	// dojox/gfx/shape.Line
-		},
-		createPolyline: function(points){
-			// summary:
-			//		creates a polyline/polygon shape
-			// points: Object
-			//		a points object (see dojox/gfx.defaultPolyline)
-			//		or an Array of points
-			return this.createObject(g.Polyline, points);	// dojox/gfx/shape.Polyline
-		},
-		createImage: function(image){
-			// summary:
-			//		creates a image shape
-			// image: Object
-			//		an image object (see dojox/gfx.defaultImage)
-			return this.createObject(g.Image, image);	// dojox/gfx/shape.Image
-		},
-		createText: function(text){
-			// summary:
-			//		creates a text shape
-			// text: Object
-			//		a text object (see dojox/gfx.defaultText)
-			return this.createObject(g.Text, text);	// dojox/gfx/shape.Text
-		},
-		createPath: function(path){
-			// summary:
-			//		creates a path shape
-			// path: Object
-			//		a path object (see dojox/gfx.defaultPath)
-			return this.createObject(g.Path, path);	// dojox/gfx/shape.Path
-		},
-		createTextPath: function(text){
-			// summary:
-			//		creates a text shape
-			// text: Object
-			//		a textpath object (see dojox/gfx.defaultTextPath)
-			return this.createObject(g.TextPath, {}).setText(text);	// dojox/gfx/shape.TextPath
-		},
-		createObject: function(shapeType, rawShape){
-			// summary:
-			//		creates an instance of the passed shapeType class
-			// shapeType: Function
-			//		a class constructor to create an instance of
-			// rawShape: Object 
-			//		properties to be passed in to the classes 'setShape' method
-	
-			// SHOULD BE RE-IMPLEMENTED BY THE RENDERER!
-			return null;	// dojox/gfx/shape.Shape
-		}
-	};
-	
-	/*=====
-	 lang.extend(shape.Surface, shape.Container);
-	 lang.extend(shape.Surface, shape.Creator);
-
-	 g.Group = declare(shape.Shape, {
-		// summary:
-		//		a group shape, which can be used
-		//		to logically group shapes (e.g, to propagate matricies)
-	});
-	lang.extend(g.Group, shape.Container);
-	lang.extend(g.Group, shape.Creator);
-
-	g.Rect     = shape.Rect;
-	g.Circle   = shape.Circle;
-	g.Ellipse  = shape.Ellipse;
-	g.Line     = shape.Line;
-	g.Polyline = shape.Polyline;
-	g.Text     = shape.Text;
-	g.Surface  = shape.Surface;
 	=====*/
 
-	return shape;
+	// precalculate long expressions
+	var oldOnMove = Moveable.prototype.onMove;
+
+	return declare("dojo.dnd.TimedMoveable", Moveable, {
+		// summary:
+		//		A specialized version of Moveable to support an FPS throttling.
+		//		This class puts an upper restriction on FPS, which may reduce
+		//		the CPU load. The additional parameter "timeout" regulates
+		//		the delay before actually moving the moveable object.
+
+		// object attributes (for markup)
+		timeout: 40,	// in ms, 40ms corresponds to 25 fps
+
+		constructor: function(node, params){
+			// summary:
+			//		an object that makes a node moveable with a timer
+			// node: Node||String
+			//		a node (or node's id) to be moved
+			// params: __TimedMoveableArgs
+			//		object with additional parameters.
+
+			// sanitize parameters
+			if(!params){ params = {}; }
+			if(params.timeout && typeof params.timeout == "number" && params.timeout >= 0){
+				this.timeout = params.timeout;
+			}
+		},
+
+		onMoveStop: function(/*Mover*/ mover){
+			if(mover._timer){
+				// stop timer
+				clearTimeout(mover._timer);
+				// reflect the last received position
+				oldOnMove.call(this, mover, mover._leftTop);
+			}
+			Moveable.prototype.onMoveStop.apply(this, arguments);
+		},
+		onMove: function(/*Mover*/ mover, /*Object*/ leftTop){
+			mover._leftTop = leftTop;
+			if(!mover._timer){
+				var _t = this;	// to avoid using dojo.hitch()
+				mover._timer = setTimeout(function(){
+					// we don't have any pending requests
+					mover._timer = null;
+					// reflect the last received position
+					oldOnMove.call(_t, mover, mover._leftTop);
+				}, this.timeout);
+			}
+		}
+	});
 });
 
 },
-'dojox/gfx/svg':function(){
-define(["dojo/_base/lang", "dojo/_base/sniff", "dojo/_base/window", "dojo/dom", "dojo/_base/declare", "dojo/_base/array",
-  "dojo/dom-geometry", "dojo/dom-attr", "dojo/_base/Color", "./_base", "./shape", "./path"],
-function(lang, has, win, dom, declare, arr, domGeom, domAttr, Color, g, gs, pathLib){
+'dijit/_base/manager':function(){
+define([
+	"dojo/_base/array",
+	"dojo/_base/config", // defaultDuration
+	"dojo/_base/lang",
+	"../registry",
+	"../main"	// for setting exports to dijit namespace
+], function(array, config, lang, registry, dijit){
 
-	var svg = g.svg = {
+	// module:
+	//		dijit/_base/manager
+
+	var exports = {
 		// summary:
-		//		This the graphics rendering bridge for browsers compliant with W3C SVG1.0.
-		//		This is the preferred renderer to use for interactive and accessible graphics.
-	};
-	svg.useSvgWeb = (typeof window.svgweb != "undefined");
-
-	// Need to detect iOS in order to workaround bug when
-	// touching nodes with text
-	var uagent = navigator.userAgent,
-		safMobile = has("ios"),
-		android = has("android"),
-		textRenderingFix = has("chrome") || (android && android>=4) ? "auto" : "optimizeLegibility";// #16099, #16461
-
-	function _createElementNS(ns, nodeType){
-		// summary:
-		//		Internal helper to deal with creating elements that
-		//		are namespaced.  Mainly to get SVG markup output
-		//		working on IE.
-		if(win.doc.createElementNS){
-			return win.doc.createElementNS(ns,nodeType);
-		}else{
-			return win.doc.createElement(nodeType);
-		}
-	}
-	
-	function _setAttributeNS(node, ns, attr, value){
-		if(node.setAttributeNS){
-			return node.setAttributeNS(ns, attr, value);
-		}else{
-			return node.setAttribute(attr, value);
-		}
-	}
-
-	function _createTextNode(text){
-		if(svg.useSvgWeb){
-			return win.doc.createTextNode(text, true);
-		}else{
-			return win.doc.createTextNode(text);
-		}
-	}
-
-	function _createFragment(){
-		if(svg.useSvgWeb){
-			return win.doc.createDocumentFragment(true);
-		}else{
-			return win.doc.createDocumentFragment();
-		}
-	}
-
-	svg.xmlns = {
-		xlink: "http://www.w3.org/1999/xlink",
-		svg:   "http://www.w3.org/2000/svg"
+		//		Deprecated.  Shim to methods on registry, plus a few other declarations.
+		//		New code should access dijit/registry directly when possible.
 	};
 
-	svg.getRef = function(name){
+	array.forEach(["byId", "getUniqueId", "findWidgets", "_destroyAll", "byNode", "getEnclosingWidget"], function(name){
+		exports[name] = registry[name];
+	});
+
+	 lang.mixin(exports, {
+		 // defaultDuration: Integer
+		 //		The default fx.animation speed (in ms) to use for all Dijit
+		 //		transitional fx.animations, unless otherwise specified
+		 //		on a per-instance basis. Defaults to 200, overrided by
+		 //		`djConfig.defaultDuration`
+		 defaultDuration: config["defaultDuration"] || 200
+	 });
+
+	lang.mixin(dijit, exports);
+
+	/*===== return exports; =====*/
+	return dijit;	// for back compat :-(
+});
+
+},
+'dijit/_CssStateMixin':function(){
+define([
+	"dojo/_base/array", // array.forEach array.map
+	"dojo/_base/declare", // declare
+	"dojo/dom", // dom.isDescendant()
+	"dojo/dom-class", // domClass.toggle
+	"dojo/has",
+	"dojo/_base/lang", // lang.hitch
+	"dojo/on",
+	"dojo/domReady",
+	"dojo/touch",
+	"dojo/_base/window", // win.body
+	"./a11yclick",
+	"./registry"
+], function(array, declare, dom, domClass, has, lang, on, domReady, touch, win, a11yclick, registry){
+
+	// module:
+	//		dijit/_CssStateMixin
+
+	var CssStateMixin = declare("dijit._CssStateMixin", [], {
 		// summary:
-		//		looks up a node by its external name
-		// name: String
-		//		an SVG external reference
-		// returns:
-		//      returns a DOM Node specified by the name argument or null
-		if(!name || name == "none") return null;
-		if(name.match(/^url\(#.+\)$/)){
-			return dom.byId(name.slice(5, -1));	// Node
-		}
-		// alternative representation of a reference
-		if(name.match(/^#dojoUnique\d+$/)){
-			// we assume here that a reference was generated by dojox/gfx
-			return dom.byId(name.slice(1));	// Node
-		}
-		return null;	// Node
-	};
+		//		Mixin for widgets to set CSS classes on the widget DOM nodes depending on hover/mouse press/focus
+		//		state changes, and also higher-level state changes such becoming disabled or selected.
+		//
+		// description:
+		//		By mixing this class into your widget, and setting the this.baseClass attribute, it will automatically
+		//		maintain CSS classes on the widget root node (this.domNode) depending on hover,
+		//		active, focus, etc. state.   Ex: with a baseClass of dijitButton, it will apply the classes
+		//		dijitButtonHovered and dijitButtonActive, as the user moves the mouse over the widget and clicks it.
+		//
+		//		It also sets CSS like dijitButtonDisabled based on widget semantic state.
+		//
+		//		By setting the cssStateNodes attribute, a widget can also track events on subnodes (like buttons
+		//		within the widget).
 
-	svg.dasharray = {
-		solid:				"none",
-		shortdash:			[4, 1],
-		shortdot:			[1, 1],
-		shortdashdot:		[4, 1, 1, 1],
-		shortdashdotdot:	[4, 1, 1, 1, 1, 1],
-		dot:				[1, 3],
-		dash:				[4, 3],
-		longdash:			[8, 3],
-		dashdot:			[4, 3, 1, 3],
-		longdashdot:		[8, 3, 1, 3],
-		longdashdotdot:		[8, 3, 1, 3, 1, 3]
-	};
+		/*=====
+		 // cssStateNodes: [protected] Object
+		 //		Subclasses may define a cssStateNodes property that lists sub-nodes within the widget that
+		 //		need CSS classes applied on mouse hover/press and focus.
+		 //
+		 //		Each entry in this optional hash is a an attach-point name (like "upArrowButton") mapped to a CSS class name
+		 //		(like "dijitUpArrowButton"). Example:
+		 //	|		{
+		 //	|			"upArrowButton": "dijitUpArrowButton",
+		 //	|			"downArrowButton": "dijitDownArrowButton"
+		 //	|		}
+		 //		The above will set the CSS class dijitUpArrowButton to the this.upArrowButton DOMNode when it
+		 //		is hovered, etc.
+		 cssStateNodes: {},
+		 =====*/
 
-	var clipCount = 0;
+		// hovering: [readonly] Boolean
+		//		True if cursor is over this widget
+		hovering: false,
 
-	svg.Shape = declare("dojox.gfx.svg.Shape", gs.Shape, {
-		// summary:
-		//		SVG-specific implementation of dojox/gfx/shape.Shape methods
+		// active: [readonly] Boolean
+		//		True if mouse was pressed while over this widget, and hasn't been released yet
+		active: false,
 
-		destroy: function(){
-			if(this.fillStyle && "type" in this.fillStyle){
-				var fill = this.rawNode.getAttribute("fill"),
-					ref  = svg.getRef(fill);
-				if(ref){
-					ref.parentNode.removeChild(ref);
-				}
+		_applyAttributes: function(){
+			// This code would typically be in postCreate(), but putting in _applyAttributes() for
+			// performance: so the class changes happen before DOM is inserted into the document.
+			// Change back to postCreate() in 2.0.  See #11635.
+
+			this.inherited(arguments);
+
+			// Monitoring changes to disabled, readonly, etc. state, and update CSS class of root node
+			array.forEach(["disabled", "readOnly", "checked", "selected", "focused", "state", "hovering", "active", "_opened"], function(attr){
+				this.watch(attr, lang.hitch(this, "_setStateClass"));
+			}, this);
+
+			// Track hover and active mouse events on widget root node, plus possibly on subnodes
+			for(var ap in this.cssStateNodes || {}){
+				this._trackMouseState(this[ap], this.cssStateNodes[ap]);
 			}
-			if(this.clip){
-				var clipPathProp = this.rawNode.getAttribute("clip-path");
-				if(clipPathProp){
-					var clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
-					if(clipNode){ clipNode.parentNode.removeChild(clipNode); }
-				}
-			}
-			gs.Shape.prototype.destroy.apply(this, arguments);
+			this._trackMouseState(this.domNode, this.baseClass);
+
+			// Set state initially; there's probably no hover/active/focus state but widget might be
+			// disabled/readonly/checked/selected so we want to set CSS classes for those conditions.
+			this._setStateClass();
 		},
 
-		setFill: function(fill){
+		_cssMouseEvent: function(/*Event*/ event){
 			// summary:
-			//		sets a fill object (SVG)
-			// fill: Object
-			//		a fill object
-			//		(see dojox/gfx.defaultLinearGradient,
-			//		dojox/gfx.defaultRadialGradient,
-			//		dojox/gfx.defaultPattern,
-			//		or dojo/_base/Color)
+			//		Handler for CSS event on this.domNode. Sets hovering and active properties depending on mouse state,
+			//		which triggers _setStateClass() to set appropriate CSS classes for this.domNode.
 
-			if(!fill){
-				// don't fill
-				this.fillStyle = null;
-				this.rawNode.setAttribute("fill", "none");
-				this.rawNode.setAttribute("fill-opacity", 0);
-				return this;
-			}
-			var f;
-			// FIXME: slightly magical. We're using the outer scope's "f", but setting it later
-			var setter = function(x){
-					// we assume that we're executing in the scope of the node to mutate
-					this.setAttribute(x, f[x].toFixed(8));
-				};
-			if(typeof(fill) == "object" && "type" in fill){
-				// gradient
-				switch(fill.type){
-					case "linear":
-						f = g.makeParameters(g.defaultLinearGradient, fill);
-						var gradient = this._setFillObject(f, "linearGradient");
-						arr.forEach(["x1", "y1", "x2", "y2"], setter, gradient);
+			if(!this.disabled){
+				switch(event.type){
+					case "mouseover":
+					case "MSPointerOver":
+					case "pointerover":
+						this._set("hovering", true);
+						this._set("active", this._mouseDown);
 						break;
-					case "radial":
-						f = g.makeParameters(g.defaultRadialGradient, fill);
-						var grad = this._setFillObject(f, "radialGradient");
-						arr.forEach(["cx", "cy", "r"], setter, grad);
+					case "mouseout":
+					case "MSPointerOut":
+					case "pointerout":
+						this._set("hovering", false);
+						this._set("active", false);
 						break;
-					case "pattern":
-						f = g.makeParameters(g.defaultPattern, fill);
-						var pattern = this._setFillObject(f, "pattern");
-						arr.forEach(["x", "y", "width", "height"], setter, pattern);
+					case "mousedown":
+					case "touchstart":
+					case "MSPointerDown":
+					case "pointerdown":
+					case "keydown":
+						this._set("active", true);
+						break;
+					case "mouseup":
+					case "dojotouchend":
+					case "MSPointerUp":
+					case "pointerup":
+					case "keyup":
+						this._set("active", false);
 						break;
 				}
-				this.fillStyle = f;
-				return this;
 			}
-			// color object
-			f = g.normalizeColor(fill);
-			this.fillStyle = f;
-			this.rawNode.setAttribute("fill", f.toCss());
-			this.rawNode.setAttribute("fill-opacity", f.a);
-			this.rawNode.setAttribute("fill-rule", "evenodd");
-			return this;	// self
 		},
 
-		setStroke: function(stroke){
+		_setStateClass: function(){
 			// summary:
-			//		sets a stroke object (SVG)
-			// stroke: Object
-			//		a stroke object (see dojox/gfx.defaultStroke)
-
-			var rn = this.rawNode;
-			if(!stroke){
-				// don't stroke
-				this.strokeStyle = null;
-				rn.setAttribute("stroke", "none");
-				rn.setAttribute("stroke-opacity", 0);
-				return this;
-			}
-			// normalize the stroke
-			if(typeof stroke == "string" || lang.isArray(stroke) || stroke instanceof Color){
-				stroke = { color: stroke };
-			}
-			var s = this.strokeStyle = g.makeParameters(g.defaultStroke, stroke);
-			s.color = g.normalizeColor(s.color);
-			// generate attributes
-			if(s){
-				var w = s.width < 0 ? 0 : s.width;
-				rn.setAttribute("stroke", s.color.toCss());
-				rn.setAttribute("stroke-opacity", s.color.a);
-				rn.setAttribute("stroke-width",   w);
-				rn.setAttribute("stroke-linecap", s.cap);
-				if(typeof s.join == "number"){
-					rn.setAttribute("stroke-linejoin",   "miter");
-					rn.setAttribute("stroke-miterlimit", s.join);
-				}else{
-					rn.setAttribute("stroke-linejoin",   s.join);
-				}
-				var da = s.style.toLowerCase();
-				if(da in svg.dasharray){
-					da = svg.dasharray[da];
-				}
-				if(da instanceof Array){
-					da = lang._toArray(da);
-					var i;
-					for(i = 0; i < da.length; ++i){
-						da[i] *= w;
-					}
-					if(s.cap != "butt"){
-						for(i = 0; i < da.length; i += 2){
-							da[i] -= w;
-							if(da[i] < 1){ da[i] = 1; }
-						}
-						for(i = 1; i < da.length; i += 2){
-							da[i] += w;
-						}
-					}
-					da = da.join(",");
-				}
-				rn.setAttribute("stroke-dasharray", da);
-				rn.setAttribute("dojoGfxStrokeStyle", s.style);
-			}
-			return this;	// self
-		},
-
-		_getParentSurface: function(){
-			var surface = this.parent;
-			for(; surface && !(surface instanceof g.Surface); surface = surface.parent);
-			return surface;
-		},
-
-		_setFillObject: function(f, nodeType){
-			var svgns = svg.xmlns.svg;
-			this.fillStyle = f;
-			var surface = this._getParentSurface(),
-				defs = surface.defNode,
-				fill = this.rawNode.getAttribute("fill"),
-				ref  = svg.getRef(fill);
-			if(ref){
-				fill = ref;
-				if(fill.tagName.toLowerCase() != nodeType.toLowerCase()){
-					var id = fill.id;
-					fill.parentNode.removeChild(fill);
-					fill = _createElementNS(svgns, nodeType);
-					fill.setAttribute("id", id);
-					defs.appendChild(fill);
-				}else{
-					while(fill.childNodes.length){
-						fill.removeChild(fill.lastChild);
-					}
-				}
-			}else{
-				fill = _createElementNS(svgns, nodeType);
-				fill.setAttribute("id", g._base._getUniqueId());
-				defs.appendChild(fill);
-			}
-			if(nodeType == "pattern"){
-				fill.setAttribute("patternUnits", "userSpaceOnUse");
-				var img = _createElementNS(svgns, "image");
-				img.setAttribute("x", 0);
-				img.setAttribute("y", 0);
-				img.setAttribute("width",  (f.width < 0 ? 0 : f.width).toFixed(8));
-				img.setAttribute("height", (f.height < 0 ? 0 : f.height).toFixed(8));
-				_setAttributeNS(img, svg.xmlns.xlink, "xlink:href", f.src);
-				fill.appendChild(img);
-			}else{
-				fill.setAttribute("gradientUnits", "userSpaceOnUse");
-				for(var i = 0; i < f.colors.length; ++i){
-					var c = f.colors[i], t = _createElementNS(svgns, "stop"),
-						cc = c.color = g.normalizeColor(c.color);
-					t.setAttribute("offset",       c.offset.toFixed(8));
-					t.setAttribute("stop-color",   cc.toCss());
-					t.setAttribute("stop-opacity", cc.a);
-					fill.appendChild(t);
-				}
-			}
-			this.rawNode.setAttribute("fill", "url(#" + fill.getAttribute("id") +")");
-			this.rawNode.removeAttribute("fill-opacity");
-			this.rawNode.setAttribute("fill-rule", "evenodd");
-			return fill;
-		},
-
-		_applyTransform: function() {
-			var matrix = this.matrix;
-			if(matrix){
-				var tm = this.matrix;
-				this.rawNode.setAttribute("transform", "matrix(" +
-					tm.xx.toFixed(8) + "," + tm.yx.toFixed(8) + "," +
-					tm.xy.toFixed(8) + "," + tm.yy.toFixed(8) + "," +
-					tm.dx.toFixed(8) + "," + tm.dy.toFixed(8) + ")");
-			}else{
-				this.rawNode.removeAttribute("transform");
-			}
-			return this;
-		},
-
-		setRawNode: function(rawNode){
-			// summary:
-			//		assigns and clears the underlying node that will represent this
-			//		shape. Once set, transforms, gradients, etc, can be applied.
-			//		(no fill & stroke by default)
-			var r = this.rawNode = rawNode;
-			if(this.shape.type!="image"){
-				r.setAttribute("fill", "none");
-			}
-			r.setAttribute("fill-opacity", 0);
-			r.setAttribute("stroke", "none");
-			r.setAttribute("stroke-opacity", 0);
-			r.setAttribute("stroke-width", 1);
-			r.setAttribute("stroke-linecap", "butt");
-			r.setAttribute("stroke-linejoin", "miter");
-			r.setAttribute("stroke-miterlimit", 4);
-			// Bind GFX object with SVG node for ease of retrieval - that is to
-			// save code/performance to keep this association elsewhere
-			r.__gfxObject__ = this;
-		},
-
-		setShape: function(newShape){
-			// summary:
-			//		sets a shape object (SVG)
-			// newShape: Object
-			//		a shape object
-			//		(see dojox/gfx.defaultPath,
-			//		dojox/gfx.defaultPolyline,
-			//		dojox/gfx.defaultRect,
-			//		dojox/gfx.defaultEllipse,
-			//		dojox/gfx.defaultCircle,
-			//		dojox/gfx.defaultLine,
-			//		or dojox/gfx.defaultImage)
-			this.shape = g.makeParameters(this.shape, newShape);
-			for(var i in this.shape){
-				if(i != "type"){
-					var v = this.shape[i];
-					if(i === "width" || i === "height"){
-						v = v < 0 ? 0 : v;
-					}
-					this.rawNode.setAttribute(i, v);
-				}
-			}
-			this.bbox = null;
-			return this;	// self
-		},
-
-		// move family
-
-		_moveToFront: function(){
-			// summary:
-			//		moves a shape to front of its parent's list of shapes (SVG)
-			this.rawNode.parentNode.appendChild(this.rawNode);
-			return this;	// self
-		},
-		_moveToBack: function(){
-			// summary:
-			//		moves a shape to back of its parent's list of shapes (SVG)
-			this.rawNode.parentNode.insertBefore(this.rawNode, this.rawNode.parentNode.firstChild);
-			return this;	// self
-		},
-		setClip: function(clip){
-			// summary:
-			//		sets the clipping area of this shape.
+			//		Update the visual state of the widget by setting the css classes on this.domNode
+			//		(or this.stateNode if defined) by combining this.baseClass with
+			//		various suffixes that represent the current widget state(s).
+			//
 			// description:
-			//		This method overrides the dojox/gfx/shape.Shape.setClip() method.
-			// clip: Object
-			//		an object that defines the clipping geometry, or null to remove clip.
-			this.inherited(arguments);
-			var clipType = clip ? "width" in clip ? "rect" : 
-							"cx" in clip ? "ellipse" : 
-							"points" in clip ? "polyline" : "d" in clip ? "path" : null : null;
-			if(clip && !clipType){
-				return this;
+			//		In the case where a widget has multiple
+			//		states, it sets the class based on all possible
+			//		combinations.  For example, an invalid form widget that is being hovered
+			//		will be "dijitInput dijitInputInvalid dijitInputHover dijitInputInvalidHover".
+			//
+			//		The widget may have one or more of the following states, determined
+			//		by this.state, this.checked, this.valid, and this.selected:
+			//
+			//		- Error - ValidationTextBox sets this.state to "Error" if the current input value is invalid
+			//		- Incomplete - ValidationTextBox sets this.state to "Incomplete" if the current input value is not finished yet
+			//		- Checked - ex: a checkmark or a ToggleButton in a checked state, will have this.checked==true
+			//		- Selected - ex: currently selected tab will have this.selected==true
+			//
+			//		In addition, it may have one or more of the following states,
+			//		based on this.disabled and flags set in _onMouse (this.active, this.hovering) and from focus manager (this.focused):
+			//
+			//		- Disabled	- if the widget is disabled
+			//		- Active		- if the mouse (or space/enter key?) is being pressed down
+			//		- Focused		- if the widget has focus
+			//		- Hover		- if the mouse is over the widget
+
+			// Compute new set of classes
+			var newStateClasses = this.baseClass.split(" ");
+
+			function multiply(modifier){
+				newStateClasses = newStateClasses.concat(array.map(newStateClasses, function(c){
+					return c + modifier;
+				}), "dijit" + modifier);
 			}
-			if(clipType === "polyline"){
-				clip = lang.clone(clip);
-				clip.points = clip.points.join(",");
+
+			if(!this.isLeftToRight()){
+				// For RTL mode we need to set an addition class like dijitTextBoxRtl.
+				multiply("Rtl");
 			}
-			var clipNode, clipShape,
-				clipPathProp = domAttr.get(this.rawNode, "clip-path");
-			if(clipPathProp){
-				clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
-				if(clipNode){ // may be null if not in the DOM anymore
-					clipNode.removeChild(clipNode.childNodes[0]);
-				}
+
+			var checkedState = this.checked == "mixed" ? "Mixed" : (this.checked ? "Checked" : "");
+			if(this.checked){
+				multiply(checkedState);
 			}
-			if(clip){
-				if(clipNode){
-					clipShape = _createElementNS(svg.xmlns.svg, clipType);
-					clipNode.appendChild(clipShape);
-				}else{
-					var idIndex = ++clipCount;
-					var clipId = "gfx_clip" + idIndex;
-					var clipUrl = "url(#" + clipId + ")";
-					this.rawNode.setAttribute("clip-path", clipUrl);
-					clipNode = _createElementNS(svg.xmlns.svg, "clipPath");
-					clipShape = _createElementNS(svg.xmlns.svg, clipType);
-					clipNode.appendChild(clipShape);
-					this.rawNode.parentNode.insertBefore(clipNode, this.rawNode);
-					domAttr.set(clipNode, "id", clipId);
-				}
-				domAttr.set(clipShape, clip);
+			if(this.state){
+				multiply(this.state);
+			}
+			if(this.selected){
+				multiply("Selected");
+			}
+			if(this._opened){
+				multiply("Opened");
+			}
+
+			if(this.disabled){
+				multiply("Disabled");
+			}else if(this.readOnly){
+				multiply("ReadOnly");
 			}else{
-				//remove clip-path
-				this.rawNode.removeAttribute("clip-path");
-				if(clipNode){
-					clipNode.parentNode.removeChild(clipNode);
+				if(this.active){
+					multiply("Active");
+				}else if(this.hovering){
+					multiply("Hover");
 				}
 			}
-			return this;
+
+			if(this.focused){
+				multiply("Focused");
+			}
+
+			// Remove old state classes and add new ones.
+			// For performance concerns we only write into domNode.className once.
+			var tn = this.stateNode || this.domNode,
+				classHash = {};	// set of all classes (state and otherwise) for node
+
+			array.forEach(tn.className.split(" "), function(c){
+				classHash[c] = true;
+			});
+
+			if("_stateClasses" in this){
+				array.forEach(this._stateClasses, function(c){
+					delete classHash[c];
+				});
+			}
+
+			array.forEach(newStateClasses, function(c){
+				classHash[c] = true;
+			});
+
+			var newClasses = [];
+			for(var c in classHash){
+				newClasses.push(c);
+			}
+			tn.className = newClasses.join(" ");
+
+			this._stateClasses = newStateClasses;
 		},
-		_removeClipNode: function(){
-			var clipNode, clipPathProp = domAttr.get(this.rawNode, "clip-path");
-			if(clipPathProp){
-				clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
-				if(clipNode){
-					clipNode.parentNode.removeChild(clipNode);
-				}
+
+		_subnodeCssMouseEvent: function(node, clazz, evt){
+			// summary:
+			//		Handler for hover/active mouse event on widget's subnode
+			if(this.disabled || this.readOnly){
+				return;
 			}
-			return clipNode;
+
+			function hover(isHovering){
+				domClass.toggle(node, clazz + "Hover", isHovering);
+			}
+
+			function active(isActive){
+				domClass.toggle(node, clazz + "Active", isActive);
+			}
+
+			function focused(isFocused){
+				domClass.toggle(node, clazz + "Focused", isFocused);
+			}
+
+			switch(evt.type){
+				case "mouseover":
+				case "MSPointerOver":
+				case "pointerover":
+					hover(true);
+					break;
+				case "mouseout":
+				case "MSPointerOut":
+				case "pointerout":
+					hover(false);
+					active(false);
+					break;
+				case "mousedown":
+				case "touchstart":
+				case "MSPointerDown":
+				case "pointerdown":
+				case "keydown":
+					active(true);
+					break;
+				case "mouseup":
+				case "MSPointerUp":
+				case "pointerup":
+				case "dojotouchend":
+				case "keyup":
+					active(false);
+					break;
+				case "focus":
+				case "focusin":
+					focused(true);
+					break;
+				case "blur":
+				case "focusout":
+					focused(false);
+					break;
+			}
+		},
+
+		_trackMouseState: function(/*DomNode*/ node, /*String*/ clazz){
+			// summary:
+			//		Track mouse/focus events on specified node and set CSS class on that node to indicate
+			//		current state.   Usually not called directly, but via cssStateNodes attribute.
+			// description:
+			//		Given class=foo, will set the following CSS class on the node
+			//
+			//		- fooActive: if the user is currently pressing down the mouse button while over the node
+			//		- fooHover: if the user is hovering the mouse over the node, but not pressing down a button
+			//		- fooFocus: if the node is focused
+			//
+			//		Note that it won't set any classes if the widget is disabled.
+			// node: DomNode
+			//		Should be a sub-node of the widget, not the top node (this.domNode), since the top node
+			//		is handled specially and automatically just by mixing in this class.
+			// clazz: String
+			//		CSS class name (ex: dijitSliderUpArrow)
+
+			// Flag for listener code below to call this._cssMouseEvent() or this._subnodeCssMouseEvent()
+			// when node is hovered/active
+			node._cssState = clazz;
 		}
 	});
 
+	domReady(function(){
+		// Document level listener to catch hover etc. events on widget root nodes and subnodes.
+		// Note that when the mouse is moved quickly, a single onmouseenter event could signal that multiple widgets
+		// have been hovered or unhovered (try test_Accordion.html)
 
-	svg.Group = declare("dojox.gfx.svg.Group", svg.Shape, {
-		// summary:
-		//		a group shape (SVG), which can be used
-		//		to logically group shapes (e.g, to propagate matricies)
-		constructor: function(){
-			gs.Container._init.call(this);
-		},
-		setRawNode: function(rawNode){
-			// summary:
-			//		sets a raw SVG node to be used by this shape
-			// rawNode: Node
-			//		an SVG node
-			this.rawNode = rawNode;
-			// Bind GFX object with SVG node for ease of retrieval - that is to
-			// save code/performance to keep this association elsewhere
-			this.rawNode.__gfxObject__ = this;
-		},
-		destroy: function(){
-			// summary:
-			//		Releases all internal resources owned by this shape. Once this method has been called,
-			//		the instance is considered disposed and should not be used anymore.
-			this.clear(true);
-			// avoid this.inherited
-			svg.Shape.prototype.destroy.apply(this, arguments);
-		}
-	});
-	svg.Group.nodeType = "g";
+		function pointerHandler(evt, target, relatedTarget){
+			// Handler for mouseover, mouseout, a11yclick.press and a11click.release events
 
-	svg.Rect = declare("dojox.gfx.svg.Rect", [svg.Shape, gs.Rect], {
-		// summary:
-		//		a rectangle shape (SVG)
-		setShape: function(newShape){
-			// summary:
-			//		sets a rectangle shape object (SVG)
-			// newShape: Object
-			//		a rectangle shape object
-			this.shape = g.makeParameters(this.shape, newShape);
-			this.bbox = null;
-			for(var i in this.shape){
-				if(i != "type" && i != "r"){
-					var v = this.shape[i];
-					if(i === "width" || i === "height"){
-						v = v < 0 ? 0 : v;
+			// Poor man's event propagation.  Don't propagate event to ancestors of evt.relatedTarget,
+			// to avoid processing mouseout events moving from a widget's domNode to a descendant node;
+			// such events shouldn't be interpreted as a mouseleave on the widget.
+			if(relatedTarget && dom.isDescendant(relatedTarget, target)){
+				return;
+			}
+
+			for(var node = target; node && node != relatedTarget; node = node.parentNode){
+				// Process any nodes with _cssState property.   They are generally widget root nodes,
+				// but could also be sub-nodes within a widget
+				if(node._cssState){
+					var widget = registry.getEnclosingWidget(node);
+					if(widget){
+						if(node == widget.domNode){
+							// event on the widget's root node
+							widget._cssMouseEvent(evt);
+						}else{
+							// event on widget's sub-node
+							widget._subnodeCssMouseEvent(node, node._cssState, evt);
+						}
 					}
-					this.rawNode.setAttribute(i, v);
 				}
 			}
-			if(this.shape.r != null){
-				this.rawNode.setAttribute("ry", this.shape.r);
-				this.rawNode.setAttribute("rx", this.shape.r);
-			}
-			return this;	// self
-		}
-	});
-	svg.Rect.nodeType = "rect";
-
-	svg.Ellipse = declare("dojox.gfx.svg.Ellipse", [svg.Shape, gs.Ellipse], {});
-	svg.Ellipse.nodeType = "ellipse";
-
-	svg.Circle = declare("dojox.gfx.svg.Circle", [svg.Shape, gs.Circle], {});
-	svg.Circle.nodeType = "circle";
-
-	svg.Line = declare("dojox.gfx.svg.Line", [svg.Shape, gs.Line], {});
-	svg.Line.nodeType = "line";
-
-	svg.Polyline = declare("dojox.gfx.svg.Polyline", [svg.Shape, gs.Polyline], {
-		// summary:
-		//		a polyline/polygon shape (SVG)
-		setShape: function(points, closed){
-			// summary:
-			//		sets a polyline/polygon shape object (SVG)
-			// points: Object|Array
-			//		a polyline/polygon shape object, or an array of points
-			if(points && points instanceof Array){
-				this.shape = g.makeParameters(this.shape, { points: points });
-				if(closed && this.shape.points.length){
-					this.shape.points.push(this.shape.points[0]);
-				}
-			}else{
-				this.shape = g.makeParameters(this.shape, points);
-			}
-			this.bbox = null;
-			this._normalizePoints();
-			var attr = [], p = this.shape.points;
-			for(var i = 0; i < p.length; ++i){
-				attr.push(p[i].x.toFixed(8), p[i].y.toFixed(8));
-			}
-			this.rawNode.setAttribute("points", attr.join(" "));
-			return this;	// self
-		}
-	});
-	svg.Polyline.nodeType = "polyline";
-
-	svg.Image = declare("dojox.gfx.svg.Image", [svg.Shape, gs.Image], {
-		// summary:
-		//		an image (SVG)
-		setShape: function(newShape){
-			// summary:
-			//		sets an image shape object (SVG)
-			// newShape: Object
-			//		an image shape object
-			this.shape = g.makeParameters(this.shape, newShape);
-			this.bbox = null;
-			var rawNode = this.rawNode;
-			for(var i in this.shape){
-				if(i != "type" && i != "src"){
-					var v = this.shape[i];
-					if(i === "width" || i === "height"){
-						v = v < 0 ? 0 : v;
-					}
-					rawNode.setAttribute(i, v);
-				}
-			}
-			rawNode.setAttribute("preserveAspectRatio", "none");
-			_setAttributeNS(rawNode, svg.xmlns.xlink, "xlink:href", this.shape.src);
-			// Bind GFX object with SVG node for ease of retrieval - that is to
-			// save code/performance to keep this association elsewhere
-			rawNode.__gfxObject__ = this;
-			return this;	// self
-		}
-	});
-	svg.Image.nodeType = "image";
-
-	svg.Text = declare("dojox.gfx.svg.Text", [svg.Shape, gs.Text], {
-		// summary:
-		//		an anchored text (SVG)
-		setShape: function(newShape){
-			// summary:
-			//		sets a text shape object (SVG)
-			// newShape: Object
-			//		a text shape object
-			this.shape = g.makeParameters(this.shape, newShape);
-			this.bbox = null;
-			var r = this.rawNode, s = this.shape;
-			r.setAttribute("x", s.x);
-			r.setAttribute("y", s.y);
-			r.setAttribute("text-anchor", s.align);
-			r.setAttribute("text-decoration", s.decoration);
-			r.setAttribute("rotate", s.rotated ? 90 : 0);
-			r.setAttribute("kerning", s.kerning ? "auto" : 0);
-			r.setAttribute("text-rendering", textRenderingFix);
-
-			// update the text content
-			if(r.firstChild){
-				r.firstChild.nodeValue = s.text;
-			}else{
-				r.appendChild(_createTextNode(s.text));
-			}
-			return this;	// self
-		},
-		getTextWidth: function(){
-			// summary:
-			//		get the text width in pixels
-			var rawNode = this.rawNode,
-				oldParent = rawNode.parentNode,
-				_measurementNode = rawNode.cloneNode(true);
-			_measurementNode.style.visibility = "hidden";
-
-			// solution to the "orphan issue" in FF
-			var _width = 0, _text = _measurementNode.firstChild.nodeValue;
-			oldParent.appendChild(_measurementNode);
-
-			// solution to the "orphan issue" in Opera
-			// (nodeValue == "" hangs firefox)
-			if(_text!=""){
-				while(!_width){
-//Yang: work around svgweb bug 417 -- http://code.google.com/p/svgweb/issues/detail?id=417
-if (_measurementNode.getBBox)
-					_width = parseInt(_measurementNode.getBBox().width);
-else
-	_width = 68;
-				}
-			}
-			oldParent.removeChild(_measurementNode);
-			return _width;
-		},
-		getBoundingBox: function(){
-			var s = this.getShape(), bbox = null;
-			if(s.text){
-				// try/catch the FF native getBBox error.
-				try {
-					bbox = this.rawNode.getBBox();
-				} catch (e) {
-					// under FF when the node is orphan (all other browsers return a 0ed bbox.
-					bbox = {x:0, y:0, width:0, height:0};
-				}
-			}
-			return bbox;
-		}
-	});
-	svg.Text.nodeType = "text";
-
-	svg.Path = declare("dojox.gfx.svg.Path", [svg.Shape, pathLib.Path], {
-		// summary:
-		//		a path shape (SVG)
-		_updateWithSegment: function(segment){
-			// summary:
-			//		updates the bounding box of path with new segment
-			// segment: Object
-			//		a segment
-			this.inherited(arguments);
-			if(typeof(this.shape.path) == "string"){
-				this.rawNode.setAttribute("d", this.shape.path);
-			}
-		},
-		setShape: function(newShape){
-			// summary:
-			//		forms a path using a shape (SVG)
-			// newShape: Object
-			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
-			this.inherited(arguments);
-			if(this.shape.path){
-				this.rawNode.setAttribute("d", this.shape.path);
-			}else{
-				this.rawNode.removeAttribute("d");
-			}
-			return this;	// self
-		}
-	});
-	svg.Path.nodeType = "path";
-
-	svg.TextPath = declare("dojox.gfx.svg.TextPath", [svg.Shape, pathLib.TextPath], {
-		// summary:
-		//		a textpath shape (SVG)
-		_updateWithSegment: function(segment){
-			// summary:
-			//		updates the bounding box of path with new segment
-			// segment: Object
-			//		a segment
-			this.inherited(arguments);
-			this._setTextPath();
-		},
-		setShape: function(newShape){
-			// summary:
-			//		forms a path using a shape (SVG)
-			// newShape: Object
-			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
-			this.inherited(arguments);
-			this._setTextPath();
-			return this;	// self
-		},
-		_setTextPath: function(){
-			if(typeof this.shape.path != "string"){ return; }
-			var r = this.rawNode;
-			if(!r.firstChild){
-				var tp = _createElementNS(svg.xmlns.svg, "textPath"),
-					tx = _createTextNode("");
-				tp.appendChild(tx);
-				r.appendChild(tp);
-			}
-			var ref  = r.firstChild.getAttributeNS(svg.xmlns.xlink, "href"),
-				path = ref && svg.getRef(ref);
-			if(!path){
-				var surface = this._getParentSurface();
-				if(surface){
-					var defs = surface.defNode;
-					path = _createElementNS(svg.xmlns.svg, "path");
-					var id = g._base._getUniqueId();
-					path.setAttribute("id", id);
-					defs.appendChild(path);
-					_setAttributeNS(r.firstChild, svg.xmlns.xlink, "xlink:href", "#" + id);
-				}
-			}
-			if(path){
-				path.setAttribute("d", this.shape.path);
-			}
-		},
-		_setText: function(){
-			var r = this.rawNode;
-			if(!r.firstChild){
-				var tp = _createElementNS(svg.xmlns.svg, "textPath"),
-					tx = _createTextNode("");
-				tp.appendChild(tx);
-				r.appendChild(tp);
-			}
-			r = r.firstChild;
-			var t = this.text;
-			r.setAttribute("alignment-baseline", "middle");
-			switch(t.align){
-				case "middle":
-					r.setAttribute("text-anchor", "middle");
-					r.setAttribute("startOffset", "50%");
-					break;
-				case "end":
-					r.setAttribute("text-anchor", "end");
-					r.setAttribute("startOffset", "100%");
-					break;
-				default:
-					r.setAttribute("text-anchor", "start");
-					r.setAttribute("startOffset", "0%");
-					break;
-			}
-			//r.parentNode.setAttribute("alignment-baseline", "central");
-			//r.setAttribute("dominant-baseline", "central");
-			r.setAttribute("baseline-shift", "0.5ex");
-			r.setAttribute("text-decoration", t.decoration);
-			r.setAttribute("rotate", t.rotated ? 90 : 0);
-			r.setAttribute("kerning", t.kerning ? "auto" : 0);
-			r.firstChild.data = t.text;
-		}
-	});
-	svg.TextPath.nodeType = "text";
-
-	// Fix for setDimension bug:
-	// http://bugs.dojotoolkit.org/ticket/16100
-	// (https://code.google.com/p/chromium/issues/detail?id=162628)
-	var hasSvgSetAttributeBug = (function(){ var matches = /WebKit\/(\d*)/.exec(uagent); return matches ? matches[1] : 0})() > 534;
-
-	svg.Surface = declare("dojox.gfx.svg.Surface", gs.Surface, {
-		// summary:
-		//		a surface object to be used for drawings (SVG)
-		constructor: function(){
-			gs.Container._init.call(this);
-		},
-		destroy: function(){
-			// no need to call svg.Container.clear to remove the children raw
-			// nodes since the surface raw node will be removed. So, only dispose at gfx level	
-			gs.Container.clear.call(this, true); 
-			this.defNode = null;	// release the external reference
-			this.inherited(arguments);
-		},
-		setDimensions: function(width, height){
-			// summary:
-			//		sets the width and height of the rawNode
-			// width: String
-			//		width of surface, e.g., "100px"
-			// height: String
-			//		height of surface, e.g., "100px"
-			if(!this.rawNode){ return this; }
-			var w = width < 0 ? 0 : width,
-				h = height < 0 ? 0 : height;
-			this.rawNode.setAttribute("width",  w);
-			this.rawNode.setAttribute("height", h);
-			if(hasSvgSetAttributeBug){
-				this.rawNode.style.width =  w;
-				this.rawNode.style.height =  h;
-			}
-			return this;	// self
-		},
-		getDimensions: function(){
-			// summary:
-			//		returns an object with properties "width" and "height"
-			var t = this.rawNode ? {
-				width:  g.normalizedLength(this.rawNode.getAttribute("width")),
-				height: g.normalizedLength(this.rawNode.getAttribute("height"))} : null;
-			return t;	// Object
-		}
-	});
-
-	svg.createSurface = function(parentNode, width, height){
-		// summary:
-		//		creates a surface (SVG)
-		// parentNode: Node
-		//		a parent node
-		// width: String|Number
-		//		width of surface, e.g., "100px" or 100
-		// height: String|Number
-		//		height of surface, e.g., "100px" or 100
-		// returns: dojox/gfx/shape.Surface
-		//     newly created surface
-
-		var s = new svg.Surface();
-		s.rawNode = _createElementNS(svg.xmlns.svg, "svg");
-		s.rawNode.setAttribute("overflow", "hidden");
-		if(width){
-			s.rawNode.setAttribute("width",  width < 0 ? 0 : width);
-		}
-		if(height){
-			s.rawNode.setAttribute("height", height < 0 ? 0 : height);
 		}
 
-		var defNode = _createElementNS(svg.xmlns.svg, "defs");
-		s.rawNode.appendChild(defNode);
-		s.defNode = defNode;
+		var body = win.body(), activeNode;
 
-		s._parent = dom.byId(parentNode);
-		s._parent.appendChild(s.rawNode);
-
-		g._base._fixMsTouchAction(s);
-
-		return s;	// dojox/gfx.Surface
-	};
-
-	// Extenders
-
-	var Font = {
-		_setFont: function(){
-			// summary:
-			//		sets a font object (SVG)
-			var f = this.fontStyle;
-			// next line doesn't work in Firefox 2 or Opera 9
-			//this.rawNode.setAttribute("font", dojox.gfx.makeFontString(this.fontStyle));
-			this.rawNode.setAttribute("font-style", f.style);
-			this.rawNode.setAttribute("font-variant", f.variant);
-			this.rawNode.setAttribute("font-weight", f.weight);
-			this.rawNode.setAttribute("font-size", f.size);
-			this.rawNode.setAttribute("font-family", f.family);
-		}
-	};
-
-	var C = gs.Container;
-	var Container = svg.Container = {
-		openBatch: function() {
-			// summary:
-			//		starts a new batch, subsequent new child shapes will be held in
-			//		the batch instead of appending to the container directly
-			if(!this._batch){
-				this.fragment = _createFragment();
-			}
-			++this._batch;
-			return this;
-		},
-		closeBatch: function() {
-			// summary:
-			//		submits the current batch, append all pending child shapes to DOM
-			this._batch = this._batch > 0 ? --this._batch : 0;
-			if (this.fragment && !this._batch) {
-				this.rawNode.appendChild(this.fragment);
-				delete this.fragment;
-			}
-			return this;
-		},
-		add: function(shape){
-			// summary:
-			//		adds a shape to a group/surface
-			// shape: dojox/gfx/shape.Shape
-			//		an VML shape object
-			if(this != shape.getParent()){
-				if (this.fragment) {
-					this.fragment.appendChild(shape.rawNode);
-				} else {
-					this.rawNode.appendChild(shape.rawNode);
-				}
-				C.add.apply(this, arguments);
-				// update clipnode with new parent
-				shape.setClip(shape.clip);
-			}
-			return this;	// self
-		},
-		remove: function(shape, silently){
-			// summary:
-			//		remove a shape from a group/surface
-			// shape: dojox/gfx/shape.Shape
-			//		an VML shape object
-			// silently: Boolean?
-			//		if true, regenerate a picture
-			if(this == shape.getParent()){
-				if(this.rawNode == shape.rawNode.parentNode){
-					this.rawNode.removeChild(shape.rawNode);
-				}
-				if(this.fragment && this.fragment == shape.rawNode.parentNode){
-					this.fragment.removeChild(shape.rawNode);
-				}
-				// remove clip node from parent 
-				shape._removeClipNode();
-				C.remove.apply(this, arguments);
-			}
-			return this;	// self
-		},
-		clear: function(){
-			// summary:
-			//		removes all shapes from a group/surface
-			var r = this.rawNode;
-			while(r.lastChild){
-				r.removeChild(r.lastChild);
-			}
-			var defNode = this.defNode;
-			if(defNode){
-				while(defNode.lastChild){
-					defNode.removeChild(defNode.lastChild);
-				}
-				r.appendChild(defNode);
-			}
-			return C.clear.apply(this, arguments);
-		},
-		getBoundingBox: C.getBoundingBox,
-		_moveChildToFront: C._moveChildToFront,
-		_moveChildToBack:  C._moveChildToBack
-	};
-
-	var Creator = svg.Creator = {
-		// summary:
-		//		SVG shape creators
-		createObject: function(shapeType, rawShape){
-			// summary:
-			//		creates an instance of the passed shapeType class
-			// shapeType: Function
-			//		a class constructor to create an instance of
-			// rawShape: Object
-			//		properties to be passed in to the classes "setShape" method
-			if(!this.rawNode){ return null; }
-			var shape = new shapeType(),
-				node = _createElementNS(svg.xmlns.svg, shapeType.nodeType);
-
-			shape.setRawNode(node);
-			shape.setShape(rawShape);
-			// rawNode.appendChild() will be done inside this.add(shape) below
-			this.add(shape);
-			return shape;	// dojox/gfx/shape.Shape
-		}
-	};
-
-	lang.extend(svg.Text, Font);
-	lang.extend(svg.TextPath, Font);
-
-	lang.extend(svg.Group, Container);
-	lang.extend(svg.Group, gs.Creator);
-	lang.extend(svg.Group, Creator);
-
-	lang.extend(svg.Surface, Container);
-	lang.extend(svg.Surface, gs.Creator);
-	lang.extend(svg.Surface, Creator);
-
-	// Mouse/Touch event
-	svg.fixTarget = function(event, gfxElement) {
-		// summary:
-		//		Adds the gfxElement to event.gfxTarget if none exists. This new
-		//		property will carry the GFX element associated with this event.
-		// event: Object
-		//		The current input event (MouseEvent or TouchEvent)
-		// gfxElement: Object
-		//		The GFX target element
-		if (!event.gfxTarget) {
-			if (safMobile && event.target.wholeText) {
-				// Workaround iOS bug when touching text nodes
-				event.gfxTarget = event.target.parentElement.__gfxObject__;
-			} else {
-				event.gfxTarget = event.target.__gfxObject__;
-			}
-		}
-		return true;
-	};
-
-	// some specific override for svgweb + flash
-	if(svg.useSvgWeb){
-		// override createSurface()
-		svg.createSurface = function(parentNode, width, height){
-			var s = new svg.Surface();
-			
-			width = width < 0 ? 0 : width;
-			height = height < 0 ? 0 : height;
-
-			// ensure width / height
-			if(!width || !height){
-				var pos = domGeom.position(parentNode);
-				width  = width  || pos.w;
-				height = height || pos.h;
-			}
-
-			// ensure id
-			parentNode = dom.byId(parentNode);
-			var id = parentNode.id ? parentNode.id+'_svgweb' : g._base._getUniqueId();
-
-			// create dynamic svg root
-			var mockSvg = _createElementNS(svg.xmlns.svg, 'svg');
-			mockSvg.id = id;
-			mockSvg.setAttribute('width', width);
-			mockSvg.setAttribute('height', height);
-			svgweb.appendChild(mockSvg, parentNode);
-
-			// notice: any call to the raw node before flash init will fail.
-			mockSvg.addEventListener('SVGLoad', function(){
-				// become loaded
-				s.rawNode = this;
-				s.isLoaded = true;
-
-				// init defs
-				var defNode = _createElementNS(svg.xmlns.svg, "defs");
-				s.rawNode.appendChild(defNode);
-				s.defNode = defNode;
-
-				// notify application
-				if (s.onLoad)
-					s.onLoad(s);
-			}, false);
-
-			// flash not loaded yet
-			s.isLoaded = false;
-			return s;
-		};
-
-		// override Surface.destroy()
-		svg.Surface.extend({
-			destroy: function(){
-				var mockSvg = this.rawNode;
-				svgweb.removeChild(mockSvg, mockSvg.parentNode);
-			}
+		// Handle pointer related events (i.e. mouse or touch)
+		on(body, touch.over, function(evt){
+			// Using touch.over rather than mouseover mainly to ignore phantom mouse events on iOS.
+			pointerHandler(evt, evt.target, evt.relatedTarget);
+		});
+		on(body, touch.out, function(evt){
+			// Using touch.out rather than mouseout mainly to ignore phantom mouse events on iOS.
+			pointerHandler(evt, evt.target, evt.relatedTarget);
+		});
+		on(body, a11yclick.press, function(evt){
+			// Save the a11yclick.press target to reference when the a11yclick.release comes.
+			activeNode = evt.target;
+			pointerHandler(evt, activeNode)
+		});
+		on(body, a11yclick.release, function(evt){
+			// The release event could come on a separate node than the press event, if for example user slid finger.
+			// Reference activeNode to reset the state of the node that got state set in the a11yclick.press handler.
+			pointerHandler(evt, activeNode);
+			activeNode = null;
 		});
 
-		// override connect() & disconnect() for Shape & Surface event processing
-		var _eventsProcessing = {
-			connect: function(name, object, method){
-				// connect events using the mock addEventListener() provided by svgweb
-				if (name.substring(0, 2)==='on') { name = name.substring(2); }
-				if (arguments.length == 2) {
-					method = object;
-				} else {
-					method = lang.hitch(object, method);
+		// Track focus events on widget sub-nodes that have been registered via _trackMouseState().
+		// However, don't track focus events on the widget root nodes, because focus is tracked via the
+		// focus manager (and it's not really tracking focus, but rather tracking that focus is on one of the widget's
+		// nodes or a subwidget's node or a popup node, etc.)
+		// Remove for 2.0 (if focus CSS needed, just use :focus pseudo-selector).
+		on(body, "focusin, focusout", function(evt){
+			var node = evt.target;
+			if(node._cssState && !node.getAttribute("widgetId")){
+				var widget = registry.getEnclosingWidget(node);
+				if(widget){
+					widget._subnodeCssMouseEvent(node, node._cssState, evt);
 				}
-				this.getEventSource().addEventListener(name, method, false);
-				return [this, name, method];
-			},
-			disconnect: function(token){
-				// disconnect events using the mock removeEventListener() provided by svgweb
-				this.getEventSource().removeEventListener(token[1], token[2], false);
-				delete token[0];
 			}
-		};
+		});
+	});
 
-		lang.extend(svg.Shape, _eventsProcessing);
-		lang.extend(svg.Surface, _eventsProcessing);
-	}
-
-	return svg;
+	return CssStateMixin;
 });
 
 },
-'dojox/gfx/filters':function(){
+'dijit/form/_FormMixin':function(){
 define([
-	"dojo/_base/lang",
-	"dojo/_base/array"
-], function(lang, array){
+	"dojo/_base/array", // array.every array.filter array.forEach array.indexOf array.map
+	"dojo/_base/declare", // declare
+	"dojo/_base/kernel", // kernel.deprecated
+	"dojo/_base/lang", // lang.hitch lang.isArray
+	"dojo/on",
+	"dojo/window" // winUtils.scrollIntoView
+], function(array, declare, kernel, lang, on, winUtils){
 
-	/*=====
-	return {
-	// summary:
-	//		A module that defines a minimal API to create SVG filter definition objects to be used with the
-	//		dojox/gfx/svgext/Shape.setFilter() API, as well as a set of predefined filters.
-	// description:
-	//		The module defines the following API:
-	//		- filters.createFilter(config, primitives) : Creates a filter object from the specified config and the
-	//		given filter primitives.
-	//		- a set of methods to create the corresponding SVG filter primitives, based on the same
-	//		naming as the specification (e.g. filters.feGaussianBlur() ). A filter primitive method follows the
-	//		following signature (taking feGaussianBlur as an example):
-	//			filters.feGaussianBlur(properties, children?)
-	//			filters.feGaussianBlur(children)
-	//		The "properties" parameter must define the primitive attributes as defined by the specification.
-	//		The "children" array parameter is an array of child filter primitives.
-	//		In addition to this API, the module provides the following predefined filters:
-	//		- filters.convolutions.boxBlur3,
-	//		- filters.convolutions.boxBlur5,
-	//		- filters.convolutions.verticalEdges,
-	//		- filters.convolutions.horizontalEdges,
-	//		- filters.convolutions.allEdges3,
-	//		- filters.convolutions.edgeEnhance,
-	//		- filters.shadows.fastSmallDropShadow,
-	//		- filters.shadows.fastDropShadow,
-	//		- filters.shadows.fastDropShadowLight,
-	//		- filters.shadows.dropShadow,
-	//		- filters.shadows.dropShadowLight,
-	//		- filters.shadows.smallDropShadow,
-	//		- filters.shadows.smallDropShadowLight,
-	//		- filters.blurs.blur1,
-	//		- filters.blurs.blur2,
-	//		- filters.blurs.blur4,
-	//		- filters.blurs.blur8,
-	//		- filters.blurs.glow,
-	//		- filters.colors.negate,
-	//		- filters.colors.sepia,
-	//		- filters.colors.grayscale,
-	//		- filters.colors.showRed,
-	//		- filters.colors.showGreen,
-	//		- filters.colors.showBlue,
-	//		- filters.colors.hueRotate60,
-	//		- filters.colors.hueRotate120,
-	//		- filters.colors.hueRotate180,
-	//		- filters.colors.hueRotate270,
-	//		- filters.miscs.thinEmbossDropShadow,
-	//		- filters.miscs.embossDropShadow,
-	//		- filters.miscs.largeEmbossDropShadow,
-	//		- filters.miscs.thinEmbossDropShadowLight,
-	//		- filters.miscs.embossDropShadowLight,
-	//		- filters.miscs.largeEmbossDropShadowLight,
-	//		- filters.miscs.fuzzy,
-	//		- filters.miscs.veryFuzzy,
-	//		- filters.miscs.melting,
-	//		- filters.miscs.impressionist,
-	//		- filters.miscs.holes,
-	//		- filters.miscs.holesComplement,
-	//		- filters.reliefs.bumpIn,
-	//		- filters.reliefs.bumpOut,
-	//		- filters.reliefs.thinEmboss,
-	//		- filters.reliefs.emboss,
-	//		- filters.reliefs.largeEmboss,
-	//		- filters.textures.paper,
-	//		- filters.textures.swirl,
-	//		- filters.textures.swirl2,
-	//		- filters.textures.gold
-	//		Note: the dojox/gfx/tests/test_filter.html test shows the rendering of all the predefined filters.
-	}
-	=====*/
+	// module:
+	//		dijit/form/_FormMixin
 
-	var filters = {}, defaultFilterBBox = {x:"0%", y:"0%", width:"100%", height:"100%"}, lib = {};
-
-	//
-	// A minimal facade API to create primitives
-	//
-
-	filters.createFilter = function(/*Object*/args, /*Array*/primitives){
+	return declare("dijit.form._FormMixin", null, {
 		// summary:
-		//		Creates a filter with the specified primitives.
+		//		Mixin for containers of form widgets (i.e. widgets that represent a single value
+		//		and can be children of a `<form>` node or `dijit/form/Form` widget)
 		// description:
-		//		This function creates a new filter object configured with the optional 'args' parameter, and
-		//		adds the filter primitives specified in the 'primitives' array'. The dojox/gfx/filters module
-		//		provides convenient methods to create the corresponding SVG filter primitives, based on the same
-		//		naming as the specification (e.g. filters.feGaussianBlur() ).
-		//		A filter primitive method follows the following signature (taking feGaussianBlur as an example):
-		//			filters.feGaussianBlur(/*Object*/properties, /*Array?*/children)
-		//			filters.feGaussianBlur(/*Array?*/children)
-		//		The "properties" parameter must define the primitive attributes as defined by the specification.
-		//		The optional "children" array parameter is an array of child filter primitives.
-		// args: Object
-		//		The configuration object for the filter.
-		// primitives: Array
-		//		An array of primitives object.
-
-		var filter = lang.mixin({}, defaultFilterBBox, args);
-		if(!filter.primitives){
-			filter.primitives = [];
-		}
-		if(primitives){
-			Array.prototype.push.apply(filter.primitives, primitives);
-		}
-		return filter; /*Object*/
-	};
-
-	var _createFePrimitive = function(tag, args, children){
-		if(args instanceof Array){
-			children = args;
-			args = null;
-		}
-		var fe = lang.mixin({}, args);
-		fe.children = children;
-		fe.tag = tag;
-		return fe;
-	};
-	var _createFeMerge = function(args, children){
-		if(typeof args === "string"){
-			// list of primitives to merge via the 'in' property
-			var toMerge = [];
-			for(var i=0; i<arguments.length; ++i){
-				toMerge.push(filters.feMergeNode({"in":arguments[i]}));
-			}
-			return _createFePrimitive("feMerge", {}, toMerge);
-		}
-		return _createFePrimitive("feMerge", args, children);
-	};
-
-	array.forEach(["feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting",
-		"feDisplacementMap", "feFlood", "feGaussianBlur", "feImage", "feMorphology", "feOffset", "feSpecularLighting",
-		"feTile", "feTurbulence", "feDistantLight", "fePointLight", "feSpotLight", "feMergeNode", "feFuncA", "feFuncR",
-		"feFuncG", "feFuncB"], function(fe){
-		filters[fe] = function(args, children){
-			return _createFePrimitive(fe, args, children);
-		};
-	});
-	// special case for feMarge to ease syntax
-	filters.feMerge = _createFeMerge;
-
-
-	var createFilter = filters.createFilter;
-
-	//
-	// Convolution-based filters
-	//
-	lib.convolutions = [
-		createFilter({_gfxName:"boxBlur3"}, [
-			filters.feConvolveMatrix({
-				"in":"SourceGraphic","order":3,"divisor":9,"kernelMatrix":"1,1,1,1,1,1,1,1,1"
-			})
-		]),
-		createFilter({_gfxName:"boxBlur5"}, [
-			filters.feConvolveMatrix({
-				"in":"SourceGraphic","order":5,"divisor":25,"kernelMatrix":"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
-			})
-		]),
-		createFilter({_gfxName:"verticalEdges", filterUnits:"objectBoundingBox"}, [
-			filters.feConvolveMatrix({
-				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"-1 0 1 -1 0 1 -1 0 1"
-			}),
-			filters.feComponentTransfer({
-				"in":"kernel"
-			}, [
-				filters.feFuncA({"type":"table","tableValues":"1,1"})
-			])
-		]),
-		createFilter({_gfxName:"horizontalEdges", filterUnits:"objectBoundingBox"}, [
-			filters.feConvolveMatrix({
-				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"1 1 1 0 0 0 -1 -1 -1"
-			}),
-			filters.feComponentTransfer({
-				"in":"kernel"
-			}, [
-				filters.feFuncA({"type":"table","tableValues":"1,1"})
-			])
-		]),
-		createFilter({_gfxName:"allEdges3", filterUnits:"objectBoundingBox"}, [
-			filters.feConvolveMatrix({
-				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"-1 -1 -1 -1 8 -1 -1 -1 -1"
-			}),
-			filters.feComponentTransfer({
-				"in":"kernel"
-			},[
-				filters.feFuncA({"type":"table","tableValues":"1,1"})
-			])
-		]),
-		createFilter({_gfxName: "edgeEnhance", filterUnits:"objectBoundingBox"}, [
-			filters.feConvolveMatrix({
-				"in": "SourceGraphic","result": "kernel","order": 3,"divisor": -1,"kernelMatrix": "0 1 0 1 -5 1 0 1 0"
-			}),
-			filters.feComponentTransfer({
-				"in": "kernel"
-			},[
-				filters.feFuncA({"type":"table","tableValues": "1,1"})
-			])
-		])
-	];
-	array.forEach(lib.convolutions, function(f){
-		lang.mixin(f, defaultFilterBBox);
-	});
-
-	//
-	// Drop Shadow filters
-	//
-	lib.shadows = [
-		createFilter({_gfxName:"fastSmallDropShadow"}, [
-			filters.feColorMatrix({
-				"in":"SourceAlpha","type":"matrix","result":"grey",
-				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
-			}),
-			filters.feOffset({"dx":3,"dy":3,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur", "SourceGraphic")
-		]),
-		createFilter({_gfxName:"fastDropShadow"}, [
-			filters.feColorMatrix({
-				"in":"SourceAlpha","type":"matrix","result":"grey",
-				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
-			}),
-			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur", "SourceGraphic")
-		]),
-		createFilter({_gfxName:"fastDropShadowLight"}, [
-			filters.feColorMatrix({
-				"in":"SourceAlpha","type":"matrix","result":"grey",
-				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.4,0"
-			}),
-			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur", "SourceGraphic")
-		]),
-		createFilter({_gfxName:"dropShadow"}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":4}),
-			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur","SourceGraphic")
-		]),
-		createFilter({_gfxName:"dropShadowLight"}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":4,"result":"blur"}),
-			filters.feComponentTransfer({
-				"in":"blur","result":"lessblur"
-			},[
-				filters.feFuncA({"type":"linear","slope":0.5})
-			]),
-			filters.feOffset({"in":"lessblur","dx":5,"dy":5,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur", "SourceGraphic")
-		]),
-		createFilter({_gfxName:"smallDropShadow"}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":3}),
-			filters.feOffset({"dx":2,"dy":2,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur", "SourceGraphic")
-		]),
-		createFilter({_gfxName:"smallDropShadowLight"}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":3,"result":"blur"}),
-			filters.feComponentTransfer({
-				"in":"blur","result":"lessblur"
-			},[
-				filters.feFuncA({"type":"linear","slope":0.5})
-			]),
-			filters.feOffset({"in":"lessblur","dx":2,"dy":2,"result":"offsetBlur"}),
-			filters.feMerge("offsetBlur","SourceGraphic")
-		])
-	];
-	var defaultDropShadowBBox = {
-		x:"-10%",
-		y:"-10%",
-		width:"125%",
-		height:"125%"
-	};
-	array.forEach(lib.shadows, function(f){
-		lang.mixin(f, defaultDropShadowBBox);
-	});
-
-	//
-	// Blur effects
-	//
-	lib.blurs = [
-		createFilter({
-			_gfxName: "blur1",x:"-5%",y:"-5%",width:"110%",height:"110%"
-		},[
-			filters.feGaussianBlur({"in":"SourceGraphic",stdDeviation:1})
-		]),
-		createFilter({
-			_gfxName: "blur2",x:"-15%",y:"-15%",width:"130%",height:"130%"
-		},[
-			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 2})
-		]),
-		createFilter({
-			_gfxName: "blur4",x:"-15%",y:"-15%",width:"130%",height:"130%"
-		},[
-			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 4})
-		]),
-		createFilter({
-			_gfxName: "blur8",x:"-20%",y:"-20%",width:"140%",height:"140%"
-		},[
-			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 8})
-		]),
-		createFilter({
-			_gfxName: "glow",x:"-10%",y:"-10%",width:"120%",height:"120%"
-		},[
-			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 2}),
-			filters.feComponentTransfer([
-				filters.feFuncA({"type":"linear","slope":10})
-			])
-		])
-	];
-
-	//
-	// Colors filters
-	//
-	lib.colors = [
-		createFilter({_gfxName:"negate"}, [
-			filters.feComponentTransfer([
-				filters.feFuncR({"type":"table","tableValues":"1,0"}),
-				filters.feFuncG({"type":"table","tableValues":"1,0"}),
-				filters.feFuncB({"type":"table","tableValues":"1,0"})
-			])
-		]),
-		createFilter({_gfxName:"sepia"}, [
-			filters.feColorMatrix({
-				"result":"grey",
-				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,1,0"
-			}),
-			filters.feComponentTransfer({
-				"in":"grey"
-			},[
-				filters.feFuncR({"type":"linear","slope":0.5,"intercept":0.5}),
-				filters.feFuncB({"type":"table","tableValues":"0,0"})
-			])
-		]),
-		createFilter({_gfxName:"grayscale"}, [
-			filters.feColorMatrix({
-				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,1,0"
-			})
-		]),
-		createFilter({_gfxName:"showRed"}, [
-			filters.feComponentTransfer([
-				filters.feFuncG({"type":"table","tableValues":"0,0"}),
-				filters.feFuncB({"type":"table","tableValues":"0,0"})
-			])
-		]),
-		createFilter({_gfxName:"showGreen"}, [
-			filters.feComponentTransfer([
-				filters.feFuncR({"type":"table","tableValues":"0,0"}),
-				filters.feFuncB({"type":"table","tableValues":"0,0"})
-			])
-		]),
-		createFilter({_gfxName:"showBlue"}, [
-			filters.feComponentTransfer([
-				filters.feFuncR({"type":"table","tableValues":"0,0"}),
-				filters.feFuncG({"type":"table","tableValues":"0,0"})
-			])
-		]),
-		createFilter({_gfxName:"hueRotate60"}, [
-			filters.feColorMatrix({"type":"hueRotate","values":60})
-		]),
-		createFilter({_gfxName:"hueRotate120"}, [
-			filters.feColorMatrix({"type":"hueRotate","values":120})
-		]),
-		createFilter({_gfxName:"hueRotate180"}, [
-			filters.feColorMatrix({"type":"hueRotate","values":180})
-		]),
-		createFilter({_gfxName:"hueRotate270"}, [
-			filters.feColorMatrix({"type":"hueRotate","values":270})
-		])
-	];
-	array.forEach(lib.colors, function(f){
-		lang.mixin(f, defaultFilterBBox);
-	});
-
-	lib.miscs = [
-		createFilter({
-			_gfxName:"thinEmbossDropShadow",
-			x:"-5%",y:"-5%",width:"120%",height:"120%"
-		}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":1,"result":"blur"}),
-			filters.feOffset({"in":"blur",dx:6,dy:6,"result":"offsetBlur"}),
-			filters.feSpecularLighting({
-				"in":"blur","surfaceScale":8,"specularConstant":1,"specularExponent":12,"result":"specOut"
-			}, [
-				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
-			]),
-			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic","result":"litPaint",
-				"k1":0,"k2":1,"k3":1,"k4":0}),
-			filters.feMerge("offsetBlur", "litPaint")
-		]),
-		createFilter({
-			_gfxName:"embossDropShadow",
-			x:"-5%",y:"-5%",width:"120%",height:"120%"
-		}, [
-			filters.feGaussianBlur({"in": "SourceAlpha","stdDeviation":"4","result":"blur"}),
-			filters.feOffset({"in":"blur","dx":4,"dy":4,"result":"offsetBlur"}),
-			filters.feSpecularLighting({
-				"in":"blur","surfaceScale":5,"specularConstant":0.75,"specularExponent":20,
-				"lighting-color":"#bbbbbb","result":"specOut"
-			}, [filters.fePointLight({x:-5000,y:-10000,z:20000})]),
-			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic",k1:0,k2:1,k3:1,k4:0,"result":"litPaint"
-			}),
-			filters.feMerge("offsetBlur","litPaint")
-		]),
-		createFilter({
-			_gfxName:"largeEmbossDropShadow",
-			x:"-20%",y:"-20%",width:"140%",height:"140%"
-		}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":5,"result":"blur"}),
-			filters.feOffset({"in":"blur",dx:6,dy:6,"result":"offsetBlur"}),
-			filters.feSpecularLighting({
-				"in":"blur","surfaceScale":8,"specularConstant":1,"specularExponent":12,"result":"spec"
-			},[
-				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
-			]),
-			filters.feComposite({"in":"spec","in2":"SourceGraphic","operator":"in","result":"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic","result":"litPaint",
-				"k1":0,"k2":1,"k3":1,"k4":0
-			}),
-			filters.feMerge("offsetBlur", "litPaint")
-		]),
-		createFilter({
-			_gfxName:"thinEmbossDropShadowLight",
-			x:"-5%",y:"-5%",width:"120%",height:"120%"
-		}, [
-			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":1,"result":"blur"}),
-			filters.feComponentTransfer({"in":"blur",result:"lessblur"
-			},[
-				filters.feFuncA({type:"linear",slope:"0.5"})
-			]),
-			filters.feOffset({"in":"lessblur","dx":"6","dy":"6","result":"offsetBlur"}),
-			filters.feSpecularLighting({
-				"in":"lessblur","surfaceScale":8,"specularConstant":1,"specularExponent":"12","result":"specOut"
-			},[
-				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
-			]),
-			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic","in2":"specOut","result":"litPaint","operator":"arithmetic",
-				"k1":0,"k2":1,"k3":1,"k4":0
-			}),
-			filters.feMerge("offsetBlur", "litPaint")
-		]),
-		createFilter({
-			_gfxName: "embossDropShadowLight",
-			x: "-5%",y: "-5%",width: "120%",height: "120%"
-		}, [
-			filters.feGaussianBlur({"in": "SourceAlpha",stdDeviation:"3",result:"blur"}),
-			filters.feComponentTransfer({
-				"in": "blur",result: "lessblur"
-			},[
-				filters.feFuncA({type: "linear",slope: "0.5"})
-			]),
-			filters.feOffset({"in": "lessblur",dx: "6",dy: "6",result: "offsetBlur"}),
-			filters.feSpecularLighting({
-				"in": "lessblur",surfaceScale: "8",specularConstant: "1",specularExponent: "12",result: "specOut"
-			},[
-				filters.fePointLight({x: "-5000",y: "-10000",z: "12000"})
-			]),
-			filters.feComposite({"in": "specOut",in2: "SourceAlpha",operator: "in",result: "specOut"}),
-			filters.feComposite({
-				"in": "SourceGraphic",in2: "specOut",result: "litPaint",operator: "arithmetic",
-				k1: "0",k2: "1",k3: "1",k4: "0"
-			}),
-			filters.feMerge("offsetBlur", "litPaint")
-		]),
-		createFilter({
-			_gfxName: "largeEmbossDropShadowLight",
-			x: "-20%",y: "-20%",width: "140%",height: "140%"
-		},[
-			filters.feGaussianBlur({"in": "SourceAlpha",stdDeviation: "5",result: "blur"}),
-			filters.feComponentTransfer({"in": "blur",result: "lessblur"
-			},[
-				filters.feFuncA({type: "linear",slope: "0.5"})
-			]),
-			filters.feOffset({"in": "lessblur",dx: "6",dy: "6",result: "offsetBlur"}),
-			filters.feSpecularLighting({
-				"in": "blur",surfaceScale: "8",specularConstant: "1",specularExponent: "12",result: "spec"
-			},[
-				filters.fePointLight({x: "-5000",y: "-10000",z: "12000"})
-			]),
-			filters.feComposite({"in": "spec",in2: "SourceGraphic",operator: "in",result: "specOut"}),
-			filters.feComposite({
-				"in": "SourceGraphic",in2: "specOut",operator: "arithmetic",k1: "0",k2: "1",k3: "1",k4: "0",
-				result: "litPaint"
-			}),
-			filters.feMerge("offsetBlur", "litPaint")
-		]),
-		createFilter({
-			_gfxName:"fuzzy",
-			x:"-10%", y:"-10%", width:"120%", height:"120%"
-		},[
-			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"1",result:"turb2"}),
-			filters.feDisplacementMap({
-				"in":"SourceGraphic",in2:"turb2",result:"turb2",scale:"20",xChannelSelector:"R",yChannelSelector:"G"
-			})
-		]),
-		createFilter({
-			_gfxName:"veryFuzzy",
-			x:"-20%", y:"-20%", width:"140%", height:"140%"
-		},[
-			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"1",result:"turb2"}),
-			filters.feDisplacementMap({
-				"in":"SourceGraphic",in2:"turb2",result:"turb2",scale:"35",xChannelSelector:"R",yChannelSelector:"G"
-			})
-		]),
-		createFilter({
-			_gfxName:"melting",
-			x:"-10%", y:"-10%", width:"120%", height:"120%"
-		}, [
-			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"2",result:"turb"}),
-			filters.feDisplacementMap({
-				result:"bended","in":"SourceGraphic",in2:"turb",scale:"25",xChannelSelector:"R",yChannelSelector:"G"
-			}),
-			filters.feGaussianBlur({"in":"bended",stdDeviation:"1",result:"bb"}),
-			filters.feComponentTransfer({"in": "bb",result: "BendedSource"
-			},[
-				filters.feFuncA({type: "linear",slope: 10,intercept: "-1"})
-			]),
-			filters.feComponentTransfer({
-				"in": "BendedSource",
-				result: "BendedAlpha"
-			}, [
-				filters.feFuncR({ type: "linear", slope: "0", intercept: "0"}),
-				filters.feFuncG({ type: "linear", slope: "0", intercept: "0"}),
-				filters.feFuncB({ type: "linear", slope: "0", intercept: "0"}),
-				filters.feFuncA({ type: "linear", slope: "1", intercept: "0"})
-			]),
-			filters.feGaussianBlur({
-				"in": "BendedAlpha", stdDeviation: "1", result: "blur"
-			}),
-			filters.feSpecularLighting({
-				"in": "blur","lighting-color": "rgb(80%, 80%, 80%)","surfaceScale": "5",
-				specularConstant: "1",specularExponent: "10",result: "specularOut"
-			},[
-				filters.fePointLight({ x: "-5000", y: "-10000", z: "20000"})
-			]),
-			filters.feComposite({
-				"in": "specularOut", in2: "BendedAlpha", operator: "in", result: "specularOut"
-			}),
-			filters.feComposite({
-				"in": "BendedSource",in2: "specularOut",operator: "arithmetic",k1: "0", k2: "1", k3: "1", k4: "0",
-				result: "litPaint"
-			})
-		]),
-		createFilter({
-			_gfxName:"impressionist", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feMorphology({
-				"in":"SourceGraphic", operator:"dilate", radius:"2"
-			})
-		]),
-		createFilter({
-			_gfxName:"holes", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feTurbulence({
-				type:"fractalNoise", baseFrequency:"0.1", numOctaves:"1", result:"texture"
-			}),
-			filters.feComponentTransfer({
-				"in":"texture", result:"holes"
-			},[
-				filters.feFuncA({type:"discrete", tableValues:"0,1"})
-			]),
-			filters.feComposite({
-				"in":"SourceGraphic", in2:"holes", operator:"out"
-			})
-		]),
-		createFilter({
-			_gfxName:"holesComplement", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feTurbulence({
-				type:"fractalNoise", baseFrequency:"0.1", numOctaves:"1", result:"texture"
-			}),
-			filters.feComponentTransfer({
-				"in":"texture", result:"holes"
-			},[
-				filters.feFuncA({ type:"discrete", tableValues:"1,0"})
-			]),
-			filters.feComposite({"in":"SourceGraphic", in2:"holes", operator:"out"})
-		])
-	];
-	
-	lib.reliefs = [
-		createFilter({
-			_gfxName:"bumpIn", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feColorMatrix({"in":"SourceGraphic", type:"luminanceToAlpha",result:"lumalpha"}),
-			filters.feComponentTransfer({
-				"in":"lumalpha", result:"invertedalpha"
-			},[
-				filters.feFuncA({ type:"table",tableValues:"1,0"})
-			]),
-			filters.feDiffuseLighting({
-				"in":"invertedalpha","lighting-color":"rgb(60%, 60%, 60%)",result:"diffuse",surfaceScale:"5"
-			},[
-				filters.feDistantLight({ azimuth:"135",elevation:"60"})
-			]),
-			filters.feSpecularLighting({
-				"in":"invertedalpha", result:"specular", surfaceScale:"5",specularExponent:"6"
-			},[
-				filters.feDistantLight({ azimuth:"135",elevation:"30"})
-			]),
-			filters.feComposite({ "in":"diffuse",in2:"specular",operator:"arithmetic",k2:"1.0",k3:"1.0"})
-		]),
-		createFilter({
-			_gfxName:"bumpOut", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feColorMatrix({ "in":"SourceGraphic", type:"luminanceToAlpha", result:"lumalpha"}),
-			filters.feDiffuseLighting({
-				"in":"lumalpha", "lighting-color":"rgb(60%, 60%, 60%)", result:"diffuse", surfaceScale:"5"
-			},[
-				filters.feDistantLight({ azimuth:"135", elevation:"60"})
-			]),
-			filters.feSpecularLighting({
-				"in":"lumalpha", result:"specular", surfaceScale:"5", specularExponent:"6"
-			},[
-				filters.feDistantLight({ azimuth:"135", elevation:"30"})
-			]),
-			filters.feComposite({ "in":"diffuse", in2:"specular", operator:"arithmetic", k2:"1.0", k3:"1.0"})
-		]),
-		createFilter({
-			_gfxName:"thinEmboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
-		},[
-			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"1", result:"blur"}),
-			filters.feSpecularLighting({
-				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
-			},[
-				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
-			]),
-			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
-			})
-		]),
-		createFilter({
-			_gfxName:"emboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
-		},[
-			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"3", result:"blur"}),
-			filters.feSpecularLighting({
-				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
-			},[
-				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
-			]),
-			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
-			})
-		]),
-		createFilter({
-			_gfxName:"largeEmboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
-		},[
-			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"5", result:"blur"}),
-			filters.feSpecularLighting({
-				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
-			},[
-				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
-			]),
-			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
-			filters.feComposite({
-				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
-			})
-		])
-	];
-	
-	lib.textures = [
-		createFilter({
-			_gfxName: "paper", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feTurbulence({ type:"turbulence", baseFrequency:"0.01", numOctaves:"5",result:"texture"}),
-			filters.feDiffuseLighting({
-				"in":"texture", result:"diffuse", surfaceScale:"-10"
-			},[
-				filters.feDistantLight({ azimuth:"135", elevation:"60"})
-			]),
-			filters.feComposite({ "in":"diffuse", in2:"SourceGraphic", operator:"arithmetic", k1:"1", k2:"0", k3:"0", k4:"0"})
-		]),
-		createFilter({
-			_gfxName:"swirl", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feTurbulence({ type:"turbulence",baseFrequency:"0.05",numOctaves:"1",result:"texture"}),
-			filters.feDiffuseLighting({
-				"in":"texture",result:"diffuse",surfaceScale:"-10"
-			},[
-				filters.feDistantLight({ azimuth:"135",elevation:"60"})
-			]),
-			filters.feComposite({"in":"diffuse",in2:"SourceGraphic",operator:"arithmetic",k1:"1",k2:"0",k3:"0",k4:"0"})
-		]),
-		createFilter({
-			_gfxName:"swirl2", x:"0%", y:"0%", width:"100%", height:"100%"
-		},[
-			filters.feTurbulence({ type:"turbulence",baseFrequency:"0.15",numOctaves:"1",result:"texture"}),
-			filters.feDiffuseLighting({
-				"in":"texture",result:"diffuse",surfaceScale:"-10"
-			},[
-				filters.feDistantLight({ azimuth:"135",elevation:"60"})
-			]),
-			filters.feComposite({"in":"diffuse",in2:"SourceGraphic",operator:"arithmetic",k1:"1",k2:"0",k3:"0",k4:"0"})
-		]),
-		createFilter({
-			_gfxName:"gold", x:"-5%", y:"-5%", width:"115%", height:"110%"
-		},[
-			filters.feTurbulence({ baseFrequency:"0.2", numOctaves:"1", type:"turbulence", result:"turb"}),
-			filters.feComposite({
-				"in":"SourceGraphic", in2:"turb", operator:"arithmetic", k2:"0.6", k3:"0.4", result:"turb"
-			}),
-			filters.feComposite({ "in":"turb", in2:"SourceGraphic", operator:"in", result:"bump"}),
-			filters.feDiffuseLighting({
-				"in":"turb", surfaceScale:"6.0", "lighting-color":"rgb(60%, 50%, 0%)", diffuseConstant:"1.0", result:"diffuse"
-			},[
-				filters.feDistantLight({ azimuth:"135", elevation:"60"})
-			]),
-			filters.feSpecularLighting({
-				"in":"bump", surfaceScale:"6.0", specularConstant:"1.0", specularExponent:"10.0", result:"specularOut"
-			},[
-				filters.feDistantLight({ azimuth:"135", elevation:"60"})
-			]),
-			filters.feComposite({ "in":"specularOut", in2:"SourceGraphic", operator:"in", result:"specularOut"}),
-			filters.feComposite({ "in":"bump", in2:"diffuse", operator:"arithmetic", k1:"0.7", k2:"0.3", result:"litPaint"}),
-			filters.feComposite({ "in":"litPaint", in2:"specularOut", operator:"arithmetic", k2:"1.0", k3:"0.7", result:"litPaint"})
-		])
-	];
-
-	// exports filters defined in lib as function via the returned object
-	// i.e. var filter = filters.convolution.verticalEdge({x:.., y:..., width:..., height:...})
-	for(var category in lib){
-		if(lib.hasOwnProperty(category)){
-			filters[category] = {};
-			var  cat = lib[category];
-			for(var i=0; i<cat.length;++i){
-				(function(){
-					var f = cat[i];
-					filters[category][f._gfxName] = function(args){
-						return lang.delegate(f, args);
-					};
-				})();
-			}
-		}
-	}
-
-	return filters;
-});
-
-},
-'dojox/gfx/svgext':function(){
-define([
-	"dojo/dom",
-	"dojo/_base/array",
-	"dojo/_base/window",
-	"./_base",
-	"./svg"], 
-	function(dom, array, win, gfx, svg){
+		//		Can extract all the form widgets
+		//		values and combine them into a single javascript object, or alternately
+		//		take such an object and set the values for all the contained
+		//		form widgets
 
 	/*=====
-	return {
-		// summary:
-		//		A module that adds svg-specific features to the gfx api. You should require this module
-		//		when your application specifically targets the SVG renderer.
-	}
-	=====*/
-
-	var svgext = gfx.svgext = {};
-	var toIgnore = {
-		primitives:null,
-		tag:null,
-		children:null
-	};
-
-	function buildFilterPrimitivesDOM(primitive, parentNode){
-		var node =  parentNode.ownerDocument.createElementNS(svg.xmlns.svg, primitive.tag);
-		parentNode.appendChild(node);
-		for(var p in primitive){
-			if(!(p in toIgnore)){
-				node.setAttribute(p, primitive[p]);
-			}
-		}
-		if(primitive.children){
-			array.forEach(primitive.children, function(f){buildFilterPrimitivesDOM(f, node);});
-		}
-		return node;
-	}
-
-	/*=====
-	declare("dojox.gfx.svgext.__FilterPrimitiveArgs", null, {
-		// summary:
-		//		Represents an SVG filter primitive.
-		// description:
-		//		In addition to the following properties, a FilterPrimitiveArgs should define the properties specific to
-		//		this primitive, as defined by the SVG spec.
-		// example:
-		//		Define a simple feGaussianBlur primitive:
-		//	|	var blurPrimitive = {
-		//	|		"tag": "feGaussianBlur",
-		//	|		"in": "SourceAlpha",
-		//	|		"stdDeviation":"4",
-		//	|		"result":"blur"
-		//	|	};
+		// value: Object
+		//		Name/value hash for each child widget with a name and value.
+		//		Child widgets without names are not part of the hash.
 		//
-		// example:
-		//		Define a feSpecularLighting primitive with one fePointLight child
-		//	|	var lighting = {
-		//	|		"tag": "feSpecularLighting",
-		//	|		"in":"blur",
-		//	|		"surfaceScale":5,
-		//	|		"specularConstant":.75,
-		//	|		"specularExponent":20,
-		//	|		"lighting-color":"#bbbbbb",
-		//	|		"result":"specOut"
-		//	|		"children": [
-		//	|			"tag": "fePointLight"
-		//	|			"x":-5000,
-		//	|			"y":-10000,
-		//	|			"z":20000
-		//	|		]
-		//	|	};
-
-		// tag: String?
-		//		The type of the primitive, as specified by the SVG spec (http://www.w3.org/TR/SVG/filters.html)
-		tag: null,
-
-		// children: dojox.gfx.svgext.__FilterPrimitiveArgs[]?
-		//		An array of child primitives, if any.
-		children: null
-	});
+		//		If there are multiple child widgets w/the same name, value is an array,
+		//		unless they are radio buttons in which case value is a scalar (since only
+		//		one radio button can be checked at a time).
+		//
+		//		If a child widget's name is a dot separated list (like a.b.c.d), it's a nested structure.
+		//
+		//		Example:
+		//	|	{ name: "John Smith", interests: ["sports", "movies"] }
 	=====*/
 
+		// state: [readonly] String
+		//		Will be "Error" if one or more of the child widgets has an invalid value,
+		//		"Incomplete" if not all of the required child widgets are filled in.  Otherwise, "",
+		//		which indicates that the form is ready to be submitted.
+		state: "",
 
-	/*=====
-	declare("dojox.gfx.svgext.__FilterArgs", null, {
-		// summary:
-		//		The filter arguments passed to the dojox/gfx/svgext/Shape.setFilter method.
-		// description:
-		//		An object defining the properties of a SVG Filter.
-		// example:
-		//		Define a drop shadow filter:
-		//	|	var filter = {
-		//	|		"id": "fastSmallDropShadow",
-		//	|		"x": "-10%",
-		//	|		"y": "-10%",
-		//	|		"width": "125%",
-		//	|		"height": "125%",
-		//	|		"primitives": [{
-		//	|			"tag": "feColorMatrix",
-		//	|			"in": "SourceAlpha",
-		//	|			"type": "matrix",
-		//	|			"result": "grey",
-		//	|			"values": "0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
-		//	|		},{
-		//	|			"tag": "feOffset",
-		//	|			"dx": 3,
-		//	|			"dy": 3,
-		//	|			"result": "offsetBlur"
-		//	|		},{
-		//	|			"tag": "feMerge",
-		//	|			"children":[{
-		//	|				"tag": "feMergeNode",
-		//	|				"in": "offsetBlur"
-		//	|			},{
-		//	|				"tag": "feMergeNode",
-		//	|				"in": "SourceGraphic"
-		//	|			}]
-		//	|		}]
-		//	|	};
+		// TODO:
+		//	* Repeater
+		//	* better handling for arrays.  Often form elements have names with [] like
+		//	* people[3].sex (for a list of people [{name: Bill, sex: M}, ...])
 
 
-		// id: String?
-		//		The filter identifier. If none is provided, a generated id will be used.
-		id: null,
-
-		// filterUnits: String?
-		//		The coordinate system of the filter. Default is "userSpaceOnUse".
-		filterUnits: "userSpaceOnUse",
-
-		// primitives: dojox.gfx.svgext.__FilterPrimitiveArgs[]
-		//		An array of filter primitives that define this filter.
-		primitives: []
-	});
-	=====*/
-
-	svg.Shape.extend({
-		addRenderingOption: function(/*String*/option, /*String*/value){
+		_getDescendantFormWidgets: function(/*dijit/_WidgetBase[]?*/ children){
 			// summary:
-			//		Adds the specified SVG rendering option on this shape.
-			// option: String
-			//		The name of the rendering option to add to this shape, as specified by the
-			//		SVG specification (http://www.w3.org/TR/SVG/painting.html#RenderingProperties)
-			// value: String
-			//		the option value.
-			this.rawNode.setAttribute(option, value);
-			return this; // self
+			//		Returns all form widget descendants, searching through non-form child widgets like BorderContainer
+			var res = [];
+			array.forEach(children || this.getChildren(), function(child){
+				if("value" in child){
+					res.push(child);
+				}else{
+					res = res.concat(this._getDescendantFormWidgets(child.getChildren()));
+				}
+			}, this);
+			return res;
 		},
 
-		setFilter: function(/*dojox.gfx.svgext.__FilterArgs*/filter){
-			// summary:
-			//		Sets the specified SVG Filter on this shape.
-			// filter: dojox.gfx.svgext.__FilterArgs
-			//		An object that defines the filter properties. Note that in order to make the creation of such filter
-			//		easier, the dojox/gfx/filters module defines both a simple API to easily create filter objects and
-			//		also a set of predefined filters like drop shadows, blurs, textures effects (among others).
-			// example:
-			//		Sets a drop shadow filter:
-			//	|	var filter = {
-			//	|		"id": "fastSmallDropShadow",
-			//	|		"x": "-10%",
-			//	|		"y": "-10%",
-			//	|		"width": "125%",
-			//	|		"height": "125%",
-			//	|		"primitives": [{
-			//	|			"tag": "feColorMatrix",
-			//	|			"in": "SourceAlpha",
-			//	|			"type": "matrix",
-			//	|			"result": "grey",
-			//	|			"values": "0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
-			//	|		},{
-			//	|			"tag": "feOffset",
-			//	|			"dx": 3,
-			//	|			"dy": 3,
-			//	|			"result": "offsetBlur"
-			//	|		},{
-			//	|			"tag": "feMerge",
-			//	|			"in": "offsetBlur",
-			//	|			"in2": "SourceGraphic"
-			//	|		}]
-			//	|	};
-			//	|	var shape = surface.createRect().setFilter(filter);
-			//
-			// example:
-			//		Sets a predefined filter from the dojox/gfx/filters module:
-			//	|	require(["dojox/gfx/filters","dojox/gfx/svgext",...], function(filters, svgext){
-			//	|		...
-			//	|		var filter = filters.textures.paper({"id":"myFilter","x":0,"y":0,"width":100,"height":100});
-			//	|		var shape = surface.createRect().setFilter(filter);
+		reset: function(){
+			array.forEach(this._getDescendantFormWidgets(), function(widget){
+				if(widget.reset){
+					widget.reset();
+				}
+			});
+		},
 
-			if(!filter){
-				this.rawNode.removeAttribute("filter");
-				this.filter = null;
-				return this;
+		validate: function(){
+			// summary:
+			//		returns if the form is valid - same as isValid - but
+			//		provides a few additional (ui-specific) features:
+			//
+			//		1. it will highlight any sub-widgets that are not valid
+			//		2. it will call focus() on the first invalid sub-widget
+			var didFocus = false;
+			return array.every(array.map(this._getDescendantFormWidgets(), function(widget){
+				// Need to set this so that "required" widgets get their
+				// state set.
+				widget._hasBeenBlurred = true;
+				var valid = widget.disabled || !widget.validate || widget.validate();
+				if(!valid && !didFocus){
+					// Set focus of the first non-valid widget
+					winUtils.scrollIntoView(widget.containerNode || widget.domNode);
+					widget.focus();
+					didFocus = true;
+				}
+				return valid;
+			}), function(item){ return item; });
+		},
+
+		setValues: function(val){
+			kernel.deprecated(this.declaredClass+"::setValues() is deprecated. Use set('value', val) instead.", "", "2.0");
+			return this.set('value', val);
+		},
+		_setValueAttr: function(/*Object*/ obj){
+			// summary:
+			//		Fill in form values from according to an Object (in the format returned by get('value'))
+
+			// generate map from name --> [list of widgets with that name]
+			var map = { };
+			array.forEach(this._getDescendantFormWidgets(), function(widget){
+				if(!widget.name){ return; }
+				var entry = map[widget.name] || (map[widget.name] = [] );
+				entry.push(widget);
+			});
+
+			for(var name in map){
+				if(!map.hasOwnProperty(name)){
+					continue;
+				}
+				var widgets = map[name],						// array of widgets w/this name
+					values = lang.getObject(name, false, obj);	// list of values for those widgets
+
+				if(values === undefined){
+					continue;
+				}
+				values = [].concat(values);
+				if(typeof widgets[0].checked == 'boolean'){
+					// for checkbox/radio, values is a list of which widgets should be checked
+					array.forEach(widgets, function(w){
+						w.set('value', array.indexOf(values, w._get('value')) != -1);
+					});
+				}else if(widgets[0].multiple){
+					// it takes an array (e.g. multi-select)
+					widgets[0].set('value', values);
+				}else{
+					// otherwise, values is a list of values to be assigned sequentially to each widget
+					array.forEach(widgets, function(w, i){
+						w.set('value', values[i]);
+					});
+				}
 			}
-			this.filter = filter;
-			filter.id = filter.id || gfx._base._getUniqueId();
-			var filterNode = dom.byId(filter.id);
-			if(!filterNode){
-				filterNode = this.rawNode.ownerDocument.createElementNS(svg.xmlns.svg, "filter");
-				filterNode.setAttribute("filterUnits", "userSpaceOnUse");
-				for(var p in filter){
-					if(!(p in toIgnore)){
-						filterNode.setAttribute(p, filter[p]);
+
+			/***
+			 *	TODO: code for plain input boxes (this shouldn't run for inputs that are part of widgets)
+
+			array.forEach(this.containerNode.elements, function(element){
+				if(element.name == ''){return};	// like "continue"
+				var namePath = element.name.split(".");
+				var myObj=obj;
+				var name=namePath[namePath.length-1];
+				for(var j=1,len2=namePath.length;j<len2;++j){
+					var p=namePath[j - 1];
+					// repeater support block
+					var nameA=p.split("[");
+					if(nameA.length > 1){
+						if(typeof(myObj[nameA[0]]) == "undefined"){
+							myObj[nameA[0]]=[ ];
+						} // if
+
+						nameIndex=parseInt(nameA[1]);
+						if(typeof(myObj[nameA[0]][nameIndex]) == "undefined"){
+							myObj[nameA[0]][nameIndex] = { };
+						}
+						myObj=myObj[nameA[0]][nameIndex];
+						continue;
+					} // repeater support ends
+
+					if(typeof(myObj[p]) == "undefined"){
+						myObj=undefined;
+						break;
+					};
+					myObj=myObj[p];
+				}
+
+				if(typeof(myObj) == "undefined"){
+					return;		// like "continue"
+				}
+				if(typeof(myObj[name]) == "undefined" && this.ignoreNullValues){
+					return;		// like "continue"
+				}
+
+				// TODO: widget values (just call set('value', ...) on the widget)
+
+				// TODO: maybe should call dojo.getNodeProp() instead
+				switch(element.type){
+					case "checkbox":
+						element.checked = (name in myObj) &&
+							array.some(myObj[name], function(val){ return val == element.value; });
+						break;
+					case "radio":
+						element.checked = (name in myObj) && myObj[name] == element.value;
+						break;
+					case "select-multiple":
+						element.selectedIndex=-1;
+						array.forEach(element.options, function(option){
+							option.selected = array.some(myObj[name], function(val){ return option.value == val; });
+						});
+						break;
+					case "select-one":
+						element.selectedIndex="0";
+						array.forEach(element.options, function(option){
+							option.selected = option.value == myObj[name];
+						});
+						break;
+					case "hidden":
+					case "text":
+					case "textarea":
+					case "password":
+						element.value = myObj[name] || "";
+						break;
+				}
+			});
+			*/
+
+			// Note: no need to call this._set("value", ...) as the child updates will trigger onChange events
+			// which I am monitoring.
+		},
+
+		getValues: function(){
+			kernel.deprecated(this.declaredClass+"::getValues() is deprecated. Use get('value') instead.", "", "2.0");
+			return this.get('value');
+		},
+		_getValueAttr: function(){
+			// summary:
+			//		Returns Object representing form values.   See description of `value` for details.
+			// description:
+
+			// The value is updated into this.value every time a child has an onChange event,
+			// so in the common case this function could just return this.value.   However,
+			// that wouldn't work when:
+			//
+			// 1. User presses return key to submit a form.  That doesn't fire an onchange event,
+			// and even if it did it would come too late due to the defer(...) in _handleOnChange()
+			//
+			// 2. app for some reason calls this.get("value") while the user is typing into a
+			// form field.   Not sure if that case needs to be supported or not.
+
+			// get widget values
+			var obj = { };
+			array.forEach(this._getDescendantFormWidgets(), function(widget){
+				var name = widget.name;
+				if(!name || widget.disabled){ return; }
+
+				// Single value widget (checkbox, radio, or plain <input> type widget)
+				var value = widget.get('value');
+
+				// Store widget's value(s) as a scalar, except for checkboxes which are automatically arrays
+				if(typeof widget.checked == 'boolean'){
+					if(/Radio/.test(widget.declaredClass)){
+						// radio button
+						if(value !== false){
+							lang.setObject(name, value, obj);
+						}else{
+							// give radio widgets a default of null
+							value = lang.getObject(name, false, obj);
+							if(value === undefined){
+								lang.setObject(name, null, obj);
+							}
+						}
+					}else{
+						// checkbox/toggle button
+						var ary=lang.getObject(name, false, obj);
+						if(!ary){
+							ary=[];
+							lang.setObject(name, ary, obj);
+						}
+						if(value !== false){
+							ary.push(value);
+						}
+					}
+				}else{
+					var prev=lang.getObject(name, false, obj);
+					if(typeof prev != "undefined"){
+						if(lang.isArray(prev)){
+							prev.push(value);
+						}else{
+							lang.setObject(name, [prev, value], obj);
+						}
+					}else{
+						// unique name
+						lang.setObject(name, value, obj);
 					}
 				}
-				array.forEach(filter.primitives, function(p){
-					buildFilterPrimitivesDOM(p, filterNode);
-				});
-				var surface = this._getParentSurface();
-				if(surface){
-					var defs = surface.defNode;
-					defs.appendChild(filterNode);
+			});
+
+			/***
+			 * code for plain input boxes (see also domForm.formToObject, can we use that instead of this code?
+			 * but it doesn't understand [] notation, presumably)
+			var obj = { };
+			array.forEach(this.containerNode.elements, function(elm){
+				if(!elm.name)	{
+					return;		// like "continue"
 				}
-			}
-			this.rawNode.setAttribute("filter", "url(#"+filter.id+")");
-			return this;
+				var namePath = elm.name.split(".");
+				var myObj=obj;
+				var name=namePath[namePath.length-1];
+				for(var j=1,len2=namePath.length;j<len2;++j){
+					var nameIndex = null;
+					var p=namePath[j - 1];
+					var nameA=p.split("[");
+					if(nameA.length > 1){
+						if(typeof(myObj[nameA[0]]) == "undefined"){
+							myObj[nameA[0]]=[ ];
+						} // if
+						nameIndex=parseInt(nameA[1]);
+						if(typeof(myObj[nameA[0]][nameIndex]) == "undefined"){
+							myObj[nameA[0]][nameIndex] = { };
+						}
+					}else if(typeof(myObj[nameA[0]]) == "undefined"){
+						myObj[nameA[0]] = { }
+					} // if
+
+					if(nameA.length == 1){
+						myObj=myObj[nameA[0]];
+					}else{
+						myObj=myObj[nameA[0]][nameIndex];
+					} // if
+				} // for
+
+				if((elm.type != "select-multiple" && elm.type != "checkbox" && elm.type != "radio") || (elm.type == "radio" && elm.checked)){
+					if(name == name.split("[")[0]){
+						myObj[name]=elm.value;
+					}else{
+						// can not set value when there is no name
+					}
+				}else if(elm.type == "checkbox" && elm.checked){
+					if(typeof(myObj[name]) == 'undefined'){
+						myObj[name]=[ ];
+					}
+					myObj[name].push(elm.value);
+				}else if(elm.type == "select-multiple"){
+					if(typeof(myObj[name]) == 'undefined'){
+						myObj[name]=[ ];
+					}
+					for(var jdx=0,len3=elm.options.length; jdx<len3; ++jdx){
+						if(elm.options[jdx].selected){
+							myObj[name].push(elm.options[jdx].value);
+						}
+					}
+				} // if
+				name=undefined;
+			}); // forEach
+			***/
+			return obj;
 		},
 
-		getFilter: function(){
+		isValid: function(){
 			// summary:
-			//		Gets the shape SVG Filter.
-			return this.filter;
+			//		Returns true if all of the widgets are valid.
+			//		Deprecated, will be removed in 2.0.  Use get("state") instead.
+
+			return this.state == "";
+		},
+
+		onValidStateChange: function(/*Boolean*/ /*===== isValid =====*/){
+			// summary:
+			//		Stub function to connect to if you want to do something
+			//		(like disable/enable a submit button) when the valid
+			//		state changes on the form as a whole.
+			//
+			//		Deprecated.  Will be removed in 2.0.  Use watch("state", ...) instead.
+		},
+
+		_getState: function(){
+			// summary:
+			//		Compute what this.state should be based on state of children
+			var states = array.map(this._descendants, function(w){
+				return w.get("state") || "";
+			});
+
+			return array.indexOf(states, "Error") >= 0 ? "Error" :
+				array.indexOf(states, "Incomplete") >= 0 ? "Incomplete" : "";
+		},
+
+		disconnectChildren: function(){
+			// summary:
+			//		Deprecated method.   Applications no longer need to call this.   Remove for 2.0.
+		},
+
+		connectChildren: function(/*Boolean*/ inStartup){
+			// summary:
+			//		You can call this function directly, ex. in the event that you
+			//		programmatically add a widget to the form *after* the form has been
+			//		initialized.
+
+			// TODO: rename for 2.0
+
+			this._descendants = this._getDescendantFormWidgets();
+
+			// To get notifications from children they need to be started.   Children didn't used to need to be started,
+			// so for back-compat, start them here
+			array.forEach(this._descendants, function(child){
+				if(!child._started){ child.startup(); }
+			});
+
+			if(!inStartup){
+				this._onChildChange();
+			}
+		},
+
+		_onChildChange: function(/*String*/ attr){
+			// summary:
+			//		Called when child's value or disabled state changes
+
+			// The unit tests expect state update to be synchronous, so update it immediately.
+			if(!attr || attr == "state" || attr == "disabled"){
+				this._set("state", this._getState());
+			}
+
+			// Use defer() to collapse value changes in multiple children into a single
+			// update to my value.   Multiple updates will occur on:
+			//	1. Form.set()
+			//	2. Form.reset()
+			//	3. user selecting a radio button (which will de-select another radio button,
+			//		 causing two onChange events)
+			if(!attr || attr == "value" || attr == "disabled" || attr == "checked"){
+				if(this._onChangeDelayTimer){
+					this._onChangeDelayTimer.remove();
+				}
+				this._onChangeDelayTimer = this.defer(function(){
+					delete this._onChangeDelayTimer;
+					this._set("value", this.get("value"));
+				}, 10);
+			}
+		},
+
+		startup: function(){
+			this.inherited(arguments);
+
+			// Set initial this.value and this.state.   Don't emit watch() notifications.
+			this._descendants = this._getDescendantFormWidgets();
+			this.value = this.get("value");
+			this.state = this._getState();
+
+			// Initialize value and valid/invalid state tracking.
+			var self = this;
+			this.own(
+				on(
+					this.containerNode,
+					"attrmodified-state, attrmodified-disabled, attrmodified-value, attrmodified-checked",
+					function(evt){
+						if(evt.target == self.domNode){
+							return;	// ignore events that I fire on myself because my children changed
+						}
+						self._onChildChange(evt.type.replace("attrmodified-", ""));
+					}
+				)
+			);
+
+			// Make state change call onValidStateChange(), will be removed in 2.0
+			this.watch("state", function(attr, oldVal, newVal){ this.onValidStateChange(newVal == ""); });
+		},
+
+		destroy: function(){
+			this.inherited(arguments);
 		}
+
 	});
-	return svgext;
 });
 
 },
-'esri/dijit/Attribution':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+'dijit/_DialogMixin':function(){
+define([
+	"dojo/_base/declare", // declare
+	"./a11y"	// _getTabNavigable
+], function(declare, a11y){
 
-// No attribution data, No copyright - just ignore this layer
+	// module:
+	//		dijit/_DialogMixin
 
-// No need to update layers that just have copyright
+	return declare("dijit._DialogMixin", null, {
+		// summary:
+		//		This provides functions useful to Dialog and TooltipDialog
 
-// Nothing to do for layers that have copyright text
+		// actionBarTemplate: String
+		//		HTML snippet to show the action bar (gray bar with OK/cancel buttons).
+		//		Blank by default, but used by ConfirmDialog/ConfirmTooltipDialog subclasses.
+		actionBarTemplate: "",
 
-// Does layerId have copyright text that is a duplicate of 
+		execute: function(/*Object*/ /*===== formContents =====*/){
+			// summary:
+			//		Callback when the user hits the submit button.
+			//		Override this method to handle Dialog execution.
+			// description:
+			//		After the user has pressed the submit button, the Dialog
+			//		first calls onExecute() to notify the container to hide the
+			//		dialog and restore focus to wherever it used to be.
+			//
+			//		*Then* this method is called.
+			// type:
+			//		callback
+		},
 
-define(["dojo/_base/declare","dojo/_base/lang","dojo/_base/array","dojo/_base/connect","dojo/_base/kernel","dojo/has","dojo/query","dojo/dom","dojo/dom-attr","dojo/dom-construct","dojo/dom-style","dojo/dom-class","dojo/dom-geometry","../kernel","../lang","../SpatialReference","../geometry/webMercatorUtils","../geometry/Extent"],function(t,e,i,s,o,n,r,a,d,h,c,l,u,_,m,p,f,y){var g=t(null,{declaredClass:"esri.dijit.Attribution",itemDelimiter:" | ",listClass:"esriAttributionList",itemClass:"esriAttributionItem",lastItemClass:"esriAttributionLastItem",delimiterClass:"esriAttributionDelim",constructor:function(t,i){try{e.mixin(this,t),this._attributions={},this._pendingDfds={},this._activeLayers=[],this._sharedLayers=[];var n=this.domNode=a.byId(i),r=this.map,h="<span class='"+this.listClass+"'></span>";if(n&&(d.set(n,"innerHTML",h),this.listNode=o.query(".esriAttributionList",n)[0],this.itemNodes={}),this._eventConnections=[s.connect(r,"onLayerAdd",this,this._onLayerAdd),s.connect(r,"onLayerRemove",this,this._onLayerRemove),s.connect(r,"onLayerSuspend",this,this._onLayerSuspend),s.connect(r,"onLayerResume",this,this._onLayerResume),s.connect(r,"onResize",this,this._adjustFocus),s.connect(r,"onExtentChange",this,this._onExtentChange)],r.loaded){var c,l,u=r.layerIds.concat(r.graphicsLayerIds),_=u.length;for(l=0;_>l;l++)c=r.getLayer(u[l]),c.loaded&&this._onLayerAdd(c)}}catch(m){}},startup:function(){},destroy:function(){i.forEach(this._eventConnections,s.disconnect),h.destroy(this.listNode),this.map=this.domNode=this._eventConnections=this.listNode=this._attributions=this._pendingDfds=this.itemNodes=this._activeLayers=this._lastItem=this._sharedLayers=null},_onLayerAdd:function(t){try{var i=this._attributions,s=t.id;if(m.isDefined(i[s])||!t.showAttribution)return;if(t.hasAttributionData){var o=t.getAttributionData();this._pendingDfds[s]=1,i[s]=o,o.addBoth(e.partial(this._onAttributionLoad,this,t))}else i[s]=t.copyright||t.copyrightText||"",i[s]?(t.suspended||this._activeLayers.push(s),this._createNode(s)):this._onLayerRemove(t)}catch(n){}},_onAttributionLoad:function(t,e,i){var s=t._attributions,o=t._pendingDfds,n=e.id;o&&o[n]&&(delete o[n],(!i||i instanceof Error)&&(i=""),i?s[n]=t._createIndexByLevel(i,-1!==e.declaredClass.toLowerCase().indexOf("vetiledlayer")):s[n]=e.copyright||e.copyrightText||"",s[n]?(e.suspended||t._activeLayers.push(n),t._createNode(n)):t._onLayerRemove(e))},_onLayerRemove:function(t){try{var e,s=t.id,o=this.itemNodes,n=-1;this._onLayerSuspend(t),delete this._attributions[s],delete this._pendingDfds[s],e=this._getGroupIndex(s),-1!==e&&(n=i.indexOf(this._sharedLayers[e],s),-1!==n&&(this._sharedLayers[e].splice(n,1),this._sharedLayers[e].length<=1&&this._sharedLayers.splice(e,1))),o[s]&&-1===n&&h.destroy(o[s]),delete o[s],this._updateLastItem()}catch(r){}},_onLayerSuspend:function(t){try{var e=t.id;if(this._attributions[e]){var s=i.indexOf(this._activeLayers,e),o=this.itemNodes[e];-1!==s&&this._activeLayers.splice(s,1),o&&this._toggleItem(o,!1,this._getGroupIndex(e))}}catch(n){}},_adjustFocus:function(){var t=this.domNode.scrollWidth>this.domNode.clientWidth,e=l.contains(this.domNode,"esriAttributionOpen");d.set(this.domNode,"tabIndex",t||e?"0":"")},_onLayerResume:function(t){try{var s=t.id,o=this._attributions[s],n=this.itemNodes[s];if(o&&(-1===i.indexOf(this._activeLayers,s)&&this._activeLayers.push(s),n)){var r=e.isString(o)?o:this._getContributorsList(o,this.map.extent,this.map.getLevel());e.isString(o)||d.set(n,"innerHTML",r?r+this._getDelimiter():""),r&&this._toggleItem(n,!0,this._getGroupIndex(s))}}catch(a){}},_onExtentChange:function(t,i,s,o){try{var n,r,a,h,c=this._activeLayers,l=this._attributions,u=this.itemNodes,_=c.length||0;for(h=0;_>h;h++)if(r=c[h],a=l[r],n=u[r],n&&!e.isString(a)){var m=this._getContributorsList(a,t,o?o.level:-1);d.set(n,"innerHTML",m?m+this._getDelimiter():""),this._toggleItem(n,!!m,-1)}}catch(p){}this._adjustCursorStyle()},_createNode:function(t){if(this.domNode){var i,s=this._checkShareInfo(t),o=s&&s.sharedWith,n=o&&this.itemNodes[o],r=this.map,a=this._attributions[t],d=e.isString(a)?a:this._getContributorsList(a,r.extent,r.getLevel()),c=!!d&&!r.getLayer(t).suspended;n?(this.itemNodes[t]=n,this._toggleItem(n,c,s.index)):(i=this.itemNodes[t]=h.create("span",{"class":this.itemClass,innerHTML:d?d+this._getDelimiter():"",style:{display:c?"inline":"none"}},this.listNode),c&&this._setLastItem(i)),this._adjustCursorStyle()}},_checkShareInfo:function(t){var s,o,n,r=this._attributions,a=-1,d=r[t];if(d&&e.isString(d)){for(o in r)if(s=r[o],o!==t&&s&&e.isString(s)&&s.length===d.length&&s.toLowerCase()===d.toLowerCase()){n=o;break}var h,c=this._sharedLayers,l=c.length;if(n){for(o=0;l>o;o++)if(h=c[o],-1!==i.indexOf(h,n)){a=o,h.push(t);break}-1===a&&(a=c.push([n,t])-1)}}return a>-1?{index:a,sharedWith:n}:null},_getGroupIndex:function(t){var e,s=this._sharedLayers,o=s.length,n=-1;for(e=0;o>e;e++)if(-1!==i.indexOf(s[e],t)){n=e;break}return n},_getDelimiter:function(){var t=this.itemDelimiter;return t?"<span class='"+this.delimiterClass+"'>"+t+"</span>":""},_toggleItem:function(t,e,s){if(s>-1&&!e){var o,n=this._sharedLayers[s],r=n.length,a=this._activeLayers;for(o=0;r>o;o++)if(-1!==i.indexOf(a,n[o]))return}c.set(t,"display",e?"inline":"none"),this._updateLastItem()},_updateLastItem:function(){var t,e,i=this.listNode.childNodes,s=i.length;if(s)for(t=s-1;t>=0;t--)if(e=i[t],"none"!==c.get(e,"display")){this._setLastItem(e);break}this._adjustCursorStyle()},_setLastItem:function(t){var e=this.itemClass,i=this.lastItemClass;this._lastItem&&l.replace(this._lastItem,e,i),t&&(l.replace(t,i,e),this._lastItem=t)},_createIndexByLevel:function(t,e){var i,s,o,n,r,a,d,h,c,l=t.contributors,u=l?l.length:0,_=new p(4326),g={};for(n=0;u>n;n++)for(i=l[n],s=i.coverageAreas,a=s?s.length:0,r=0;a>r;r++)for(o=s[r],c=o.bbox,h={extent:f.geographicToWebMercator(new y(c[1],c[0],c[3],c[2],_)),attribution:i.attribution||"",zoomMin:o.zoomMin-(e&&o.zoomMin?1:0),zoomMax:o.zoomMax-(e&&o.zoomMax?1:0),score:m.isDefined(o.score)?o.score:100,objectId:n},d=h.zoomMin;d<=h.zoomMax;d++)g[d]=g[d]||[],g[d].push(h);return g},_getContributorsList:function(t,e,i){var s="";if(e&&m.isDefined(i)&&i>-1){var o,n,r=t[i],a=e.getCenter().normalize(),d=r?r.length:0,h=[],c={};for(n=0;d>n;n++)o=r[n],!c[o.objectId]&&o.extent.contains(a)&&(c[o.objectId]=1,h.push(o));for(h.sort(function(t,e){return e.score-t.score||t.objectId-e.objectId}),d=h.length,n=0;d>n;n++)h[n]=h[n].attribution;s=h.join(", ")}return s},_adjustCursorStyle:function(){var t=u.position(this.listNode.parentNode,!0).h;l.contains(this.listNode.parentNode,"esriAttributionOpen")?(l.remove(this.listNode.parentNode,"esriAttributionOpen"),t>u.position(this.listNode.parentNode,!0).h?(c.set(this.listNode.parentNode,"cursor","pointer"),l.add(this.listNode.parentNode,"esriAttributionOpen")):c.set(this.listNode.parentNode,"cursor","default")):(l.add(this.listNode.parentNode,"esriAttributionOpen"),t<u.position(this.listNode.parentNode,!0).h?c.set(this.listNode.parentNode,"cursor","pointer"):c.set(this.listNode.parentNode,"cursor","default"),l.remove(this.listNode.parentNode,"esriAttributionOpen")),this._adjustFocus()}});return n("extend-esri")&&e.setObject("dijit.Attribution",g,_),g});
+		onCancel: function(){
+			// summary:
+			//		Called when user has pressed the Dialog's cancel button, to notify container.
+			// description:
+			//		Developer shouldn't override or connect to this method;
+			//		it's a private communication device between the TooltipDialog
+			//		and the thing that opened it (ex: `dijit/form/DropDownButton`)
+			// type:
+			//		protected
+		},
+
+		onExecute: function(){
+			// summary:
+			//		Called when user has pressed the dialog's OK button, to notify container.
+			// description:
+			//		Developer shouldn't override or connect to this method;
+			//		it's a private communication device between the TooltipDialog
+			//		and the thing that opened it (ex: `dijit/form/DropDownButton`)
+			// type:
+			//		protected
+		},
+
+		_onSubmit: function(){
+			// summary:
+			//		Callback when user hits submit button
+			// type:
+			//		protected
+			this.onExecute();	// notify container that we are about to execute
+			this.execute(this.get('value'));
+		},
+
+		_getFocusItems: function(){
+			// summary:
+			//		Finds focusable items in dialog,
+			//		and sets this._firstFocusItem and this._lastFocusItem
+			// tags:
+			//		protected
+
+			var elems = a11y._getTabNavigable(this.domNode);
+			this._firstFocusItem = elems.lowest || elems.first || this.closeButtonNode || this.domNode;
+			this._lastFocusItem = elems.last || elems.highest || this._firstFocusItem;
+		}
+	});
+});
+
+},
+'dijit/DialogUnderlay':function(){
+define([
+	"dojo/_base/declare", // declare
+	"dojo/_base/lang", // lang.hitch
+	"dojo/aspect", // aspect.after
+	"dojo/dom-attr", // domAttr.set
+	"dojo/dom-style", // domStyle.getComputedStyle
+	"dojo/on",
+	"dojo/window", // winUtils.getBox, winUtils.get
+	"./_Widget",
+	"./_TemplatedMixin",
+	"./BackgroundIframe",
+	"./Viewport",
+	"./main" // for back-compat, exporting dijit._underlay (remove in 2.0)
+], function(declare, lang, aspect, domAttr, domStyle, on,
+			winUtils, _Widget, _TemplatedMixin, BackgroundIframe, Viewport, dijit){
+
+	// module:
+	//		dijit/DialogUnderlay
+
+	var DialogUnderlay = declare("dijit.DialogUnderlay", [_Widget, _TemplatedMixin], {
+		// summary:
+		//		A component used to block input behind a `dijit/Dialog`.
+		//
+		//		Normally this class should not be instantiated directly, but rather shown and hidden via
+		//		DialogUnderlay.show() and DialogUnderlay.hide().  And usually the module is not accessed directly
+		//		at all, since the underlay is shown and hidden by Dialog.DialogLevelManager.
+		//
+		//		The underlay itself can be styled based on and id:
+		//	|	#myDialog_underlay { background-color:red; }
+		//
+		//		In the case of `dijit.Dialog`, this id is based on the id of the Dialog,
+		//		suffixed with _underlay.
+
+		// Template has two divs; outer div is used for fade-in/fade-out, and also to hold background iframe.
+		// Inner div has opacity specified in CSS file.
+		templateString: "<div class='dijitDialogUnderlayWrapper'><div class='dijitDialogUnderlay' tabIndex='-1' data-dojo-attach-point='node'></div></div>",
+
+		// Parameters on creation or updatable later
+
+		// dialogId: String
+		//		Id of the dialog.... DialogUnderlay's id is based on this id
+		dialogId: "",
+
+		// class: String
+		//		This class name is used on the DialogUnderlay node, in addition to dijitDialogUnderlay
+		"class": "",
+
+		// This will get overwritten as soon as show() is call, but leave an empty array in case hide() or destroy()
+		// is called first.   The array is shared between instances but that's OK because we never write into it.
+		_modalConnects: [],
+
+		_setDialogIdAttr: function(id){
+			domAttr.set(this.node, "id", id + "_underlay");
+			this._set("dialogId", id);
+		},
+
+		_setClassAttr: function(clazz){
+			this.node.className = "dijitDialogUnderlay " + clazz;
+			this._set("class", clazz);
+		},
+
+		postCreate: function(){
+			// Append the underlay to the body
+			this.ownerDocumentBody.appendChild(this.domNode);
+
+			this.own(on(this.domNode, "keydown", lang.hitch(this, "_onKeyDown")));
+
+			this.inherited(arguments);
+		},
+
+		layout: function(){
+			// summary:
+			//		Sets the background to the size of the viewport
+			//
+			// description:
+			//		Sets the background to the size of the viewport (rather than the size
+			//		of the document) since we need to cover the whole browser window, even
+			//		if the document is only a few lines long.
+			// tags:
+			//		private
+
+			var is = this.node.style,
+				os = this.domNode.style;
+
+			// hide the background temporarily, so that the background itself isn't
+			// causing scrollbars to appear (might happen when user shrinks browser
+			// window and then we are called to resize)
+			os.display = "none";
+
+			// then resize and show
+			var viewport = winUtils.getBox(this.ownerDocument);
+			os.top = viewport.t + "px";
+			os.left = viewport.l + "px";
+			is.width = viewport.w + "px";
+			is.height = viewport.h + "px";
+			os.display = "block";
+		},
+
+		show: function(){
+			// summary:
+			//		Show the dialog underlay
+			this.domNode.style.display = "block";
+			this.open = true;
+			this.layout();
+			this.bgIframe = new BackgroundIframe(this.domNode);
+
+			var win = winUtils.get(this.ownerDocument);
+			this._modalConnects = [
+				Viewport.on("resize", lang.hitch(this, "layout")),
+				on(win, "scroll", lang.hitch(this, "layout"))
+			];
+
+		},
+
+		hide: function(){
+			// summary:
+			//		Hides the dialog underlay
+
+			this.bgIframe.destroy();
+			delete this.bgIframe;
+			this.domNode.style.display = "none";
+			while(this._modalConnects.length){ (this._modalConnects.pop()).remove(); }
+			this.open = false;
+		},
+
+		destroy: function(){
+			while(this._modalConnects.length){ (this._modalConnects.pop()).remove(); }
+			this.inherited(arguments);
+		},
+
+		_onKeyDown: function(){
+			// summary:
+			//		Extension point so Dialog can monitor keyboard events on the underlay.
+		}
+	});
+
+	DialogUnderlay.show = function(/*Object*/ attrs, /*Number*/ zIndex){
+		// summary:
+		//		Display the underlay with the given attributes set.  If the underlay is already displayed,
+		//		then adjust it's attributes as specified.
+		// attrs:
+		//		The parameters to create DialogUnderlay with.
+		// zIndex:
+		//		zIndex of the underlay
+
+		var underlay = DialogUnderlay._singleton;
+		if(!underlay || underlay._destroyed){
+			underlay = dijit._underlay = DialogUnderlay._singleton = new DialogUnderlay(attrs);
+		}else{
+			if(attrs){ underlay.set(attrs); }
+		}
+		domStyle.set(underlay.domNode, 'zIndex', zIndex);
+		if(!underlay.open){
+			underlay.show();
+		}
+	};
+
+	DialogUnderlay.hide = function(){
+		// summary:
+		//		Hide the underlay.
+
+		// Guard code in case the underlay widget has already been destroyed
+		// because we are being called during page unload (when all widgets are destroyed)
+		var underlay = DialogUnderlay._singleton;
+		if(underlay && !underlay._destroyed){
+			underlay.hide();
+		}
+	};
+
+	return DialogUnderlay;
+});
+
+},
+'dijit/BackgroundIframe':function(){
+define([
+	"require",			// require.toUrl
+	"./main",	// to export dijit.BackgroundIframe
+	"dojo/_base/config",
+	"dojo/dom-construct", // domConstruct.create
+	"dojo/dom-style", // domStyle.set
+	"dojo/_base/lang", // lang.extend lang.hitch
+	"dojo/on",
+	"dojo/sniff" // has("ie"), has("trident"), has("quirks")
+], function(require, dijit, config, domConstruct, domStyle, lang, on, has){
+
+	// module:
+	//		dijit/BackgroundIFrame
+
+	// Flag for whether to create background iframe behind popups like Menus and Dialog.
+	// A background iframe is useful to prevent problems with popups appearing behind applets/pdf files,
+	// and is also useful on older versions of IE (IE6 and IE7) to prevent the "bleed through select" problem.
+	// By default, it's enabled for IE6-11, excluding Windows Phone 8.
+	// TODO: For 2.0, make this false by default.  Also, possibly move definition to has.js so that this module can be
+	// conditionally required via  dojo/has!bgIfame?dijit/BackgroundIframe
+	has.add("config-bgIframe",
+    	(has("ie") || has("trident")) && !/IEMobile\/10\.0/.test(navigator.userAgent)); // No iframe on WP8, to match 1.9 behavior
+
+	var _frames = new function(){
+		// summary:
+		//		cache of iframes
+
+		var queue = [];
+
+		this.pop = function(){
+			var iframe;
+			if(queue.length){
+				iframe = queue.pop();
+				iframe.style.display="";
+			}else{
+				// transparency needed for DialogUnderlay and for tooltips on IE (to see screen near connector)
+				if(has("ie") < 9){
+					var burl = config["dojoBlankHtmlUrl"] || require.toUrl("dojo/resources/blank.html") || "javascript:\"\"";
+					var html="<iframe src='" + burl + "' role='presentation'"
+						+ " style='position: absolute; left: 0px; top: 0px;"
+						+ "z-index: -1; filter:Alpha(Opacity=\"0\");'>";
+					iframe = document.createElement(html);
+				}else{
+					iframe = domConstruct.create("iframe");
+					iframe.src = 'javascript:""';
+					iframe.className = "dijitBackgroundIframe";
+					iframe.setAttribute("role", "presentation");
+					domStyle.set(iframe, "opacity", 0.1);
+				}
+				iframe.tabIndex = -1; // Magic to prevent iframe from getting focus on tab keypress - as style didn't work.
+			}
+			return iframe;
+		};
+
+		this.push = function(iframe){
+			iframe.style.display="none";
+			queue.push(iframe);
+		}
+	}();
+
+
+	dijit.BackgroundIframe = function(/*DomNode*/ node){
+		// summary:
+		//		For IE/FF z-index shenanigans. id attribute is required.
+		//
+		// description:
+		//		new dijit.BackgroundIframe(node).
+		//
+		//		Makes a background iframe as a child of node, that fills
+		//		area (and position) of node
+
+		if(!node.id){ throw new Error("no id"); }
+		if(has("config-bgIframe")){
+			var iframe = (this.iframe = _frames.pop());
+			node.appendChild(iframe);
+			if(has("ie")<7 || has("quirks")){
+				this.resize(node);
+				this._conn = on(node, 'resize', lang.hitch(this, "resize", node));
+			}else{
+				domStyle.set(iframe, {
+					width: '100%',
+					height: '100%'
+				});
+			}
+		}
+	};
+
+	lang.extend(dijit.BackgroundIframe, {
+		resize: function(node){
+			// summary:
+			//		Resize the iframe so it's the same size as node.
+			//		Needed on IE6 and IE/quirks because height:100% doesn't work right.
+			if(this.iframe){
+				domStyle.set(this.iframe, {
+					width: node.offsetWidth + 'px',
+					height: node.offsetHeight + 'px'
+				});
+			}
+		},
+		destroy: function(){
+			// summary:
+			//		destroy the iframe
+			if(this._conn){
+				this._conn.remove();
+				this._conn = null;
+			}
+			if(this.iframe){
+				this.iframe.parentNode.removeChild(this.iframe);
+				_frames.push(this.iframe);
+				delete this.iframe;
+			}
+		}
+	});
+
+	return dijit.BackgroundIframe;
+});
+
+},
+'dijit/nls/common':function(){
+define({ root:
+//begin v1.x content
+({
+	buttonOk: "OK",
+	buttonCancel: "Cancel",
+	buttonSave: "Save",
+	itemClose: "Close"
+})
+//end v1.x content
+,
+"bs": true,
+"mk": true,
+"sr": true,
+"zh": true,
+"zh-tw": true,
+"vi": true,
+"uk": true,
+"tr": true,
+"th": true,
+"sv": true,
+"sl": true,
+"sk": true,
+"ru": true,
+"ro": true,
+"pt": true,
+"pt-pt": true,
+"pl": true,
+"nl": true,
+"nb": true,
+"lv": true,
+"lt": true,
+"ko": true,
+"kk": true,
+"ja": true,
+"it": true,
+"id": true,
+"hu": true,
+"hr": true,
+"hi": true,
+"he": true,
+"fr": true,
+"fi": true,
+"eu": true,
+"et": true,
+"es": true,
+"el": true,
+"de": true,
+"da": true,
+"cs": true,
+"ca": true,
+"bg": true,
+"az": true,
+"ar": true
+});
+
 },
 'esri/kernel':function(){
 // COPYRIGHT © 2017 Esri
@@ -32800,3599 +31255,6 @@ define(
 //end v1.x content
 );
 },
-'esri/SpatialReference':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","./kernel","./lang"],function(e,i,r,t,a,_){var n='PROJCS["WGS_1984_Web_Mercator_Auxiliary_Sphere",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator_Auxiliary_Sphere"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],PARAMETER["Auxiliary_Sphere_Type",0.0],UNIT["Meter",1.0]]',l=[-20037508.342788905,20037508.342788905],s=[-20037508.342787,20037508.342787],M=e(null,{declaredClass:"esri.SpatialReference",constructor:function(e){e&&(r.isObject(e)?r.mixin(this,e):r.isString(e)?this.wkt=e:this.wkid=e)},wkid:null,wkt:null,_info:{102113:{wkTemplate:'PROJCS["WGS_1984_Web_Mercator",GEOGCS["GCS_WGS_1984_Major_Auxiliary_Sphere",DATUM["D_WGS_1984_Major_Auxiliary_Sphere",SPHEROID["WGS_1984_Major_Auxiliary_Sphere",6378137.0,0.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',valid:l,origin:s,dx:1e-5},102100:{wkTemplate:n,valid:l,origin:s,dx:1e-5},3785:{wkTemplate:'PROJCS["WGS_1984_Web_Mercator",GEOGCS["GCS_WGS_1984_Major_Auxiliary_Sphere",DATUM["D_WGS_1984_Major_Auxiliary_Sphere",SPHEROID["WGS_1984_Major_Auxiliary_Sphere",6378137.0,0.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',valid:l,origin:s,dx:1e-5},3857:{wkTemplate:n,valid:l,origin:s,dx:1e-5},4326:{wkTemplate:'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",${Central_Meridian}],UNIT["Degree",0.0174532925199433]]',altTemplate:'PROJCS["WGS_1984_Plate_Carree",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Plate_Carree"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],UNIT["Degrees",111319.491]]',valid:[-180,180],origin:[-180,180],dx:1e-5}},_isWebMercator:function(){return-1!==i.indexOf([102113,102100,3857,3785],this.wkid)},_isWrappable:function(){return-1!==i.indexOf([102113,102100,3857,3785,4326],this.wkid)},_getInfo:function(){return this.wkid?this._info[this.wkid]:null},_canProject:function(e){var i=!1;return e&&(i=this.isWebMercator()&&4326===e.wkid||e.isWebMercator()&&4326===this.wkid),i},isWebMercator:function(){return this._isWebMercator()},equals:function(e){var i=!1;return e&&(this===e&&(i=!0),this.wkid||e.wkid?i=this.wkid===e.wkid||this.isWebMercator()&&e.isWebMercator()||this.wkid===e.latestWkid||e.wkid===this.latestWkid:this.wkt&&e.wkt&&(i=this.wkt.toUpperCase()===e.wkt.toUpperCase())),i},toJson:function(){var e=null,i=_.isDefined;return i(this.wkid)?e={wkid:this.wkid}:i(this.wkt)&&(e={wkt:this.wkt}),e&&i(this.latestWkid)&&(e.latestWkid=this.latestWkid),e}});return t("extend-esri")&&(a.SpatialReference=M),M});
-},
-'esri/geometry/webMercatorUtils':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/array","dojo/_base/lang","dojo/has","../kernel","../SpatialReference","./Point"],function(e,n,t,r,o,a){function i(n,t,r,a){if("point"===n.type){var i=t(n.x,n.y,a);return new n.constructor(i[0],i[1],new o(r))}if("extent"===n.type){var c=t(n.xmin,n.ymin,a),u=t(n.xmax,n.ymax,a);return new n.constructor(c[0],c[1],u[0],u[1],new o(r))}if("polyline"===n.type||"polygon"===n.type){var l,s="polyline"===n.type,p=s?n.paths:n.rings,f=[];return e.forEach(p,function(n){f.push(l=[]),e.forEach(n,function(e){l.push(t(e[0],e[1],a))})}),s?new n.constructor({paths:f,spatialReference:new o(r)}):new n.constructor({rings:f,spatialReference:new o(r)})}if("multipoint"===n.type){var w=[];return e.forEach(n.points,function(e){w.push(t(e[0],e[1],a))}),new n.constructor({points:w,spatialReference:new o(r)})}}function c(e,n){var t=e&&(null!=e.wkid?e:e.spatialReference),r=n&&(null!=n.wkid?n:n.spatialReference);return t&&r?r.equals(t)?!0:r._canProject(t):!1}function u(e,n){var t=e&&e.spatialReference,r=n&&(null!=n.wkid?n:n.spatialReference);return t&&r?t.equals(r)?e=new e.constructor(e.toJson()):c(t,r)?r.isWebMercator()?e=i(e,a.lngLatToXY,{wkid:102100}):4326===r.wkid&&(e=i(e,a.xyToLngLat,{wkid:4326})):e=null:e=null,e}var l={canProject:c,project:u,lngLatToXY:a.lngLatToXY,xyToLngLat:a.xyToLngLat,geographicToWebMercator:function(e){return i(e,a.lngLatToXY,{wkid:102100})},webMercatorToGeographic:function(e,n){return i(e,a.xyToLngLat,{wkid:4326},n)}};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,r),l),l});
-},
-'esri/geometry/Point':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/declare","dojo/_base/lang","dojo/has","../kernel","../lang","../SpatialReference","./Geometry","../srUtils"],function(t,e,i,s,n,a,r,h){function o(t){return t*y}function c(t){return t*p}function u(t,e){e>89.99999?e=89.99999:-89.99999>e&&(e=-89.99999);var i=c(e);return[c(t)*l,l/2*Math.log((1+Math.sin(i))/(1-Math.sin(i)))]}function f(t,e,i){var s=o(t/l);return i?[s,o(d/2-2*Math.atan(Math.exp(-1*e/l)))]:[s-360*Math.floor((s+180)/360),o(d/2-2*Math.atan(Math.exp(-1*e/l)))]}var l=6378137,d=3.141592653589793,y=57.29577951308232,p=.017453292519943,x={type:"point",x:0,y:0},M=t(r,{declaredClass:"esri.geometry.Point",constructor:function(t,i,s){e.mixin(this,x),e.isArray(t)?(this.x=t[0],this.y=t[1],this.spatialReference=i):e.isObject(t)?(e.mixin(this,t),n.isDefined(this.latitude)&&(this.y=this.latitude),n.isDefined(this.longitude)&&(this.x=this.longitude),this.spatialReference&&(this.spatialReference=h.createSpatialReference(this.spatialReference))):(this.x=t,this.y=i,this.spatialReference=s),this.verifySR()},offset:function(t,e){return new this.constructor(this.x+t,this.y+e,this.spatialReference)},setX:function(t){return this.x=t,this.clearCache(),this},setY:function(t){return this.y=t,this.clearCache(),this},setLongitude:function(t){var e=this.spatialReference;return e&&(e._isWebMercator()?this.setX(u(t,this.y)[0]):4326===e.wkid&&this.setX(t)),this},setLatitude:function(t){var e=this.spatialReference;return e&&(e._isWebMercator()?this.setY(u(this.x,t)[1]):4326===e.wkid&&this.setY(t)),this},getLongitude:function(){var t,e=this.spatialReference;return e&&(e._isWebMercator()?t=f(this.x,this.y)[0]:4326===e.wkid&&(t=this.x)),t},getLatitude:function(){var t,e=this.spatialReference;return e&&(e._isWebMercator()?t=f(this.x,this.y)[1]:4326===e.wkid&&(t=this.y)),t},update:function(t,e){return this.x=t,this.y=e,this.clearCache(),this},normalize:function(){var t=this.x,e=this.spatialReference;if(e){var i=e._getInfo();if(i){var s,n=i.valid[0],a=i.valid[1],r=2*a;t>a?(s=Math.ceil(Math.abs(t-a)/r),t-=s*r):n>t&&(s=Math.ceil(Math.abs(t-n)/r),t+=s*r)}}return new this.constructor(t,this.y,e)},toJson:function(){var t={x:this.x,y:this.y},e=this.spatialReference;return e&&(t.spatialReference=e.toJson()),t}});return M.lngLatToXY=u,M.xyToLngLat=f,M.defaultProps=x,i("extend-esri")&&(e.setObject("geometry.Point",M,s),s.geometry.defaultPoint=x),M});
-},
-'esri/geometry/Geometry':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/declare","dojo/_base/lang","dojo/has","../kernel","../SpatialReference"],function(e,t,c,n,a){var i=e(null,{declaredClass:"esri.geometry.Geometry",spatialReference:null,type:null,cache:void 0,setSpatialReference:function(e){return this.spatialReference=e,this},verifySR:function(){this.spatialReference||this.setSpatialReference(new a(4326))},getExtent:function(){return null},clearCache:function(){this.cache=void 0},getCacheValue:function(e){return this.cache&&this.cache[e]},setCacheValue:function(e,t){this.cache||(this.cache={}),this.cache[e]=t}});return c("extend-esri")&&t.setObject("geometry.Geometry",i,n),i});
-},
-'esri/srUtils':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["./SpatialReference","./ImageSpatialReference","./kernel","./sniff","dojo/_base/lang"],function(e,n,i,r,a){function t(e){var n=!1;return e&&(e.ics||e.icsid)&&(n=!0),n}function c(i){var r=null;return i&&(r=t(i)?new n(i):new e(i)),r}var f={isICS:t,createSpatialReference:c};return r("extend-esri")&&a.mixin(i,f),f});
-},
-'esri/ImageSpatialReference':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/declare","dojo/_base/lang","dojo/has","./kernel","./lang","./SpatialReference"],function(i,e,s,r,c,n){var t=i(n,{declaredClass:"esri.ImageSpatialReference",constructor:function(i){i&&(e.isObject(i)&&e.mixin(this,i),this.url||console.error("ImageSpatialReference: must provide image service URL."))},icsid:null,ics:null,_isWebMercator:function(){return!1},_isWrappable:function(){return!1},equals:function(i){var e=!1;return i&&(this.icsid&&i.icsid?e=this.icsid===i.icsid:this.ics&&i.ics&&(e=this.ics===i.ics)),e},toJson:function(i){var e=null,s=c.isDefined;return i=s(i)?i:!0,s(this.icsid)?e={icsid:this.icsid}:s(this.ics)&&(e={ics:this.ics}),s(this.url)&&s(e)&&i&&(e.url=this.url),e}});return s("extend-esri")&&(r.ImageSpatialReference=t),t});
-},
-'esri/sniff':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/sniff","./kernel"],function(r,e){var i,n=function(){return this}(),s=r("ff"),a=r("ie"),t=void 0===a&&r("trident")>=7,o=r("edge"),d=r("webkit"),f=r("opera"),m=r("chrome"),c=r("safari"),l=navigator.userAgent;return i=l.match(/(iPhone|iPad|CPU)\s+OS\s+(\d+\_\d+)/i),i&&r.add("esri-iphone",parseFloat(i[2].replace("_","."))),i=l.match(/Android\s+(\d+\.\d+)/i),i&&r.add("esri-android",parseFloat(i[1])),i=l.match(/Fennec\/(\d+\.\d+)/i),i&&r.add("esri-fennec",parseFloat(i[1])),l.indexOf("BlackBerry")>=0&&l.indexOf("WebKit")>=0&&r.add("esri-blackberry",1),r.add("esri-touch",r("esri-iphone")||r("esri-android")||r("esri-blackberry")||r("esri-fennec")>=6||(s||d)&&document.createTouch?!0:!1),i=l.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i),i&&r.add("esri-mobile",i),r.add("esri-pointer",navigator.pointerEnabled||navigator.msPointerEnabled),e._getDOMAccessor=function(r){var e="";return s?e="Moz":d?e="Webkit":a?e="ms":f&&(e="O"),e+r.charAt(0).toUpperCase()+r.substr(1)},r.add("esri-phonegap",!!n.cordova),r.add("esri-cors",r("esri-phonegap")||n.XMLHttpRequest&&"withCredentials"in new XMLHttpRequest),r.add("esri-file-upload",n.FormData&&n.FileList?!0:!1),r.add("esri-workers",n.Worker?!0:!1),r.add("esri-transforms",t||o||a>=9||s>=3.5||m>=4||c>=3.1||f>=10.5||r("esri-iphone")>=3.2||r("esri-android")>=2.1),r.add("esri-transitions",t||o||a>=10||s>=4||m>=4||c>=3.1||f>=10.5||r("esri-iphone")>=3.2||r("esri-android")>=2.1),r.add("esri-transforms3d",t||o||s>=10||m>=12||c>=4||r("esri-iphone")>=3.2||r("esri-android")>=3),r.add("esri-url-encodes-apostrophe",function(){if(n.document)return!1;var r=n.document.createElement("a");return r.href="?'",r.href.indexOf("?%27")>-1}),r("esri-android")<3&&(r.add("esri-transforms",!1,!1,!0),r.add("esri-transitions",!1,!1,!0),r.add("esri-transforms3d",!1,!1,!0)),r.add("esri-will-change",r("esri-transforms")&&(m>=52||c>=9.1)),e._css=function(e){var i=r("esri-transforms3d");void 0!==e&&null!==e?i=e:i&&(m||c&&!r("esri-iphone"))&&(i=!1);var n=i?"translate3d(":"translate(",t=i?m?",-1px)":",0px)":")",o=i?"scale3d(":"scale(",l=i?",1)":")",u=i?"rotate3d(0,0,1,":"rotate(",p=i?"matrix3d(":"matrix(",h=i?",0,0,":",",x=i?",0,0,0,0,1,0,":",",b=i?",0,1)":")";return{names:{transition:d&&"-webkit-transition"||s&&"MozTransition"||f&&"OTransition"||a&&"msTransition"||"transition",transform:d&&"-webkit-transform"||s&&"MozTransform"||f&&"OTransform"||a&&"msTransform"||"transform",transformName:d&&"-webkit-transform"||s&&"-moz-transform"||f&&"-o-transform"||a&&"-ms-transform"||"transform",origin:d&&"-webkit-transform-origin"||s&&"MozTransformOrigin"||f&&"OTransformOrigin"||a&&"msTransformOrigin"||"transformOrigin",endEvent:d&&"webkitTransitionEnd"||s&&"transitionend"||f&&"oTransitionEnd"||a&&"MSTransitionEnd"||"transitionend"},translate:function(r,e){return n+r+"px,"+e+"px"+t},scale:function(r){return o+r+","+r+l},rotate:function(r){return u+r+"deg)"},matrix:function(r){return p+r.xx+","+r.xy+h+r.yx+","+r.yy+x+r.dx.toFixed(10)+(s?"px,":",")+r.dy.toFixed(10)+(s?"px":"")+b},getScaleFromMatrix:function(r){if(!r)return 1;r=r.toLowerCase();var e=r.indexOf("matrix3d")>-1?"matrix3d(":"matrix(";return Number(r.substring(e.length,r.indexOf(",")))}}},r("extend-esri")&&(e.isiPhone=r("esri-iphone"),e.isAndroid=r("esri-android"),e.isFennec=r("esri-fennec"),e.isBlackBerry=r("esri-blackberry"),e.isTouchEnabled=r("esri-touch"),e.isPointerEnabled=r("esri-pointer"),e._hasCors=r("esri-cors"),e._hasFileUpload=r("esri-file-upload"),e._hasTransforms=r("esri-transforms"),e._hasTransitions=r("esri-transitions"),e._has3DTransforms=r("esri-transforms3d")),r});
-},
-'esri/geometry/Extent':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","../kernel","../lang","../SpatialReference","./Geometry","./Point","./webMercatorUtils","./mathUtils","../srUtils"],function(t,e,i,n,s,a,r,h,x,m,o,c){var f={type:"extent",xmin:0,ymin:0,xmax:0,ymax:0},u=t(h,{declaredClass:"esri.geometry.Extent",constructor:function(t,e,n,s,a){i.mixin(this,f),i.isObject(t)?(i.mixin(this,t),this.spatialReference&&(this.spatialReference=c.createSpatialReference(this.spatialReference))):this.update(t,e,n,s,a),this.verifySR()},getWidth:function(){return Math.abs(this.xmax-this.xmin)},getHeight:function(){return Math.abs(this.ymax-this.ymin)},getCenter:function(){return new x((this.xmin+this.xmax)/2,(this.ymin+this.ymax)/2,this.spatialReference)},centerAt:function(t){var e=this.getCenter(),i=t.x-e.x,n=t.y-e.y;return new u(this.xmin+i,this.ymin+n,this.xmax+i,this.ymax+n,this.spatialReference)},update:function(t,e,i,n,s){return this.xmin=t,this.ymin=e,this.xmax=i,this.ymax=n,this.spatialReference=s,this.clearCache(),this},offset:function(t,e){return new u(this.xmin+t,this.ymin+e,this.xmax+t,this.ymax+e,this.spatialReference)},expand:function(t){var e=(1-t)/2,i=this.getWidth()*e,n=this.getHeight()*e;return new u(this.xmin+i,this.ymin+n,this.xmax-i,this.ymax-n,this.spatialReference)},intersects:function(t){if(!t)return!1;var e=t.type,i=this.spatialReference,n=t.spatialReference;switch(i&&n&&!i.equals(n)&&i._canProject(n)&&(t=i.isWebMercator()?m.geographicToWebMercator(t):m.webMercatorToGeographic(t,!0)),e){case"point":return this.contains(t);case"multipoint":return this._intersectsMultipoint(t);case"extent":return this._intersectsExtent(t);case"polygon":return this._intersectsPolygon(t);case"polyline":return this._intersectsPolyline(t)}},normalize:function(){var t=this._normalize(!1,!0);return i.isArray(t)||(t=[t]),t},shiftCentralMeridian:function(){return this._normalize(!0)},bisect:function(){var t=this.spatialReference,e=t&&t._getInfo(),i=[],n=0;if(e&&this._isOutOfBounds(e)){var s=this,a=s.xmin,h=s.ymin,x=s.ymax,m=e.valid[0],o=e.valid[1];if(s.getWidth()>2*o){var c=s.getCenter();s=new u(c.x-o,h,c.x+o,x,new r(t.toJson()))}n=s.xmin-a;var f=this._normalizeX(s.xmin,e),l=this._normalizeX(s.xmax,e);f.frameId===l.frameId?i.push(new u(f.x,h,l.x,x,new r(t.toJson()))):i.push(new u(f.x,h,o,x,new r(t.toJson())),new u(m,h,l.x,x,new r(t.toJson())))}else i.push(this.getExtent());return{extents:i,marginLeft:n}},_intersectsMultipoint:function(t){var e,i=t.points.length;for(e=0;i>e;e++)if(this.contains(t.getPoint(e)))return!0;return!1},_intersectsExtent:function(t){var e,i,n,s,a=!1;return this.xmin<=t.xmin?(e=t.xmin,this.xmax<e?a=!0:n=Math.min(this.xmax,t.xmax)-e):(e=this.xmin,t.xmax<e?a=!0:n=Math.min(this.xmax,t.xmax)-e),this.ymin<=t.ymin?(i=t.ymin,this.ymax<i?a=!0:s=Math.min(this.ymax,t.ymax)-i):(i=this.ymin,t.ymax<i?a=!0:s=Math.min(this.ymax,t.ymax)-i),a?null:new u(e,i,e+n,i+s,this.spatialReference)},_intersectsPolygon:function(t){var e,i,n,s,a=[this.xmin,this.ymax],r=[this.xmax,this.ymax],h=[this.xmin,this.ymin],m=[this.xmax,this.ymin],o=[a,r,h,m],c=[[h,a],[a,r],[r,m],[m,h]],f=t.rings,u=f.length,l=new x(0,0,this.spatialReference);for(s=o.length,e=0;s>e;e++)if(l.update(o[e][0],o[e][1]),t.contains(l))return!0;l.setSpatialReference(t.spatialReference);var y,p;for(e=0;u>e;e++)if(n=f[e],s=n.length){if(y=n[0],l.update(y[0],y[1]),this.contains(l))return!0;for(i=1;s>i;i++){if(p=n[i],l.update(p[0],p[1]),this.contains(l)||this._intersectsLine([y,p],c))return!0;y=p}}return!1},_intersectsPolyline:function(t){var e,i,n,s,a,r,h=[[[this.xmin,this.ymin],[this.xmin,this.ymax]],[[this.xmin,this.ymax],[this.xmax,this.ymax]],[[this.xmax,this.ymax],[this.xmax,this.ymin]],[[this.xmax,this.ymin],[this.xmin,this.ymin]]],m=t.paths,o=m.length,c=new x(0,0,t.spatialReference);for(e=0;o>e;e++)if(n=m[e],s=n.length){if(a=n[0],c.update(a[0],a[1]),this.contains(c))return!0;for(i=1;s>i;i++){if(r=n[i],c.update(r[0],r[1]),this.contains(c)||this._intersectsLine([a,r],h))return!0;a=r}}return!1},_intersectsLine:function(t,e){var i,n=o._getLineIntersection2,s=e.length;for(i=0;s>i;i++)if(n(t,e[i]))return!0;return!1},contains:function(t){if(!t)return!1;var e=t.type;if("point"===e){var i,n=this.spatialReference,s=t.spatialReference,a=t.x,r=t.y;return n&&s&&!n.equals(s)&&n._canProject(s)&&(i=n.isWebMercator()?x.lngLatToXY(a,r):x.xyToLngLat(a,r,!0),a=i[0],r=i[1]),a>=this.xmin&&a<=this.xmax&&r>=this.ymin&&r<=this.ymax}return"extent"===e?this._containsExtent(t):!1},_containsExtent:function(t){var e=t.xmin,i=t.ymin,n=t.xmax,s=t.ymax,a=t.spatialReference,r=new x(e,i,a),h=new x(e,s,a),m=new x(n,s,a),o=new x(n,i,a);return this.contains(r)&&this.contains(h)&&this.contains(m)&&this.contains(o)?!0:!1},union:function(t){return new u(Math.min(this.xmin,t.xmin),Math.min(this.ymin,t.ymin),Math.max(this.xmax,t.xmax),Math.max(this.ymax,t.ymax),this.spatialReference)},getExtent:function(){var t=this.spatialReference;return new u(this.xmin,this.ymin,this.xmax,this.ymax,t&&new r(t.toJson()))},_shiftCM:function(t){var e=this.getCacheValue("_shifted");if(!e){var i=new u(this.toJson()),n=i.spatialReference;if(t=t||n._getInfo()){var s=this._getCM(t);if(s){var h=n._isWebMercator()?m.webMercatorToGeographic(s):s;i.xmin-=s.x,i.xmax-=s.x,n._isWebMercator()||(h.x=this._normalizeX(h.x,t).x),i.setSpatialReference(new r(a.substitute({Central_Meridian:h.x},4326===n.wkid?t.altTemplate:t.wkTemplate)))}}e=i,this.setCacheValue("_shifted",e)}return e},_getCM:function(t){var e;return this._isOutOfBounds(t)&&(e=this.getCenter()),e},_isOutOfBounds:function(t){var e=t.valid[0],i=t.valid[1],n=this.xmin,s=this.xmax,a=n>=e&&i>=n,r=s>=e&&i>=s;return!(a&&r)},_normalize:function(t,i,n){var s=new u(this.toJson()),a=s.spatialReference;if(a&&(n=n||a._getInfo())){var r=e.map(this._getParts(n),function(t){return t.extent});return r.length>2?t?this._shiftCM(n):s.update(n.valid[0],s.ymin,n.valid[1],s.ymax,a):2===r.length?t?this._shiftCM(n):i?r:{rings:e.map(r,function(t){return[[t.xmin,t.ymin],[t.xmin,t.ymax],[t.xmax,t.ymax],[t.xmax,t.ymin],[t.xmin,t.ymin]]}),spatialReference:a}:r[0]||s}return s},_getParts:function(t){var e=this.getCacheValue("_parts");if(!e){e=[];var i,n,s,a,r=this.xmin,h=this.xmax,x=this.ymin,m=this.ymax,o=this.spatialReference,c=this.getWidth(),f=r,l=h,y=0,p=0;if(t=t||o._getInfo(),n=t.valid[0],s=t.valid[1],i=this._normalizeX(r,t),r=i.x,y=i.frameId,i=this._normalizeX(h,t),h=i.x,p=i.frameId,a=r===h&&c>0,c>2*s){var d,g=new u(l>f?r:h,x,s,m,o),_=new u(n,x,l>f?h:r,m,o),v=new u(0,x,s,m,o),w=new u(n,x,0,m,o),M=[],R=[];for(g.contains(v)&&M.push(y),g.contains(w)&&R.push(y),_.contains(v)&&M.push(p),_.contains(w)&&R.push(p),d=y+1;p>d;d++)M.push(d),R.push(d);e.push({extent:g,frameIds:[y]},{extent:_,frameIds:[p]},{extent:v,frameIds:M},{extent:w,frameIds:R})}else r>h||a?e.push({extent:new u(r,x,s,m,o),frameIds:[y]},{extent:new u(n,x,h,m,o),frameIds:[p]}):e.push({extent:new u(r,x,h,m,o),frameIds:[y]});this.setCacheValue("_parts",e)}return e},_normalizeX:function(t,e){var i,n=0,s=e.valid[0],a=e.valid[1],r=2*a;return t>a?(i=Math.ceil(Math.abs(t-a)/r),t-=i*r,n=i):s>t&&(i=Math.ceil(Math.abs(t-s)/r),t+=i*r,n=-i),{x:t,frameId:n}},toJson:function(){var t={xmin:this.xmin,ymin:this.ymin,xmax:this.xmax,ymax:this.ymax},e=this.spatialReference;return e&&(t.spatialReference=e.toJson()),t}});return u.defaultProps=f,n("extend-esri")&&(i.setObject("geometry.Extent",u,s),s.geometry.defaultExtent=f),u});
-},
-'esri/geometry/mathUtils':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
-},
-'esri/IdentityManager':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["./IdentityManagerDialog","./kernel","./OAuthSignInHandler","dojo/_base/declare"],function(e,n,i,a){var d=new e;return n.id=a.safeMixin(d,i),n.id});
-},
-'esri/IdentityManagerDialog':function(){
-// COPYRIGHT © 2017 Esri
-//
-// All rights reserved under the copyright laws of the United States
-// and applicable international laws, treaties, and conventions.
-//
-// This material is licensed for use under the Esri Master License
-// Agreement (MLA), and is bound by the terms of that agreement.
-// You may redistribute and use this code without modification,
-// provided you adhere to the terms of the MLA and include this
-// copyright notice.
-//
-// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
-//
-// For additional information, contact:
-// Environmental Systems Research Institute, Inc.
-// Attn: Contracts and Legal Services Department
-// 380 New York Street
-// Redlands, California, USA 92373
-// USA
-//
-// email: contracts@esri.com
-//
-// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
-
-define(["dojo/_base/kernel","dojo/_base/declare","dojo/_base/config","dojo/_base/Deferred","dojo/_base/lang","dojo/has","dojo/dom-attr","dojo/keys","dijit/registry","dijit/Dialog","./kernel","./lang","./domUtils","./Credential","./IdentityManagerBase","dojo/i18n!./nls/jsapi","dojo/query","dijit/form/Button","dijit/form/Form","dijit/form/ValidationTextBox"],function(e,t,r,i,n,s,o,d,a,l,c,_,u,g,b,p){var v=t([b],{declaredClass:"esri.IdentityManager",_eventMap:{"dialog-cancel":["info"]},constructor:function(e){n.mixin(this,e),this.registerConnectEvents()},_dialogContent:"<div data-dojo-type='dijit.form.Form' data-dojo-props='\"class\":\"esriIdForm\"'><div class='dijitDialogPaneContentArea'><div style='padding-bottom: 5px; word-wrap: break-word;'>${info}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><div class='esriErrorMsg' style='display: none; color: white; background-color: #D46464; text-align: center; padding-top: 3px; padding-bottom: 3px;'>${invalidUser}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><table style='width: 100%;'><tr><td><label>${lblUser}</label><br/>"+'<input data-dojo-type=\'dijit.form.ValidationTextBox\' data-dojo-props=\'type:"text", "class":"esriIdUser", required:true, trim:true, style:"width: 100%;", autocapitalize:"none", autocorrect:"off", spellcheck:false\' /></td></tr><tr><td><label>${lblPwd}</label><br/><input data-dojo-type=\'dijit.form.ValidationTextBox\' data-dojo-props=\'type:"password", "class":"esriIdPwd", required:true, style:"width: 100%;"\' /></td></tr></table></div><div class=\'dijitDialogPaneActionBar\'><button data-dojo-type=\'dijit.form.Button\' data-dojo-props=\'type:"button", "class":"esriIdSubmit"\'>${lblOk}</button><button data-dojo-type=\'dijit.form.Button\' data-dojo-props=\'type:"button", "class":"esriIdCancel"\'>${lblCancel}</button></div></div>',onDialogCreate:function(){},onDialogCancel:function(){},signIn:function(e,t,n){this._nls||(this._nls=p.identity),this._loginDialog||(this._loginDialog=this.dialog=this._createLoginDialog(),this.onDialogCreate());var s=this._loginDialog,d=n&&n.error,a=n&&n.token,l=new i(function(){s.onCancel()});if(s.open){var c=new Error("BUSY");return c.code="IdentityManager.1",c.log=r.isDebug,l.errback(c),l}return u.hide(s.errMsg_),d&&403==d.code&&a&&(o.set(s.errMsg_,"innerHTML",this._nls.forbidden),u.show(s.errMsg_)),s.dfd_=l,s.serverInfo_=t,s.resUrl_=e,s.admin_=n&&n.isAdmin,o.set(s.resLink_,{title:e,innerHTML:"("+(this.getResourceName(e)||this._nls.lblItem)+")"}),o.set(s.serverLink_,{title:t.server,innerHTML:(-1!==t.server.toLowerCase().indexOf("arcgis.com")?"ArcGIS Online":t.server)+" "}),s.txtPwd_.set("value",""),s.show(),l},_createLoginDialog:function(){var t=this._nls,i=_.substitute(t,this._dialogContent);i=_.substitute({resource:"<span class='resLink' style='word-wrap: break-word;'></span>",server:"<span class='serverLink' style='word-wrap: break-word;'></span>"},i);var n=new l({title:t.title,content:i,"class":"esriSignInDialog",style:"width: 18em;",esriIdMgr_:this,keypressed_:function(e){e.charOrCode===d.ENTER&&this.execute_()},execute_:function(){var e=this.txtUser_.get("value"),r=this.txtPwd_.get("value"),i=this.dfd_,n=this;if(this.form_.validate()&&e&&r){this.btnSubmit_.set("label",t.lblSigning);var s=c.id.findCredential(n.resUrl_,e),d=function(r){n.btnSubmit_.set("label",t.lblOk),n.btnSubmit_.set("disabled",!1),u.hide(n.errMsg_),n.hide(),l._DialogLevelManager.hide(n);var o=n.serverInfo_;n.dfd_=n.serverInfo_=n.generateDfd_=n.resUrl_=null;var d,a,c,b=s;r&&(d=r.token,a=_.isDefined(r.expires)?Number(r.expires):null,c=!!r.ssl,b?(b.userId=e,b.token=d,b.expires=a,b.validity=r.validity,b.ssl=c,b.creationTime=(new Date).getTime()):b=new g({userId:e,server:o.server,token:d,expires:a,ssl:c,isAdmin:n.admin_,validity:r.validity})),i.callback(b)};if(s&&!s._enqueued)return void d();n.btnSubmit_.set("disabled",!0),n.generateDfd_=c.id.generateToken(this.serverInfo_,{username:e,password:r},{isAdmin:this.admin_}).addCallback(d).addErrback(function(e){n.btnSubmit_.set("disabled",!1),n.generateDfd_=null,n.btnSubmit_.set("label",t.lblOk),o.set(n.errMsg_,"innerHTML",e&&e.code?t.invalidUser:t.noAuthService),u.show(n.errMsg_)})}},cancel_:function(){n.generateDfd_&&n.generateDfd_.cancel();var e=n.dfd_,t=n.resUrl_,i=n.serverInfo_;n.btnSubmit_.set("disabled",!1),n.dfd_=n.serverInfo_=n.generateDfd_=n.resUrl_=null,u.hide(n.errMsg_),l._DialogLevelManager.hide(n),n.esriIdMgr_.onDialogCancel({resourceUrl:t,serverInfo:i});var s=new Error("ABORTED");s.code="IdentityManager.2",s.log=r.isDebug,e.errback(s)}}),s=n.domNode;return n.form_=a.byNode(e.query(".esriIdForm",s)[0]),n.txtUser_=a.byNode(e.query(".esriIdUser",s)[0]),n.txtPwd_=a.byNode(e.query(".esriIdPwd",s)[0]),n.btnSubmit_=a.byNode(e.query(".esriIdSubmit",s)[0]),n.btnCancel_=a.byNode(e.query(".esriIdCancel",s)[0]),n.resLink_=e.query(".resLink",s)[0],n.serverLink_=e.query(".serverLink",s)[0],n.errMsg_=e.query(".esriErrorMsg",s)[0],n.connect(n.txtUser_,"onKeyPress",n.keypressed_),n.connect(n.txtPwd_,"onKeyPress",n.keypressed_),n.connect(n.btnSubmit_,"onClick",n.execute_),n.connect(n.btnCancel_,"onClick",n.onCancel),n.connect(n,"onCancel",n.cancel_),n}});return s("extend-esri")&&(c.IdentityManagerDialog=c.IdentityManager=v),v});
-},
-'dijit/Dialog':function(){
-define([
-	"require",
-	"dojo/_base/array", // array.forEach array.indexOf array.map
-	"dojo/aspect",
-	"dojo/_base/declare", // declare
-	"dojo/Deferred", // Deferred
-	"dojo/dom", // dom.isDescendant
-	"dojo/dom-class", // domClass.add domClass.contains
-	"dojo/dom-geometry", // domGeometry.position
-	"dojo/dom-style", // domStyle.set
-	"dojo/_base/fx", // fx.fadeIn fx.fadeOut
-	"dojo/i18n", // i18n.getLocalization
-	"dojo/keys",
-	"dojo/_base/lang", // lang.mixin lang.hitch
-	"dojo/on",
-	"dojo/ready",
-	"dojo/sniff", // has("ie") has("opera") has("dijit-legacy-requires")
-	"dojo/window", // winUtils.getBox, winUtils.get
-	"dojo/dnd/Moveable", // Moveable
-	"dojo/dnd/TimedMoveable", // TimedMoveable
-	"./focus",
-	"./_base/manager", // manager.defaultDuration
-	"./_Widget",
-	"./_TemplatedMixin",
-	"./_CssStateMixin",
-	"./form/_FormMixin",
-	"./_DialogMixin",
-	"./DialogUnderlay",
-	"./layout/ContentPane",
-	"./layout/utils",
-	"dojo/text!./templates/Dialog.html",
-	"./a11yclick",	// template uses ondijitclick
-	"dojo/i18n!./nls/common"
-], function(require, array, aspect, declare, Deferred,
-			dom, domClass, domGeometry, domStyle, fx, i18n, keys, lang, on, ready, has, winUtils,
-			Moveable, TimedMoveable, focus, manager, _Widget, _TemplatedMixin, _CssStateMixin, _FormMixin, _DialogMixin,
-			DialogUnderlay, ContentPane, utils, template){
-
-	// module:
-	//		dijit/Dialog
-
-	var resolvedDeferred = new Deferred();
-	resolvedDeferred.resolve(true);
-
-	function nop(){}
-
-	var _DialogBase = declare("dijit._DialogBase" + (has("dojo-bidi") ? "_NoBidi" : ""), [_TemplatedMixin, _FormMixin, _DialogMixin, _CssStateMixin], {
-		templateString: template,
-
-		baseClass: "dijitDialog",
-
-		cssStateNodes: {
-			closeButtonNode: "dijitDialogCloseIcon"
-		},
-
-		// Map widget attributes to DOMNode attributes.
-		_setTitleAttr: { node: "titleNode", type: "innerHTML" },
-
-		// open: [readonly] Boolean
-		//		True if Dialog is currently displayed on screen.
-		open: false,
-
-		// duration: Integer
-		//		The time in milliseconds it takes the dialog to fade in and out
-		duration: manager.defaultDuration,
-
-		// refocus: Boolean
-		//		A Toggle to modify the default focus behavior of a Dialog, which
-		//		is to re-focus the element which had focus before being opened.
-		//		False will disable refocusing. Default: true
-		refocus: true,
-
-		// autofocus: Boolean
-		//		A Toggle to modify the default focus behavior of a Dialog, which
-		//		is to focus on the first dialog element after opening the dialog.
-		//		False will disable autofocusing. Default: true
-		autofocus: true,
-
-		// _firstFocusItem: [private readonly] DomNode
-		//		The pointer to the first focusable node in the dialog.
-		//		Set by `dijit/_DialogMixin._getFocusItems()`.
-		_firstFocusItem: null,
-
-		// _lastFocusItem: [private readonly] DomNode
-		//		The pointer to which node has focus prior to our dialog.
-		//		Set by `dijit/_DialogMixin._getFocusItems()`.
-		_lastFocusItem: null,
-
-		// draggable: Boolean
-		//		Toggles the movable aspect of the Dialog. If true, Dialog
-		//		can be dragged by it's title. If false it will remain centered
-		//		in the viewport.
-		draggable: true,
-		_setDraggableAttr: function(/*Boolean*/ val){
-			// Avoid _WidgetBase behavior of copying draggable attribute to this.domNode,
-			// as that prevents text select on modern browsers (#14452)
-			this._set("draggable", val);
-		},
-
-		// maxRatio: Number
-		//		Maximum size to allow the dialog to expand to, relative to viewport size
-		maxRatio: 0.9,
-
-		// closable: Boolean
-		//		Dialog show [x] icon to close itself, and ESC key will close the dialog.
-		closable: true,
-		_setClosableAttr: function(val){
-			this.closeButtonNode.style.display = val ? "" : "none";
-			this._set("closable", val);
-		},
-
-		postMixInProperties: function(){
-			var _nlsResources = i18n.getLocalization("dijit", "common");
-			lang.mixin(this, _nlsResources);
-			this.inherited(arguments);
-		},
-
-		postCreate: function(){
-			domStyle.set(this.domNode, {
-				display: "none",
-				position: "absolute"
-			});
-			this.ownerDocumentBody.appendChild(this.domNode);
-
-			this.inherited(arguments);
-
-			aspect.after(this, "onExecute", lang.hitch(this, "hide"), true);
-			aspect.after(this, "onCancel", lang.hitch(this, "hide"), true);
-
-			this._modalconnects = [];
-		},
-
-		onLoad: function(){
-			// summary:
-			//		Called when data has been loaded from an href.
-			//		Unlike most other callbacks, this function can be connected to (via `dojo.connect`)
-			//		but should *not* be overridden.
-			// tags:
-			//		callback
-
-			// when href is specified we need to reposition the dialog after the data is loaded
-			// and find the focusable elements
-			this.resize();
-			this._position();
-
-			if(this.autofocus && DialogLevelManager.isTop(this)){
-				this._getFocusItems();
-				focus.focus(this._firstFocusItem);
-			}
-
-			this.inherited(arguments);
-		},
-
-		focus: function(){
-			this._getFocusItems();
-			focus.focus(this._firstFocusItem);
-		},
-
-		_endDrag: function(){
-			// summary:
-			//		Called after dragging the Dialog. Saves the position of the dialog in the viewport,
-			//		and also adjust position to be fully within the viewport, so user doesn't lose access to handle
-			var nodePosition = domGeometry.position(this.domNode),
-				viewport = winUtils.getBox(this.ownerDocument);
-			nodePosition.y = Math.min(Math.max(nodePosition.y, 0), (viewport.h - nodePosition.h));
-			nodePosition.x = Math.min(Math.max(nodePosition.x, 0), (viewport.w - nodePosition.w));
-			this._relativePosition = nodePosition;
-			this._position();
-		},
-
-		_setup: function(){
-			// summary:
-			//		Stuff we need to do before showing the Dialog for the first
-			//		time (but we defer it until right beforehand, for
-			//		performance reasons).
-			// tags:
-			//		private
-
-			var node = this.domNode;
-
-			if(this.titleBar && this.draggable){
-				this._moveable = new ((has("ie") == 6) ? TimedMoveable // prevent overload, see #5285
-					: Moveable)(node, { handle: this.titleBar });
-				aspect.after(this._moveable, "onMoveStop", lang.hitch(this, "_endDrag"), true);
-			}else{
-				domClass.add(node, "dijitDialogFixed");
-			}
-
-			this.underlayAttrs = {
-				dialogId: this.id,
-				"class": array.map(this["class"].split(/\s/),function(s){
-					return s + "_underlay";
-				}).join(" "),
-				_onKeyDown: lang.hitch(this, "_onKey"),
-				ownerDocument: this.ownerDocument
-			};
-		},
-
-		_size: function(){
-			// TODO: remove for 2.0
-			this.resize();
-		},
-
-		_position: function(){
-			// summary:
-			//		Position the dialog in the viewport.  If no relative offset
-			//		in the viewport has been determined (by dragging, for instance),
-			//		center the dialog.  Otherwise, use the Dialog's stored relative offset,
-			//		clipped to fit inside the viewport (which may have been shrunk).
-			//		Finally, adjust position according to viewport's scroll.
-
-			if(!domClass.contains(this.ownerDocumentBody, "dojoMove")){    // don't do anything if called during auto-scroll
-				var node = this.domNode,
-					viewport = winUtils.getBox(this.ownerDocument),
-					p = this._relativePosition,
-					bb = domGeometry.position(node),
-					l = Math.floor(viewport.l + (p ? Math.min(p.x, viewport.w - bb.w) : (viewport.w - bb.w) / 2)),
-					t = Math.floor(viewport.t + (p ? Math.min(p.y, viewport.h - bb.h) : (viewport.h - bb.h) / 2));
-
-				domStyle.set(node, {
-					left: l + "px",
-					top: t + "px"
-				});
-			}
-		},
-
-		_onKey: function(/*Event*/ evt){
-			// summary:
-			//		Handles the keyboard events for accessibility reasons
-			// tags:
-			//		private
-
-			if(evt.keyCode == keys.TAB){
-				this._getFocusItems();
-				var node = evt.target;
-				if(this._firstFocusItem == this._lastFocusItem){
-					// don't move focus anywhere, but don't allow browser to move focus off of dialog either
-					evt.stopPropagation();
-					evt.preventDefault();
-				}else if(node == this._firstFocusItem && evt.shiftKey){
-					// if we are shift-tabbing from first focusable item in dialog, send focus to last item
-					focus.focus(this._lastFocusItem);
-					evt.stopPropagation();
-					evt.preventDefault();
-				}else if(node == this._lastFocusItem && !evt.shiftKey){
-					// if we are tabbing from last focusable item in dialog, send focus to first item
-					focus.focus(this._firstFocusItem);
-					evt.stopPropagation();
-					evt.preventDefault();
-				}
-			}else if(this.closable && evt.keyCode == keys.ESCAPE){
-				this.onCancel();
-				evt.stopPropagation();
-				evt.preventDefault();
-			}
-		},
-
-		show: function(){
-			// summary:
-			//		Display the dialog
-			// returns: dojo/promise/Promise
-			//		Promise object that resolves when the display animation is complete
-
-			if(this.open){
-				return resolvedDeferred.promise;
-			}
-
-			if(!this._started){
-				this.startup();
-			}
-
-			// first time we show the dialog, there's some initialization stuff to do
-			if(!this._alreadyInitialized){
-				this._setup();
-				this._alreadyInitialized = true;
-			}
-
-			if(this._fadeOutDeferred){
-				// There's a hide() operation in progress, so cancel it, but still call DialogLevelManager.hide()
-				// as though the hide() completed, in preparation for the DialogLevelManager.show() call below.
-				this._fadeOutDeferred.cancel();
-				DialogLevelManager.hide(this);
-			}
-
-			// Recenter Dialog if user scrolls browser.  Connecting to document doesn't work on IE, need to use window.
-			// Be sure that event object doesn't get passed to resize() method, because it's expecting an optional
-			// {w: ..., h:...} arg.
-			var win = winUtils.get(this.ownerDocument);
-			this._modalconnects.push(on(win, "scroll", lang.hitch(this, "resize", null)));
-
-			this._modalconnects.push(on(this.domNode, "keydown", lang.hitch(this, "_onKey")));
-
-			domStyle.set(this.domNode, {
-				opacity: 0,
-				display: ""
-			});
-
-			this._set("open", true);
-			this._onShow(); // lazy load trigger
-
-			this.resize();
-			this._position();
-
-			// fade-in Animation object, setup below
-			var fadeIn;
-
-			this._fadeInDeferred = new Deferred(lang.hitch(this, function(){
-				fadeIn.stop();
-				delete this._fadeInDeferred;
-			}));
-			this._fadeInDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
-
-			// If delay is 0, code below will delete this._fadeInDeferred instantly, so grab promise while we can.
-			var promise = this._fadeInDeferred.promise;
-
-			fadeIn = fx.fadeIn({
-				node: this.domNode,
-				duration: this.duration,
-				beforeBegin: lang.hitch(this, function(){
-					DialogLevelManager.show(this, this.underlayAttrs);
-				}),
-				onEnd: lang.hitch(this, function(){
-					if(this.autofocus && DialogLevelManager.isTop(this)){
-						// find focusable items each time dialog is shown since if dialog contains a widget the
-						// first focusable items can change
-						this._getFocusItems();
-						focus.focus(this._firstFocusItem);
-					}
-					this._fadeInDeferred.resolve(true);
-					delete this._fadeInDeferred;
-				})
-			}).play();
-
-			return promise;
-		},
-
-		hide: function(){
-			// summary:
-			//		Hide the dialog
-			// returns: dojo/promise/Promise
-			//		Promise object that resolves when the display animation is complete
-
-			// If we haven't been initialized yet then we aren't showing and we can just return.
-			// Likewise if we are already hidden, or are currently fading out.
-			if(!this._alreadyInitialized || !this.open){
-				return resolvedDeferred.promise;
-			}
-			if(this._fadeInDeferred){
-				this._fadeInDeferred.cancel();
-			}
-
-			// fade-in Animation object, setup below
-			var fadeOut;
-
-			this._fadeOutDeferred = new Deferred(lang.hitch(this, function(){
-				fadeOut.stop();
-				delete this._fadeOutDeferred;
-			}));
-			this._fadeOutDeferred.then(undefined, nop);	// avoid spurious CancelError message to console
-
-			// fire onHide when the promise resolves.
-			this._fadeOutDeferred.then(lang.hitch(this, 'onHide'));
-
-			// If delay is 0, code below will delete this._fadeOutDeferred instantly, so grab promise while we can.
-			var promise = this._fadeOutDeferred.promise;
-
-			fadeOut = fx.fadeOut({
-				node: this.domNode,
-				duration: this.duration,
-				onEnd: lang.hitch(this, function(){
-					this.domNode.style.display = "none";
-					DialogLevelManager.hide(this);
-					this._fadeOutDeferred.resolve(true);
-					delete this._fadeOutDeferred;
-				})
-			}).play();
-
-			if(this._scrollConnected){
-				this._scrollConnected = false;
-			}
-			var h;
-			while(h = this._modalconnects.pop()){
-				h.remove();
-			}
-
-			if(this._relativePosition){
-				delete this._relativePosition;
-			}
-			this._set("open", false);
-
-			return promise;
-		},
-
-		resize: function(dim){
-			// summary:
-			//		Called with no argument when viewport scrolled or viewport size changed.  Adjusts Dialog as
-			//		necessary to keep it visible.
-			//
-			//		Can also be called with an argument (by dojox/layout/ResizeHandle etc.) to explicitly set the
-			//		size of the dialog.
-			// dim: Object?
-			//		Optional dimension object like {w: 200, h: 300}
-
-			if(this.domNode.style.display != "none"){
-
-				this._checkIfSingleChild();
-
-				if(!dim){
-					if(this._shrunk){
-						// If we earlier shrunk the dialog to fit in the viewport, reset it to its natural size
-						if(this._singleChild){
-							if(typeof this._singleChildOriginalStyle != "undefined"){
-								this._singleChild.domNode.style.cssText = this._singleChildOriginalStyle;
-								delete this._singleChildOriginalStyle;
-							}
-						}
-						array.forEach([this.domNode, this.containerNode, this.titleBar, this.actionBarNode], function(node){
-							if(node){	// because titleBar may not be defined
-								domStyle.set(node, {
-									position: "static",
-									width: "auto",
-									height: "auto"
-								});
-							}
-						});
-						this.domNode.style.position = "absolute";
-					}
-
-					// If necessary, shrink Dialog to fit in viewport and have some space around it
-					// to indicate that it's a popup.  This will also compensate for possible scrollbars on viewport.
-					var viewport = winUtils.getBox(this.ownerDocument);
-					viewport.w *= this.maxRatio;
-					viewport.h *= this.maxRatio;
-
-					var bb = domGeometry.position(this.domNode);
-					if(bb.w >= viewport.w || bb.h >= viewport.h){
-						dim = {
-							w: Math.min(bb.w, viewport.w),
-							h: Math.min(bb.h, viewport.h)
-						};
-						this._shrunk = true;
-					}else{
-						this._shrunk = false;
-					}
-				}
-
-				// Code to run if user has requested an explicit size, or the shrinking code above set an implicit size
-				if(dim){
-					// Set this.domNode to specified size
-					domGeometry.setMarginBox(this.domNode, dim);
-
-					// And then size this.containerNode
-					var layoutNodes = [];
-					if(this.titleBar){
-						layoutNodes.push({domNode: this.titleBar, region: "top"});
-					}
-					if(this.actionBarNode){
-						layoutNodes.push({domNode: this.actionBarNode, region: "bottom"});
-					}
-					var centerSize = {domNode: this.containerNode, region: "center"};
-					layoutNodes.push(centerSize);
-
-					var contentDim = utils.marginBox2contentBox(this.domNode, dim);
-					utils.layoutChildren(this.domNode, contentDim, layoutNodes);
-
-					// And then if this.containerNode has a single layout widget child, size it too.
-					// Otherwise, make this.containerNode show a scrollbar if it's overflowing.
-					if(this._singleChild){
-						var cb = utils.marginBox2contentBox(this.containerNode, centerSize);
-						// note: if containerNode has padding singleChildSize will have l and t set,
-						// but don't pass them to resize() or it will doubly-offset the child
-						this._singleChild.resize({w: cb.w, h: cb.h});
-						// TODO: save original size for restoring it on another show()?
-					}else{
-						this.containerNode.style.overflow = "auto";
-						this._layoutChildren();		// send resize() event to all child widgets
-					}
-				}else{
-					this._layoutChildren();		// send resize() event to all child widgets
-				}
-
-				if(!has("touch") && !dim){
-					// If the user has scrolled the viewport then reposition the Dialog.  But don't do it for touch
-					// devices, because it will counteract when a keyboard pops up and then the browser auto-scrolls
-					// the focused node into view.
-					this._position();
-				}
-			}
-		},
-
-		_layoutChildren: function(){
-			// Override _ContentPaneResizeMixin._layoutChildren because even when there's just a single layout child
-			// widget, sometimes we don't want to size it explicitly (i.e. to pass a dim argument to resize())
-
-			array.forEach(this.getChildren(), function(widget){
-				if(widget.resize){
-					widget.resize();
-				}
-			});
-		},
-
-		destroy: function(){
-			if(this._fadeInDeferred){
-				this._fadeInDeferred.cancel();
-			}
-			if(this._fadeOutDeferred){
-				this._fadeOutDeferred.cancel();
-			}
-			if(this._moveable){
-				this._moveable.destroy();
-			}
-			var h;
-			while(h = this._modalconnects.pop()){
-				h.remove();
-			}
-
-			DialogLevelManager.hide(this);
-
-			this.inherited(arguments);
-		}
-	});
-
-	if(has("dojo-bidi")){
-		_DialogBase = declare("dijit._DialogBase", _DialogBase, {
-			_setTitleAttr: function(/*String*/ title){
-				this._set("title", title);
-				this.titleNode.innerHTML = title;
-				this.applyTextDir(this.titleNode);
-			},
-
-			_setTextDirAttr: function(textDir){
-				if(this._created && this.textDir != textDir){
-					this._set("textDir", textDir);
-					this.set("title", this.title);
-				}
-			}
-		});
-	}
-
-	var Dialog = declare("dijit.Dialog", [ContentPane, _DialogBase], {
-		// summary:
-		//		A modal dialog Widget.
-		// description:
-		//		Pops up a modal dialog window, blocking access to the screen
-		//		and also graying out the screen Dialog is extended from
-		//		ContentPane so it supports all the same parameters (href, etc.).
-		// example:
-		// |	<div data-dojo-type="dijit/Dialog" data-dojo-props="href: 'test.html'"></div>
-		// example:
-		// |	var foo = new Dialog({ title: "test dialog", content: "test content" });
-		// |	foo.placeAt(win.body());
-		// |	foo.startup();
-	});
-	Dialog._DialogBase = _DialogBase;	// for monkey patching and dojox/widget/DialogSimple
-
-	var DialogLevelManager = Dialog._DialogLevelManager = {
-		// summary:
-		//		Controls the various active "levels" on the page, starting with the
-		//		stuff initially visible on the page (at z-index 0), and then having an entry for
-		//		each Dialog shown.
-
-		_beginZIndex: 950,
-
-		show: function(/*dijit/_WidgetBase*/ dialog, /*Object*/ underlayAttrs){
-			// summary:
-			//		Call right before fade-in animation for new dialog.
-			//		Saves current focus, displays/adjusts underlay for new dialog,
-			//		and sets the z-index of the dialog itself.
-			//
-			//		New dialog will be displayed on top of all currently displayed dialogs.
-			//
-			//		Caller is responsible for setting focus in new dialog after the fade-in
-			//		animation completes.
-
-			// Save current focus
-			ds[ds.length - 1].focus = focus.curNode;
-
-			// Set z-index a bit above previous dialog
-			var zIndex = ds[ds.length - 1].dialog ? ds[ds.length - 1].zIndex + 2 : Dialog._DialogLevelManager._beginZIndex;
-			domStyle.set(dialog.domNode, 'zIndex', zIndex);
-
-			// Display the underlay, or if already displayed then adjust for this new dialog
-			DialogUnderlay.show(underlayAttrs, zIndex - 1);
-
-			ds.push({dialog: dialog, underlayAttrs: underlayAttrs, zIndex: zIndex});
-		},
-
-		hide: function(/*dijit/_WidgetBase*/ dialog){
-			// summary:
-			//		Called when the specified dialog is hidden/destroyed, after the fade-out
-			//		animation ends, in order to reset page focus, fix the underlay, etc.
-			//		If the specified dialog isn't open then does nothing.
-			//
-			//		Caller is responsible for either setting display:none on the dialog domNode,
-			//		or calling dijit/popup.hide(), or removing it from the page DOM.
-
-			if(ds[ds.length - 1].dialog == dialog){
-				// Removing the top (or only) dialog in the stack, return focus
-				// to previous dialog
-
-				ds.pop();
-
-				var pd = ds[ds.length - 1];	// the new active dialog (or the base page itself)
-
-				// Adjust underlay
-				if(ds.length == 1){
-					// Returning to original page.  Hide the underlay.
-					DialogUnderlay.hide();
-				}else{
-					// Popping back to previous dialog, adjust underlay.
-					DialogUnderlay.show(pd.underlayAttrs, pd.zIndex - 1);
-				}
-
-				// Adjust focus.
-				// TODO: regardless of setting of dialog.refocus, if the exeucte() method set focus somewhere,
-				// don't shift focus back to button.  Note that execute() runs at the start of the fade-out but
-				// this code runs later, at the end of the fade-out.  Menu has code like this.
-				if(dialog.refocus){
-					// If we are returning control to a previous dialog but for some reason
-					// that dialog didn't have a focused field, set focus to first focusable item.
-					// This situation could happen if two dialogs appeared at nearly the same time,
-					// since a dialog doesn't set it's focus until the fade-in is finished.
-					var focus = pd.focus;
-					if(pd.dialog && (!focus || !dom.isDescendant(focus, pd.dialog.domNode))){
-						pd.dialog._getFocusItems();
-						focus = pd.dialog._firstFocusItem;
-					}
-
-					if(focus){
-						// Refocus the button that spawned the Dialog.   This will fail in corner cases including
-						// page unload on IE, because the dijit/form/Button that launched the Dialog may get destroyed
-						// before this code runs.  (#15058)
-						try{
-							focus.focus();
-						}catch(e){
-						}
-					}
-				}
-			}else{
-				// Removing a dialog out of order (#9944, #10705).
-				// Don't need to mess with underlay or z-index or anything.
-				var idx = array.indexOf(array.map(ds, function(elem){
-					return elem.dialog;
-				}), dialog);
-				if(idx != -1){
-					ds.splice(idx, 1);
-				}
-			}
-		},
-
-		isTop: function(/*dijit/_WidgetBase*/ dialog){
-			// summary:
-			//		Returns true if specified Dialog is the top in the task
-			return ds[ds.length - 1].dialog == dialog;
-		}
-	};
-
-	// Stack representing the various active "levels" on the page, starting with the
-	// stuff initially visible on the page (at z-index 0), and then having an entry for
-	// each Dialog shown.
-	// Each element in stack has form {
-	//		dialog: dialogWidget,
-	//		focus: returnFromGetFocus(),
-	//		underlayAttrs: attributes to set on underlay (when this widget is active)
-	// }
-	var ds = Dialog._dialogStack = [
-		{dialog: null, focus: null, underlayAttrs: null}    // entry for stuff at z-index: 0
-	];
-
-	// If focus was accidentally removed from the dialog, such as if the user clicked a blank
-	// area of the screen, or clicked the browser's address bar and then tabbed into the page,
-	// then refocus.   Won't do anything if focus was removed because the Dialog was closed, or
-	// because a new Dialog popped up on top of the old one, or when focus moves to popups
-	focus.watch("curNode", function(attr, oldNode, node){
- 		// Note: if no dialogs, ds.length==1 but ds[ds.length-1].dialog is null
-		var topDialog = ds[ds.length - 1].dialog;
-
-		// If a node was focused, and there's a Dialog currently showing, and not in the process of fading out...
-		// Ignore focus events on other document though because it's likely an Editor inside of the Dialog.
-		if(node && topDialog && !topDialog._fadeOutDeferred && node.ownerDocument == topDialog.ownerDocument){
-			// If the node that was focused is inside the dialog or in a popup, even a context menu that isn't
-			// technically a descendant of the the dialog, don't do anything.
-			do{
-				if(node == topDialog.domNode || domClass.contains(node, "dijitPopup")){ return; }
-			}while(node = node.parentNode);
-
-			// Otherwise, return focus to the dialog.  Use a delay to avoid confusing dijit/focus code's
-			// own tracking of focus.
-			topDialog.focus();
-		}
-	});
-
-	// Back compat w/1.6, remove for 2.0
-	if(has("dijit-legacy-requires")){
-		ready(0, function(){
-			var requires = ["dijit/TooltipDialog"];
-			require(requires);	// use indirection so modules not rolled into a build
-		});
-	}
-
-	return Dialog;
-});
-
-},
-'dojo/_base/fx':function(){
-define(["./kernel", "./config", /*===== "./declare", =====*/ "./lang", "../Evented", "./Color", "../aspect", "../sniff", "../dom", "../dom-style"],
-	function(dojo, config, /*===== declare, =====*/ lang, Evented, Color, aspect, has, dom, style){
-	// module:
-	//		dojo/_base/fx
-	// notes:
-	//		Animation loosely package based on Dan Pupius' work, contributed under CLA; see
-	//		http://pupius.co.uk/js/Toolkit.Drawing.js
-
-	var _mixin = lang.mixin;
-
-	// Module export
-	var basefx = {
-		// summary:
-		//		This module defines the base dojo/_base/fx implementation.
-	};
-
-	var _Line = basefx._Line = function(/*int*/ start, /*int*/ end){
-		// summary:
-		//		Object used to generate values from a start value to an end value
-		// start: int
-		//		Beginning value for range
-		// end: int
-		//		Ending value for range
-		this.start = start;
-		this.end = end;
-	};
-
-	_Line.prototype.getValue = function(/*float*/ n){
-		// summary:
-		//		Returns the point on the line
-		// n:
-		//		a floating point number greater than 0 and less than 1
-		return ((this.end - this.start) * n) + this.start; // Decimal
-	};
-
-	var Animation = basefx.Animation = function(args){
-		// summary:
-		//		A generic animation class that fires callbacks into its handlers
-		//		object at various states.
-		// description:
-		//		A generic animation class that fires callbacks into its handlers
-		//		object at various states. Nearly all dojo animation functions
-		//		return an instance of this method, usually without calling the
-		//		.play() method beforehand. Therefore, you will likely need to
-		//		call .play() on instances of `Animation` when one is
-		//		returned.
-		// args: Object
-		//		The 'magic argument', mixing all the properties into this
-		//		animation instance.
-
-		_mixin(this, args);
-		if(lang.isArray(this.curve)){
-			this.curve = new _Line(this.curve[0], this.curve[1]);
-		}
-
-	};
-	Animation.prototype = new Evented();
-
-	lang.extend(Animation, {
-		// duration: Integer
-		//		The time in milliseconds the animation will take to run
-		duration: 350,
-
-	/*=====
-		// curve: _Line|Array
-		//		A two element array of start and end values, or a `_Line` instance to be
-		//		used in the Animation.
-		curve: null,
-
-		// easing: Function?
-		//		A Function to adjust the acceleration (or deceleration) of the progress
-		//		across a _Line
-		easing: null,
-	=====*/
-
-		// repeat: Integer?
-		//		The number of times to loop the animation
-		repeat: 0,
-
-		// rate: Integer?
-		//		the time in milliseconds to wait before advancing to next frame
-		//		(used as a fps timer: 1000/rate = fps)
-		rate: 20 /* 50 fps */,
-
-	/*=====
-		// delay: Integer?
-		//		The time in milliseconds to wait before starting animation after it
-		//		has been .play()'ed
-		delay: null,
-
-		// beforeBegin: Event?
-		//		Synthetic event fired before a Animation begins playing (synchronous)
-		beforeBegin: null,
-
-		// onBegin: Event?
-		//		Synthetic event fired as a Animation begins playing (useful?)
-		onBegin: null,
-
-		// onAnimate: Event?
-		//		Synthetic event fired at each interval of the Animation
-		onAnimate: null,
-
-		// onEnd: Event?
-		//		Synthetic event fired after the final frame of the Animation
-		onEnd: null,
-
-		// onPlay: Event?
-		//		Synthetic event fired any time the Animation is play()'ed
-		onPlay: null,
-
-		// onPause: Event?
-		//		Synthetic event fired when the Animation is paused
-		onPause: null,
-
-		// onStop: Event
-		//		Synthetic event fires when the Animation is stopped
-		onStop: null,
-
-	=====*/
-
-		_percent: 0,
-		_startRepeatCount: 0,
-
-		_getStep: function(){
-			var _p = this._percent,
-				_e = this.easing
-			;
-			return _e ? _e(_p) : _p;
-		},
-		_fire: function(/*Event*/ evt, /*Array?*/ args){
-			// summary:
-			//		Convenience function.  Fire event "evt" and pass it the
-			//		arguments specified in "args".
-			// description:
-			//		Convenience function.  Fire event "evt" and pass it the
-			//		arguments specified in "args".
-			//		Fires the callback in the scope of this Animation
-			//		instance.
-			// evt:
-			//		The event to fire.
-			// args:
-			//		The arguments to pass to the event.
-			var a = args||[];
-			if(this[evt]){
-				if(config.debugAtAllCosts){
-					this[evt].apply(this, a);
-				}else{
-					try{
-						this[evt].apply(this, a);
-					}catch(e){
-						// squelch and log because we shouldn't allow exceptions in
-						// synthetic event handlers to cause the internal timer to run
-						// amuck, potentially pegging the CPU. I'm not a fan of this
-						// squelch, but hopefully logging will make it clear what's
-						// going on
-						console.error("exception in animation handler for:", evt);
-						console.error(e);
-					}
-				}
-			}
-			return this; // Animation
-		},
-
-		play: function(/*int?*/ delay, /*Boolean?*/ gotoStart){
-			// summary:
-			//		Start the animation.
-			// delay:
-			//		How many milliseconds to delay before starting.
-			// gotoStart:
-			//		If true, starts the animation from the beginning; otherwise,
-			//		starts it from its current position.
-			// returns: Animation
-			//		The instance to allow chaining.
-
-			var _t = this;
-			if(_t._delayTimer){ _t._clearTimer(); }
-			if(gotoStart){
-				_t._stopTimer();
-				_t._active = _t._paused = false;
-				_t._percent = 0;
-			}else if(_t._active && !_t._paused){
-				return _t;
-			}
-
-			_t._fire("beforeBegin", [_t.node]);
-
-			var de = delay || _t.delay,
-				_p = lang.hitch(_t, "_play", gotoStart);
-
-			if(de > 0){
-				_t._delayTimer = setTimeout(_p, de);
-				return _t;
-			}
-			_p();
-			return _t;	// Animation
-		},
-
-		_play: function(gotoStart){
-			var _t = this;
-			if(_t._delayTimer){ _t._clearTimer(); }
-			_t._startTime = new Date().valueOf();
-			if(_t._paused){
-				_t._startTime -= _t.duration * _t._percent;
-			}
-
-			_t._active = true;
-			_t._paused = false;
-			var value = _t.curve.getValue(_t._getStep());
-			if(!_t._percent){
-				if(!_t._startRepeatCount){
-					_t._startRepeatCount = _t.repeat;
-				}
-				_t._fire("onBegin", [value]);
-			}
-
-			_t._fire("onPlay", [value]);
-
-			_t._cycle();
-			return _t; // Animation
-		},
-
-		pause: function(){
-			// summary:
-			//		Pauses a running animation.
-			var _t = this;
-			if(_t._delayTimer){ _t._clearTimer(); }
-			_t._stopTimer();
-			if(!_t._active){ return _t; /*Animation*/ }
-			_t._paused = true;
-			_t._fire("onPause", [_t.curve.getValue(_t._getStep())]);
-			return _t; // Animation
-		},
-
-		gotoPercent: function(/*Decimal*/ percent, /*Boolean?*/ andPlay){
-			// summary:
-			//		Sets the progress of the animation.
-			// percent:
-			//		A percentage in decimal notation (between and including 0.0 and 1.0).
-			// andPlay:
-			//		If true, play the animation after setting the progress.
-			var _t = this;
-			_t._stopTimer();
-			_t._active = _t._paused = true;
-			_t._percent = percent;
-			if(andPlay){ _t.play(); }
-			return _t; // Animation
-		},
-
-		stop: function(/*boolean?*/ gotoEnd){
-			// summary:
-			//		Stops a running animation.
-			// gotoEnd:
-			//		If true, the animation will end.
-			var _t = this;
-			if(_t._delayTimer){ _t._clearTimer(); }
-			if(!_t._timer){ return _t; /* Animation */ }
-			_t._stopTimer();
-			if(gotoEnd){
-				_t._percent = 1;
-			}
-			_t._fire("onStop", [_t.curve.getValue(_t._getStep())]);
-			_t._active = _t._paused = false;
-			return _t; // Animation
-		},
-
-		destroy: function(){
-			// summary:
-			//		cleanup the animation
-			this.stop();
-		},
-
-		status: function(){
-			// summary:
-			//		Returns a string token representation of the status of
-			//		the animation, one of: "paused", "playing", "stopped"
-			if(this._active){
-				return this._paused ? "paused" : "playing"; // String
-			}
-			return "stopped"; // String
-		},
-
-		_cycle: function(){
-			var _t = this;
-			if(_t._active){
-				var curr = new Date().valueOf();
-				// Allow durations of 0 (instant) by setting step to 1 - see #13798
-				var step = _t.duration === 0 ? 1 : (curr - _t._startTime) / (_t.duration);
-
-				if(step >= 1){
-					step = 1;
-				}
-				_t._percent = step;
-
-				// Perform easing
-				if(_t.easing){
-					step = _t.easing(step);
-				}
-
-				_t._fire("onAnimate", [_t.curve.getValue(step)]);
-
-				if(_t._percent < 1){
-					_t._startTimer();
-				}else{
-					_t._active = false;
-
-					if(_t.repeat > 0){
-						_t.repeat--;
-						_t.play(null, true);
-					}else if(_t.repeat == -1){
-						_t.play(null, true);
-					}else{
-						if(_t._startRepeatCount){
-							_t.repeat = _t._startRepeatCount;
-							_t._startRepeatCount = 0;
-						}
-					}
-					_t._percent = 0;
-					_t._fire("onEnd", [_t.node]);
-					!_t.repeat && _t._stopTimer();
-				}
-			}
-			return _t; // Animation
-		},
-
-		_clearTimer: function(){
-			// summary:
-			//		Clear the play delay timer
-			clearTimeout(this._delayTimer);
-			delete this._delayTimer;
-		}
-
-	});
-
-	// the local timer, stubbed into all Animation instances
-	var ctr = 0,
-		timer = null,
-		runner = {
-			run: function(){}
-		};
-
-	lang.extend(Animation, {
-
-		_startTimer: function(){
-			if(!this._timer){
-				this._timer = aspect.after(runner, "run", lang.hitch(this, "_cycle"), true);
-				ctr++;
-			}
-			if(!timer){
-				timer = setInterval(lang.hitch(runner, "run"), this.rate);
-			}
-		},
-
-		_stopTimer: function(){
-			if(this._timer){
-				this._timer.remove();
-				this._timer = null;
-				ctr--;
-			}
-			if(ctr <= 0){
-				clearInterval(timer);
-				timer = null;
-				ctr = 0;
-			}
-		}
-
-	});
-
-	var _makeFadeable =
-		has("ie") ? function(node){
-			// only set the zoom if the "tickle" value would be the same as the
-			// default
-			var ns = node.style;
-			// don't set the width to auto if it didn't already cascade that way.
-			// We don't want to f anyones designs
-			if(!ns.width.length && style.get(node, "width") == "auto"){
-				ns.width = "auto";
-			}
-		} :
-		function(){};
-
-	basefx._fade = function(/*Object*/ args){
-		// summary:
-		//		Returns an animation that will fade the node defined by
-		//		args.node from the start to end values passed (args.start
-		//		args.end) (end is mandatory, start is optional)
-
-		args.node = dom.byId(args.node);
-		var fArgs = _mixin({ properties: {} }, args),
-			props = (fArgs.properties.opacity = {});
-
-		props.start = !("start" in fArgs) ?
-			function(){
-				return +style.get(fArgs.node, "opacity")||0;
-			} : fArgs.start;
-		props.end = fArgs.end;
-
-		var anim = basefx.animateProperty(fArgs);
-		aspect.after(anim, "beforeBegin", lang.partial(_makeFadeable, fArgs.node), true);
-
-		return anim; // Animation
-	};
-
-	/*=====
-	var __FadeArgs = declare(null, {
-		// node: DOMNode|String
-		//		The node referenced in the animation
-		// duration: Integer?
-		//		Duration of the animation in milliseconds.
-		// easing: Function?
-		//		An easing function.
-	});
-	=====*/
-
-	basefx.fadeIn = function(/*__FadeArgs*/ args){
-		// summary:
-		//		Returns an animation that will fade node defined in 'args' from
-		//		its current opacity to fully opaque.
-		return basefx._fade(_mixin({ end: 1 }, args)); // Animation
-	};
-
-	basefx.fadeOut = function(/*__FadeArgs*/ args){
-		// summary:
-		//		Returns an animation that will fade node defined in 'args'
-		//		from its current opacity to fully transparent.
-		return basefx._fade(_mixin({ end: 0 }, args)); // Animation
-	};
-
-	basefx._defaultEasing = function(/*Decimal?*/ n){
-		// summary:
-		//		The default easing function for Animation(s)
-		return 0.5 + ((Math.sin((n + 1.5) * Math.PI)) / 2);	// Decimal
-	};
-
-	var PropLine = function(properties){
-		// PropLine is an internal class which is used to model the values of
-		// an a group of CSS properties across an animation lifecycle. In
-		// particular, the "getValue" function handles getting interpolated
-		// values between start and end for a particular CSS value.
-		this._properties = properties;
-		for(var p in properties){
-			var prop = properties[p];
-			if(prop.start instanceof Color){
-				// create a reusable temp color object to keep intermediate results
-				prop.tempColor = new Color();
-			}
-		}
-	};
-
-	PropLine.prototype.getValue = function(r){
-		var ret = {};
-		for(var p in this._properties){
-			var prop = this._properties[p],
-				start = prop.start;
-			if(start instanceof Color){
-				ret[p] = Color.blendColors(start, prop.end, r, prop.tempColor).toCss();
-			}else if(!lang.isArray(start)){
-				ret[p] = ((prop.end - start) * r) + start + (p != "opacity" ? prop.units || "px" : 0);
-			}
-		}
-		return ret;
-	};
-
-	/*=====
-	var __AnimArgs = declare(__FadeArgs, {
-		// properties: Object?
-		//		A hash map of style properties to Objects describing the transition,
-		//		such as the properties of _Line with an additional 'units' property
-		properties: {}
-
-		//TODOC: add event callbacks
-	});
-	=====*/
-
-	basefx.animateProperty = function(/*__AnimArgs*/ args){
-		// summary:
-		//		Returns an animation that will transition the properties of
-		//		node defined in `args` depending how they are defined in
-		//		`args.properties`
-		//
-		// description:
-		//		Foundation of most `dojo/_base/fx`
-		//		animations. It takes an object of "properties" corresponding to
-		//		style properties, and animates them in parallel over a set
-		//		duration.
-		//
-		// example:
-		//		A simple animation that changes the width of the specified node.
-		//	|	basefx.animateProperty({
-		//	|		node: "nodeId",
-		//	|		properties: { width: 400 },
-		//	|	}).play();
-		//		Dojo figures out the start value for the width and converts the
-		//		integer specified for the width to the more expressive but
-		//		verbose form `{ width: { end: '400', units: 'px' } }` which you
-		//		can also specify directly. Defaults to 'px' if omitted.
-		//
-		// example:
-		//		Animate width, height, and padding over 2 seconds... the
-		//		pedantic way:
-		//	|	basefx.animateProperty({ node: node, duration:2000,
-		//	|		properties: {
-		//	|			width: { start: '200', end: '400', units:"px" },
-		//	|			height: { start:'200', end: '400', units:"px" },
-		//	|			paddingTop: { start:'5', end:'50', units:"px" }
-		//	|		}
-		//	|	}).play();
-		//		Note 'paddingTop' is used over 'padding-top'. Multi-name CSS properties
-		//		are written using "mixed case", as the hyphen is illegal as an object key.
-		//
-		// example:
-		//		Plug in a different easing function and register a callback for
-		//		when the animation ends. Easing functions accept values between
-		//		zero and one and return a value on that basis. In this case, an
-		//		exponential-in curve.
-		//	|	basefx.animateProperty({
-		//	|		node: "nodeId",
-		//	|		// dojo figures out the start value
-		//	|		properties: { width: { end: 400 } },
-		//	|		easing: function(n){
-		//	|			return (n==0) ? 0 : Math.pow(2, 10 * (n - 1));
-		//	|		},
-		//	|		onEnd: function(node){
-		//	|			// called when the animation finishes. The animation
-		//	|			// target is passed to this function
-		//	|		}
-		//	|	}).play(500); // delay playing half a second
-		//
-		// example:
-		//		Like all `Animation`s, animateProperty returns a handle to the
-		//		Animation instance, which fires the events common to Dojo FX. Use `aspect.after`
-		//		to access these events outside of the Animation definition:
-		//	|	var anim = basefx.animateProperty({
-		//	|		node:"someId",
-		//	|		properties:{
-		//	|			width:400, height:500
-		//	|		}
-		//	|	});
-		//	|	aspect.after(anim, "onEnd", function(){
-		//	|		console.log("animation ended");
-		//	|	}, true);
-		//	|	// play the animation now:
-		//	|	anim.play();
-		//
-		// example:
-		//		Each property can be a function whose return value is substituted along.
-		//		Additionally, each measurement (eg: start, end) can be a function. The node
-		//		reference is passed directly to callbacks.
-		//	|	basefx.animateProperty({
-		//	|		node:"mine",
-		//	|		properties:{
-		//	|			height:function(node){
-		//	|				// shrink this node by 50%
-		//	|				return domGeom.position(node).h / 2
-		//	|			},
-		//	|			width:{
-		//	|				start:function(node){ return 100; },
-		//	|				end:function(node){ return 200; }
-		//	|			}
-		//	|		}
-		//	|	}).play();
-		//
-
-		var n = args.node = dom.byId(args.node);
-		if(!args.easing){ args.easing = dojo._defaultEasing; }
-
-		var anim = new Animation(args);
-		aspect.after(anim, "beforeBegin", lang.hitch(anim, function(){
-			var pm = {};
-			for(var p in this.properties){
-				// Make shallow copy of properties into pm because we overwrite
-				// some values below. In particular if start/end are functions
-				// we don't want to overwrite them or the functions won't be
-				// called if the animation is reused.
-				if(p == "width" || p == "height"){
-					this.node.display = "block";
-				}
-				var prop = this.properties[p];
-				if(lang.isFunction(prop)){
-					prop = prop(n);
-				}
-				prop = pm[p] = _mixin({}, (lang.isObject(prop) ? prop: { end: prop }));
-
-				if(lang.isFunction(prop.start)){
-					prop.start = prop.start(n);
-				}
-				if(lang.isFunction(prop.end)){
-					prop.end = prop.end(n);
-				}
-				var isColor = (p.toLowerCase().indexOf("color") >= 0);
-				function getStyle(node, p){
-					// domStyle.get(node, "height") can return "auto" or "" on IE; this is more reliable:
-					var v = { height: node.offsetHeight, width: node.offsetWidth }[p];
-					if(v !== undefined){ return v; }
-					v = style.get(node, p);
-					return (p == "opacity") ? +v : (isColor ? v : parseFloat(v));
-				}
-				if(!("end" in prop)){
-					prop.end = getStyle(n, p);
-				}else if(!("start" in prop)){
-					prop.start = getStyle(n, p);
-				}
-
-				if(isColor){
-					prop.start = new Color(prop.start);
-					prop.end = new Color(prop.end);
-				}else{
-					prop.start = (p == "opacity") ? +prop.start : parseFloat(prop.start);
-				}
-			}
-			this.curve = new PropLine(pm);
-		}), true);
-		aspect.after(anim, "onAnimate", lang.hitch(style, "set", anim.node), true);
-		return anim; // Animation
-	};
-
-	basefx.anim = function(	/*DOMNode|String*/	node,
-							/*Object*/			properties,
-							/*Integer?*/		duration,
-							/*Function?*/		easing,
-							/*Function?*/		onEnd,
-							/*Integer?*/		delay){
-		// summary:
-		//		A simpler interface to `animateProperty()`, also returns
-		//		an instance of `Animation` but begins the animation
-		//		immediately, unlike nearly every other Dojo animation API.
-		// description:
-		//		Simpler (but somewhat less powerful) version
-		//		of `animateProperty`.  It uses defaults for many basic properties
-		//		and allows for positional parameters to be used in place of the
-		//		packed "property bag" which is used for other Dojo animation
-		//		methods.
-		//
-		//		The `Animation` object returned will be already playing, so
-		//		calling play() on it again is (usually) a no-op.
-		// node:
-		//		a DOM node or the id of a node to animate CSS properties on
-		// duration:
-		//		The number of milliseconds over which the animation
-		//		should run. Defaults to the global animation default duration
-		//		(350ms).
-		// easing:
-		//		An easing function over which to calculate acceleration
-		//		and deceleration of the animation through its duration.
-		//		A default easing algorithm is provided, but you may
-		//		plug in any you wish. A large selection of easing algorithms
-		//		are available in `dojo/fx/easing`.
-		// onEnd:
-		//		A function to be called when the animation finishes
-		//		running.
-		// delay:
-		//		The number of milliseconds to delay beginning the
-		//		animation by. The default is 0.
-		// example:
-		//		Fade out a node
-		//	|	basefx.anim("id", { opacity: 0 });
-		// example:
-		//		Fade out a node over a full second
-		//	|	basefx.anim("id", { opacity: 0 }, 1000);
-		return basefx.animateProperty({ // Animation
-			node: node,
-			duration: duration || Animation.prototype.duration,
-			properties: properties,
-			easing: easing,
-			onEnd: onEnd
-		}).play(delay || 0);
-	};
-
-
-	if( 1 ){
-		_mixin(dojo, basefx);
-		// Alias to drop come 2.0:
-		dojo._Animation = Animation;
-	}
-
-	return basefx;
-});
-
-},
-'dojo/dnd/Moveable':function(){
-define([
-	"../_base/array", "../_base/declare", "../_base/lang", "../dom", "../dom-class", "../Evented",
-	"../has", "../on", "../topic", "../touch", "./common", "./Mover", "../_base/window"
-], function(array, declare, lang, dom, domClass, Evented, has, on, topic, touch, dnd, Mover, win){
-
-// module:
-//		dojo/dnd/Moveable
-
-var touchActionPropertyName;
-var setTouchAction = function () {};
-
-function setTouchActionPropertyName() {
-	if ("touchAction" in document.body.style) {
-		touchActionPropertyName = "touchAction";
-	}
-	else if ("msTouchAction" in document.body.style) {
-		touchActionPropertyName = "msTouchAction";
-	}
-	setTouchAction = function setTouchAction(/* Node */ node, /* string */ action) {
-		node.style[touchActionPropertyName] = action;
-	}
-	setTouchAction(arguments[0], arguments[1]);
-}
-
-if (has("touch-action")) {
-	// Ensure that the logic to determine "touchActionPropertyName" runs
-	setTouchAction = setTouchActionPropertyName;
-}
-
-var Moveable = declare("dojo.dnd.Moveable", [Evented], {
-	// summary:
-	//		an object, which makes a node movable
-
-	// object attributes (for markup)
-	handle: "",
-	delay: 0,
-	skip: false,
-
-	constructor: function(node, params){
-		// node: Node
-		//		a node (or node's id) to be moved
-		// params: Moveable.__MoveableArgs?
-		//		optional parameters
-		this.node = dom.byId(node);
-		setTouchAction(this.node, "none");
-		if(!params){ params = {}; }
-		this.handle = params.handle ? dom.byId(params.handle) : null;
-		if(!this.handle){ this.handle = this.node; }
-		this.delay = params.delay > 0 ? params.delay : 0;
-		this.skip  = params.skip;
-		this.mover = params.mover ? params.mover : Mover;
-		this.events = [
-			on(this.handle, touch.press, lang.hitch(this, "onMouseDown")),
-			// cancel text selection and text dragging
-			on(this.handle, "dragstart",   lang.hitch(this, "onSelectStart")),
-			on(this.handle, "selectstart",   lang.hitch(this, "onSelectStart"))
-		];
-	},
-
-	// markup methods
-	markupFactory: function(params, node, Ctor){
-		return new Ctor(node, params);
-	},
-
-	// methods
-	destroy: function(){
-		// summary:
-		//		stops watching for possible move, deletes all references, so the object can be garbage-collected
-		array.forEach(this.events, function(handle){ handle.remove(); });
-		setTouchAction(this.node, "");
-		this.events = this.node = this.handle = null;
-	},
-
-	// mouse event processors
-	onMouseDown: function(e){
-		// summary:
-		//		event processor for onmousedown/ontouchstart, creates a Mover for the node
-		// e: Event
-		//		mouse/touch event
-		if(this.skip && dnd.isFormElement(e)){ return; }
-		if(this.delay){
-			this.events.push(
-				on(this.handle, touch.move, lang.hitch(this, "onMouseMove")),
-				on(this.handle.ownerDocument, touch.release, lang.hitch(this, "onMouseUp"))
-			);
-			this._lastX = e.pageX;
-			this._lastY = e.pageY;
-		}else{
-			this.onDragDetected(e);
-		}
-		e.stopPropagation();
-		e.preventDefault();
-	},
-	onMouseMove: function(e){
-		// summary:
-		//		event processor for onmousemove/ontouchmove, used only for delayed drags
-		// e: Event
-		//		mouse/touch event
-		if(Math.abs(e.pageX - this._lastX) > this.delay || Math.abs(e.pageY - this._lastY) > this.delay){
-			this.onMouseUp(e);
-			this.onDragDetected(e);
-		}
-		e.stopPropagation();
-		e.preventDefault();
-	},
-	onMouseUp: function(e){
-		// summary:
-		//		event processor for onmouseup, used only for delayed drags
-		// e: Event
-		//		mouse event
-		for(var i = 0; i < 2; ++i){
-			this.events.pop().remove();
-		}
-		e.stopPropagation();
-		e.preventDefault();
-	},
-	onSelectStart: function(e){
-		// summary:
-		//		event processor for onselectevent and ondragevent
-		// e: Event
-		//		mouse event
-		if(!this.skip || !dnd.isFormElement(e)){
-			e.stopPropagation();
-			e.preventDefault();
-		}
-	},
-
-	// local events
-	onDragDetected: function(/*Event*/ e){
-		// summary:
-		//		called when the drag is detected;
-		//		responsible for creation of the mover
-		new this.mover(this.node, e, this);
-	},
-	onMoveStart: function(/*Mover*/ mover){
-		// summary:
-		//		called before every move operation
-		topic.publish("/dnd/move/start", mover);
-		domClass.add(win.body(), "dojoMove");
-		domClass.add(this.node, "dojoMoveItem");
-	},
-	onMoveStop: function(/*Mover*/ mover){
-		// summary:
-		//		called after every move operation
-		topic.publish("/dnd/move/stop", mover);
-		domClass.remove(win.body(), "dojoMove");
-		domClass.remove(this.node, "dojoMoveItem");
-	},
-	onFirstMove: function(/*===== mover, e =====*/){
-		// summary:
-		//		called during the very first move notification;
-		//		can be used to initialize coordinates, can be overwritten.
-		// mover: Mover
-		// e: Event
-
-		// default implementation does nothing
-	},
-	onMove: function(mover, leftTop /*=====, e =====*/){
-		// summary:
-		//		called during every move notification;
-		//		should actually move the node; can be overwritten.
-		// mover: Mover
-		// leftTop: Object
-		// e: Event
-		this.onMoving(mover, leftTop);
-		var s = mover.node.style;
-		s.left = leftTop.l + "px";
-		s.top  = leftTop.t + "px";
-		this.onMoved(mover, leftTop);
-	},
-	onMoving: function(/*===== mover, leftTop =====*/){
-		// summary:
-		//		called before every incremental move; can be overwritten.
-		// mover: Mover
-		// leftTop: Object
-
-		// default implementation does nothing
-	},
-	onMoved: function(/*===== mover, leftTop =====*/){
-		// summary:
-		//		called after every incremental move; can be overwritten.
-		// mover: Mover
-		// leftTop: Object
-
-		// default implementation does nothing
-	}
-});
-
-/*=====
-Moveable.__MoveableArgs = declare([], {
-	// handle: Node||String
-	//		A node (or node's id), which is used as a mouse handle.
-	//		If omitted, the node itself is used as a handle.
-	handle: null,
-
-	// delay: Number
-	//		delay move by this number of pixels
-	delay: 0,
-
-	// skip: Boolean
-	//		skip move of form elements
-	skip: false,
-
-	// mover: Object
-	//		a constructor of custom Mover
-	mover: dnd.Mover
-});
-=====*/
-
-return Moveable;
-});
-
-},
-'dojo/dnd/common':function(){
-define(["../sniff", "../_base/kernel", "../_base/lang", "../dom"],
-	function(has, kernel, lang, dom){
-
-// module:
-//		dojo/dnd/common
-
-var exports = lang.getObject("dojo.dnd", true);
-/*=====
-// TODO: for 2.0, replace line above with this code.
-var exports = {
-	// summary:
-	//		TODOC
-};
-=====*/
-
-exports.getCopyKeyState = function(evt){
-	return evt[has("mac") ? "metaKey" : "ctrlKey"]
-};
-
-exports._uniqueId = 0;
-exports.getUniqueId = function(){
-	// summary:
-	//		returns a unique string for use with any DOM element
-	var id;
-	do{
-		id = kernel._scopeName + "Unique" + (++exports._uniqueId);
-	}while(dom.byId(id));
-	return id;
-};
-
-exports._empty = {};
-
-exports.isFormElement = function(/*Event*/ e){
-	// summary:
-	//		returns true if user clicked on a form element
-	var t = e.target;
-	if(t.nodeType == 3 /*TEXT_NODE*/){
-		t = t.parentNode;
-	}
-	return " a button textarea input select option ".indexOf(" " + t.tagName.toLowerCase() + " ") >= 0;	// Boolean
-};
-
-return exports;
-});
-
-},
-'dojo/dnd/Mover':function(){
-define([
-	"../_base/array", "../_base/declare", "../_base/lang", "../sniff", "../_base/window",
-	"../dom", "../dom-geometry", "../dom-style", "../Evented", "../on", "../touch", "./common", "./autoscroll"
-], function(array, declare, lang, has, win, dom, domGeom, domStyle, Evented, on, touch, dnd, autoscroll){
-
-// module:
-//		dojo/dnd/Mover
-
-return declare("dojo.dnd.Mover", [Evented], {
-	// summary:
-	//		an object which makes a node follow the mouse, or touch-drag on touch devices.
-	//		Used as a default mover, and as a base class for custom movers.
-
-	constructor: function(node, e, host){
-		// node: Node
-		//		a node (or node's id) to be moved
-		// e: Event
-		//		a mouse event, which started the move;
-		//		only pageX and pageY properties are used
-		// host: Object?
-		//		object which implements the functionality of the move,
-		//	 	and defines proper events (onMoveStart and onMoveStop)
-		this.node = dom.byId(node);
-		this.marginBox = {l: e.pageX, t: e.pageY};
-		this.mouseButton = e.button;
-		var h = (this.host = host), d = node.ownerDocument;
-
-		function stopEvent(e){
-			e.preventDefault();
-			e.stopPropagation();
-		}
-
-		this.events = [
-			// At the start of a drag, onFirstMove is called, and then the following
-			// listener is disconnected.
-			on(d, touch.move, lang.hitch(this, "onFirstMove")),
-
-			// These are called continually during the drag
-			on(d, touch.move, lang.hitch(this, "onMouseMove")),
-
-			// And these are called at the end of the drag
-			on(d, touch.release,  lang.hitch(this, "onMouseUp")),
-
-			// cancel text selection and text dragging
-			on(d, "dragstart",   stopEvent),
-			on(d.body, "selectstart", stopEvent)
-		];
-
-		// Tell autoscroll that a drag is starting
-		autoscroll.autoScrollStart(d);
-
-		// notify that the move has started
-		if(h && h.onMoveStart){
-			h.onMoveStart(this);
-		}
-	},
-	// mouse event processors
-	onMouseMove: function(e){
-		// summary:
-		//		event processor for onmousemove/ontouchmove
-		// e: Event
-		//		mouse/touch event
-		autoscroll.autoScroll(e);
-		var m = this.marginBox;
-		this.host.onMove(this, {l: m.l + e.pageX, t: m.t + e.pageY}, e);
-		e.preventDefault();
-		e.stopPropagation();
-	},
-	onMouseUp: function(e){
-		if(has("webkit") && has("mac") && this.mouseButton == 2 ?
-				e.button == 0 : this.mouseButton == e.button){ // TODO Should condition be met for touch devices, too?
-			this.destroy();
-		}
-		e.preventDefault();
-		e.stopPropagation();
-	},
-	// utilities
-	onFirstMove: function(e){
-		// summary:
-		//		makes the node absolute; it is meant to be called only once.
-		//		relative and absolutely positioned nodes are assumed to use pixel units
-		var s = this.node.style, l, t, h = this.host;
-		switch(s.position){
-			case "relative":
-			case "absolute":
-				// assume that left and top values are in pixels already
-				l = Math.round(parseFloat(s.left)) || 0;
-				t = Math.round(parseFloat(s.top)) || 0;
-				break;
-			default:
-				s.position = "absolute";	// enforcing the absolute mode
-				var m = domGeom.getMarginBox(this.node);
-				// event.pageX/pageY (which we used to generate the initial
-				// margin box) includes padding and margin set on the body.
-				// However, setting the node's position to absolute and then
-				// doing domGeom.marginBox on it *doesn't* take that additional
-				// space into account - so we need to subtract the combined
-				// padding and margin.  We use getComputedStyle and
-				// _getMarginBox/_getContentBox to avoid the extra lookup of
-				// the computed style.
-				var b = win.doc.body;
-				var bs = domStyle.getComputedStyle(b);
-				var bm = domGeom.getMarginBox(b, bs);
-				var bc = domGeom.getContentBox(b, bs);
-				l = m.l - (bc.l - bm.l);
-				t = m.t - (bc.t - bm.t);
-				break;
-		}
-		this.marginBox.l = l - this.marginBox.l;
-		this.marginBox.t = t - this.marginBox.t;
-		if(h && h.onFirstMove){
-			h.onFirstMove(this, e);
-		}
-
-		// Disconnect touch.move that call this function
-		this.events.shift().remove();
-	},
-	destroy: function(){
-		// summary:
-		//		stops the move, deletes all references, so the object can be garbage-collected
-		array.forEach(this.events, function(handle){ handle.remove(); });
-		// undo global settings
-		var h = this.host;
-		if(h && h.onMoveStop){
-			h.onMoveStop(this);
-		}
-		// destroy objects
-		this.events = this.node = this.host = null;
-	}
-});
-
-});
-
-},
-'dojo/dnd/autoscroll':function(){
-define(["../_base/lang", "../sniff", "../_base/window", "../dom-geometry", "../dom-style", "../window"],
-	function(lang, has, win, domGeom, domStyle, winUtils){
-
-// module:
-//		dojo/dnd/autoscroll
-
-var exports = {
-	// summary:
-	//		Used by dojo/dnd/Manager to scroll document or internal node when the user
-	//		drags near the edge of the viewport or a scrollable node
-};
-lang.setObject("dojo.dnd.autoscroll", exports);
-
-exports.getViewport = winUtils.getBox;
-
-exports.V_TRIGGER_AUTOSCROLL = 32;
-exports.H_TRIGGER_AUTOSCROLL = 32;
-
-exports.V_AUTOSCROLL_VALUE = 16;
-exports.H_AUTOSCROLL_VALUE = 16;
-
-// These are set by autoScrollStart().
-// Set to default values in case autoScrollStart() isn't called. (back-compat, remove for 2.0)
-var viewport,
-	doc = win.doc,
-	maxScrollTop = Infinity,
-	maxScrollLeft = Infinity;
-
-exports.autoScrollStart = function(d){
-	// summary:
-	//		Called at the start of a drag.
-	// d: Document
-	//		The document of the node being dragged.
-
-	doc = d;
-	viewport = winUtils.getBox(doc);
-
-	// Save height/width of document at start of drag, before it gets distorted by a user dragging an avatar past
-	// the document's edge
-	var html = win.body(doc).parentNode;
-	maxScrollTop = Math.max(html.scrollHeight - viewport.h, 0);
-	maxScrollLeft = Math.max(html.scrollWidth - viewport.w, 0);	// usually 0
-};
-
-exports.autoScroll = function(e){
-	// summary:
-	//		a handler for mousemove and touchmove events, which scrolls the window, if
-	//		necessary
-	// e: Event
-	//		mousemove/touchmove event
-
-	// FIXME: needs more docs!
-	var v = viewport || winUtils.getBox(doc), // getBox() call for back-compat, in case autoScrollStart() wasn't called
-		html = win.body(doc).parentNode,
-		dx = 0, dy = 0;
-	if(e.clientX < exports.H_TRIGGER_AUTOSCROLL){
-		dx = -exports.H_AUTOSCROLL_VALUE;
-	}else if(e.clientX > v.w - exports.H_TRIGGER_AUTOSCROLL){
-		dx = Math.min(exports.H_AUTOSCROLL_VALUE, maxScrollLeft - html.scrollLeft);	// don't scroll past edge of doc
-	}
-	if(e.clientY < exports.V_TRIGGER_AUTOSCROLL){
-		dy = -exports.V_AUTOSCROLL_VALUE;
-	}else if(e.clientY > v.h - exports.V_TRIGGER_AUTOSCROLL){
-		dy = Math.min(exports.V_AUTOSCROLL_VALUE, maxScrollTop - html.scrollTop);	// don't scroll past edge of doc
-	}
-	window.scrollBy(dx, dy);
-};
-
-exports._validNodes = {"div": 1, "p": 1, "td": 1};
-exports._validOverflow = {"auto": 1, "scroll": 1};
-
-exports.autoScrollNodes = function(e){
-	// summary:
-	//		a handler for mousemove and touchmove events, which scrolls the first available
-	//		Dom element, it falls back to exports.autoScroll()
-	// e: Event
-	//		mousemove/touchmove event
-
-	// FIXME: needs more docs!
-
-	var b, t, w, h, rx, ry, dx = 0, dy = 0, oldLeft, oldTop;
-
-	for(var n = e.target; n;){
-		if(n.nodeType == 1 && (n.tagName.toLowerCase() in exports._validNodes)){
-			var s = domStyle.getComputedStyle(n),
-				overflowX = (s.overflowX.toLowerCase() in exports._validOverflow),
-				overflowY = (s.overflowY.toLowerCase() in exports._validOverflow);
-			if(overflowX || overflowY){
-				b = domGeom.getContentBox(n, s);
-				t = domGeom.position(n, true);
-			}
-			// overflow-x
-			if(overflowX){
-				w = Math.min(exports.H_TRIGGER_AUTOSCROLL, b.w / 2);
-				rx = e.pageX - t.x;
-				if(has("webkit") || has("opera")){
-					// FIXME: this code should not be here, it should be taken into account
-					// either by the event fixing code, or the domGeom.position()
-					// FIXME: this code doesn't work on Opera 9.5 Beta
-					rx += win.body().scrollLeft;
-				}
-				dx = 0;
-				if(rx > 0 && rx < b.w){
-					if(rx < w){
-						dx = -w;
-					}else if(rx > b.w - w){
-						dx = w;
-					}
-					oldLeft = n.scrollLeft;
-					n.scrollLeft = n.scrollLeft + dx;
-				}
-			}
-			// overflow-y
-			if(overflowY){
-				//console.log(b.l, b.t, t.x, t.y, n.scrollLeft, n.scrollTop);
-				h = Math.min(exports.V_TRIGGER_AUTOSCROLL, b.h / 2);
-				ry = e.pageY - t.y;
-				if(has("webkit") || has("opera")){
-					// FIXME: this code should not be here, it should be taken into account
-					// either by the event fixing code, or the domGeom.position()
-					// FIXME: this code doesn't work on Opera 9.5 Beta
-					ry += win.body().scrollTop;
-				}
-				dy = 0;
-				if(ry > 0 && ry < b.h){
-					if(ry < h){
-						dy = -h;
-					}else if(ry > b.h - h){
-						dy = h;
-					}
-					oldTop = n.scrollTop;
-					n.scrollTop  = n.scrollTop  + dy;
-				}
-			}
-			if(dx || dy){ return; }
-		}
-		try{
-			n = n.parentNode;
-		}catch(x){
-			n = null;
-		}
-	}
-	exports.autoScroll(e);
-};
-
-return exports;
-
-});
-
-},
-'dojo/dnd/TimedMoveable':function(){
-define(["../_base/declare", "./Moveable" /*=====, "./Mover" =====*/], function(declare, Moveable /*=====, Mover =====*/){
-	// module:
-	//		dojo/dnd/TimedMoveable
-
-	/*=====
-	var __TimedMoveableArgs = declare([Moveable.__MoveableArgs], {
-		// timeout: Number
-		//		delay move by this number of ms,
-		//		accumulating position changes during the timeout
-		timeout: 0
-	});
-	=====*/
-
-	// precalculate long expressions
-	var oldOnMove = Moveable.prototype.onMove;
-
-	return declare("dojo.dnd.TimedMoveable", Moveable, {
-		// summary:
-		//		A specialized version of Moveable to support an FPS throttling.
-		//		This class puts an upper restriction on FPS, which may reduce
-		//		the CPU load. The additional parameter "timeout" regulates
-		//		the delay before actually moving the moveable object.
-
-		// object attributes (for markup)
-		timeout: 40,	// in ms, 40ms corresponds to 25 fps
-
-		constructor: function(node, params){
-			// summary:
-			//		an object that makes a node moveable with a timer
-			// node: Node||String
-			//		a node (or node's id) to be moved
-			// params: __TimedMoveableArgs
-			//		object with additional parameters.
-
-			// sanitize parameters
-			if(!params){ params = {}; }
-			if(params.timeout && typeof params.timeout == "number" && params.timeout >= 0){
-				this.timeout = params.timeout;
-			}
-		},
-
-		onMoveStop: function(/*Mover*/ mover){
-			if(mover._timer){
-				// stop timer
-				clearTimeout(mover._timer);
-				// reflect the last received position
-				oldOnMove.call(this, mover, mover._leftTop);
-			}
-			Moveable.prototype.onMoveStop.apply(this, arguments);
-		},
-		onMove: function(/*Mover*/ mover, /*Object*/ leftTop){
-			mover._leftTop = leftTop;
-			if(!mover._timer){
-				var _t = this;	// to avoid using dojo.hitch()
-				mover._timer = setTimeout(function(){
-					// we don't have any pending requests
-					mover._timer = null;
-					// reflect the last received position
-					oldOnMove.call(_t, mover, mover._leftTop);
-				}, this.timeout);
-			}
-		}
-	});
-});
-
-},
-'dijit/_base/manager':function(){
-define([
-	"dojo/_base/array",
-	"dojo/_base/config", // defaultDuration
-	"dojo/_base/lang",
-	"../registry",
-	"../main"	// for setting exports to dijit namespace
-], function(array, config, lang, registry, dijit){
-
-	// module:
-	//		dijit/_base/manager
-
-	var exports = {
-		// summary:
-		//		Deprecated.  Shim to methods on registry, plus a few other declarations.
-		//		New code should access dijit/registry directly when possible.
-	};
-
-	array.forEach(["byId", "getUniqueId", "findWidgets", "_destroyAll", "byNode", "getEnclosingWidget"], function(name){
-		exports[name] = registry[name];
-	});
-
-	 lang.mixin(exports, {
-		 // defaultDuration: Integer
-		 //		The default fx.animation speed (in ms) to use for all Dijit
-		 //		transitional fx.animations, unless otherwise specified
-		 //		on a per-instance basis. Defaults to 200, overrided by
-		 //		`djConfig.defaultDuration`
-		 defaultDuration: config["defaultDuration"] || 200
-	 });
-
-	lang.mixin(dijit, exports);
-
-	/*===== return exports; =====*/
-	return dijit;	// for back compat :-(
-});
-
-},
-'dijit/_CssStateMixin':function(){
-define([
-	"dojo/_base/array", // array.forEach array.map
-	"dojo/_base/declare", // declare
-	"dojo/dom", // dom.isDescendant()
-	"dojo/dom-class", // domClass.toggle
-	"dojo/has",
-	"dojo/_base/lang", // lang.hitch
-	"dojo/on",
-	"dojo/domReady",
-	"dojo/touch",
-	"dojo/_base/window", // win.body
-	"./a11yclick",
-	"./registry"
-], function(array, declare, dom, domClass, has, lang, on, domReady, touch, win, a11yclick, registry){
-
-	// module:
-	//		dijit/_CssStateMixin
-
-	var CssStateMixin = declare("dijit._CssStateMixin", [], {
-		// summary:
-		//		Mixin for widgets to set CSS classes on the widget DOM nodes depending on hover/mouse press/focus
-		//		state changes, and also higher-level state changes such becoming disabled or selected.
-		//
-		// description:
-		//		By mixing this class into your widget, and setting the this.baseClass attribute, it will automatically
-		//		maintain CSS classes on the widget root node (this.domNode) depending on hover,
-		//		active, focus, etc. state.   Ex: with a baseClass of dijitButton, it will apply the classes
-		//		dijitButtonHovered and dijitButtonActive, as the user moves the mouse over the widget and clicks it.
-		//
-		//		It also sets CSS like dijitButtonDisabled based on widget semantic state.
-		//
-		//		By setting the cssStateNodes attribute, a widget can also track events on subnodes (like buttons
-		//		within the widget).
-
-		/*=====
-		 // cssStateNodes: [protected] Object
-		 //		Subclasses may define a cssStateNodes property that lists sub-nodes within the widget that
-		 //		need CSS classes applied on mouse hover/press and focus.
-		 //
-		 //		Each entry in this optional hash is a an attach-point name (like "upArrowButton") mapped to a CSS class name
-		 //		(like "dijitUpArrowButton"). Example:
-		 //	|		{
-		 //	|			"upArrowButton": "dijitUpArrowButton",
-		 //	|			"downArrowButton": "dijitDownArrowButton"
-		 //	|		}
-		 //		The above will set the CSS class dijitUpArrowButton to the this.upArrowButton DOMNode when it
-		 //		is hovered, etc.
-		 cssStateNodes: {},
-		 =====*/
-
-		// hovering: [readonly] Boolean
-		//		True if cursor is over this widget
-		hovering: false,
-
-		// active: [readonly] Boolean
-		//		True if mouse was pressed while over this widget, and hasn't been released yet
-		active: false,
-
-		_applyAttributes: function(){
-			// This code would typically be in postCreate(), but putting in _applyAttributes() for
-			// performance: so the class changes happen before DOM is inserted into the document.
-			// Change back to postCreate() in 2.0.  See #11635.
-
-			this.inherited(arguments);
-
-			// Monitoring changes to disabled, readonly, etc. state, and update CSS class of root node
-			array.forEach(["disabled", "readOnly", "checked", "selected", "focused", "state", "hovering", "active", "_opened"], function(attr){
-				this.watch(attr, lang.hitch(this, "_setStateClass"));
-			}, this);
-
-			// Track hover and active mouse events on widget root node, plus possibly on subnodes
-			for(var ap in this.cssStateNodes || {}){
-				this._trackMouseState(this[ap], this.cssStateNodes[ap]);
-			}
-			this._trackMouseState(this.domNode, this.baseClass);
-
-			// Set state initially; there's probably no hover/active/focus state but widget might be
-			// disabled/readonly/checked/selected so we want to set CSS classes for those conditions.
-			this._setStateClass();
-		},
-
-		_cssMouseEvent: function(/*Event*/ event){
-			// summary:
-			//		Handler for CSS event on this.domNode. Sets hovering and active properties depending on mouse state,
-			//		which triggers _setStateClass() to set appropriate CSS classes for this.domNode.
-
-			if(!this.disabled){
-				switch(event.type){
-					case "mouseover":
-					case "MSPointerOver":
-					case "pointerover":
-						this._set("hovering", true);
-						this._set("active", this._mouseDown);
-						break;
-					case "mouseout":
-					case "MSPointerOut":
-					case "pointerout":
-						this._set("hovering", false);
-						this._set("active", false);
-						break;
-					case "mousedown":
-					case "touchstart":
-					case "MSPointerDown":
-					case "pointerdown":
-					case "keydown":
-						this._set("active", true);
-						break;
-					case "mouseup":
-					case "dojotouchend":
-					case "MSPointerUp":
-					case "pointerup":
-					case "keyup":
-						this._set("active", false);
-						break;
-				}
-			}
-		},
-
-		_setStateClass: function(){
-			// summary:
-			//		Update the visual state of the widget by setting the css classes on this.domNode
-			//		(or this.stateNode if defined) by combining this.baseClass with
-			//		various suffixes that represent the current widget state(s).
-			//
-			// description:
-			//		In the case where a widget has multiple
-			//		states, it sets the class based on all possible
-			//		combinations.  For example, an invalid form widget that is being hovered
-			//		will be "dijitInput dijitInputInvalid dijitInputHover dijitInputInvalidHover".
-			//
-			//		The widget may have one or more of the following states, determined
-			//		by this.state, this.checked, this.valid, and this.selected:
-			//
-			//		- Error - ValidationTextBox sets this.state to "Error" if the current input value is invalid
-			//		- Incomplete - ValidationTextBox sets this.state to "Incomplete" if the current input value is not finished yet
-			//		- Checked - ex: a checkmark or a ToggleButton in a checked state, will have this.checked==true
-			//		- Selected - ex: currently selected tab will have this.selected==true
-			//
-			//		In addition, it may have one or more of the following states,
-			//		based on this.disabled and flags set in _onMouse (this.active, this.hovering) and from focus manager (this.focused):
-			//
-			//		- Disabled	- if the widget is disabled
-			//		- Active		- if the mouse (or space/enter key?) is being pressed down
-			//		- Focused		- if the widget has focus
-			//		- Hover		- if the mouse is over the widget
-
-			// Compute new set of classes
-			var newStateClasses = this.baseClass.split(" ");
-
-			function multiply(modifier){
-				newStateClasses = newStateClasses.concat(array.map(newStateClasses, function(c){
-					return c + modifier;
-				}), "dijit" + modifier);
-			}
-
-			if(!this.isLeftToRight()){
-				// For RTL mode we need to set an addition class like dijitTextBoxRtl.
-				multiply("Rtl");
-			}
-
-			var checkedState = this.checked == "mixed" ? "Mixed" : (this.checked ? "Checked" : "");
-			if(this.checked){
-				multiply(checkedState);
-			}
-			if(this.state){
-				multiply(this.state);
-			}
-			if(this.selected){
-				multiply("Selected");
-			}
-			if(this._opened){
-				multiply("Opened");
-			}
-
-			if(this.disabled){
-				multiply("Disabled");
-			}else if(this.readOnly){
-				multiply("ReadOnly");
-			}else{
-				if(this.active){
-					multiply("Active");
-				}else if(this.hovering){
-					multiply("Hover");
-				}
-			}
-
-			if(this.focused){
-				multiply("Focused");
-			}
-
-			// Remove old state classes and add new ones.
-			// For performance concerns we only write into domNode.className once.
-			var tn = this.stateNode || this.domNode,
-				classHash = {};	// set of all classes (state and otherwise) for node
-
-			array.forEach(tn.className.split(" "), function(c){
-				classHash[c] = true;
-			});
-
-			if("_stateClasses" in this){
-				array.forEach(this._stateClasses, function(c){
-					delete classHash[c];
-				});
-			}
-
-			array.forEach(newStateClasses, function(c){
-				classHash[c] = true;
-			});
-
-			var newClasses = [];
-			for(var c in classHash){
-				newClasses.push(c);
-			}
-			tn.className = newClasses.join(" ");
-
-			this._stateClasses = newStateClasses;
-		},
-
-		_subnodeCssMouseEvent: function(node, clazz, evt){
-			// summary:
-			//		Handler for hover/active mouse event on widget's subnode
-			if(this.disabled || this.readOnly){
-				return;
-			}
-
-			function hover(isHovering){
-				domClass.toggle(node, clazz + "Hover", isHovering);
-			}
-
-			function active(isActive){
-				domClass.toggle(node, clazz + "Active", isActive);
-			}
-
-			function focused(isFocused){
-				domClass.toggle(node, clazz + "Focused", isFocused);
-			}
-
-			switch(evt.type){
-				case "mouseover":
-				case "MSPointerOver":
-				case "pointerover":
-					hover(true);
-					break;
-				case "mouseout":
-				case "MSPointerOut":
-				case "pointerout":
-					hover(false);
-					active(false);
-					break;
-				case "mousedown":
-				case "touchstart":
-				case "MSPointerDown":
-				case "pointerdown":
-				case "keydown":
-					active(true);
-					break;
-				case "mouseup":
-				case "MSPointerUp":
-				case "pointerup":
-				case "dojotouchend":
-				case "keyup":
-					active(false);
-					break;
-				case "focus":
-				case "focusin":
-					focused(true);
-					break;
-				case "blur":
-				case "focusout":
-					focused(false);
-					break;
-			}
-		},
-
-		_trackMouseState: function(/*DomNode*/ node, /*String*/ clazz){
-			// summary:
-			//		Track mouse/focus events on specified node and set CSS class on that node to indicate
-			//		current state.   Usually not called directly, but via cssStateNodes attribute.
-			// description:
-			//		Given class=foo, will set the following CSS class on the node
-			//
-			//		- fooActive: if the user is currently pressing down the mouse button while over the node
-			//		- fooHover: if the user is hovering the mouse over the node, but not pressing down a button
-			//		- fooFocus: if the node is focused
-			//
-			//		Note that it won't set any classes if the widget is disabled.
-			// node: DomNode
-			//		Should be a sub-node of the widget, not the top node (this.domNode), since the top node
-			//		is handled specially and automatically just by mixing in this class.
-			// clazz: String
-			//		CSS class name (ex: dijitSliderUpArrow)
-
-			// Flag for listener code below to call this._cssMouseEvent() or this._subnodeCssMouseEvent()
-			// when node is hovered/active
-			node._cssState = clazz;
-		}
-	});
-
-	domReady(function(){
-		// Document level listener to catch hover etc. events on widget root nodes and subnodes.
-		// Note that when the mouse is moved quickly, a single onmouseenter event could signal that multiple widgets
-		// have been hovered or unhovered (try test_Accordion.html)
-
-		function pointerHandler(evt, target, relatedTarget){
-			// Handler for mouseover, mouseout, a11yclick.press and a11click.release events
-
-			// Poor man's event propagation.  Don't propagate event to ancestors of evt.relatedTarget,
-			// to avoid processing mouseout events moving from a widget's domNode to a descendant node;
-			// such events shouldn't be interpreted as a mouseleave on the widget.
-			if(relatedTarget && dom.isDescendant(relatedTarget, target)){
-				return;
-			}
-
-			for(var node = target; node && node != relatedTarget; node = node.parentNode){
-				// Process any nodes with _cssState property.   They are generally widget root nodes,
-				// but could also be sub-nodes within a widget
-				if(node._cssState){
-					var widget = registry.getEnclosingWidget(node);
-					if(widget){
-						if(node == widget.domNode){
-							// event on the widget's root node
-							widget._cssMouseEvent(evt);
-						}else{
-							// event on widget's sub-node
-							widget._subnodeCssMouseEvent(node, node._cssState, evt);
-						}
-					}
-				}
-			}
-		}
-
-		var body = win.body(), activeNode;
-
-		// Handle pointer related events (i.e. mouse or touch)
-		on(body, touch.over, function(evt){
-			// Using touch.over rather than mouseover mainly to ignore phantom mouse events on iOS.
-			pointerHandler(evt, evt.target, evt.relatedTarget);
-		});
-		on(body, touch.out, function(evt){
-			// Using touch.out rather than mouseout mainly to ignore phantom mouse events on iOS.
-			pointerHandler(evt, evt.target, evt.relatedTarget);
-		});
-		on(body, a11yclick.press, function(evt){
-			// Save the a11yclick.press target to reference when the a11yclick.release comes.
-			activeNode = evt.target;
-			pointerHandler(evt, activeNode)
-		});
-		on(body, a11yclick.release, function(evt){
-			// The release event could come on a separate node than the press event, if for example user slid finger.
-			// Reference activeNode to reset the state of the node that got state set in the a11yclick.press handler.
-			pointerHandler(evt, activeNode);
-			activeNode = null;
-		});
-
-		// Track focus events on widget sub-nodes that have been registered via _trackMouseState().
-		// However, don't track focus events on the widget root nodes, because focus is tracked via the
-		// focus manager (and it's not really tracking focus, but rather tracking that focus is on one of the widget's
-		// nodes or a subwidget's node or a popup node, etc.)
-		// Remove for 2.0 (if focus CSS needed, just use :focus pseudo-selector).
-		on(body, "focusin, focusout", function(evt){
-			var node = evt.target;
-			if(node._cssState && !node.getAttribute("widgetId")){
-				var widget = registry.getEnclosingWidget(node);
-				if(widget){
-					widget._subnodeCssMouseEvent(node, node._cssState, evt);
-				}
-			}
-		});
-	});
-
-	return CssStateMixin;
-});
-
-},
-'dijit/form/_FormMixin':function(){
-define([
-	"dojo/_base/array", // array.every array.filter array.forEach array.indexOf array.map
-	"dojo/_base/declare", // declare
-	"dojo/_base/kernel", // kernel.deprecated
-	"dojo/_base/lang", // lang.hitch lang.isArray
-	"dojo/on",
-	"dojo/window" // winUtils.scrollIntoView
-], function(array, declare, kernel, lang, on, winUtils){
-
-	// module:
-	//		dijit/form/_FormMixin
-
-	return declare("dijit.form._FormMixin", null, {
-		// summary:
-		//		Mixin for containers of form widgets (i.e. widgets that represent a single value
-		//		and can be children of a `<form>` node or `dijit/form/Form` widget)
-		// description:
-		//		Can extract all the form widgets
-		//		values and combine them into a single javascript object, or alternately
-		//		take such an object and set the values for all the contained
-		//		form widgets
-
-	/*=====
-		// value: Object
-		//		Name/value hash for each child widget with a name and value.
-		//		Child widgets without names are not part of the hash.
-		//
-		//		If there are multiple child widgets w/the same name, value is an array,
-		//		unless they are radio buttons in which case value is a scalar (since only
-		//		one radio button can be checked at a time).
-		//
-		//		If a child widget's name is a dot separated list (like a.b.c.d), it's a nested structure.
-		//
-		//		Example:
-		//	|	{ name: "John Smith", interests: ["sports", "movies"] }
-	=====*/
-
-		// state: [readonly] String
-		//		Will be "Error" if one or more of the child widgets has an invalid value,
-		//		"Incomplete" if not all of the required child widgets are filled in.  Otherwise, "",
-		//		which indicates that the form is ready to be submitted.
-		state: "",
-
-		// TODO:
-		//	* Repeater
-		//	* better handling for arrays.  Often form elements have names with [] like
-		//	* people[3].sex (for a list of people [{name: Bill, sex: M}, ...])
-
-
-		_getDescendantFormWidgets: function(/*dijit/_WidgetBase[]?*/ children){
-			// summary:
-			//		Returns all form widget descendants, searching through non-form child widgets like BorderContainer
-			var res = [];
-			array.forEach(children || this.getChildren(), function(child){
-				if("value" in child){
-					res.push(child);
-				}else{
-					res = res.concat(this._getDescendantFormWidgets(child.getChildren()));
-				}
-			}, this);
-			return res;
-		},
-
-		reset: function(){
-			array.forEach(this._getDescendantFormWidgets(), function(widget){
-				if(widget.reset){
-					widget.reset();
-				}
-			});
-		},
-
-		validate: function(){
-			// summary:
-			//		returns if the form is valid - same as isValid - but
-			//		provides a few additional (ui-specific) features:
-			//
-			//		1. it will highlight any sub-widgets that are not valid
-			//		2. it will call focus() on the first invalid sub-widget
-			var didFocus = false;
-			return array.every(array.map(this._getDescendantFormWidgets(), function(widget){
-				// Need to set this so that "required" widgets get their
-				// state set.
-				widget._hasBeenBlurred = true;
-				var valid = widget.disabled || !widget.validate || widget.validate();
-				if(!valid && !didFocus){
-					// Set focus of the first non-valid widget
-					winUtils.scrollIntoView(widget.containerNode || widget.domNode);
-					widget.focus();
-					didFocus = true;
-				}
-				return valid;
-			}), function(item){ return item; });
-		},
-
-		setValues: function(val){
-			kernel.deprecated(this.declaredClass+"::setValues() is deprecated. Use set('value', val) instead.", "", "2.0");
-			return this.set('value', val);
-		},
-		_setValueAttr: function(/*Object*/ obj){
-			// summary:
-			//		Fill in form values from according to an Object (in the format returned by get('value'))
-
-			// generate map from name --> [list of widgets with that name]
-			var map = { };
-			array.forEach(this._getDescendantFormWidgets(), function(widget){
-				if(!widget.name){ return; }
-				var entry = map[widget.name] || (map[widget.name] = [] );
-				entry.push(widget);
-			});
-
-			for(var name in map){
-				if(!map.hasOwnProperty(name)){
-					continue;
-				}
-				var widgets = map[name],						// array of widgets w/this name
-					values = lang.getObject(name, false, obj);	// list of values for those widgets
-
-				if(values === undefined){
-					continue;
-				}
-				values = [].concat(values);
-				if(typeof widgets[0].checked == 'boolean'){
-					// for checkbox/radio, values is a list of which widgets should be checked
-					array.forEach(widgets, function(w){
-						w.set('value', array.indexOf(values, w._get('value')) != -1);
-					});
-				}else if(widgets[0].multiple){
-					// it takes an array (e.g. multi-select)
-					widgets[0].set('value', values);
-				}else{
-					// otherwise, values is a list of values to be assigned sequentially to each widget
-					array.forEach(widgets, function(w, i){
-						w.set('value', values[i]);
-					});
-				}
-			}
-
-			/***
-			 *	TODO: code for plain input boxes (this shouldn't run for inputs that are part of widgets)
-
-			array.forEach(this.containerNode.elements, function(element){
-				if(element.name == ''){return};	// like "continue"
-				var namePath = element.name.split(".");
-				var myObj=obj;
-				var name=namePath[namePath.length-1];
-				for(var j=1,len2=namePath.length;j<len2;++j){
-					var p=namePath[j - 1];
-					// repeater support block
-					var nameA=p.split("[");
-					if(nameA.length > 1){
-						if(typeof(myObj[nameA[0]]) == "undefined"){
-							myObj[nameA[0]]=[ ];
-						} // if
-
-						nameIndex=parseInt(nameA[1]);
-						if(typeof(myObj[nameA[0]][nameIndex]) == "undefined"){
-							myObj[nameA[0]][nameIndex] = { };
-						}
-						myObj=myObj[nameA[0]][nameIndex];
-						continue;
-					} // repeater support ends
-
-					if(typeof(myObj[p]) == "undefined"){
-						myObj=undefined;
-						break;
-					};
-					myObj=myObj[p];
-				}
-
-				if(typeof(myObj) == "undefined"){
-					return;		// like "continue"
-				}
-				if(typeof(myObj[name]) == "undefined" && this.ignoreNullValues){
-					return;		// like "continue"
-				}
-
-				// TODO: widget values (just call set('value', ...) on the widget)
-
-				// TODO: maybe should call dojo.getNodeProp() instead
-				switch(element.type){
-					case "checkbox":
-						element.checked = (name in myObj) &&
-							array.some(myObj[name], function(val){ return val == element.value; });
-						break;
-					case "radio":
-						element.checked = (name in myObj) && myObj[name] == element.value;
-						break;
-					case "select-multiple":
-						element.selectedIndex=-1;
-						array.forEach(element.options, function(option){
-							option.selected = array.some(myObj[name], function(val){ return option.value == val; });
-						});
-						break;
-					case "select-one":
-						element.selectedIndex="0";
-						array.forEach(element.options, function(option){
-							option.selected = option.value == myObj[name];
-						});
-						break;
-					case "hidden":
-					case "text":
-					case "textarea":
-					case "password":
-						element.value = myObj[name] || "";
-						break;
-				}
-			});
-			*/
-
-			// Note: no need to call this._set("value", ...) as the child updates will trigger onChange events
-			// which I am monitoring.
-		},
-
-		getValues: function(){
-			kernel.deprecated(this.declaredClass+"::getValues() is deprecated. Use get('value') instead.", "", "2.0");
-			return this.get('value');
-		},
-		_getValueAttr: function(){
-			// summary:
-			//		Returns Object representing form values.   See description of `value` for details.
-			// description:
-
-			// The value is updated into this.value every time a child has an onChange event,
-			// so in the common case this function could just return this.value.   However,
-			// that wouldn't work when:
-			//
-			// 1. User presses return key to submit a form.  That doesn't fire an onchange event,
-			// and even if it did it would come too late due to the defer(...) in _handleOnChange()
-			//
-			// 2. app for some reason calls this.get("value") while the user is typing into a
-			// form field.   Not sure if that case needs to be supported or not.
-
-			// get widget values
-			var obj = { };
-			array.forEach(this._getDescendantFormWidgets(), function(widget){
-				var name = widget.name;
-				if(!name || widget.disabled){ return; }
-
-				// Single value widget (checkbox, radio, or plain <input> type widget)
-				var value = widget.get('value');
-
-				// Store widget's value(s) as a scalar, except for checkboxes which are automatically arrays
-				if(typeof widget.checked == 'boolean'){
-					if(/Radio/.test(widget.declaredClass)){
-						// radio button
-						if(value !== false){
-							lang.setObject(name, value, obj);
-						}else{
-							// give radio widgets a default of null
-							value = lang.getObject(name, false, obj);
-							if(value === undefined){
-								lang.setObject(name, null, obj);
-							}
-						}
-					}else{
-						// checkbox/toggle button
-						var ary=lang.getObject(name, false, obj);
-						if(!ary){
-							ary=[];
-							lang.setObject(name, ary, obj);
-						}
-						if(value !== false){
-							ary.push(value);
-						}
-					}
-				}else{
-					var prev=lang.getObject(name, false, obj);
-					if(typeof prev != "undefined"){
-						if(lang.isArray(prev)){
-							prev.push(value);
-						}else{
-							lang.setObject(name, [prev, value], obj);
-						}
-					}else{
-						// unique name
-						lang.setObject(name, value, obj);
-					}
-				}
-			});
-
-			/***
-			 * code for plain input boxes (see also domForm.formToObject, can we use that instead of this code?
-			 * but it doesn't understand [] notation, presumably)
-			var obj = { };
-			array.forEach(this.containerNode.elements, function(elm){
-				if(!elm.name)	{
-					return;		// like "continue"
-				}
-				var namePath = elm.name.split(".");
-				var myObj=obj;
-				var name=namePath[namePath.length-1];
-				for(var j=1,len2=namePath.length;j<len2;++j){
-					var nameIndex = null;
-					var p=namePath[j - 1];
-					var nameA=p.split("[");
-					if(nameA.length > 1){
-						if(typeof(myObj[nameA[0]]) == "undefined"){
-							myObj[nameA[0]]=[ ];
-						} // if
-						nameIndex=parseInt(nameA[1]);
-						if(typeof(myObj[nameA[0]][nameIndex]) == "undefined"){
-							myObj[nameA[0]][nameIndex] = { };
-						}
-					}else if(typeof(myObj[nameA[0]]) == "undefined"){
-						myObj[nameA[0]] = { }
-					} // if
-
-					if(nameA.length == 1){
-						myObj=myObj[nameA[0]];
-					}else{
-						myObj=myObj[nameA[0]][nameIndex];
-					} // if
-				} // for
-
-				if((elm.type != "select-multiple" && elm.type != "checkbox" && elm.type != "radio") || (elm.type == "radio" && elm.checked)){
-					if(name == name.split("[")[0]){
-						myObj[name]=elm.value;
-					}else{
-						// can not set value when there is no name
-					}
-				}else if(elm.type == "checkbox" && elm.checked){
-					if(typeof(myObj[name]) == 'undefined'){
-						myObj[name]=[ ];
-					}
-					myObj[name].push(elm.value);
-				}else if(elm.type == "select-multiple"){
-					if(typeof(myObj[name]) == 'undefined'){
-						myObj[name]=[ ];
-					}
-					for(var jdx=0,len3=elm.options.length; jdx<len3; ++jdx){
-						if(elm.options[jdx].selected){
-							myObj[name].push(elm.options[jdx].value);
-						}
-					}
-				} // if
-				name=undefined;
-			}); // forEach
-			***/
-			return obj;
-		},
-
-		isValid: function(){
-			// summary:
-			//		Returns true if all of the widgets are valid.
-			//		Deprecated, will be removed in 2.0.  Use get("state") instead.
-
-			return this.state == "";
-		},
-
-		onValidStateChange: function(/*Boolean*/ /*===== isValid =====*/){
-			// summary:
-			//		Stub function to connect to if you want to do something
-			//		(like disable/enable a submit button) when the valid
-			//		state changes on the form as a whole.
-			//
-			//		Deprecated.  Will be removed in 2.0.  Use watch("state", ...) instead.
-		},
-
-		_getState: function(){
-			// summary:
-			//		Compute what this.state should be based on state of children
-			var states = array.map(this._descendants, function(w){
-				return w.get("state") || "";
-			});
-
-			return array.indexOf(states, "Error") >= 0 ? "Error" :
-				array.indexOf(states, "Incomplete") >= 0 ? "Incomplete" : "";
-		},
-
-		disconnectChildren: function(){
-			// summary:
-			//		Deprecated method.   Applications no longer need to call this.   Remove for 2.0.
-		},
-
-		connectChildren: function(/*Boolean*/ inStartup){
-			// summary:
-			//		You can call this function directly, ex. in the event that you
-			//		programmatically add a widget to the form *after* the form has been
-			//		initialized.
-
-			// TODO: rename for 2.0
-
-			this._descendants = this._getDescendantFormWidgets();
-
-			// To get notifications from children they need to be started.   Children didn't used to need to be started,
-			// so for back-compat, start them here
-			array.forEach(this._descendants, function(child){
-				if(!child._started){ child.startup(); }
-			});
-
-			if(!inStartup){
-				this._onChildChange();
-			}
-		},
-
-		_onChildChange: function(/*String*/ attr){
-			// summary:
-			//		Called when child's value or disabled state changes
-
-			// The unit tests expect state update to be synchronous, so update it immediately.
-			if(!attr || attr == "state" || attr == "disabled"){
-				this._set("state", this._getState());
-			}
-
-			// Use defer() to collapse value changes in multiple children into a single
-			// update to my value.   Multiple updates will occur on:
-			//	1. Form.set()
-			//	2. Form.reset()
-			//	3. user selecting a radio button (which will de-select another radio button,
-			//		 causing two onChange events)
-			if(!attr || attr == "value" || attr == "disabled" || attr == "checked"){
-				if(this._onChangeDelayTimer){
-					this._onChangeDelayTimer.remove();
-				}
-				this._onChangeDelayTimer = this.defer(function(){
-					delete this._onChangeDelayTimer;
-					this._set("value", this.get("value"));
-				}, 10);
-			}
-		},
-
-		startup: function(){
-			this.inherited(arguments);
-
-			// Set initial this.value and this.state.   Don't emit watch() notifications.
-			this._descendants = this._getDescendantFormWidgets();
-			this.value = this.get("value");
-			this.state = this._getState();
-
-			// Initialize value and valid/invalid state tracking.
-			var self = this;
-			this.own(
-				on(
-					this.containerNode,
-					"attrmodified-state, attrmodified-disabled, attrmodified-value, attrmodified-checked",
-					function(evt){
-						if(evt.target == self.domNode){
-							return;	// ignore events that I fire on myself because my children changed
-						}
-						self._onChildChange(evt.type.replace("attrmodified-", ""));
-					}
-				)
-			);
-
-			// Make state change call onValidStateChange(), will be removed in 2.0
-			this.watch("state", function(attr, oldVal, newVal){ this.onValidStateChange(newVal == ""); });
-		},
-
-		destroy: function(){
-			this.inherited(arguments);
-		}
-
-	});
-});
-
-},
-'dijit/_DialogMixin':function(){
-define([
-	"dojo/_base/declare", // declare
-	"./a11y"	// _getTabNavigable
-], function(declare, a11y){
-
-	// module:
-	//		dijit/_DialogMixin
-
-	return declare("dijit._DialogMixin", null, {
-		// summary:
-		//		This provides functions useful to Dialog and TooltipDialog
-
-		// actionBarTemplate: String
-		//		HTML snippet to show the action bar (gray bar with OK/cancel buttons).
-		//		Blank by default, but used by ConfirmDialog/ConfirmTooltipDialog subclasses.
-		actionBarTemplate: "",
-
-		execute: function(/*Object*/ /*===== formContents =====*/){
-			// summary:
-			//		Callback when the user hits the submit button.
-			//		Override this method to handle Dialog execution.
-			// description:
-			//		After the user has pressed the submit button, the Dialog
-			//		first calls onExecute() to notify the container to hide the
-			//		dialog and restore focus to wherever it used to be.
-			//
-			//		*Then* this method is called.
-			// type:
-			//		callback
-		},
-
-		onCancel: function(){
-			// summary:
-			//		Called when user has pressed the Dialog's cancel button, to notify container.
-			// description:
-			//		Developer shouldn't override or connect to this method;
-			//		it's a private communication device between the TooltipDialog
-			//		and the thing that opened it (ex: `dijit/form/DropDownButton`)
-			// type:
-			//		protected
-		},
-
-		onExecute: function(){
-			// summary:
-			//		Called when user has pressed the dialog's OK button, to notify container.
-			// description:
-			//		Developer shouldn't override or connect to this method;
-			//		it's a private communication device between the TooltipDialog
-			//		and the thing that opened it (ex: `dijit/form/DropDownButton`)
-			// type:
-			//		protected
-		},
-
-		_onSubmit: function(){
-			// summary:
-			//		Callback when user hits submit button
-			// type:
-			//		protected
-			this.onExecute();	// notify container that we are about to execute
-			this.execute(this.get('value'));
-		},
-
-		_getFocusItems: function(){
-			// summary:
-			//		Finds focusable items in dialog,
-			//		and sets this._firstFocusItem and this._lastFocusItem
-			// tags:
-			//		protected
-
-			var elems = a11y._getTabNavigable(this.domNode);
-			this._firstFocusItem = elems.lowest || elems.first || this.closeButtonNode || this.domNode;
-			this._lastFocusItem = elems.last || elems.highest || this._firstFocusItem;
-		}
-	});
-});
-
-},
-'dijit/DialogUnderlay':function(){
-define([
-	"dojo/_base/declare", // declare
-	"dojo/_base/lang", // lang.hitch
-	"dojo/aspect", // aspect.after
-	"dojo/dom-attr", // domAttr.set
-	"dojo/dom-style", // domStyle.getComputedStyle
-	"dojo/on",
-	"dojo/window", // winUtils.getBox, winUtils.get
-	"./_Widget",
-	"./_TemplatedMixin",
-	"./BackgroundIframe",
-	"./Viewport",
-	"./main" // for back-compat, exporting dijit._underlay (remove in 2.0)
-], function(declare, lang, aspect, domAttr, domStyle, on,
-			winUtils, _Widget, _TemplatedMixin, BackgroundIframe, Viewport, dijit){
-
-	// module:
-	//		dijit/DialogUnderlay
-
-	var DialogUnderlay = declare("dijit.DialogUnderlay", [_Widget, _TemplatedMixin], {
-		// summary:
-		//		A component used to block input behind a `dijit/Dialog`.
-		//
-		//		Normally this class should not be instantiated directly, but rather shown and hidden via
-		//		DialogUnderlay.show() and DialogUnderlay.hide().  And usually the module is not accessed directly
-		//		at all, since the underlay is shown and hidden by Dialog.DialogLevelManager.
-		//
-		//		The underlay itself can be styled based on and id:
-		//	|	#myDialog_underlay { background-color:red; }
-		//
-		//		In the case of `dijit.Dialog`, this id is based on the id of the Dialog,
-		//		suffixed with _underlay.
-
-		// Template has two divs; outer div is used for fade-in/fade-out, and also to hold background iframe.
-		// Inner div has opacity specified in CSS file.
-		templateString: "<div class='dijitDialogUnderlayWrapper'><div class='dijitDialogUnderlay' tabIndex='-1' data-dojo-attach-point='node'></div></div>",
-
-		// Parameters on creation or updatable later
-
-		// dialogId: String
-		//		Id of the dialog.... DialogUnderlay's id is based on this id
-		dialogId: "",
-
-		// class: String
-		//		This class name is used on the DialogUnderlay node, in addition to dijitDialogUnderlay
-		"class": "",
-
-		// This will get overwritten as soon as show() is call, but leave an empty array in case hide() or destroy()
-		// is called first.   The array is shared between instances but that's OK because we never write into it.
-		_modalConnects: [],
-
-		_setDialogIdAttr: function(id){
-			domAttr.set(this.node, "id", id + "_underlay");
-			this._set("dialogId", id);
-		},
-
-		_setClassAttr: function(clazz){
-			this.node.className = "dijitDialogUnderlay " + clazz;
-			this._set("class", clazz);
-		},
-
-		postCreate: function(){
-			// Append the underlay to the body
-			this.ownerDocumentBody.appendChild(this.domNode);
-
-			this.own(on(this.domNode, "keydown", lang.hitch(this, "_onKeyDown")));
-
-			this.inherited(arguments);
-		},
-
-		layout: function(){
-			// summary:
-			//		Sets the background to the size of the viewport
-			//
-			// description:
-			//		Sets the background to the size of the viewport (rather than the size
-			//		of the document) since we need to cover the whole browser window, even
-			//		if the document is only a few lines long.
-			// tags:
-			//		private
-
-			var is = this.node.style,
-				os = this.domNode.style;
-
-			// hide the background temporarily, so that the background itself isn't
-			// causing scrollbars to appear (might happen when user shrinks browser
-			// window and then we are called to resize)
-			os.display = "none";
-
-			// then resize and show
-			var viewport = winUtils.getBox(this.ownerDocument);
-			os.top = viewport.t + "px";
-			os.left = viewport.l + "px";
-			is.width = viewport.w + "px";
-			is.height = viewport.h + "px";
-			os.display = "block";
-		},
-
-		show: function(){
-			// summary:
-			//		Show the dialog underlay
-			this.domNode.style.display = "block";
-			this.open = true;
-			this.layout();
-			this.bgIframe = new BackgroundIframe(this.domNode);
-
-			var win = winUtils.get(this.ownerDocument);
-			this._modalConnects = [
-				Viewport.on("resize", lang.hitch(this, "layout")),
-				on(win, "scroll", lang.hitch(this, "layout"))
-			];
-
-		},
-
-		hide: function(){
-			// summary:
-			//		Hides the dialog underlay
-
-			this.bgIframe.destroy();
-			delete this.bgIframe;
-			this.domNode.style.display = "none";
-			while(this._modalConnects.length){ (this._modalConnects.pop()).remove(); }
-			this.open = false;
-		},
-
-		destroy: function(){
-			while(this._modalConnects.length){ (this._modalConnects.pop()).remove(); }
-			this.inherited(arguments);
-		},
-
-		_onKeyDown: function(){
-			// summary:
-			//		Extension point so Dialog can monitor keyboard events on the underlay.
-		}
-	});
-
-	DialogUnderlay.show = function(/*Object*/ attrs, /*Number*/ zIndex){
-		// summary:
-		//		Display the underlay with the given attributes set.  If the underlay is already displayed,
-		//		then adjust it's attributes as specified.
-		// attrs:
-		//		The parameters to create DialogUnderlay with.
-		// zIndex:
-		//		zIndex of the underlay
-
-		var underlay = DialogUnderlay._singleton;
-		if(!underlay || underlay._destroyed){
-			underlay = dijit._underlay = DialogUnderlay._singleton = new DialogUnderlay(attrs);
-		}else{
-			if(attrs){ underlay.set(attrs); }
-		}
-		domStyle.set(underlay.domNode, 'zIndex', zIndex);
-		if(!underlay.open){
-			underlay.show();
-		}
-	};
-
-	DialogUnderlay.hide = function(){
-		// summary:
-		//		Hide the underlay.
-
-		// Guard code in case the underlay widget has already been destroyed
-		// because we are being called during page unload (when all widgets are destroyed)
-		var underlay = DialogUnderlay._singleton;
-		if(underlay && !underlay._destroyed){
-			underlay.hide();
-		}
-	};
-
-	return DialogUnderlay;
-});
-
-},
-'dijit/BackgroundIframe':function(){
-define([
-	"require",			// require.toUrl
-	"./main",	// to export dijit.BackgroundIframe
-	"dojo/_base/config",
-	"dojo/dom-construct", // domConstruct.create
-	"dojo/dom-style", // domStyle.set
-	"dojo/_base/lang", // lang.extend lang.hitch
-	"dojo/on",
-	"dojo/sniff" // has("ie"), has("trident"), has("quirks")
-], function(require, dijit, config, domConstruct, domStyle, lang, on, has){
-
-	// module:
-	//		dijit/BackgroundIFrame
-
-	// Flag for whether to create background iframe behind popups like Menus and Dialog.
-	// A background iframe is useful to prevent problems with popups appearing behind applets/pdf files,
-	// and is also useful on older versions of IE (IE6 and IE7) to prevent the "bleed through select" problem.
-	// By default, it's enabled for IE6-11, excluding Windows Phone 8.
-	// TODO: For 2.0, make this false by default.  Also, possibly move definition to has.js so that this module can be
-	// conditionally required via  dojo/has!bgIfame?dijit/BackgroundIframe
-	has.add("config-bgIframe",
-    	(has("ie") || has("trident")) && !/IEMobile\/10\.0/.test(navigator.userAgent)); // No iframe on WP8, to match 1.9 behavior
-
-	var _frames = new function(){
-		// summary:
-		//		cache of iframes
-
-		var queue = [];
-
-		this.pop = function(){
-			var iframe;
-			if(queue.length){
-				iframe = queue.pop();
-				iframe.style.display="";
-			}else{
-				// transparency needed for DialogUnderlay and for tooltips on IE (to see screen near connector)
-				if(has("ie") < 9){
-					var burl = config["dojoBlankHtmlUrl"] || require.toUrl("dojo/resources/blank.html") || "javascript:\"\"";
-					var html="<iframe src='" + burl + "' role='presentation'"
-						+ " style='position: absolute; left: 0px; top: 0px;"
-						+ "z-index: -1; filter:Alpha(Opacity=\"0\");'>";
-					iframe = document.createElement(html);
-				}else{
-					iframe = domConstruct.create("iframe");
-					iframe.src = 'javascript:""';
-					iframe.className = "dijitBackgroundIframe";
-					iframe.setAttribute("role", "presentation");
-					domStyle.set(iframe, "opacity", 0.1);
-				}
-				iframe.tabIndex = -1; // Magic to prevent iframe from getting focus on tab keypress - as style didn't work.
-			}
-			return iframe;
-		};
-
-		this.push = function(iframe){
-			iframe.style.display="none";
-			queue.push(iframe);
-		}
-	}();
-
-
-	dijit.BackgroundIframe = function(/*DomNode*/ node){
-		// summary:
-		//		For IE/FF z-index shenanigans. id attribute is required.
-		//
-		// description:
-		//		new dijit.BackgroundIframe(node).
-		//
-		//		Makes a background iframe as a child of node, that fills
-		//		area (and position) of node
-
-		if(!node.id){ throw new Error("no id"); }
-		if(has("config-bgIframe")){
-			var iframe = (this.iframe = _frames.pop());
-			node.appendChild(iframe);
-			if(has("ie")<7 || has("quirks")){
-				this.resize(node);
-				this._conn = on(node, 'resize', lang.hitch(this, "resize", node));
-			}else{
-				domStyle.set(iframe, {
-					width: '100%',
-					height: '100%'
-				});
-			}
-		}
-	};
-
-	lang.extend(dijit.BackgroundIframe, {
-		resize: function(node){
-			// summary:
-			//		Resize the iframe so it's the same size as node.
-			//		Needed on IE6 and IE/quirks because height:100% doesn't work right.
-			if(this.iframe){
-				domStyle.set(this.iframe, {
-					width: node.offsetWidth + 'px',
-					height: node.offsetHeight + 'px'
-				});
-			}
-		},
-		destroy: function(){
-			// summary:
-			//		destroy the iframe
-			if(this._conn){
-				this._conn.remove();
-				this._conn = null;
-			}
-			if(this.iframe){
-				this.iframe.parentNode.removeChild(this.iframe);
-				_frames.push(this.iframe);
-				delete this.iframe;
-			}
-		}
-	});
-
-	return dijit.BackgroundIframe;
-});
-
-},
-'dijit/nls/common':function(){
-define({ root:
-//begin v1.x content
-({
-	buttonOk: "OK",
-	buttonCancel: "Cancel",
-	buttonSave: "Save",
-	itemClose: "Close"
-})
-//end v1.x content
-,
-"bs": true,
-"mk": true,
-"sr": true,
-"zh": true,
-"zh-tw": true,
-"vi": true,
-"uk": true,
-"tr": true,
-"th": true,
-"sv": true,
-"sl": true,
-"sk": true,
-"ru": true,
-"ro": true,
-"pt": true,
-"pt-pt": true,
-"pl": true,
-"nl": true,
-"nb": true,
-"lv": true,
-"lt": true,
-"ko": true,
-"kk": true,
-"ja": true,
-"it": true,
-"id": true,
-"hu": true,
-"hr": true,
-"hi": true,
-"he": true,
-"fr": true,
-"fi": true,
-"eu": true,
-"et": true,
-"es": true,
-"el": true,
-"de": true,
-"da": true,
-"cs": true,
-"ca": true,
-"bg": true,
-"az": true,
-"ar": true
-});
-
-},
 'esri/domUtils':function(){
 // COPYRIGHT © 2017 Esri
 //
@@ -36554,6 +31416,33 @@ define(["dojo/_base/declare","dojo/_base/lang","dojo/has","./kernel","./lang"],f
 // See http://js.arcgis.com/3.19/esri/copyright.txt for details.
 
 define(["dojo/_base/lang","dojo/_base/array","dojo/_base/url","dojo/io-query","./kernel","./lang","./config","./sniff","dojo/i18n!./nls/jsapi"],function(e,r,t,o,n,i,a,s,l){var u=function(){return this}(),f={},h=a.defaults.io,c=/^[a-z][a-z0-9\+\-\.]*:/i,p=/^\s*http:/i;return f.isHTTP=function(e){var r=u.location.protocol;return null==e?"http:"===r||"https:"===r:e?"https:"===r:"http:"===r},f.getProtocolForWebResource=function(e){var r;return r=f.isHTTP()?u.location.protocol:e?"https:":"http:"},f.urlToObject=function(e){var r={},n=new t(e),i=e.indexOf("?");return null===n.query?r={path:e,query:null}:(r.path=e.substring(0,i),r.query=o.queryToObject(n.query)),n.fragment&&(r.hash=n.fragment,null===n.query&&(r.path=r.path.substring(0,r.path.length-(n.fragment.length+1)))),r},f.getProxyUrl=function(r,t){var o,n,i,a,s=e.isString(r)?0===e.trim(r).toLowerCase().indexOf("https:"):r,c=h.proxyUrl,p=l.io.proxyNotSet;if(e.isString(r)&&(a=f.getProxyRule(r),a&&(c=a.proxyUrl)),!c)throw console.log(p),new Error(p);return s&&t!==!1&&0!==u.location.href.toLowerCase().indexOf("https:")&&(n=c,0!==n.toLowerCase().indexOf("http")&&(n=f.getAbsoluteUrl(n)),n=n.replace(/^http:/i,"https:"),f.canUseXhr(n)&&(c=n,i=1)),o=f.urlToObject(c),o._xo=i,o},f.addProxy=function(r){var t,n,i,a=f.getProxyRule(r);return a?t=f.urlToObject(a.proxyUrl):h.alwaysUseProxy&&(t=f.getProxyUrl()),t&&(n=f.urlToObject(r),r=t.path+"?"+n.path,i=o.objectToQuery(e.mixin(t.query||{},n.query)),i&&(r+="?"+i)),r},f.addProxyRule=function(e){var r,t,o=e.urlPrefix=f.urlToObject(e.urlPrefix).path.replace(/([^\/])$/,"$1/").replace(/^https?:\/\//gi,"").toLowerCase(),n=h.proxyRules,i=n.length,a=i;for(r=0;i>r;r++){if(t=n[r].urlPrefix,0===o.indexOf(t)){if(o.length===t)return-1;a=r;break}0===t.indexOf(o)&&(a=r+1)}return n.splice(a,0,e),a},f.getProxyRule=function(e){var r,t,o=h.proxyRules,n=o.length,i=f.urlToObject(e).path.replace(/([^\/])$/,"$1/").replace(/^https?:\/\//gi,"").toLowerCase();for(r=0;n>r;r++)if(0===i.indexOf(o[r].urlPrefix)){t=o[r];break}return t},f.hasSameOrigin=function(r,o,n){r=r.toLowerCase(),o=o.toLowerCase();var i=u.location.href.toLowerCase();return r=0===r.indexOf("http")?new t(r):i=new t(i),o=0===o.indexOf("http")?new t(o):e.isString(i)?new t(i):i,(n||r.scheme===o.scheme)&&r.host===o.host&&r.port===o.port},f.canUseXhr=function(t,o){var n,i=s("esri-phonegap")?!0:!1,a=f.hasSameOrigin,l=h.corsEnabledServers,u=-1;return!i&&s("esri-cors")&&l&&l.length&&(i=r.some(l,function(r,o){var i=r&&"object"==typeof r?r.host:r;return i&&(n=0!==e.trim(i).toLowerCase().indexOf("http"),a(t,n?"http://"+i:i)||n&&a(t,"https://"+i))?(u=o,!0):!1})),o?u:i},f.getAbsoluteUrl=function(r){var t=f.getProtocolForWebResource();return e.isString(r)&&!c.test(r)?0===r.indexOf("//")?t+r:0===r.indexOf("/")?t+"//"+u.location.host+r:n._appBaseUrl+r:r},f.fixUrl=function(e){return e=f.getAbsoluteUrl(e),e=f.upgradeToHTTPS(e),e=e.replace(/^(https?:\/\/)(arcgis\.com)/i,"$1www.$2")},f.normalize=function(e){return f.fixUrl(e)},f.upgradeToHTTPS=function(r){var t=a.defaults.io.httpsDomains,o=f.isHTTP(!1),n=f.isHTTP(!0);if(!p.test(r))return r;r=e.trim(r);var s,l=r.indexOf("/",7);if(s=-1===l?r:r.slice(0,l),s=s.toLowerCase().slice(7),o&&s===u.location.host)return r;var h=!1;if(n&&s===u.location.host)h=!0;else if(t)for(var c=0;c<t.length;c++){var g=t[c];if(s===g||i.endsWith(s,"."+g)){h=!0;break}}return h&&(r=r.replace(p,"https:")),r},s("extend-esri")&&(e.mixin(n,f),n._getProxyUrl=f.getProxyUrl,n._getProxiedUrl=f.addProxy,n._hasSameOrigin=f.hasSameOrigin,n._canDoXOXHR=f.canUseXhr,n._getAbsoluteUrl=f.getAbsoluteUrl,n.fixUrl=f.fixUrl),f});
+},
+'esri/sniff':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/sniff","./kernel"],function(r,e){var i,n=function(){return this}(),s=r("ff"),a=r("ie"),t=void 0===a&&r("trident")>=7,o=r("edge"),d=r("webkit"),f=r("opera"),m=r("chrome"),c=r("safari"),l=navigator.userAgent;return i=l.match(/(iPhone|iPad|CPU)\s+OS\s+(\d+\_\d+)/i),i&&r.add("esri-iphone",parseFloat(i[2].replace("_","."))),i=l.match(/Android\s+(\d+\.\d+)/i),i&&r.add("esri-android",parseFloat(i[1])),i=l.match(/Fennec\/(\d+\.\d+)/i),i&&r.add("esri-fennec",parseFloat(i[1])),l.indexOf("BlackBerry")>=0&&l.indexOf("WebKit")>=0&&r.add("esri-blackberry",1),r.add("esri-touch",r("esri-iphone")||r("esri-android")||r("esri-blackberry")||r("esri-fennec")>=6||(s||d)&&document.createTouch?!0:!1),i=l.match(/Android|webOS|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile/i),i&&r.add("esri-mobile",i),r.add("esri-pointer",navigator.pointerEnabled||navigator.msPointerEnabled),e._getDOMAccessor=function(r){var e="";return s?e="Moz":d?e="Webkit":a?e="ms":f&&(e="O"),e+r.charAt(0).toUpperCase()+r.substr(1)},r.add("esri-phonegap",!!n.cordova),r.add("esri-cors",r("esri-phonegap")||n.XMLHttpRequest&&"withCredentials"in new XMLHttpRequest),r.add("esri-file-upload",n.FormData&&n.FileList?!0:!1),r.add("esri-workers",n.Worker?!0:!1),r.add("esri-transforms",t||o||a>=9||s>=3.5||m>=4||c>=3.1||f>=10.5||r("esri-iphone")>=3.2||r("esri-android")>=2.1),r.add("esri-transitions",t||o||a>=10||s>=4||m>=4||c>=3.1||f>=10.5||r("esri-iphone")>=3.2||r("esri-android")>=2.1),r.add("esri-transforms3d",t||o||s>=10||m>=12||c>=4||r("esri-iphone")>=3.2||r("esri-android")>=3),r.add("esri-url-encodes-apostrophe",function(){if(n.document)return!1;var r=n.document.createElement("a");return r.href="?'",r.href.indexOf("?%27")>-1}),r("esri-android")<3&&(r.add("esri-transforms",!1,!1,!0),r.add("esri-transitions",!1,!1,!0),r.add("esri-transforms3d",!1,!1,!0)),r.add("esri-will-change",r("esri-transforms")&&(m>=52||c>=9.1)),e._css=function(e){var i=r("esri-transforms3d");void 0!==e&&null!==e?i=e:i&&(m||c&&!r("esri-iphone"))&&(i=!1);var n=i?"translate3d(":"translate(",t=i?m?",-1px)":",0px)":")",o=i?"scale3d(":"scale(",l=i?",1)":")",u=i?"rotate3d(0,0,1,":"rotate(",p=i?"matrix3d(":"matrix(",h=i?",0,0,":",",x=i?",0,0,0,0,1,0,":",",b=i?",0,1)":")";return{names:{transition:d&&"-webkit-transition"||s&&"MozTransition"||f&&"OTransition"||a&&"msTransition"||"transition",transform:d&&"-webkit-transform"||s&&"MozTransform"||f&&"OTransform"||a&&"msTransform"||"transform",transformName:d&&"-webkit-transform"||s&&"-moz-transform"||f&&"-o-transform"||a&&"-ms-transform"||"transform",origin:d&&"-webkit-transform-origin"||s&&"MozTransformOrigin"||f&&"OTransformOrigin"||a&&"msTransformOrigin"||"transformOrigin",endEvent:d&&"webkitTransitionEnd"||s&&"transitionend"||f&&"oTransitionEnd"||a&&"MSTransitionEnd"||"transitionend"},translate:function(r,e){return n+r+"px,"+e+"px"+t},scale:function(r){return o+r+","+r+l},rotate:function(r){return u+r+"deg)"},matrix:function(r){return p+r.xx+","+r.xy+h+r.yx+","+r.yy+x+r.dx.toFixed(10)+(s?"px,":",")+r.dy.toFixed(10)+(s?"px":"")+b},getScaleFromMatrix:function(r){if(!r)return 1;r=r.toLowerCase();var e=r.indexOf("matrix3d")>-1?"matrix3d(":"matrix(";return Number(r.substring(e.length,r.indexOf(",")))}}},r("extend-esri")&&(e.isiPhone=r("esri-iphone"),e.isAndroid=r("esri-android"),e.isFennec=r("esri-fennec"),e.isBlackBerry=r("esri-blackberry"),e.isTouchEnabled=r("esri-touch"),e.isPointerEnabled=r("esri-pointer"),e._hasCors=r("esri-cors"),e._hasFileUpload=r("esri-file-upload"),e._hasTransforms=r("esri-transforms"),e._hasTransitions=r("esri-transitions"),e._has3DTransforms=r("esri-transforms3d")),r});
 },
 'esri/nls/jsapi':function(){
 // COPYRIGHT © 2017 Esri
@@ -41456,16 +36345,5409 @@ define({ root:
 
 define(["./Credential","./domUtils","./lang","./urlUtils","dijit/Dialog","dijit/registry","dojo/_base/config","dojo/_base/Deferred","dojo/_base/kernel","dojo/dom-attr","dojo/i18n!./nls/jsapi","dojo/io-query","dojo/sniff","dojo/json","dijit/form/Button","dojo/query"],function(e,t,o,r,i,n,s,a,d,l,u,c,h,_){var p={_oAuthDfd:null,_oAuthIntervalId:0,_oAuthDialogContent:"<div class='dijitDialogPaneContentArea'><div style='padding-bottom: 5px; word-wrap: break-word;'>${oAuthInfo}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><div class='esriErrorMsg' style='display: none; color: white; background-color: #D46464; text-align: center; padding-top: 3px; padding-bottom: 3px;'>${invalidUser}</div><div style='margin: 0px; padding: 0px; height: 10px;'></div><div class='dijitDialogPaneActionBar'><button data-dojo-type='dijit.form.Button' data-dojo-props='type:\"button\", \"class\":\"esriIdSubmit\"'>${lblOk}</button><button data-dojo-type='dijit.form.Button' data-dojo-props='type:\"button\", \"class\":\"esriIdCancel\"'>${lblCancel}</button></div>",setOAuthRedirectionHandler:function(e){this._oAuthRedirectFunc=e},oAuthSignIn:function(e,o,r,i){var n=this._oAuthDfd=new a;n.resUrl_=e,n.sinfo_=o,n.oinfo_=r;var s=!i||i.oAuthPopupConfirmation!==!1;if(!r.popup||!s)return this._doOAuthSignIn(e,o,r),n;this._nls||(this._nls=u.identity),this.oAuthDialog||(this.oAuthDialog=this._createOAuthDialog());var d=this.oAuthDialog,c=i&&i.error,h=i&&i.token;return t.hide(d.errMsg_),c&&403==c.code&&h&&(l.set(d.errMsg_,"innerHTML",this._nls.forbidden),t.show(d.errMsg_)),d.show(),n},setOAuthResponseHash:function(t){var o=this._oAuthDfd;if(this._oAuthDfd=null,o&&t){clearInterval(this._oAuthIntervalId),"#"===t.charAt(0)&&(t=t.substring(1));var r=c.queryToObject(t);if(r.error){var i=new Error("access_denied"===r.error?"ABORTED":"OAuth: "+r.error+" - "+r.error_description);i.code="IdentityManagerBase.2",i.log=s.isDebug,o.errback(i)}else{var n=o.sinfo_,a=o.oinfo_,d=a._oAuthCred,l=new e({userId:r.username,server:n.server,token:r.access_token,expires:(new Date).getTime()+1e3*Number(r.expires_in),ssl:"true"===r.ssl,_oAuthCred:d});d.storage=r.persist?window.localStorage:window.sessionStorage,d.token=l.token,d.expires=l.expires,d.userId=l.userId,d.ssl=l.ssl,d.save(),o.callback(l)}}},_createOAuthDialog:function(){var e=this._nls,r=o.substitute(e,this._oAuthDialogContent),a=new i({title:e.title,content:r,"class":"esriOAuthSignInDialog",style:"min-width: 18em;",esriIdMgr_:this,execute_:function(){var e=a.esriIdMgr_._oAuthDfd;a.hide_(),a.esriIdMgr_._doOAuthSignIn(e.resUrl_,e.sinfo_,e.oinfo_)},cancel_:function(){var e=a.esriIdMgr_._oAuthDfd;a.esriIdMgr_._oAuthDfd=null,a.hide_();var t=new Error("ABORTED");t.code="IdentityManager.2",t.log=s.isDebug,e.errback(t)},hide_:function(){t.hide(a.errMsg_),a.hide(),i._DialogLevelManager.hide(a)}}),l=a.domNode;return a.btnSubmit_=n.byNode(d.query(".esriIdSubmit",l)[0]),a.btnCancel_=n.byNode(d.query(".esriIdCancel",l)[0]),a.errMsg_=d.query(".esriErrorMsg",l)[0],a.connect(a.btnSubmit_,"onClick",a.execute_),a.connect(a.btnCancel_,"onClick",a.onCancel),a.connect(a,"onCancel",a.cancel_),a},_doOAuthSignIn:function(e,t,o){var i=this,n={client_id:o.appId,response_type:"token",state:_.stringify({portalUrl:o.portalUrl}),expiration:o.expiration,locale:o.locale,redirect_uri:o.popup?r.getAbsoluteUrl(o.popupCallbackUrl):window.location.href.replace(/#.*$/,"")};o.forceLogin&&(n.force_login=!0),o.showSocialLogins&&(n.showSocialLogins=!0);var a=o.portalUrl.replace(/^http:/i,"https:")+"/sharing/oauth2/authorize",d=a+"?"+c.objectToQuery(n);if(o.popup){var l;if(7===h("ie")?(l=window.open(o.popupCallbackUrl,"esriJSAPIOAuth",o.popupWindowFeatures),l.location=d):l=window.open(d,"esriJSAPIOAuth",o.popupWindowFeatures),l)l.focus(),this._oAuthDfd.oAuthWin_=l,this._oAuthIntervalId=setInterval(function(){if(l.closed){clearInterval(i._oAuthIntervalId);var e=i._oAuthDfd;if(e){var t=new Error("ABORTED");t.code="IdentityManager.2",t.log=s.isDebug,e.errback(t)}}},500);else{var u=new Error("ABORTED");u.code="IdentityManager.2",u.log=s.isDebug,this._oAuthDfd.errback(u)}}else this._oAuthRedirectFunc?this._oAuthRedirectFunc({authorizeParams:n,authorizeUrl:a,resourceUrl:e,serverInfo:t,oAuthInfo:o}):window.location=d}};return p});
 },
-'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
-'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1 class=\"${baseClass}\">${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"* available to all users\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Data Viewer\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"*only available to GIS_admin members\",\r\n\t\t\"back_url\": \"gisportal/home\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"active\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* available to specific groups\",\r\n\t\t\"back_url\": \"applications/home\"\r\n\t}\r\n]\r\n\t",
+'dojox/gfx/path':function(){
+define(["./_base", "dojo/_base/lang","dojo/_base/declare", "./matrix", "./shape"],
+	function(g, lang, declare, matrix, shapeLib){
+
+	// module:
+	//		dojox/gfx/path
+
+	var Path = declare("dojox.gfx.path.Path", shapeLib.Shape, {
+		// summary:
+		//		a generalized path shape
+
+		constructor: function(rawNode){
+			// summary:
+			//		a path constructor
+			// rawNode: Node
+			//		a DOM node to be used by this path object
+			this.shape = lang.clone(g.defaultPath);
+			this.segments = [];
+			this.tbbox = null;
+			this.absolute = true;
+			this.last = {};
+			this.rawNode = rawNode;
+			this.segmented = false;
+		},
+
+		// mode manipulations
+		setAbsoluteMode: function(mode){
+			// summary:
+			//		sets an absolute or relative mode for path points
+			// mode: Boolean
+			//		true/false or "absolute"/"relative" to specify the mode
+			this._confirmSegmented();
+			this.absolute = typeof mode == "string" ? (mode == "absolute") : mode;
+			return this; // self
+		},
+		getAbsoluteMode: function(){
+			// summary:
+			//		returns a current value of the absolute mode
+			this._confirmSegmented();
+			return this.absolute; // Boolean
+		},
+
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box {x, y, width, height} or null
+			this._confirmSegmented();
+			return (this.bbox && ("l" in this.bbox)) ? {x: this.bbox.l, y: this.bbox.t, width: this.bbox.r - this.bbox.l, height: this.bbox.b - this.bbox.t} : null; // dojox/gfx.Rectangle
+		},
+
+		_getRealBBox: function(){
+			// summary:
+			//		returns an array of four points or null
+			//		four points represent four corners of the untransformed bounding box
+			this._confirmSegmented();
+			if(this.tbbox){
+				return this.tbbox;	// Array
+			}
+			var bbox = this.bbox, matrix = this._getRealMatrix();
+			this.bbox = null;
+			for(var i = 0, len = this.segments.length; i < len; ++i){
+				this._updateWithSegment(this.segments[i], matrix);
+			}
+			var t = this.bbox;
+			this.bbox = bbox;
+			this.tbbox = t ? [
+				{x: t.l, y: t.t},
+				{x: t.r, y: t.t},
+				{x: t.r, y: t.b},
+				{x: t.l, y: t.b}
+			] : null;
+			return this.tbbox;	// Array
+		},
+
+		getLastPosition: function(){
+			// summary:
+			//		returns the last point in the path, or null
+			this._confirmSegmented();
+			return "x" in this.last ? this.last : null; // Object
+		},
+
+		_applyTransform: function(){
+			this.tbbox = null;
+			return this.inherited(arguments);
+		},
+
+		// segment interpretation
+		_updateBBox: function(x, y, m){
+			// summary:
+			//		updates the bounding box of path with new point
+			// x: Number
+			//		an x coordinate
+			// y: Number
+			//		a y coordinate
+
+			if(m){
+				var t = matrix.multiplyPoint(m, x, y);
+				x = t.x;
+				y = t.y;
+			}
+
+			// we use {l, b, r, t} representation of a bbox
+			if(this.bbox && ("l" in this.bbox)){
+				if(this.bbox.l > x) this.bbox.l = x;
+				if(this.bbox.r < x) this.bbox.r = x;
+				if(this.bbox.t > y) this.bbox.t = y;
+				if(this.bbox.b < y) this.bbox.b = y;
+			}else{
+				this.bbox = {l: x, b: y, r: x, t: y};
+			}
+		},
+		_updateWithSegment: function(segment, matrix){
+			// summary:
+			//		updates the bounding box of path with new segment
+			// segment: Object
+			//		a segment
+			var n = segment.args, l = n.length, i;
+			// update internal variables: bbox, absolute, last
+			switch(segment.action){
+				case "M":
+				case "L":
+				case "C":
+				case "S":
+				case "Q":
+				case "T":
+					for(i = 0; i < l; i += 2){
+						this._updateBBox(n[i], n[i + 1], matrix);
+					}
+					this.last.x = n[l - 2];
+					this.last.y = n[l - 1];
+					this.absolute = true;
+					break;
+				case "H":
+					for(i = 0; i < l; ++i){
+						this._updateBBox(n[i], this.last.y, matrix);
+					}
+					this.last.x = n[l - 1];
+					this.absolute = true;
+					break;
+				case "V":
+					for(i = 0; i < l; ++i){
+						this._updateBBox(this.last.x, n[i], matrix);
+					}
+					this.last.y = n[l - 1];
+					this.absolute = true;
+					break;
+				case "m":
+					var start = 0;
+					if(!("x" in this.last)){
+						this._updateBBox(this.last.x = n[0], this.last.y = n[1], matrix);
+						start = 2;
+					}
+					for(i = start; i < l; i += 2){
+						this._updateBBox(this.last.x += n[i], this.last.y += n[i + 1], matrix);
+					}
+					this.absolute = false;
+					break;
+				case "l":
+				case "t":
+					for(i = 0; i < l; i += 2){
+						this._updateBBox(this.last.x += n[i], this.last.y += n[i + 1], matrix);
+					}
+					this.absolute = false;
+					break;
+				case "h":
+					for(i = 0; i < l; ++i){
+						this._updateBBox(this.last.x += n[i], this.last.y, matrix);
+					}
+					this.absolute = false;
+					break;
+				case "v":
+					for(i = 0; i < l; ++i){
+						this._updateBBox(this.last.x, this.last.y += n[i], matrix);
+					}
+					this.absolute = false;
+					break;
+				case "c":
+					for(i = 0; i < l; i += 6){
+						this._updateBBox(this.last.x + n[i], this.last.y + n[i + 1], matrix);
+						this._updateBBox(this.last.x + n[i + 2], this.last.y + n[i + 3], matrix);
+						this._updateBBox(this.last.x += n[i + 4], this.last.y += n[i + 5], matrix);
+					}
+					this.absolute = false;
+					break;
+				case "s":
+				case "q":
+					for(i = 0; i < l; i += 4){
+						this._updateBBox(this.last.x + n[i], this.last.y + n[i + 1], matrix);
+						this._updateBBox(this.last.x += n[i + 2], this.last.y += n[i + 3], matrix);
+					}
+					this.absolute = false;
+					break;
+				case "A":
+					for(i = 0; i < l; i += 7){
+						this._updateBBox(n[i + 5], n[i + 6], matrix);
+					}
+					this.last.x = n[l - 2];
+					this.last.y = n[l - 1];
+					this.absolute = true;
+					break;
+				case "a":
+					for(i = 0; i < l; i += 7){
+						this._updateBBox(this.last.x += n[i + 5], this.last.y += n[i + 6], matrix);
+					}
+					this.absolute = false;
+					break;
+			}
+			// add an SVG path segment
+			var path = [segment.action];
+			for(i = 0; i < l; ++i){
+				path.push(g.formatNumber(n[i], true));
+			}
+			if(typeof this.shape.path == "string"){
+				this.shape.path += path.join("");
+			}else{
+				for(i = 0, l = path.length; i < l; ++i){
+					this.shape.path.push(path[i]);
+				}
+			}
+		},
+
+		// a dictionary, which maps segment type codes to a number of their arguments
+		_validSegments: {m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0},
+
+		_pushSegment: function(action, args){
+			// summary:
+			//		adds a segment
+			// action: String
+			//		valid SVG code for a segment's type
+			// args: Array
+			//		a list of parameters for this segment
+			this.tbbox = null;
+			var group = this._validSegments[action.toLowerCase()], segment;
+			if(typeof group == "number"){
+				if(group){
+					if(args.length >= group){
+						segment = {action: action, args: args.slice(0, args.length - args.length % group)};
+						this.segments.push(segment);
+						this._updateWithSegment(segment);
+					}
+				}else{
+					segment = {action: action, args: []};
+					this.segments.push(segment);
+					this._updateWithSegment(segment);
+				}
+			}
+		},
+
+		_collectArgs: function(array, args){
+			// summary:
+			//		converts an array of arguments to plain numeric values
+			// array: Array
+			//		an output argument (array of numbers)
+			// args: Array
+			//		an input argument (can be values of Boolean, Number, dojox/gfx.Point, or an embedded array of them)
+			for(var i = 0; i < args.length; ++i){
+				var t = args[i];
+				if(typeof t == "boolean"){
+					array.push(t ? 1 : 0);
+				}else if(typeof t == "number"){
+					array.push(t);
+				}else if(t instanceof Array){
+					this._collectArgs(array, t);
+				}else if("x" in t && "y" in t){
+					array.push(t.x, t.y);
+				}
+			}
+		},
+
+		// segments
+		moveTo: function(){
+			// summary:
+			//		forms a move segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "M" : "m", args);
+			return this; // self
+		},
+		lineTo: function(){
+			// summary:
+			//		forms a line segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "L" : "l", args);
+			return this; // self
+		},
+		hLineTo: function(){
+			// summary:
+			//		forms a horizontal line segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "H" : "h", args);
+			return this; // self
+		},
+		vLineTo: function(){
+			// summary:
+			//		forms a vertical line segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "V" : "v", args);
+			return this; // self
+		},
+		curveTo: function(){
+			// summary:
+			//		forms a curve segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "C" : "c", args);
+			return this; // self
+		},
+		smoothCurveTo: function(){
+			// summary:
+			//		forms a smooth curve segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "S" : "s", args);
+			return this; // self
+		},
+		qCurveTo: function(){
+			// summary:
+			//		forms a quadratic curve segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "Q" : "q", args);
+			return this; // self
+		},
+		qSmoothCurveTo: function(){
+			// summary:
+			//		forms a quadratic smooth curve segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "T" : "t", args);
+			return this; // self
+		},
+		arcTo: function(){
+			// summary:
+			//		forms an elliptic arc segment
+			this._confirmSegmented();
+			var args = [];
+			this._collectArgs(args, arguments);
+			this._pushSegment(this.absolute ? "A" : "a", args);
+			return this; // self
+		},
+		closePath: function(){
+			// summary:
+			//		closes a path
+			this._confirmSegmented();
+			this._pushSegment("Z", []);
+			return this; // self
+		},
+
+		_confirmSegmented: function() {
+			if (!this.segmented) {
+				var path = this.shape.path;
+				// switch to non-updating version of path building
+				this.shape.path = [];
+				this._setPath(path);
+				// switch back to the string path
+				this.shape.path = this.shape.path.join("");
+				// become segmented
+				this.segmented = true;
+			}
+		},
+
+		// setShape
+		_setPath: function(path){
+			// summary:
+			//		forms a path using an SVG path string
+			// path: String
+			//		an SVG path string
+			var p = lang.isArray(path) ? path : path.match(g.pathSvgRegExp);
+			this.segments = [];
+			this.absolute = true;
+			this.bbox = {};
+			this.last = {};
+			if(!p) return;
+			// create segments
+			var action = "",	// current action
+				args = [],		// current arguments
+				l = p.length;
+			for(var i = 0; i < l; ++i){
+				var t = p[i], x = parseFloat(t);
+				if(isNaN(x)){
+					if(action){
+						this._pushSegment(action, args);
+					}
+					args = [];
+					action = t;
+				}else{
+					args.push(x);
+				}
+			}
+			this._pushSegment(action, args);
+		},
+		setShape: function(newShape){
+			// summary:
+			//		forms a path using a shape
+			// newShape: Object
+			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
+			this.inherited(arguments, [typeof newShape == "string" ? {path: newShape} : newShape]);
+
+			this.segmented = false;
+			this.segments = [];
+			if(!g.lazyPathSegmentation){
+				this._confirmSegmented();
+			}
+			return this; // self
+		},
+
+		// useful constant for descendants
+		_2PI: Math.PI * 2
+	});
+
+	var TextPath = declare("dojox.gfx.path.TextPath", Path, {
+		// summary:
+		//		a generalized TextPath shape
+
+		constructor: function(rawNode){
+			// summary:
+			//		a TextPath shape constructor
+			// rawNode: Node
+			//		a DOM node to be used by this TextPath object
+			if(!("text" in this)){
+				this.text = lang.clone(g.defaultTextPath);
+			}
+			if(!("fontStyle" in this)){
+				this.fontStyle = lang.clone(g.defaultFont);
+			}
+		},
+		getText: function(){
+			// summary:
+			//		returns the current text object or null
+			return this.text;	// Object
+		},
+		setText: function(newText){
+			// summary:
+			//		sets a text to be drawn along the path
+			this.text = g.makeParameters(this.text,
+				typeof newText == "string" ? {text: newText} : newText);
+			this._setText();
+			return this;	// self
+		},
+		getFont: function(){
+			// summary:
+			//		returns the current font object or null
+			return this.fontStyle;	// Object
+		},
+		setFont: function(newFont){
+			// summary:
+			//		sets a font for text
+			this.fontStyle = typeof newFont == "string" ?
+				g.splitFontString(newFont) :
+				g.makeParameters(g.defaultFont, newFont);
+			this._setFont();
+			return this;	// self
+		}
+	});
+
+	/*=====
+	g.Path = Path;
+	g.TextPath = TextPath;
+	=====*/
+
+	return g.path = {
+		// summary:
+		//		This module contains the core graphics Path API.
+		//		Path command format follows the W3C SVG 1.0 Path api.
+
+		Path: Path,
+		TextPath: TextPath
+	};
+});
+
+},
+'dojox/gfx/_base':function(){
+define(["dojo/_base/kernel", "dojo/_base/lang", "dojo/_base/Color", "dojo/_base/sniff", "dojo/_base/window",
+	    "dojo/_base/array","dojo/dom", "dojo/dom-construct","dojo/dom-geometry"],
+function(kernel, lang, Color, has, win, arr, dom, domConstruct, domGeom){
+	// module:
+	//		dojox/gfx
+	// summary:
+	//		This module contains common core Graphics API used by different graphics renderers.
+
+	var g = lang.getObject("dojox.gfx", true),
+		b = g._base = {};
+	
+	// candidates for dojox.style (work on VML and SVG nodes)
+	g._hasClass = function(/*DomNode*/node, /*String*/classStr){
+		// summary:
+		//		Returns whether or not the specified classes are a portion of the
+		//		class list currently applied to the node.
+		
+		// return (new RegExp('(^|\\s+)'+classStr+'(\\s+|$)')).test(node.className)	// Boolean
+		var cls = node.getAttribute("className");
+		return cls && (" " + cls + " ").indexOf(" " + classStr + " ") >= 0;  // Boolean
+	};
+	g._addClass = function(/*DomNode*/node, /*String*/classStr){
+		// summary:
+		//		Adds the specified classes to the end of the class list on the
+		//		passed node.
+		var cls = node.getAttribute("className") || "";
+		if(!cls || (" " + cls + " ").indexOf(" " + classStr + " ") < 0){
+			node.setAttribute("className", cls + (cls ? " " : "") + classStr);
+		}
+	};
+	g._removeClass = function(/*DomNode*/node, /*String*/classStr){
+		// summary:
+		//		Removes classes from node.
+		var cls = node.getAttribute("className");
+		if(cls){
+			node.setAttribute(
+				"className",
+				cls.replace(new RegExp('(^|\\s+)' + classStr + '(\\s+|$)'), "$1$2")
+			);
+		}
+	};
+
+	// candidate for dojox.html.metrics (dynamic font resize handler is not implemented here)
+
+	//		derived from Morris John's emResized measurer
+	b._getFontMeasurements = function(){
+		// summary:
+		//		Returns an object that has pixel equivilents of standard font
+		//		size values.
+		var heights = {
+			'1em': 0, '1ex': 0, '100%': 0, '12pt': 0, '16px': 0, 'xx-small': 0,
+			'x-small': 0, 'small': 0, 'medium': 0, 'large': 0, 'x-large': 0,
+			'xx-large': 0
+		};
+		var p, oldStyle;	
+		if(has("ie")){
+			//	We do a font-size fix if and only if one isn't applied already.
+			// NOTE: If someone set the fontSize on the HTML Element, this will kill it.
+			oldStyle = win.doc.documentElement.style.fontSize || "";
+			if(!oldStyle){
+				win.doc.documentElement.style.fontSize="100%";
+			}
+		}
+
+		//		set up the measuring node.
+		var div = domConstruct.create("div", {style: {
+				position: "absolute",
+				left: "0",
+				top: "-100px",
+				width: "30px",
+				height: "1000em",
+				borderWidth: "0",
+				margin: "0",
+				padding: "0",
+				outline: "none",
+				lineHeight: "1",
+				overflow: "hidden"
+			}}, win.body());
+
+		//		do the measurements.
+		for(p in heights){
+			div.style.fontSize = p;
+			heights[p] = Math.round(div.offsetHeight * 12/16) * 16/12 / 1000;
+		}
+
+		if(has("ie")){
+			// Restore the font to its old style.
+			win.doc.documentElement.style.fontSize = oldStyle;
+		}
+		win.body().removeChild(div);
+		return heights; //object
+	};
+
+	var fontMeasurements = null;
+
+	b._getCachedFontMeasurements = function(recalculate){
+		if(recalculate || !fontMeasurements){
+			fontMeasurements = b._getFontMeasurements();
+		}
+		return fontMeasurements;
+	};
+
+	// candidate for dojox.html.metrics
+
+	var measuringNode = null, empty = {};
+	b._getTextBox = function(	/*String*/ text,
+								/*Object*/ style,
+								/*String?*/ className){
+		var m, s, al = arguments.length;
+		var i, box;
+		if(!measuringNode){
+			measuringNode = domConstruct.create("div", {style: {
+				position: "absolute",
+				top: "-10000px",
+				left: "0",
+				visibility: "hidden"
+			}}, win.body());
+		}
+		m = measuringNode;
+		// reset styles
+		m.className = "";
+		s = m.style;
+		s.borderWidth = "0";
+		s.margin = "0";
+		s.padding = "0";
+		s.outline = "0";
+		// set new style
+		if(al > 1 && style){
+			for(i in style){
+				if(i in empty){ continue; }
+				s[i] = style[i];
+			}
+		}
+		// set classes
+		if(al > 2 && className){
+			m.className = className;
+		}
+		// take a measure
+		m.innerHTML = text;
+
+		if(m.getBoundingClientRect){
+			var bcr = m.getBoundingClientRect();
+			box = {l: bcr.left, t: bcr.top, w: bcr.width || (bcr.right - bcr.left), h: bcr.height || (bcr.bottom - bcr.top)};
+		}else{
+			box = domGeom.getMarginBox(m);
+		}
+		m.innerHTML = "";
+		return box;
+	};
+
+	b._computeTextLocation = function(/*g.defaultTextShape*/textShape, /*Number*/width, /*Number*/height, /*Boolean*/fixHeight) {
+		var loc = {}, align = textShape.align;
+		switch (align) {
+			case 'end':
+				loc.x = textShape.x - width;
+				break;
+			case 'middle':
+				loc.x = textShape.x - width / 2;
+				break;
+			default:
+				loc.x = textShape.x;
+				break;
+		}
+		var c = fixHeight ? 0.75 : 1;
+		loc.y = textShape.y - height*c; // **rough** approximation of the ascent...
+		return loc;
+	};
+	b._computeTextBoundingBox = function(/*shape.Text*/s){
+		// summary:
+		//		Compute the bbox of the given shape.Text instance. Note that this method returns an
+		//		approximation of the bbox, and should be used when the underlying renderer cannot provide precise metrics.
+		if(!g._base._isRendered(s)){
+			return {x:0, y:0, width:0, height:0};
+		}
+		var loc, textShape = s.getShape(),
+			font = s.getFont() || g.defaultFont,
+			w = s.getTextWidth(),
+			h = g.normalizedLength(font.size);
+		loc = b._computeTextLocation(textShape, w, h, true);
+		return {
+			x: loc.x,
+			y: loc.y,
+			width: w,
+			height: h
+		};
+	};
+	b._isRendered = function(/*Shape*/s){
+		var p = s.parent;
+		while(p && p.getParent){
+			p = p.parent;
+		}
+		return p !== null;
+	};
+
+	// candidate for dojo.dom
+
+	var uniqueId = 0;
+	b._getUniqueId = function(){
+		// summary:
+		//		returns a unique string for use with any DOM element
+		var id;
+		do{
+			id = kernel._scopeName + "xUnique" + (++uniqueId);
+		}while(dom.byId(id));
+		return id;
+	};
+
+	// IE10
+
+	var touchActionProp = has("pointer-events") ? "touchAction" : has("MSPointer") ? "msTouchAction" : null;
+	b._fixMsTouchAction = touchActionProp ? function(/*dojox/gfx/shape.Surface*/surface){
+		surface.rawNode.style[touchActionProp] = "none";
+	} : function() {};
+
+	/*=====
+	g.Stroke = {
+		// summary:
+		//		A stroke defines stylistic properties that are used when drawing a path.
+
+		// color: String
+		//		The color of the stroke, default value 'black'.
+		color: "black",
+
+		// style: String
+		//		The style of the stroke, one of 'solid', ... . Default value 'solid'.
+		style: "solid",
+
+		// width: Number
+		//		The width of a stroke, default value 1.
+		width: 1,
+
+		// cap: String
+		//		The endcap style of the path. One of 'butt', 'round', ... . Default value 'butt'.
+		cap: "butt",
+
+		// join: Number
+		//		The join style to use when combining path segments. Default value 4.
+		join: 4
+	};
+	
+	g.Fill = {
+		// summary:
+		//		Defines how to fill a shape. Four types of fills can be used: solid, linear gradient, radial gradient and pattern.
+		//		See dojox/gfx.LinearGradient, dojox/gfx.RadialGradient and dojox/gfx.Pattern respectively for more information about the properties supported by each type.
+		
+		// type: String?
+		//		The type of fill. One of 'linear', 'radial', 'pattern' or undefined. If not specified, a solid fill is assumed.
+		type:"",
+		
+		// color: String|dojo/Color?
+		//		The color of a solid fill type.
+		color:null,
+		
+	};
+	
+	g.LinearGradient = {
+		// summary:
+		//		An object defining the default stylistic properties used for Linear Gradient fills.
+		//		Linear gradients are drawn along a virtual line, which results in appearance of a rotated pattern in a given direction/orientation.
+
+		// type: String
+		//		Specifies this object is a Linear Gradient, value 'linear'
+		type: "linear",
+
+		// x1: Number
+		//		The X coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
+		x1: 0,
+
+		// y1: Number
+		//		The Y coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
+		y1: 0,
+
+		// x2: Number
+		//		The X coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
+		x2: 100,
+
+		// y2: Number
+		//		The Y coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
+		y2: 100,
+
+		// colors: Array
+		//		An array of colors at given offsets (from the start of the line).  The start of the line is
+		//		defined at offest 0 with the end of the line at offset 1.
+		//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
+		colors: []
+	};
+	
+	g.RadialGradient = {
+		// summary:
+		//		Specifies the properties for RadialGradients using in fills patterns.
+
+		// type: String
+		//		Specifies this is a RadialGradient, value 'radial'
+		type: "radial",
+
+		// cx: Number
+		//		The X coordinate of the center of the radial gradient, default value 0.
+		cx: 0,
+
+		// cy: Number
+		//		The Y coordinate of the center of the radial gradient, default value 0.
+		cy: 0,
+
+		// r: Number
+		//		The radius to the end of the radial gradient, default value 100.
+		r: 100,
+
+		// colors: Array
+		//		An array of colors at given offsets (from the center of the radial gradient).
+		//		The center is defined at offest 0 with the outer edge of the gradient at offset 1.
+		//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
+		colors: []
+	};
+	
+	g.Pattern = {
+		// summary:
+		//		An object specifying the default properties for a Pattern using in fill operations.
+
+		// type: String
+		//		Specifies this object is a Pattern, value 'pattern'.
+		type: "pattern",
+
+		// x: Number
+		//		The X coordinate of the position of the pattern, default value is 0.
+		x: 0,
+
+		// y: Number
+		//		The Y coordinate of the position of the pattern, default value is 0.
+		y: 0,
+
+		// width: Number
+		//		The width of the pattern image, default value is 0.
+		width: 0,
+
+		// height: Number
+		//		The height of the pattern image, default value is 0.
+		height: 0,
+
+		// src: String
+		//		A url specifying the image to use for the pattern.
+		src: ""
+	};
+
+	g.Text = {
+		//	summary:
+		//		A keyword argument object defining both the text to be rendered in a VectorText shape,
+		//		and specifying position, alignment, and fitting.
+		//	text: String
+		//		The text to be rendered.
+		//	x: Number?
+		//		The left coordinate for the text's bounding box.
+		//	y: Number?
+		//		The top coordinate for the text's bounding box.
+		//	width: Number?
+		//		The width of the text's bounding box.
+		//	height: Number?
+		//		The height of the text's bounding box.
+		//	align: String?
+		//		The alignment of the text, as defined in SVG. Can be "start", "end" or "middle".
+		//	fitting: Number?
+		//		How the text is to be fitted to the bounding box. Can be 0 (no fitting), 1 (fitting based on
+		//		passed width of the bounding box and the size of the font), or 2 (fit text to the bounding box,
+		//		and ignore any size parameters).
+		//	leading: Number?
+		//		The leading to be used between lines in the text.
+		//	decoration: String?
+		//		Any text decoration to be used.
+	};
+
+	g.Font = {
+		// summary:
+		//		An object specifying the properties for a Font used in text operations.
+	
+		// type: String
+		//		Specifies this object is a Font, value 'font'.
+		type: "font",
+	
+		// style: String
+		//		The font style, one of 'normal', 'bold', default value 'normal'.
+		style: "normal",
+	
+		// variant: String
+		//		The font variant, one of 'normal', ... , default value 'normal'.
+		variant: "normal",
+	
+		// weight: String
+		//		The font weight, one of 'normal', ..., default value 'normal'.
+		weight: "normal",
+	
+		// size: String
+		//		The font size (including units), default value '10pt'.
+		size: "10pt",
+	
+		// family: String
+		//		The font family, one of 'serif', 'sanserif', ..., default value 'serif'.
+		family: "serif"
+	};
+
+	=====*/
+
+	lang.mixin(g, {
+		// summary:
+		//		defines constants, prototypes, and utility functions for the core Graphics API
+
+		// default shapes, which are used to fill in missing parameters
+		defaultPath: {
+			// summary:
+			//		Defines the default Path prototype object.
+
+			// type: String
+			//		Specifies this object is a Path, default value 'path'.
+			type: "path", 
+
+			// path: String
+			//		The path commands. See W32C SVG 1.0 specification.
+			//		Defaults to empty string value.
+			path: ""
+		},
+		defaultPolyline: {
+			// summary:
+			//		Defines the default PolyLine prototype.
+
+			// type: String
+			//		Specifies this object is a PolyLine, default value 'polyline'.
+			type: "polyline",
+
+			// points: Array
+			//		An array of point objects [{x:0,y:0},...] defining the default polyline's line segments. Value is an empty array [].
+			points: []
+		},
+		defaultRect: {
+			// summary:
+			//		Defines the default Rect prototype.
+
+			// type: String
+			//		Specifies this default object is a type of Rect. Value is 'rect'
+			type: "rect",
+
+			// x: Number
+			//		The X coordinate of the default rectangles position, value 0.
+			x: 0,
+
+			// y: Number
+			//		The Y coordinate of the default rectangle's position, value 0.
+			y: 0,
+
+			// width: Number
+			//		The width of the default rectangle, value 100.
+			width: 100,
+
+			// height: Number
+			//		The height of the default rectangle, value 100.
+			height: 100,
+
+			// r: Number
+			//		The corner radius for the default rectangle, value 0.
+			r: 0
+		},
+		defaultEllipse: {
+			// summary:
+			//		Defines the default Ellipse prototype.
+
+			// type: String
+			//		Specifies that this object is a type of Ellipse, value is 'ellipse'
+			type: "ellipse",
+
+			// cx: Number
+			//		The X coordinate of the center of the ellipse, default value 0.
+			cx: 0,
+
+			// cy: Number
+			//		The Y coordinate of the center of the ellipse, default value 0.
+			cy: 0,
+
+			// rx: Number
+			//		The radius of the ellipse in the X direction, default value 200.
+			rx: 200,
+
+			// ry: Number
+			//		The radius of the ellipse in the Y direction, default value 200.
+			ry: 100
+		},
+		defaultCircle: {
+			// summary:
+			//		An object defining the default Circle prototype.
+
+			// type: String
+			//		Specifies this object is a circle, value 'circle'
+			type: "circle",
+
+			// cx: Number
+			//		The X coordinate of the center of the circle, default value 0.
+			cx: 0,
+			// cy: Number
+			//		The Y coordinate of the center of the circle, default value 0.
+			cy: 0,
+
+			// r: Number
+			//		The radius, default value 100.
+			r: 100
+		},
+		defaultLine: {
+			// summary:
+			//		An object defining the default Line prototype.
+
+			// type: String
+			//		Specifies this is a Line, value 'line'
+			type: "line",
+
+			// x1: Number
+			//		The X coordinate of the start of the line, default value 0.
+			x1: 0,
+
+			// y1: Number
+			//		The Y coordinate of the start of the line, default value 0.
+			y1: 0,
+
+			// x2: Number
+			//		The X coordinate of the end of the line, default value 100.
+			x2: 100,
+
+			// y2: Number
+			//		The Y coordinate of the end of the line, default value 100.
+			y2: 100
+		},
+		defaultImage: {
+			// summary:
+			//		Defines the default Image prototype.
+
+			// type: String
+			//		Specifies this object is an image, value 'image'.
+			type: "image",
+
+			// x: Number
+			//		The X coordinate of the image's position, default value 0.
+			x: 0,
+
+			// y: Number
+			//		The Y coordinate of the image's position, default value 0.
+			y: 0,
+
+			// width: Number
+			//		The width of the image, default value 0.
+			width: 0,
+
+			// height: Number
+			//		The height of the image, default value 0.
+			height: 0,
+
+			// src: String
+			//		The src url of the image, defaults to empty string.
+			src: ""
+		},
+		defaultText: {
+			// summary:
+			//		Defines the default Text prototype.
+
+			// type: String
+			//		Specifies this is a Text shape, value 'text'.
+			type: "text",
+
+			// x: Number
+			//		The X coordinate of the text position, default value 0.
+			x: 0,
+
+			// y: Number
+			//		The Y coordinate of the text position, default value 0.
+			y: 0,
+
+			// text: String
+			//		The text to be displayed, default value empty string.
+			text: "",
+
+			// align:	String
+			//		The horizontal text alignment, one of 'start', 'end', 'center'. Default value 'start'.
+			align: "start",
+
+			// decoration: String
+			//		The text decoration , one of 'none', ... . Default value 'none'.
+			decoration: "none",
+
+			// rotated: Boolean
+			//		Whether the text is rotated, boolean default value false.
+			rotated: false,
+
+			// kerning: Boolean
+			//		Whether kerning is used on the text, boolean default value true.
+			kerning: true
+		},
+		defaultTextPath: {
+			// summary:
+			//		Defines the default TextPath prototype.
+
+			// type: String
+			//		Specifies this is a TextPath, value 'textpath'.
+			type: "textpath",
+
+			// text: String
+			//		The text to be displayed, default value empty string.
+			text: "",
+
+			// align: String
+			//		The horizontal text alignment, one of 'start', 'end', 'center'. Default value 'start'.
+			align: "start",
+
+			// decoration: String
+			//		The text decoration , one of 'none', ... . Default value 'none'.
+			decoration: "none",
+
+			// rotated: Boolean
+			//		Whether the text is rotated, boolean default value false.
+			rotated: false,
+
+			// kerning: Boolean
+			//		Whether kerning is used on the text, boolean default value true.
+			kerning: true
+		},
+
+		// default stylistic attributes
+		defaultStroke: {
+			// summary:
+			//		A stroke defines stylistic properties that are used when drawing a path.
+			//		This object defines the default Stroke prototype.
+			// type: String
+			//		Specifies this object is a type of Stroke, value 'stroke'.
+			type: "stroke",
+
+			// color: String
+			//		The color of the stroke, default value 'black'.
+			color: "black",
+
+			// style: String
+			//		The style of the stroke, one of 'solid', ... . Default value 'solid'.
+			style: "solid",
+
+			// width: Number
+			//		The width of a stroke, default value 1.
+			width: 1,
+
+			// cap: String
+			//		The endcap style of the path. One of 'butt', 'round', ... . Default value 'butt'.
+			cap: "butt",
+
+			// join: Number
+			//		The join style to use when combining path segments. Default value 4.
+			join: 4
+		},
+		defaultLinearGradient: {
+			// summary:
+			//		An object defining the default stylistic properties used for Linear Gradient fills.
+			//		Linear gradients are drawn along a virtual line, which results in appearance of a rotated pattern in a given direction/orientation.
+
+			// type: String
+			//		Specifies this object is a Linear Gradient, value 'linear'
+			type: "linear",
+
+			// x1: Number
+			//		The X coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
+			x1: 0,
+
+			// y1: Number
+			//		The Y coordinate of the start of the virtual line along which the gradient is drawn, default value 0.
+			y1: 0,
+
+			// x2: Number
+			//		The X coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
+			x2: 100,
+
+			// y2: Number
+			//		The Y coordinate of the end of the virtual line along which the gradient is drawn, default value 100.
+			y2: 100,
+
+			// colors: Array
+			//		An array of colors at given offsets (from the start of the line).  The start of the line is
+			//		defined at offest 0 with the end of the line at offset 1.
+			//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
+			colors: [
+				{ offset: 0, color: "black" }, { offset: 1, color: "white" }
+			]
+		},
+		defaultRadialGradient: {
+			// summary:
+			//		An object specifying the default properties for RadialGradients using in fills patterns.
+
+			// type: String
+			//		Specifies this is a RadialGradient, value 'radial'
+			type: "radial",
+
+			// cx: Number
+			//		The X coordinate of the center of the radial gradient, default value 0.
+			cx: 0,
+
+			// cy: Number
+			//		The Y coordinate of the center of the radial gradient, default value 0.
+			cy: 0,
+
+			// r: Number
+			//		The radius to the end of the radial gradient, default value 100.
+			r: 100,
+
+			// colors: Array
+			//		An array of colors at given offsets (from the center of the radial gradient).
+			//		The center is defined at offest 0 with the outer edge of the gradient at offset 1.
+			//		Default value, [{ offset: 0, color: 'black'},{offset: 1, color: 'white'}], is a gradient from black to white.
+			colors: [
+				{ offset: 0, color: "black" }, { offset: 1, color: "white" }
+			]
+		},
+		defaultPattern: {
+			// summary:
+			//		An object specifying the default properties for a Pattern using in fill operations.
+
+			// type: String
+			//		Specifies this object is a Pattern, value 'pattern'.
+			type: "pattern",
+
+			// x: Number
+			//		The X coordinate of the position of the pattern, default value is 0.
+			x: 0,
+
+			// y: Number
+			//		The Y coordinate of the position of the pattern, default value is 0.
+			y: 0,
+
+			// width: Number
+			//		The width of the pattern image, default value is 0.
+			width: 0,
+
+			// height: Number
+			//		The height of the pattern image, default value is 0.
+			height: 0,
+
+			// src: String
+			//		A url specifying the image to use for the pattern.
+			src: ""
+		},
+		defaultFont: {
+			// summary:
+			//		An object specifying the default properties for a Font used in text operations.
+
+			// type: String
+			//		Specifies this object is a Font, value 'font'.
+			type: "font",
+
+			// style: String
+			//		The font style, one of 'normal', 'bold', default value 'normal'.
+			style: "normal",
+
+			// variant: String
+			//		The font variant, one of 'normal', ... , default value 'normal'.
+			variant: "normal",
+
+			// weight: String
+			//		The font weight, one of 'normal', ..., default value 'normal'.
+			weight: "normal",
+
+			// size: String
+			//		The font size (including units), default value '10pt'.
+			size: "10pt",
+
+			// family: String
+			//		The font family, one of 'serif', 'sanserif', ..., default value 'serif'.
+			family: "serif"
+		},
+
+		getDefault: (function(){
+			// summary:
+			//		Returns a function used to access default memoized prototype objects (see them defined above).
+			var typeCtorCache = {};
+			// a memoized delegate()
+			return function(/*String*/ type){
+				var t = typeCtorCache[type];
+				if(t){
+					return new t();
+				}
+				t = typeCtorCache[type] = new Function();
+				t.prototype = g[ "default" + type ];
+				return new t();
+			}
+		})(),
+
+		normalizeColor: function(/*dojo/Color|Array|string|Object*/ color){
+			// summary:
+			//		converts any legal color representation to normalized
+			//		dojo/Color object
+			// color:
+			//		A color representation.
+			return (color instanceof Color) ? color : new Color(color); // dojo/Color
+		},
+		normalizeParameters: function(existed, update){
+			// summary:
+			//		updates an existing object with properties from an 'update'
+			//		object
+			// existed: Object
+			//		the target object to be updated
+			// update: Object
+			//		the 'update' object, whose properties will be used to update
+			//		the existed object
+			var x;
+			if(update){
+				var empty = {};
+				for(x in existed){
+					if(x in update && !(x in empty)){
+						existed[x] = update[x];
+					}
+				}
+			}
+			return existed;	// Object
+		},
+		makeParameters: function(defaults, update){
+			// summary:
+			//		copies the original object, and all copied properties from the
+			//		'update' object
+			// defaults: Object
+			//		the object to be cloned before updating
+			// update: Object
+			//		the object, which properties are to be cloned during updating
+			// returns: Object
+			//      new object with new and default properties
+			var i = null;
+			if(!update){
+				// return dojo.clone(defaults);
+				return lang.delegate(defaults);
+			}
+			var result = {};
+			for(i in defaults){
+				if(!(i in result)){
+					result[i] = lang.clone((i in update) ? update[i] : defaults[i]);
+				}
+			}
+			return result; // Object
+		},
+		formatNumber: function(x, addSpace){
+			// summary:
+			//		converts a number to a string using a fixed notation
+			// x: Number
+			//		number to be converted
+			// addSpace: Boolean
+			//		whether to add a space before a positive number
+			// returns: String
+			//      the formatted value
+			var val = x.toString();
+			if(val.indexOf("e") >= 0){
+				val = x.toFixed(4);
+			}else{
+				var point = val.indexOf(".");
+				if(point >= 0 && val.length - point > 5){
+					val = x.toFixed(4);
+				}
+			}
+			if(x < 0){
+				return val; // String
+			}
+			return addSpace ? " " + val : val; // String
+		},
+		// font operations
+		makeFontString: function(font){
+			// summary:
+			//		converts a font object to a CSS font string
+			// font: Object
+			//		font object (see dojox/gfx.defaultFont)
+			return font.style + " " + font.variant + " " + font.weight + " " + font.size + " " + font.family; // Object
+		},
+		splitFontString: function(str){
+			// summary:
+			//		converts a CSS font string to a font object
+			// description:
+			//		Converts a CSS font string to a gfx font object. The CSS font
+			//		string components should follow the W3C specified order
+			//		(see http://www.w3.org/TR/CSS2/fonts.html#font-shorthand):
+			//		style, variant, weight, size, optional line height (will be
+			//		ignored), and family. Note that the Font.size attribute is limited to numeric CSS length.
+			// str: String
+			//		a CSS font string.
+			// returns: Object
+			//      object in dojox/gfx.defaultFont format
+			var font = g.getDefault("Font");
+			var t = str.split(/\s+/);
+			do{
+				if(t.length < 5){ break; }
+				font.style   = t[0];
+				font.variant = t[1];
+				font.weight  = t[2];
+				var i = t[3].indexOf("/");
+				font.size = i < 0 ? t[3] : t[3].substring(0, i);
+				var j = 4;
+				if(i < 0){
+					if(t[4] == "/"){
+						j = 6;
+					}else if(t[4].charAt(0) == "/"){
+						j = 5;
+					}
+				}
+				if(j < t.length){
+					font.family = t.slice(j).join(" ");
+				}
+			}while(false);
+			return font;	// Object
+		},
+		// length operations
+
+		// cm_in_pt: Number
+		//		points per centimeter (constant)
+		cm_in_pt: 72 / 2.54,
+
+		// mm_in_pt: Number
+		//		points per millimeter (constant)
+		mm_in_pt: 7.2 / 2.54,
+
+		px_in_pt: function(){
+			// summary:
+			//		returns the current number of pixels per point.
+			return g._base._getCachedFontMeasurements()["12pt"] / 12;	// Number
+		},
+
+		pt2px: function(len){
+			// summary:
+			//		converts points to pixels
+			// len: Number
+			//		a value in points
+			return len * g.px_in_pt();	// Number
+		},
+
+		px2pt: function(len){
+			// summary:
+			//		converts pixels to points
+			// len: Number
+			//		a value in pixels
+			return len / g.px_in_pt();	// Number
+		},
+
+		normalizedLength: function(len) {
+			// summary:
+			//		converts any length value to pixels
+			// len: String
+			//		a length, e.g., '12pc'
+			// returns: Number
+			//      pixels
+			if(len.length === 0){ return 0; }
+			if(len.length > 2){
+				var px_in_pt = g.px_in_pt();
+				var val = parseFloat(len);
+				switch(len.slice(-2)){
+					case "px": return val;
+					case "pt": return val * px_in_pt;
+					case "in": return val * 72 * px_in_pt;
+					case "pc": return val * 12 * px_in_pt;
+					case "mm": return val * g.mm_in_pt * px_in_pt;
+					case "cm": return val * g.cm_in_pt * px_in_pt;
+				}
+			}
+			return parseFloat(len);	// Number
+		},
+
+		// pathVmlRegExp: RegExp
+		//		a constant regular expression used to split a SVG/VML path into primitive components
+		// tags:
+		//		private
+		pathVmlRegExp: /([A-Za-z]+)|(\d+(\.\d+)?)|(\.\d+)|(-\d+(\.\d+)?)|(-\.\d+)/g,
+
+		// pathVmlRegExp: RegExp
+		//		a constant regular expression used to split a SVG/VML path into primitive components
+		// tags:
+		//		private
+		pathSvgRegExp: /([A-DF-Za-df-z])|([-+]?\d*[.]?\d+(?:[eE][-+]?\d+)?)/g,
+
+		equalSources: function(a, b){
+			// summary:
+			//		compares event sources, returns true if they are equal
+			// a: Object
+			//		first event source
+			// b: Object
+			//		event source to compare against a
+			// returns: Boolean
+			//      true, if objects are truthy and the same
+			return a && b && a === b;
+		},
+
+		switchTo: function(/*String|Object*/ renderer){
+			// summary:
+			//		switch the graphics implementation to the specified renderer.
+			// renderer:
+			//		Either the string name of a renderer (eg. 'canvas', 'svg, ...) or the renderer
+			//		object to switch to.
+			var ns = typeof renderer == "string" ? g[renderer] : renderer;
+			if(ns){
+				// If more options are added, update the docblock at the end of shape.js!
+				arr.forEach(["Group", "Rect", "Ellipse", "Circle", "Line",
+            "Polyline", "Image", "Text", "Path", "TextPath", "EsriPath",
+						"Surface", "createSurface", "fixTarget"], function(name){
+					g[name] = ns[name];
+				});
+				if(typeof renderer == "string"){
+					g.renderer = renderer;
+				}else{
+					arr.some(["svg","vml","canvas","canvasWithEvents","silverlight"], function(r){
+						return (g.renderer = g[r] && g[r].Surface === g.Surface ? r : null);
+					});
+				}
+			}
+		}
+	});
+	
+	/*=====
+		g.createSurface = function(parentNode, width, height){
+			// summary:
+			//		creates a surface
+			// parentNode: Node
+			//		a parent node
+			// width: String|Number
+			//		width of surface, e.g., "100px" or 100
+			// height: String|Number
+			//		height of surface, e.g., "100px" or 100
+			// returns: dojox/gfx.Surface
+			//     newly created surface
+		};
+		g.fixTarget = function(){
+			// tags:
+			//		private
+		};
+	=====*/
+	
+	return g; // defaults object api
+});
+
+},
+'dojox/gfx/matrix':function(){
+define(["./_base","dojo/_base/lang"], 
+  function(g, lang){
+	var m = g.matrix = {};
+
+	// candidates for dojox.math:
+	var _degToRadCache = {};
+	m._degToRad = function(degree){
+		return _degToRadCache[degree] || (_degToRadCache[degree] = (Math.PI * degree / 180));
+	};
+	m._radToDeg = function(radian){ return radian / Math.PI * 180; };
+
+	m.Matrix2D = function(arg){
+		// summary:
+		//		a 2D matrix object
+		// description:
+		//		Normalizes a 2D matrix-like object. If arrays is passed,
+		//		all objects of the array are normalized and multiplied sequentially.
+		// arg: Object
+		//		a 2D matrix-like object, a number, or an array of such objects
+		if(arg){
+			if(typeof arg == "number"){
+				this.xx = this.yy = arg;
+			}else if(arg instanceof Array){
+				if(arg.length > 0){
+					var matrix = m.normalize(arg[0]);
+					// combine matrices
+					for(var i = 1; i < arg.length; ++i){
+						var l = matrix, r = m.normalize(arg[i]);
+						matrix = new m.Matrix2D();
+						matrix.xx = l.xx * r.xx + l.xy * r.yx;
+						matrix.xy = l.xx * r.xy + l.xy * r.yy;
+						matrix.yx = l.yx * r.xx + l.yy * r.yx;
+						matrix.yy = l.yx * r.xy + l.yy * r.yy;
+						matrix.dx = l.xx * r.dx + l.xy * r.dy + l.dx;
+						matrix.dy = l.yx * r.dx + l.yy * r.dy + l.dy;
+					}
+					lang.mixin(this, matrix);
+				}
+			}else{
+				lang.mixin(this, arg);
+			}
+		}
+	};
+
+	// the default (identity) matrix, which is used to fill in missing values
+	lang.extend(m.Matrix2D, {xx: 1, xy: 0, yx: 0, yy: 1, dx: 0, dy: 0});
+
+	lang.mixin(m, {
+		// summary:
+		//		class constants, and methods of dojox/gfx/matrix
+
+		// matrix constants
+
+		// identity: dojox/gfx/matrix.Matrix2D
+		//		an identity matrix constant: identity * (x, y) == (x, y)
+		identity: new m.Matrix2D(),
+
+		// flipX: dojox/gfx/matrix.Matrix2D
+		//		a matrix, which reflects points at x = 0 line: flipX * (x, y) == (-x, y)
+		flipX:    new m.Matrix2D({xx: -1}),
+
+		// flipY: dojox/gfx/matrix.Matrix2D
+		//		a matrix, which reflects points at y = 0 line: flipY * (x, y) == (x, -y)
+		flipY:    new m.Matrix2D({yy: -1}),
+
+		// flipXY: dojox/gfx/matrix.Matrix2D
+		//		a matrix, which reflects points at the origin of coordinates: flipXY * (x, y) == (-x, -y)
+		flipXY:   new m.Matrix2D({xx: -1, yy: -1}),
+
+		// matrix creators
+
+		translate: function(a, b){
+			// summary:
+			//		forms a translation matrix
+			// description:
+			//		The resulting matrix is used to translate (move) points by specified offsets.
+			// a: Number|dojox/gfx.Point
+			//		an x coordinate value, or a point-like object, which specifies offsets for both dimensions
+			// b: Number?
+			//		a y coordinate value
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 1){
+				return new m.Matrix2D({dx: a, dy: b}); // dojox/gfx/matrix.Matrix2D
+			}
+			// branch
+			return new m.Matrix2D({dx: a.x, dy: a.y}); // dojox/gfx/matrix.Matrix2D
+		},
+		scale: function(a, b){
+			// summary:
+			//		forms a scaling matrix
+			// description:
+			//		The resulting matrix is used to scale (magnify) points by specified offsets.
+			// a: Number|dojox/gfx.Point
+			//		a scaling factor used for the x coordinate, or
+			//		a uniform scaling factor used for the both coordinates, or
+			//		a point-like object, which specifies scale factors for both dimensions
+			// b: Number?
+			//		a scaling factor used for the y coordinate
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 1){
+				return new m.Matrix2D({xx: a, yy: b}); // dojox/gfx/matrix.Matrix2D
+			}
+			if(typeof a == "number"){
+				return new m.Matrix2D({xx: a, yy: a}); // dojox/gfx/matrix.Matrix2D
+			}
+			return new m.Matrix2D({xx: a.x, yy: a.y}); // dojox/gfx/matrix.Matrix2D
+		},
+		rotate: function(angle){
+			// summary:
+			//		forms a rotating matrix
+			// description:
+			//		The resulting matrix is used to rotate points
+			//		around the origin of coordinates (0, 0) by specified angle.
+			// angle: Number
+			//		an angle of rotation in radians (>0 for CW)
+			// returns: dojox/gfx/matrix.Matrix2D
+			var c = Math.cos(angle);
+			var s = Math.sin(angle);
+			return new m.Matrix2D({xx: c, xy: -s, yx: s, yy: c}); // dojox/gfx/matrix.Matrix2D
+		},
+		rotateg: function(degree){
+			// summary:
+			//		forms a rotating matrix
+			// description:
+			//		The resulting matrix is used to rotate points
+			//		around the origin of coordinates (0, 0) by specified degree.
+			//		See dojox/gfx/matrix.rotate() for comparison.
+			// degree: Number
+			//		an angle of rotation in degrees (>0 for CW)
+			// returns: dojox/gfx/matrix.Matrix2D
+			return m.rotate(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
+		},
+		skewX: function(angle) {
+			// summary:
+			//		forms an x skewing matrix
+			// description:
+			//		The resulting matrix is used to skew points in the x dimension
+			//		around the origin of coordinates (0, 0) by specified angle.
+			// angle: Number
+			//		a skewing angle in radians
+			// returns: dojox/gfx/matrix.Matrix2D
+			return new m.Matrix2D({xy: Math.tan(angle)}); // dojox/gfx/matrix.Matrix2D
+		},
+		skewXg: function(degree){
+			// summary:
+			//		forms an x skewing matrix
+			// description:
+			//		The resulting matrix is used to skew points in the x dimension
+			//		around the origin of coordinates (0, 0) by specified degree.
+			//		See dojox/gfx/matrix.skewX() for comparison.
+			// degree: Number
+			//		a skewing angle in degrees
+			// returns: dojox/gfx/matrix.Matrix2D
+			return m.skewX(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
+		},
+		skewY: function(angle){
+			// summary:
+			//		forms a y skewing matrix
+			// description:
+			//		The resulting matrix is used to skew points in the y dimension
+			//		around the origin of coordinates (0, 0) by specified angle.
+			// angle: Number
+			//		a skewing angle in radians
+			// returns: dojox/gfx/matrix.Matrix2D
+			return new m.Matrix2D({yx: Math.tan(angle)}); // dojox/gfx/matrix.Matrix2D
+		},
+		skewYg: function(degree){
+			// summary:
+			//		forms a y skewing matrix
+			// description:
+			//		The resulting matrix is used to skew points in the y dimension
+			//		around the origin of coordinates (0, 0) by specified degree.
+			//		See dojox/gfx/matrix.skewY() for comparison.
+			// degree: Number
+			//		a skewing angle in degrees
+			// returns: dojox/gfx/matrix.Matrix2D
+			return m.skewY(m._degToRad(degree)); // dojox/gfx/matrix.Matrix2D
+		},
+		reflect: function(a, b){
+			// summary:
+			//		forms a reflection matrix
+			// description:
+			//		The resulting matrix is used to reflect points around a vector,
+			//		which goes through the origin.
+			// a: dojox/gfx.Point|Number
+			//		a point-like object, which specifies a vector of reflection, or an X value
+			// b: Number?
+			//		a Y value
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length == 1){
+				b = a.y;
+				a = a.x;
+			}
+			// make a unit vector
+			var a2 = a * a, b2 = b * b, n2 = a2 + b2, xy = 2 * a * b / n2;
+			return new m.Matrix2D({xx: 2 * a2 / n2 - 1, xy: xy, yx: xy, yy: 2 * b2 / n2 - 1}); // dojox/gfx/matrix.Matrix2D
+		},
+		project: function(a, b){
+			// summary:
+			//		forms an orthogonal projection matrix
+			// description:
+			//		The resulting matrix is used to project points orthogonally on a vector,
+			//		which goes through the origin.
+			// a: dojox/gfx.Point|Number
+			//		a point-like object, which specifies a vector of projection, or
+			//		an x coordinate value
+			// b: Number?
+			//		a y coordinate value
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length == 1){
+				b = a.y;
+				a = a.x;
+			}
+			// make a unit vector
+			var a2 = a * a, b2 = b * b, n2 = a2 + b2, xy = a * b / n2;
+			return new m.Matrix2D({xx: a2 / n2, xy: xy, yx: xy, yy: b2 / n2}); // dojox/gfx/matrix.Matrix2D
+		},
+
+		// ensure matrix 2D conformance
+		normalize: function(matrix){
+			// summary:
+			//		converts an object to a matrix, if necessary
+			// description:
+			//		Converts any 2D matrix-like object or an array of
+			//		such objects to a valid dojox/gfx/matrix.Matrix2D object.
+			// matrix: Object
+			//		an object, which is converted to a matrix, if necessary
+			// returns: dojox/gfx/matrix.Matrix2D
+			return (matrix instanceof m.Matrix2D) ? matrix : new m.Matrix2D(matrix); // dojox/gfx/matrix.Matrix2D
+		},
+
+		// common operations
+
+		isIdentity: function(matrix){
+			// summary:
+			//		returns whether the specified matrix is the identity.
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix object to be tested
+			// returns: Boolean
+			return matrix.xx == 1 && matrix.xy == 0 && matrix.yx == 0 && matrix.yy == 1 && matrix.dx == 0 && matrix.dy == 0; // Boolean
+		},
+		clone: function(matrix){
+			// summary:
+			//		creates a copy of a 2D matrix
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix-like object to be cloned
+			// returns: dojox/gfx/matrix.Matrix2D
+			var obj = new m.Matrix2D();
+			for(var i in matrix){
+				if(typeof(matrix[i]) == "number" && typeof(obj[i]) == "number" && obj[i] != matrix[i]) obj[i] = matrix[i];
+			}
+			return obj; // dojox/gfx/matrix.Matrix2D
+		},
+		invert: function(matrix){
+			// summary:
+			//		inverts a 2D matrix
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix-like object to be inverted
+			// returns: dojox/gfx/matrix.Matrix2D
+			var M = m.normalize(matrix),
+				D = M.xx * M.yy - M.xy * M.yx;
+				M = new m.Matrix2D({
+					xx: M.yy/D, xy: -M.xy/D,
+					yx: -M.yx/D, yy: M.xx/D,
+					dx: (M.xy * M.dy - M.yy * M.dx) / D,
+					dy: (M.yx * M.dx - M.xx * M.dy) / D
+				});
+			return M; // dojox/gfx/matrix.Matrix2D
+		},
+		_multiplyPoint: function(matrix, x, y){
+			// summary:
+			//		applies a matrix to a point
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix object to be applied
+			// x: Number
+			//		an x coordinate of a point
+			// y: Number
+			//		a y coordinate of a point
+			// returns: dojox/gfx.Point
+			return {x: matrix.xx * x + matrix.xy * y + matrix.dx, y: matrix.yx * x + matrix.yy * y + matrix.dy}; // dojox/gfx.Point
+		},
+		multiplyPoint: function(matrix, /* Number||Point */ a, /* Number? */ b){
+			// summary:
+			//		applies a matrix to a point
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix object to be applied
+			// a: Number|dojox/gfx.Point
+			//		an x coordinate of a point, or a point
+			// b: Number?
+			//		a y coordinate of a point
+			// returns: dojox/gfx.Point
+			var M = m.normalize(matrix);
+			if(typeof a == "number" && typeof b == "number"){
+				return m._multiplyPoint(M, a, b); // dojox/gfx.Point
+			}
+			return m._multiplyPoint(M, a.x, a.y); // dojox/gfx.Point
+		},
+		multiplyRectangle: function(matrix, /*Rectangle*/ rect){
+			// summary:
+			//		Applies a matrix to a rectangle.
+			// description:
+			//		The method applies the transformation on all corners of the
+			//		rectangle and returns the smallest rectangle enclosing the 4 transformed
+			//		points.
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix object to be applied.
+			// rect: Rectangle
+			//		the rectangle to transform.
+			// returns: dojox/gfx.Rectangle
+			var M = m.normalize(matrix);
+			rect = rect || {x:0, y:0, width:0, height:0}; 
+			if(m.isIdentity(M))
+				return {x: rect.x, y: rect.y, width: rect.width, height: rect.height}; // dojo/gfx.Rectangle
+			var p0 = m.multiplyPoint(M, rect.x, rect.y),
+				p1 = m.multiplyPoint(M, rect.x, rect.y + rect.height),
+				p2 = m.multiplyPoint(M, rect.x + rect.width, rect.y),
+				p3 = m.multiplyPoint(M, rect.x + rect.width, rect.y + rect.height),
+				minx = Math.min(p0.x, p1.x, p2.x, p3.x),
+				miny = Math.min(p0.y, p1.y, p2.y, p3.y),
+				maxx = Math.max(p0.x, p1.x, p2.x, p3.x),
+				maxy = Math.max(p0.y, p1.y, p2.y, p3.y);
+			return{ // dojo/gfx.Rectangle
+				x: minx,
+				y: miny,
+				width: maxx - minx,
+				height: maxy - miny
+			};
+		},
+		multiply: function(matrix){
+			// summary:
+			//		combines matrices by multiplying them sequentially in the given order
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix-like object,
+			//		all subsequent arguments are matrix-like objects too
+			var M = m.normalize(matrix);
+			// combine matrices
+			for(var i = 1; i < arguments.length; ++i){
+				var l = M, r = m.normalize(arguments[i]);
+				M = new m.Matrix2D();
+				M.xx = l.xx * r.xx + l.xy * r.yx;
+				M.xy = l.xx * r.xy + l.xy * r.yy;
+				M.yx = l.yx * r.xx + l.yy * r.yx;
+				M.yy = l.yx * r.xy + l.yy * r.yy;
+				M.dx = l.xx * r.dx + l.xy * r.dy + l.dx;
+				M.dy = l.yx * r.dx + l.yy * r.dy + l.dy;
+			}
+			return M; // dojox/gfx/matrix.Matrix2D
+		},
+
+		// high level operations
+
+		_sandwich: function(matrix, x, y){
+			// summary:
+			//		applies a matrix at a central point
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix-like object, which is applied at a central point
+			// x: Number
+			//		an x component of the central point
+			// y: Number
+			//		a y component of the central point
+			return m.multiply(m.translate(x, y), matrix, m.translate(-x, -y)); // dojox/gfx/matrix.Matrix2D
+		},
+		scaleAt: function(a, b, c, d){
+			// summary:
+			//		scales a picture using a specified point as a center of scaling
+			// description:
+			//		Compare with dojox/gfx/matrix.scale().
+			// a: Number
+			//		a scaling factor used for the x coordinate, or a uniform scaling factor used for both coordinates
+			// b: Number?
+			//		a scaling factor used for the y coordinate
+			// c: Number|Point
+			//		an x component of a central point, or a central point
+			// d: Number
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			switch(arguments.length){
+				case 4:
+					// a and b are scale factor components, c and d are components of a point
+					return m._sandwich(m.scale(a, b), c, d); // dojox/gfx/matrix.Matrix2D
+				case 3:
+					if(typeof c == "number"){
+						return m._sandwich(m.scale(a), b, c); // dojox/gfx/matrix.Matrix2D
+					}
+					return m._sandwich(m.scale(a, b), c.x, c.y); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.scale(a), b.x, b.y); // dojox/gfx/matrix.Matrix2D
+		},
+		rotateAt: function(angle, a, b){
+			// summary:
+			//		rotates a picture using a specified point as a center of rotation
+			// description:
+			//		Compare with dojox/gfx/matrix.rotate().
+			// angle: Number
+			//		an angle of rotation in radians (>0 for CW)
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.rotate(angle), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.rotate(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		},
+		rotategAt: function(degree, a, b){
+			// summary:
+			//		rotates a picture using a specified point as a center of rotation
+			// description:
+			//		Compare with dojox/gfx/matrix.rotateg().
+			// degree: Number
+			//		an angle of rotation in degrees (>0 for CW)
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.rotateg(degree), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.rotateg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		},
+		skewXAt: function(angle, a, b){
+			// summary:
+			//		skews a picture along the x axis using a specified point as a center of skewing
+			// description:
+			//		Compare with dojox/gfx/matrix.skewX().
+			// angle: Number
+			//		a skewing angle in radians
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.skewX(angle), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.skewX(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		},
+		skewXgAt: function(degree, a, b){
+			// summary:
+			//		skews a picture along the x axis using a specified point as a center of skewing
+			// description:
+			//		Compare with dojox/gfx/matrix.skewXg().
+			// degree: Number
+			//		a skewing angle in degrees
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.skewXg(degree), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.skewXg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		},
+		skewYAt: function(angle, a, b){
+			// summary:
+			//		skews a picture along the y axis using a specified point as a center of skewing
+			// description:
+			//		Compare with dojox/gfx/matrix.skewY().
+			// angle: Number
+			//		a skewing angle in radians
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.skewY(angle), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.skewY(angle), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		},
+		skewYgAt: function(/* Number */ degree, /* Number||Point */ a, /* Number? */ b){
+			// summary:
+			//		skews a picture along the y axis using a specified point as a center of skewing
+			// description:
+			//		Compare with dojox/gfx/matrix.skewYg().
+			// degree: Number
+			//		a skewing angle in degrees
+			// a: Number|dojox/gfx.Point
+			//		an x component of a central point, or a central point
+			// b: Number?
+			//		a y component of a central point
+			// returns: dojox/gfx/matrix.Matrix2D
+			if(arguments.length > 2){
+				return m._sandwich(m.skewYg(degree), a, b); // dojox/gfx/matrix.Matrix2D
+			}
+			return m._sandwich(m.skewYg(degree), a.x, a.y); // dojox/gfx/matrix.Matrix2D
+		}
+
+		//TODO: rect-to-rect mapping, scale-to-fit (isotropic and anisotropic versions)
+
+	});
+	// propagate Matrix2D up
+	g.Matrix2D = m.Matrix2D;
+
+	return m;
+});
+
+
+
+},
+'dojox/gfx/shape':function(){
+define(["./_base", "dojo/_base/lang", "dojo/_base/declare", "dojo/_base/kernel", "dojo/_base/sniff",
+	"dojo/on", "dojo/_base/array", "dojo/dom-construct", "dojo/_base/Color", "./matrix" ],
+	function(g, lang, declare, kernel, has, on, arr, domConstruct, Color, matrixLib){
+	
+	var isChrome = !!has("chrome");
+    
+	function removeElementAt(arr, index) {
+		if (!isChrome) {
+			return arr.splice(index, 1);
+		}
+		
+		// Ref:
+		// https://gamealchemist.wordpress.com/2013/05/01/lets-get-those-javascript-arrays-to-work-fast/
+		var len = arr.length;
+		
+		if (!len) { 
+			return; 
+		}
+		
+		while (index < len) {
+			arr[index] = arr[index + 1];
+			index++
+		}
+		
+		arr.length--;
+	}
+
+	var shape = g.shape = {
+		// summary:
+		//		This module contains the core graphics Shape API.
+		//		Different graphics renderer implementation modules (svg, canvas, vml, silverlight, etc.) extend this
+		//		basic api to provide renderer-specific implementations for each shape.
+	};
+
+	shape.Shape = declare("dojox.gfx.shape.Shape", null, {
+		// summary:
+		//		a Shape object, which knows how to apply
+		//		graphical attributes and transformations
+	
+		constructor: function(){
+			// rawNode: Node
+			//		underlying graphics-renderer-specific implementation object (if applicable)
+			this.rawNode = null;
+
+			// shape: Object
+			//		an abstract shape object
+			//		(see dojox/gfx.defaultPath,
+			//		dojox/gfx.defaultPolyline,
+			//		dojox/gfx.defaultRect,
+			//		dojox/gfx.defaultEllipse,
+			//		dojox/gfx.defaultCircle,
+			//		dojox/gfx.defaultLine,
+			//		or dojox/gfx.defaultImage)
+			this.shape = null;
+	
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a transformation matrix
+			this.matrix = null;
+	
+			// fillStyle: dojox/gfx.Fill
+			//		a fill object
+			//		(see dojox/gfx.defaultLinearGradient,
+			//		dojox/gfx.defaultRadialGradient,
+			//		dojox/gfx.defaultPattern,
+			//		or dojo/Color)
+			this.fillStyle = null;
+	
+			// strokeStyle: dojox/gfx.Stroke
+			//		a stroke object
+			//		(see dojox/gfx.defaultStroke)
+			this.strokeStyle = null;
+	
+			// bbox: dojox/gfx.Rectangle
+			//		a bounding box of this shape
+			//		(see dojox/gfx.defaultRect)
+			this.bbox = null;
+	
+			// virtual group structure
+	
+			// parent: Object
+			//		a parent or null
+			//		(see dojox/gfx/shape.Surface,
+			//		or dojox/gfx.Group)
+			this.parent = null;
+	
+			// parentMatrix: dojox/gfx/matrix.Matrix2D
+			//		a transformation matrix inherited from the parent
+			this.parentMatrix = null;
+
+			if(has("gfxRegistry")){
+				var uid = shape.register(this);
+				this.getUID = function(){
+					return uid;
+				}
+			}
+		},
+		
+		destroy: function(){
+			// summary:
+			//		Releases all internal resources owned by this shape. Once this method has been called,
+			//		the instance is considered destroyed and should not be used anymore.
+			if(has("gfxRegistry")){
+				shape.dispose(this);
+			}
+			if(this.rawNode && "__gfxObject__" in this.rawNode){
+				this.rawNode.__gfxObject__ = null;
+			}
+			this.rawNode = null;
+		},
+	
+		// trivial getters
+	
+		getNode: function(){
+			// summary:
+			//		Different graphics rendering subsystems implement shapes in different ways.  This
+			//		method provides access to the underlying graphics subsystem object.  Clients calling this
+			//		method and using the return value must be careful not to try sharing or using the underlying node
+			//		in a general way across renderer implementation.
+			//		Returns the underlying graphics Node, or null if no underlying graphics node is used by this shape.
+			return this.rawNode; // Node
+		},
+		getShape: function(){
+			// summary:
+			//		returns the current Shape object or null
+			//		(see dojox/gfx.defaultPath,
+			//		dojox/gfx.defaultPolyline,
+			//		dojox/gfx.defaultRect,
+			//		dojox/gfx.defaultEllipse,
+			//		dojox/gfx.defaultCircle,
+			//		dojox/gfx.defaultLine,
+			//		or dojox/gfx.defaultImage)
+			return this.shape; // Object
+		},
+		getTransform: function(){
+			// summary:
+			//		Returns the current transformation matrix applied to this Shape or null
+			return this.matrix;	// dojox/gfx/matrix.Matrix2D
+		},
+		getFill: function(){
+			// summary:
+			//		Returns the current fill object or null
+			//		(see dojox/gfx.defaultLinearGradient,
+			//		dojox/gfx.defaultRadialGradient,
+			//		dojox/gfx.defaultPattern,
+			//		or dojo/Color)
+			return this.fillStyle;	// Object
+		},
+		getStroke: function(){
+			// summary:
+			//		Returns the current stroke object or null
+			//		(see dojox/gfx.defaultStroke)
+			return this.strokeStyle;	// Object
+		},
+		getParent: function(){
+			// summary:
+			//		Returns the parent Shape, Group or null if this Shape is unparented.
+			//		(see dojox/gfx/shape.Surface,
+			//		or dojox/gfx.Group)
+			return this.parent;	// Object
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		Returns the bounding box Rectangle for this shape or null if a BoundingBox cannot be
+			//		calculated for the shape on the current renderer or for shapes with no geometric area (points).
+			//		A bounding box is a rectangular geometric region
+			//		defining the X and Y extent of the shape.
+			//		(see dojox/gfx.defaultRect)
+			//		Note that this method returns a direct reference to the attribute of this instance. Therefore you should
+			//		not modify its value directly but clone it instead.
+			return this.bbox;	// dojox/gfx.Rectangle
+		},
+		getTransformedBoundingBox: function(){
+			// summary:
+			//		returns an array of four points or null
+			//		four points represent four corners of the untransformed bounding box
+			var b = this.getBoundingBox();
+			if(!b){
+				return null;	// null
+			}
+			var m = this._getRealMatrix(),
+				gm = matrixLib;
+			return [	// Array
+					gm.multiplyPoint(m, b.x, b.y),
+					gm.multiplyPoint(m, b.x + b.width, b.y),
+					gm.multiplyPoint(m, b.x + b.width, b.y + b.height),
+					gm.multiplyPoint(m, b.x, b.y + b.height)
+				];
+		},
+		getEventSource: function(){
+			// summary:
+			//		returns a Node, which is used as
+			//		a source of events for this shape
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			return this.rawNode;	// Node
+		},
+	
+		// empty settings
+		
+		setClip: function(clip){
+			// summary:
+			//		sets the clipping area of this shape.
+			// description:
+			//		The clipping area defines the shape area that will be effectively visible. Everything that
+			//		would be drawn outside of the clipping area will not be rendered.
+			//		The possible clipping area types are rectangle, ellipse, polyline and path, but all are not
+			//		supported by all the renderers. vml only supports rectangle clipping, while the gfx silverlight renderer does not
+			//		support path clipping.
+			//		The clip parameter defines the clipping area geometry, and should be an object with the following properties:
+			//
+			//		- {x:Number, y:Number, width:Number, height:Number} for rectangular clip
+			//		- {cx:Number, cy:Number, rx:Number, ry:Number} for ellipse clip
+			//		- {points:Array} for polyline clip
+			//		- {d:String} for a path clip.
+			//
+			//		The clip geometry coordinates are expressed in the coordinate system used to draw the shape. In other
+			//		words, the clipping area is defined in the shape parent coordinate system and the shape transform is automatically applied.
+			// example:
+			//		The following example shows how to clip a gfx image with all the possible clip geometry: a rectangle,
+			//		an ellipse, a circle (using the ellipse geometry), a polyline and a path:
+			//
+			//	|	surface.createImage({src:img, width:200,height:200}).setClip({x:10,y:10,width:50,height:50});
+			//	|	surface.createImage({src:img, x:100,y:50,width:200,height:200}).setClip({cx:200,cy:100,rx:20,ry:30});
+			//	|	surface.createImage({src:img, x:0,y:350,width:200,height:200}).setClip({cx:100,cy:425,rx:60,ry:60});
+			//	|	surface.createImage({src:img, x:300,y:0,width:200,height:200}).setClip({points:[350,0,450,50,380,130,300,110]});
+			//	|	surface.createImage({src:img, x:300,y:350,width:200,height:200}).setClip({d:"M 350,350 C314,414 317,557 373,450.0000 z"});
+
+			// clip: Object
+			//		an object that defines the clipping geometry, or null to remove clip.
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			this.clip = clip;
+		},
+		
+		getClip: function(){
+			return this.clip;
+		},
+	
+		setShape: function(shape){
+			// summary:
+			//		sets a shape object
+			//		(the default implementation simply ignores it)
+			// shape: Object
+			//		a shape object
+			//		(see dojox/gfx.defaultPath,
+			//		dojox/gfx.defaultPolyline,
+			//		dojox/gfx.defaultRect,
+			//		dojox/gfx.defaultEllipse,
+			//		dojox/gfx.defaultCircle,
+			//		dojox/gfx.defaultLine,
+			//		or dojox/gfx.defaultImage)
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			this.shape = g.makeParameters(this.shape, shape);
+			this.bbox = null;
+			return this;	// self
+		},
+		setFill: function(fill){
+			// summary:
+			//		sets a fill object
+			//		(the default implementation simply ignores it)
+			// fill: Object
+			//		a fill object
+			//		(see dojox/gfx.defaultLinearGradient,
+			//		dojox/gfx.defaultRadialGradient,
+			//		dojox/gfx.defaultPattern,
+			//		or dojo/_base/Color)
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			if(!fill){
+				// don't fill
+				this.fillStyle = null;
+				return this;	// self
+			}
+			var f = null;
+			if(typeof(fill) == "object" && "type" in fill){
+				// gradient or pattern
+				switch(fill.type){
+					case "linear":
+						f = g.makeParameters(g.defaultLinearGradient, fill);
+						break;
+					case "radial":
+						f = g.makeParameters(g.defaultRadialGradient, fill);
+						break;
+					case "pattern":
+						f = g.makeParameters(g.defaultPattern, fill);
+						break;
+				}
+			}else{
+				// color object
+				f = g.normalizeColor(fill);
+			}
+			this.fillStyle = f;
+			return this;	// self
+		},
+		setStroke: function(stroke){
+			// summary:
+			//		sets a stroke object
+			//		(the default implementation simply ignores it)
+			// stroke: Object
+			//		a stroke object
+			//		(see dojox/gfx.defaultStroke)
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			if(!stroke){
+				// don't stroke
+				this.strokeStyle = null;
+				return this;	// self
+			}
+			// normalize the stroke
+			if(typeof stroke == "string" || lang.isArray(stroke) || stroke instanceof Color){
+				stroke = {color: stroke};
+			}
+			var s = this.strokeStyle = g.makeParameters(g.defaultStroke, stroke);
+			s.color = g.normalizeColor(s.color);
+			return this;	// self
+		},
+		setTransform: function(matrix){
+			// summary:
+			//		sets a transformation matrix
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a matrix or a matrix-like object
+			//		(see an argument of dojox/gfx/matrix.Matrix2D
+			//		constructor for a list of acceptable arguments)
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			this.matrix = matrixLib.clone(matrix ? matrixLib.normalize(matrix) : matrixLib.identity);
+			return this._applyTransform();	// self
+		},
+	
+		_applyTransform: function(){
+			// summary:
+			//		physically sets a matrix
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			return this;	// self
+		},
+	
+		// z-index
+	
+		moveToFront: function(){
+			// summary:
+			//		moves a shape to front of its parent's list of shapes
+			var p = this.getParent();
+			if(p){
+				p._moveChildToFront(this);
+				this._moveToFront();	// execute renderer-specific action
+			}
+			return this;	// self
+		},
+		moveToBack: function(){
+			// summary:
+			//		moves a shape to back of its parent's list of shapes
+			var p = this.getParent();
+			if(p){
+				p._moveChildToBack(this);
+				this._moveToBack();	// execute renderer-specific action
+			}
+			return this;
+		},
+		_moveToFront: function(){
+			// summary:
+			//		renderer-specific hook, see dojox/gfx/shape.Shape.moveToFront()
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+		},
+		_moveToBack: function(){
+			// summary:
+			//		renderer-specific hook, see dojox/gfx/shape.Shape.moveToFront()
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+		},
+	
+		// apply left & right transformation
+	
+		applyRightTransform: function(matrix){
+			// summary:
+			//		multiplies the existing matrix with an argument on right side
+			//		(this.matrix * matrix)
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a matrix or a matrix-like object
+			//		(see an argument of dojox/gfx/matrix.Matrix2D
+			//		constructor for a list of acceptable arguments)
+			return matrix ? this.setTransform([this.matrix, matrix]) : this;	// self
+		},
+		applyLeftTransform: function(matrix){
+			// summary:
+			//		multiplies the existing matrix with an argument on left side
+			//		(matrix * this.matrix)
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a matrix or a matrix-like object
+			//		(see an argument of dojox/gfx/matrix.Matrix2D
+			//		constructor for a list of acceptable arguments)
+			return matrix ? this.setTransform([matrix, this.matrix]) : this;	// self
+		},
+		applyTransform: function(matrix){
+			// summary:
+			//		a shortcut for dojox/gfx/shape.Shape.applyRightTransform
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a matrix or a matrix-like object
+			//		(see an argument of dojox/gfx/matrix.Matrix2D
+			//		constructor for a list of acceptable arguments)
+			return matrix ? this.setTransform([this.matrix, matrix]) : this;	// self
+		},
+	
+		// virtual group methods
+	
+		removeShape: function(silently){
+			// summary:
+			//		removes the shape from its parent's list of shapes
+			// silently: Boolean
+			//		if true, do not redraw a picture yet
+			if(this.parent){
+				this.parent.remove(this, silently);
+			}
+			return this;	// self
+		},
+		_setParent: function(parent, matrix){
+			// summary:
+			//		sets a parent
+			// parent: Object
+			//		a parent or null
+			//		(see dojox/gfx/shape.Surface,
+			//		or dojox/gfx.Group)
+			// matrix: dojox/gfx/matrix.Matrix2D
+			//		a 2D matrix or a matrix-like object
+			this.parent = parent;
+			return this._updateParentMatrix(matrix);	// self
+		},
+		_updateParentMatrix: function(matrix){
+			// summary:
+			//		updates the parent matrix with new matrix
+			// matrix: dojox/gfx/Matrix2D
+			//		a 2D matrix or a matrix-like object
+			this.parentMatrix = matrix ? matrixLib.clone(matrix) : null;
+			return this._applyTransform();	// self
+		},
+		_getRealMatrix: function(){
+			// summary:
+			//		returns the cumulative ('real') transformation matrix
+			//		by combining the shape's matrix with its parent's matrix
+			var m = this.matrix;
+			var p = this.parent;
+			while(p){
+				if(p.matrix){
+					m = matrixLib.multiply(p.matrix, m);
+				}
+				p = p.parent;
+			}
+			return m;	// dojox/gfx/matrix.Matrix2D
+		}
+	});
+	
+	shape._eventsProcessing = {
+		on: function(type, listener){
+			//	summary:
+			//		Connects an event to this shape.
+
+			return on(this.getEventSource(), type, shape.fixCallback(this, g.fixTarget, listener));
+		},
+
+		connect: function(name, object, method){
+			// summary:
+			//		connects a handler to an event on this shape
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+			// redirect to fixCallback to normalize events and add the gfxTarget to the event. The latter
+			// is done by dojox/gfx.fixTarget which is defined by each renderer
+			if(name.substring(0, 2) == "on"){
+				name = name.substring(2);
+			}
+			return this.on(name, method ? lang.hitch(object, method) : object);
+		},
+
+		disconnect: function(token){
+			// summary:
+			//		connects a handler by token from an event on this shape
+			
+			// COULD BE RE-IMPLEMENTED BY THE RENDERER!
+	
+			return token.remove();
+		}
+	};
+	
+	shape.fixCallback = function(gfxElement, fixFunction, scope, method){
+		// summary:
+		//		Wraps the callback to allow for tests and event normalization
+		//		before it gets invoked. This is where 'fixTarget' is invoked.
+		// tags:
+		//      private
+		// gfxElement: Object
+		//		The GFX object that triggers the action (ex.:
+		//		dojox/gfx.Surface and dojox/gfx/shape.Shape). A new event property
+		//		'gfxTarget' is added to the event to reference this object.
+		//		for easy manipulation of GFX objects by the event handlers.
+		// fixFunction: Function
+		//		The function that implements the logic to set the 'gfxTarget'
+		//		property to the event. It should be 'dojox/gfx.fixTarget' for
+		//		most of the cases
+		// scope: Object
+		//		Optional. The scope to be used when invoking 'method'. If
+		//		omitted, a global scope is used.
+		// method: Function|String
+		//		The original callback to be invoked.
+		if(!method){
+			method = scope;
+			scope = null;
+		}
+		if(lang.isString(method)){
+			scope = scope || kernel.global;
+			if(!scope[method]){ throw(['dojox.gfx.shape.fixCallback: scope["', method, '"] is null (scope="', scope, '")'].join('')); }
+			return function(e){  
+				return fixFunction(e,gfxElement) ? scope[method].apply(scope, arguments || []) : undefined; }; // Function
+		}
+		return !scope 
+			? function(e){ 
+				return fixFunction(e,gfxElement) ? method.apply(scope, arguments) : undefined; } 
+			: function(e){ 
+				return fixFunction(e,gfxElement) ? method.apply(scope, arguments || []) : undefined; }; // Function
+	};
+	lang.extend(shape.Shape, shape._eventsProcessing);
+	
+	shape.Container = {
+		// summary:
+		//		a container of shapes, which can be used
+		//		as a foundation for renderer-specific groups, or as a way
+		//		to logically group shapes (e.g, to propagate matricies)
+	
+		_init: function() {
+			// children: Array
+			//		a list of children
+			this.children = [];
+			this._batch = 0;
+		},
+	
+		// group management
+	
+		openBatch: function() {
+			// summary:
+			//		starts a new batch, subsequent new child shapes will be held in
+			//		the batch instead of appending to the container directly.
+			// description:
+			//		Because the canvas renderer has no DOM hierarchy, the canvas implementation differs
+			//		such that it suspends the repaint requests for this container until the current batch is closed by a call to closeBatch().
+			return this;
+		},
+		closeBatch: function() {
+			// summary:
+			//		submits the current batch, append all pending child shapes to DOM
+			// description:
+			//		On canvas, this method flushes the pending redraws queue.
+			return this;
+		},
+		add: function(shape){
+			// summary:
+			//		adds a shape to the list
+			// shape: dojox/gfx/shape.Shape
+			//		the shape to add to the list
+			var oldParent = shape.getParent();
+			if(oldParent){
+				oldParent.remove(shape, true);
+			}
+			this.children.push(shape);
+			return shape._setParent(this, this._getRealMatrix());	// self
+		},
+		remove: function(shape, silently){
+			// summary:
+			//		removes a shape from the list
+			// shape: dojox/gfx/shape.Shape
+			//		the shape to remove
+			// silently: Boolean
+			//		if true, do not redraw a picture yet
+			for(var i = 0; i < this.children.length; ++i){
+				if(this.children[i] == shape){
+					if(silently){
+						// skip for now
+					}else{
+						shape.parent = null;
+						shape.parentMatrix = null;
+					}
+					removeElementAt(this.children, i);
+					break;
+				}
+			}
+			return this;	// self
+		},
+		clear: function(/*Boolean?*/ destroy){
+			// summary:
+			//		removes all shapes from a group/surface.
+			// destroy: Boolean
+			//		Indicates whether the children should be destroyed. Optional.
+			var shape;
+			for(var i = 0; i < this.children.length;++i){
+				shape = this.children[i];
+				shape.parent = null;
+				shape.parentMatrix = null;
+				if(destroy){
+					shape.destroy();
+				}
+			}
+			this.children = [];
+			return this;	// self
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		Returns the bounding box Rectangle for this shape.
+			if(this.children){
+				// if this is a composite shape, then sum up all the children
+				var result = null;
+				arr.forEach(this.children, function(shape){
+					var bb = shape.getBoundingBox();
+					if(bb){
+						var ct = shape.getTransform();
+						if(ct){
+							bb = matrixLib.multiplyRectangle(ct, bb);
+						}
+						if(result){
+							// merge two bbox 
+							result.x = Math.min(result.x, bb.x);
+							result.y = Math.min(result.y, bb.y);
+							result.endX = Math.max(result.endX, bb.x + bb.width);
+							result.endY = Math.max(result.endY, bb.y + bb.height);
+						}else{
+							// first bbox 
+							result = {
+								x: bb.x,
+								y: bb.y,
+								endX: bb.x + bb.width,
+								endY: bb.y + bb.height
+							};
+						}
+					}
+				});
+				if(result){
+					result.width = result.endX - result.x;
+					result.height = result.endY - result.y;
+				}
+				return result; // dojox/gfx.Rectangle
+			}
+			// unknown/empty bounding box, subclass shall override this impl 
+			return null;
+		},
+		// moving child nodes
+		_moveChildToFront: function(shape){
+			// summary:
+			//		moves a shape to front of the list of shapes
+			// shape: dojox/gfx/shape.Shape
+			//		one of the child shapes to move to the front
+			for(var i = 0; i < this.children.length; ++i){
+				if(this.children[i] == shape){
+					removeElementAt(this.children, i);
+					this.children.push(shape);
+					break;
+				}
+			}
+			return this;	// self
+		},
+		_moveChildToBack: function(shape){
+			// summary:
+			//		moves a shape to back of the list of shapes
+			// shape: dojox/gfx/shape.Shape
+			//		one of the child shapes to move to the front
+			for(var i = 0; i < this.children.length; ++i){
+				if(this.children[i] == shape){
+					removeElementAt(this.children, i);
+					this.children.unshift(shape);
+					break;
+				}
+			}
+			return this;	// self
+		}
+	};
+
+	shape.Surface = declare("dojox.gfx.shape.Surface", null, {
+		// summary:
+		//		a surface object to be used for drawings
+		constructor: function(){
+			// underlying node
+			this.rawNode = null;
+			// the parent node
+			this._parent = null;
+			// the list of DOM nodes to be deleted in the case of destruction
+			this._nodes = [];
+			// the list of events to be detached in the case of destruction
+			this._events = [];
+		},
+		destroy: function(){
+			// summary:
+			//		destroy all relevant external resources and release all
+			//		external references to make this object garbage-collectible
+			arr.forEach(this._nodes, domConstruct.destroy);
+			this._nodes = [];
+			arr.forEach(this._events, function(h){ if(h){ h.remove(); } });
+			this._events = [];
+			this.rawNode = null;	// recycle it in _nodes, if it needs to be recycled
+			if(has("ie")){
+				while(this._parent.lastChild){
+					domConstruct.destroy(this._parent.lastChild);
+				}
+			}else{
+				this._parent.innerHTML = "";
+			}
+			this._parent = null;
+		},
+		getEventSource: function(){
+			// summary:
+			//		returns a node, which can be used to attach event listeners
+			return this.rawNode; // Node
+		},
+		_getRealMatrix: function(){
+			// summary:
+			//		always returns the identity matrix
+			return null;	// dojox/gfx/Matrix2D
+		},
+		/*=====
+		 setDimensions: function(width, height){
+			 // summary:
+			 //		sets the width and height of the rawNode
+			 // width: String
+			 //		width of surface, e.g., "100px"
+			 // height: String
+			 //		height of surface, e.g., "100px"
+			 return this;	// self
+		 },
+		 getDimensions: function(){
+			 // summary:
+			 //     gets current width and height in pixels
+			 // returns: Object
+			 //     object with properties "width" and "height"
+		 },
+		 =====*/
+		isLoaded: true,
+		onLoad: function(/*dojox/gfx/shape.Surface*/ surface){
+			// summary:
+			//		local event, fired once when the surface is created
+			//		asynchronously, used only when isLoaded is false, required
+			//		only for Silverlight.
+		},
+		whenLoaded: function(/*Object|Null*/ context, /*Function|String*/ method){
+			var f = lang.hitch(context, method);
+			if(this.isLoaded){
+				f(this);
+			}else{
+				on.once(this, "load", function(surface){
+					f(surface);
+				});
+			}
+		}
+	});
+	lang.extend(shape.Surface, shape._eventsProcessing);
+
+	/*=====
+	g.Point = declare("dojox/gfx.Point", null, {
+		// summary:
+		//		2D point for drawings - {x, y}
+		// description:
+		//		Do not use this object directly!
+		//		Use the naked object instead: {x: 1, y: 2}.
+	});
+
+	g.Rectangle = declare("dojox.gfx.Rectangle", null, {
+		// summary:
+		//		rectangle - {x, y, width, height}
+		// description:
+		//		Do not use this object directly!
+		//		Use the naked object instead: {x: 1, y: 2, width: 100, height: 200}.
+	});
+	 =====*/
+
+
+	shape.Rect = declare("dojox.gfx.shape.Rect", shape.Shape, {
+		// summary:
+		//		a generic rectangle
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		The underlying graphics system object (typically a DOM Node)
+			this.shape = g.getDefault("Rect");
+			this.rawNode = rawNode;
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box (its shape in this case)
+			return this.shape;	// dojox/gfx.Rectangle
+		}
+	});
+	
+	shape.Ellipse = declare("dojox.gfx.shape.Ellipse", shape.Shape, {
+		// summary:
+		//		a generic ellipse
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.shape = g.getDefault("Ellipse");
+			this.rawNode = rawNode;
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box
+			if(!this.bbox){
+				var shape = this.shape;
+				this.bbox = {x: shape.cx - shape.rx, y: shape.cy - shape.ry,
+					width: 2 * shape.rx, height: 2 * shape.ry};
+			}
+			return this.bbox;	// dojox/gfx.Rectangle
+		}
+	});
+	
+	shape.Circle = declare("dojox.gfx.shape.Circle", shape.Shape, {
+		// summary:
+		//		a generic circle
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.shape = g.getDefault("Circle");
+			this.rawNode = rawNode;
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box
+			if(!this.bbox){
+				var shape = this.shape;
+				this.bbox = {x: shape.cx - shape.r, y: shape.cy - shape.r,
+					width: 2 * shape.r, height: 2 * shape.r};
+			}
+			return this.bbox;	// dojox/gfx.Rectangle
+		}
+	});
+	
+	shape.Line = declare("dojox.gfx.shape.Line", shape.Shape, {
+		// summary:
+		//		a generic line (do not instantiate it directly)
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.shape = g.getDefault("Line");
+			this.rawNode = rawNode;
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box
+			if(!this.bbox){
+				var shape = this.shape;
+				this.bbox = {
+					x:		Math.min(shape.x1, shape.x2),
+					y:		Math.min(shape.y1, shape.y2),
+					width:	Math.abs(shape.x2 - shape.x1),
+					height:	Math.abs(shape.y2 - shape.y1)
+				};
+			}
+			return this.bbox;	// dojox/gfx.Rectangle
+		}
+	});
+	
+	shape.Polyline = declare("dojox.gfx.shape.Polyline", shape.Shape, {
+		// summary:
+		//		a generic polyline/polygon (do not instantiate it directly)
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.shape = g.getDefault("Polyline");
+			this.rawNode = rawNode;
+		},
+		setShape: function(points, closed){
+			// summary:
+			//		sets a polyline/polygon shape object
+			// points: Object|Array
+			//		a polyline/polygon shape object, or an array of points
+			// closed: Boolean
+			//		close the polyline to make a polygon
+			if(points && points instanceof Array){
+				this.inherited(arguments, [{points: points}]);
+				if(closed && this.shape.points.length){
+					this.shape.points.push(this.shape.points[0]);
+				}
+			}else{
+				this.inherited(arguments, [points]);
+			}
+			return this;	// self
+		},
+		_normalizePoints: function(){
+			// summary:
+			//		normalize points to array of {x:number, y:number}
+			var p = this.shape.points, l = p && p.length;
+			if(l && typeof p[0] == "number"){
+				var points = [];
+				for(var i = 0; i < l; i += 2){
+					points.push({x: p[i], y: p[i + 1]});
+				}
+				this.shape.points = points;
+			}
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box
+			if(!this.bbox && this.shape.points.length){
+				var p = this.shape.points;
+				var l = p.length;
+				var t = p[0];
+				var bbox = {l: t.x, t: t.y, r: t.x, b: t.y};
+				for(var i = 1; i < l; ++i){
+					t = p[i];
+					if(bbox.l > t.x) bbox.l = t.x;
+					if(bbox.r < t.x) bbox.r = t.x;
+					if(bbox.t > t.y) bbox.t = t.y;
+					if(bbox.b < t.y) bbox.b = t.y;
+				}
+				this.bbox = {
+					x:		bbox.l,
+					y:		bbox.t,
+					width:	bbox.r - bbox.l,
+					height:	bbox.b - bbox.t
+				};
+			}
+			return this.bbox;	// dojox/gfx.Rectangle
+		}
+	});
+	
+	shape.Image = declare("dojox.gfx.shape.Image", shape.Shape, {
+		// summary:
+		//		a generic image (do not instantiate it directly)
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.shape = g.getDefault("Image");
+			this.rawNode = rawNode;
+		},
+		getBoundingBox: function(){
+			// summary:
+			//		returns the bounding box (its shape in this case)
+			return this.shape;	// dojox/gfx.Rectangle
+		},
+		setStroke: function(){
+			// summary:
+			//		ignore setting a stroke style
+			return this;	// self
+		},
+		setFill: function(){
+			// summary:
+			//		ignore setting a fill style
+			return this;	// self
+		}
+	});
+	
+	shape.Text = declare(shape.Shape, {
+		// summary:
+		//		a generic text (do not instantiate it directly)
+		constructor: function(rawNode){
+			// rawNode: Node
+			//		a DOM Node
+			this.fontStyle = null;
+			this.shape = g.getDefault("Text");
+			this.rawNode = rawNode;
+		},
+		getFont: function(){
+			// summary:
+			//		returns the current font object or null
+			return this.fontStyle;	// Object
+		},
+		setFont: function(newFont){
+			// summary:
+			//		sets a font for text
+			// newFont: Object
+			//		a font object (see dojox/gfx.defaultFont) or a font string
+			this.fontStyle = typeof newFont == "string" ? g.splitFontString(newFont) :
+				g.makeParameters(g.defaultFont, newFont);
+			this._setFont();
+			return this;	// self
+		},
+		getBoundingBox: function(){
+			var bbox = null, s = this.getShape();
+			if(s.text){
+				bbox = g._base._computeTextBoundingBox(this);
+			}
+			return bbox;
+		}
+	});
+	
+	shape.Creator = {
+		// summary:
+		//		shape creators
+		createShape: function(shape){
+			// summary:
+			//		creates a shape object based on its type; it is meant to be used
+			//		by group-like objects
+			// shape: Object
+			//		a shape descriptor object
+			// returns: dojox/gfx/shape.Shape | Null
+			//      a fully instantiated surface-specific Shape object
+			switch(shape.type){
+				case g.defaultPath.type:		return this.createPath(shape);
+				case g.defaultRect.type:		return this.createRect(shape);
+				case g.defaultCircle.type:	    return this.createCircle(shape);
+				case g.defaultEllipse.type:	    return this.createEllipse(shape);
+				case g.defaultLine.type:		return this.createLine(shape);
+				case g.defaultPolyline.type:	return this.createPolyline(shape);
+				case g.defaultImage.type:		return this.createImage(shape);
+				case g.defaultText.type:		return this.createText(shape);
+				case g.defaultTextPath.type:	return this.createTextPath(shape);
+			}
+			return null;
+		},
+		createGroup: function(){
+			// summary:
+			//		creates a group shape
+			return this.createObject(g.Group);	// dojox/gfx/Group
+		},
+		createRect: function(rect){
+			// summary:
+			//		creates a rectangle shape
+			// rect: Object
+			//		a path object (see dojox/gfx.defaultRect)
+			return this.createObject(g.Rect, rect);	// dojox/gfx/shape.Rect
+		},
+		createEllipse: function(ellipse){
+			// summary:
+			//		creates an ellipse shape
+			// ellipse: Object
+			//		an ellipse object (see dojox/gfx.defaultEllipse)
+			return this.createObject(g.Ellipse, ellipse);	// dojox/gfx/shape.Ellipse
+		},
+		createCircle: function(circle){
+			// summary:
+			//		creates a circle shape
+			// circle: Object
+			//		a circle object (see dojox/gfx.defaultCircle)
+			return this.createObject(g.Circle, circle);	// dojox/gfx/shape.Circle
+		},
+		createLine: function(line){
+			// summary:
+			//		creates a line shape
+			// line: Object
+			//		a line object (see dojox/gfx.defaultLine)
+			return this.createObject(g.Line, line);	// dojox/gfx/shape.Line
+		},
+		createPolyline: function(points){
+			// summary:
+			//		creates a polyline/polygon shape
+			// points: Object
+			//		a points object (see dojox/gfx.defaultPolyline)
+			//		or an Array of points
+			return this.createObject(g.Polyline, points);	// dojox/gfx/shape.Polyline
+		},
+		createImage: function(image){
+			// summary:
+			//		creates a image shape
+			// image: Object
+			//		an image object (see dojox/gfx.defaultImage)
+			return this.createObject(g.Image, image);	// dojox/gfx/shape.Image
+		},
+		createText: function(text){
+			// summary:
+			//		creates a text shape
+			// text: Object
+			//		a text object (see dojox/gfx.defaultText)
+			return this.createObject(g.Text, text);	// dojox/gfx/shape.Text
+		},
+		createPath: function(path){
+			// summary:
+			//		creates a path shape
+			// path: Object
+			//		a path object (see dojox/gfx.defaultPath)
+			return this.createObject(g.Path, path);	// dojox/gfx/shape.Path
+		},
+		createTextPath: function(text){
+			// summary:
+			//		creates a text shape
+			// text: Object
+			//		a textpath object (see dojox/gfx.defaultTextPath)
+			return this.createObject(g.TextPath, {}).setText(text);	// dojox/gfx/shape.TextPath
+		},
+		createObject: function(shapeType, rawShape){
+			// summary:
+			//		creates an instance of the passed shapeType class
+			// shapeType: Function
+			//		a class constructor to create an instance of
+			// rawShape: Object 
+			//		properties to be passed in to the classes 'setShape' method
+	
+			// SHOULD BE RE-IMPLEMENTED BY THE RENDERER!
+			return null;	// dojox/gfx/shape.Shape
+		}
+	};
+	
+	/*=====
+	 lang.extend(shape.Surface, shape.Container);
+	 lang.extend(shape.Surface, shape.Creator);
+
+	 g.Group = declare(shape.Shape, {
+		// summary:
+		//		a group shape, which can be used
+		//		to logically group shapes (e.g, to propagate matricies)
+	});
+	lang.extend(g.Group, shape.Container);
+	lang.extend(g.Group, shape.Creator);
+
+	g.Rect     = shape.Rect;
+	g.Circle   = shape.Circle;
+	g.Ellipse  = shape.Ellipse;
+	g.Line     = shape.Line;
+	g.Polyline = shape.Polyline;
+	g.Text     = shape.Text;
+	g.Surface  = shape.Surface;
+	=====*/
+
+	return shape;
+});
+
+},
+'dojox/gfx/svg':function(){
+define(["dojo/_base/lang", "dojo/_base/sniff", "dojo/_base/window", "dojo/dom", "dojo/_base/declare", "dojo/_base/array",
+  "dojo/dom-geometry", "dojo/dom-attr", "dojo/_base/Color", "./_base", "./shape", "./path"],
+function(lang, has, win, dom, declare, arr, domGeom, domAttr, Color, g, gs, pathLib){
+
+	var svg = g.svg = {
+		// summary:
+		//		This the graphics rendering bridge for browsers compliant with W3C SVG1.0.
+		//		This is the preferred renderer to use for interactive and accessible graphics.
+	};
+	svg.useSvgWeb = (typeof window.svgweb != "undefined");
+
+	// Need to detect iOS in order to workaround bug when
+	// touching nodes with text
+	var uagent = navigator.userAgent,
+		safMobile = has("ios"),
+		android = has("android"),
+		textRenderingFix = has("chrome") || (android && android>=4) ? "auto" : "optimizeLegibility";// #16099, #16461
+
+	function _createElementNS(ns, nodeType){
+		// summary:
+		//		Internal helper to deal with creating elements that
+		//		are namespaced.  Mainly to get SVG markup output
+		//		working on IE.
+		if(win.doc.createElementNS){
+			return win.doc.createElementNS(ns,nodeType);
+		}else{
+			return win.doc.createElement(nodeType);
+		}
+	}
+	
+	function _setAttributeNS(node, ns, attr, value){
+		if(node.setAttributeNS){
+			return node.setAttributeNS(ns, attr, value);
+		}else{
+			return node.setAttribute(attr, value);
+		}
+	}
+
+	function _createTextNode(text){
+		if(svg.useSvgWeb){
+			return win.doc.createTextNode(text, true);
+		}else{
+			return win.doc.createTextNode(text);
+		}
+	}
+
+	function _createFragment(){
+		if(svg.useSvgWeb){
+			return win.doc.createDocumentFragment(true);
+		}else{
+			return win.doc.createDocumentFragment();
+		}
+	}
+
+	svg.xmlns = {
+		xlink: "http://www.w3.org/1999/xlink",
+		svg:   "http://www.w3.org/2000/svg"
+	};
+
+	svg.getRef = function(name){
+		// summary:
+		//		looks up a node by its external name
+		// name: String
+		//		an SVG external reference
+		// returns:
+		//      returns a DOM Node specified by the name argument or null
+		if(!name || name == "none") return null;
+		if(name.match(/^url\(#.+\)$/)){
+			return dom.byId(name.slice(5, -1));	// Node
+		}
+		// alternative representation of a reference
+		if(name.match(/^#dojoUnique\d+$/)){
+			// we assume here that a reference was generated by dojox/gfx
+			return dom.byId(name.slice(1));	// Node
+		}
+		return null;	// Node
+	};
+
+	svg.dasharray = {
+		solid:				"none",
+		shortdash:			[4, 1],
+		shortdot:			[1, 1],
+		shortdashdot:		[4, 1, 1, 1],
+		shortdashdotdot:	[4, 1, 1, 1, 1, 1],
+		dot:				[1, 3],
+		dash:				[4, 3],
+		longdash:			[8, 3],
+		dashdot:			[4, 3, 1, 3],
+		longdashdot:		[8, 3, 1, 3],
+		longdashdotdot:		[8, 3, 1, 3, 1, 3]
+	};
+
+	var clipCount = 0;
+
+	svg.Shape = declare("dojox.gfx.svg.Shape", gs.Shape, {
+		// summary:
+		//		SVG-specific implementation of dojox/gfx/shape.Shape methods
+
+		destroy: function(){
+			if(this.fillStyle && "type" in this.fillStyle){
+				var fill = this.rawNode.getAttribute("fill"),
+					ref  = svg.getRef(fill);
+				if(ref){
+					ref.parentNode.removeChild(ref);
+				}
+			}
+			if(this.clip){
+				var clipPathProp = this.rawNode.getAttribute("clip-path");
+				if(clipPathProp){
+					var clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
+					if(clipNode){ clipNode.parentNode.removeChild(clipNode); }
+				}
+			}
+			gs.Shape.prototype.destroy.apply(this, arguments);
+		},
+
+		setFill: function(fill){
+			// summary:
+			//		sets a fill object (SVG)
+			// fill: Object
+			//		a fill object
+			//		(see dojox/gfx.defaultLinearGradient,
+			//		dojox/gfx.defaultRadialGradient,
+			//		dojox/gfx.defaultPattern,
+			//		or dojo/_base/Color)
+
+			if(!fill){
+				// don't fill
+				this.fillStyle = null;
+				this.rawNode.setAttribute("fill", "none");
+				this.rawNode.setAttribute("fill-opacity", 0);
+				return this;
+			}
+			var f;
+			// FIXME: slightly magical. We're using the outer scope's "f", but setting it later
+			var setter = function(x){
+					// we assume that we're executing in the scope of the node to mutate
+					this.setAttribute(x, f[x].toFixed(8));
+				};
+			if(typeof(fill) == "object" && "type" in fill){
+				// gradient
+				switch(fill.type){
+					case "linear":
+						f = g.makeParameters(g.defaultLinearGradient, fill);
+						var gradient = this._setFillObject(f, "linearGradient");
+						arr.forEach(["x1", "y1", "x2", "y2"], setter, gradient);
+						break;
+					case "radial":
+						f = g.makeParameters(g.defaultRadialGradient, fill);
+						var grad = this._setFillObject(f, "radialGradient");
+						arr.forEach(["cx", "cy", "r"], setter, grad);
+						break;
+					case "pattern":
+						f = g.makeParameters(g.defaultPattern, fill);
+						var pattern = this._setFillObject(f, "pattern");
+						arr.forEach(["x", "y", "width", "height"], setter, pattern);
+						break;
+				}
+				this.fillStyle = f;
+				return this;
+			}
+			// color object
+			f = g.normalizeColor(fill);
+			this.fillStyle = f;
+			this.rawNode.setAttribute("fill", f.toCss());
+			this.rawNode.setAttribute("fill-opacity", f.a);
+			this.rawNode.setAttribute("fill-rule", "evenodd");
+			return this;	// self
+		},
+
+		setStroke: function(stroke){
+			// summary:
+			//		sets a stroke object (SVG)
+			// stroke: Object
+			//		a stroke object (see dojox/gfx.defaultStroke)
+
+			var rn = this.rawNode;
+			if(!stroke){
+				// don't stroke
+				this.strokeStyle = null;
+				rn.setAttribute("stroke", "none");
+				rn.setAttribute("stroke-opacity", 0);
+				return this;
+			}
+			// normalize the stroke
+			if(typeof stroke == "string" || lang.isArray(stroke) || stroke instanceof Color){
+				stroke = { color: stroke };
+			}
+			var s = this.strokeStyle = g.makeParameters(g.defaultStroke, stroke);
+			s.color = g.normalizeColor(s.color);
+			// generate attributes
+			if(s){
+				var w = s.width < 0 ? 0 : s.width;
+				rn.setAttribute("stroke", s.color.toCss());
+				rn.setAttribute("stroke-opacity", s.color.a);
+				rn.setAttribute("stroke-width",   w);
+				rn.setAttribute("stroke-linecap", s.cap);
+				if(typeof s.join == "number"){
+					rn.setAttribute("stroke-linejoin",   "miter");
+					rn.setAttribute("stroke-miterlimit", s.join);
+				}else{
+					rn.setAttribute("stroke-linejoin",   s.join);
+				}
+				var da = s.style.toLowerCase();
+				if(da in svg.dasharray){
+					da = svg.dasharray[da];
+				}
+				if(da instanceof Array){
+					da = lang._toArray(da);
+					var i;
+					for(i = 0; i < da.length; ++i){
+						da[i] *= w;
+					}
+					if(s.cap != "butt"){
+						for(i = 0; i < da.length; i += 2){
+							da[i] -= w;
+							if(da[i] < 1){ da[i] = 1; }
+						}
+						for(i = 1; i < da.length; i += 2){
+							da[i] += w;
+						}
+					}
+					da = da.join(",");
+				}
+				rn.setAttribute("stroke-dasharray", da);
+				rn.setAttribute("dojoGfxStrokeStyle", s.style);
+			}
+			return this;	// self
+		},
+
+		_getParentSurface: function(){
+			var surface = this.parent;
+			for(; surface && !(surface instanceof g.Surface); surface = surface.parent);
+			return surface;
+		},
+
+		_setFillObject: function(f, nodeType){
+			var svgns = svg.xmlns.svg;
+			this.fillStyle = f;
+			var surface = this._getParentSurface(),
+				defs = surface.defNode,
+				fill = this.rawNode.getAttribute("fill"),
+				ref  = svg.getRef(fill);
+			if(ref){
+				fill = ref;
+				if(fill.tagName.toLowerCase() != nodeType.toLowerCase()){
+					var id = fill.id;
+					fill.parentNode.removeChild(fill);
+					fill = _createElementNS(svgns, nodeType);
+					fill.setAttribute("id", id);
+					defs.appendChild(fill);
+				}else{
+					while(fill.childNodes.length){
+						fill.removeChild(fill.lastChild);
+					}
+				}
+			}else{
+				fill = _createElementNS(svgns, nodeType);
+				fill.setAttribute("id", g._base._getUniqueId());
+				defs.appendChild(fill);
+			}
+			if(nodeType == "pattern"){
+				fill.setAttribute("patternUnits", "userSpaceOnUse");
+				var img = _createElementNS(svgns, "image");
+				img.setAttribute("x", 0);
+				img.setAttribute("y", 0);
+				img.setAttribute("width",  (f.width < 0 ? 0 : f.width).toFixed(8));
+				img.setAttribute("height", (f.height < 0 ? 0 : f.height).toFixed(8));
+				_setAttributeNS(img, svg.xmlns.xlink, "xlink:href", f.src);
+				fill.appendChild(img);
+			}else{
+				fill.setAttribute("gradientUnits", "userSpaceOnUse");
+				for(var i = 0; i < f.colors.length; ++i){
+					var c = f.colors[i], t = _createElementNS(svgns, "stop"),
+						cc = c.color = g.normalizeColor(c.color);
+					t.setAttribute("offset",       c.offset.toFixed(8));
+					t.setAttribute("stop-color",   cc.toCss());
+					t.setAttribute("stop-opacity", cc.a);
+					fill.appendChild(t);
+				}
+			}
+			this.rawNode.setAttribute("fill", "url(#" + fill.getAttribute("id") +")");
+			this.rawNode.removeAttribute("fill-opacity");
+			this.rawNode.setAttribute("fill-rule", "evenodd");
+			return fill;
+		},
+
+		_applyTransform: function() {
+			var matrix = this.matrix;
+			if(matrix){
+				var tm = this.matrix;
+				this.rawNode.setAttribute("transform", "matrix(" +
+					tm.xx.toFixed(8) + "," + tm.yx.toFixed(8) + "," +
+					tm.xy.toFixed(8) + "," + tm.yy.toFixed(8) + "," +
+					tm.dx.toFixed(8) + "," + tm.dy.toFixed(8) + ")");
+			}else{
+				this.rawNode.removeAttribute("transform");
+			}
+			return this;
+		},
+
+		setRawNode: function(rawNode){
+			// summary:
+			//		assigns and clears the underlying node that will represent this
+			//		shape. Once set, transforms, gradients, etc, can be applied.
+			//		(no fill & stroke by default)
+			var r = this.rawNode = rawNode;
+			if(this.shape.type!="image"){
+				r.setAttribute("fill", "none");
+			}
+			r.setAttribute("fill-opacity", 0);
+			r.setAttribute("stroke", "none");
+			r.setAttribute("stroke-opacity", 0);
+			r.setAttribute("stroke-width", 1);
+			r.setAttribute("stroke-linecap", "butt");
+			r.setAttribute("stroke-linejoin", "miter");
+			r.setAttribute("stroke-miterlimit", 4);
+			// Bind GFX object with SVG node for ease of retrieval - that is to
+			// save code/performance to keep this association elsewhere
+			r.__gfxObject__ = this;
+		},
+
+		setShape: function(newShape){
+			// summary:
+			//		sets a shape object (SVG)
+			// newShape: Object
+			//		a shape object
+			//		(see dojox/gfx.defaultPath,
+			//		dojox/gfx.defaultPolyline,
+			//		dojox/gfx.defaultRect,
+			//		dojox/gfx.defaultEllipse,
+			//		dojox/gfx.defaultCircle,
+			//		dojox/gfx.defaultLine,
+			//		or dojox/gfx.defaultImage)
+			this.shape = g.makeParameters(this.shape, newShape);
+			for(var i in this.shape){
+				if(i != "type"){
+					var v = this.shape[i];
+					if(i === "width" || i === "height"){
+						v = v < 0 ? 0 : v;
+					}
+					this.rawNode.setAttribute(i, v);
+				}
+			}
+			this.bbox = null;
+			return this;	// self
+		},
+
+		// move family
+
+		_moveToFront: function(){
+			// summary:
+			//		moves a shape to front of its parent's list of shapes (SVG)
+			this.rawNode.parentNode.appendChild(this.rawNode);
+			return this;	// self
+		},
+		_moveToBack: function(){
+			// summary:
+			//		moves a shape to back of its parent's list of shapes (SVG)
+			this.rawNode.parentNode.insertBefore(this.rawNode, this.rawNode.parentNode.firstChild);
+			return this;	// self
+		},
+		setClip: function(clip){
+			// summary:
+			//		sets the clipping area of this shape.
+			// description:
+			//		This method overrides the dojox/gfx/shape.Shape.setClip() method.
+			// clip: Object
+			//		an object that defines the clipping geometry, or null to remove clip.
+			this.inherited(arguments);
+			var clipType = clip ? "width" in clip ? "rect" : 
+							"cx" in clip ? "ellipse" : 
+							"points" in clip ? "polyline" : "d" in clip ? "path" : null : null;
+			if(clip && !clipType){
+				return this;
+			}
+			if(clipType === "polyline"){
+				clip = lang.clone(clip);
+				clip.points = clip.points.join(",");
+			}
+			var clipNode, clipShape,
+				clipPathProp = domAttr.get(this.rawNode, "clip-path");
+			if(clipPathProp){
+				clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
+				if(clipNode){ // may be null if not in the DOM anymore
+					clipNode.removeChild(clipNode.childNodes[0]);
+				}
+			}
+			if(clip){
+				if(clipNode){
+					clipShape = _createElementNS(svg.xmlns.svg, clipType);
+					clipNode.appendChild(clipShape);
+				}else{
+					var idIndex = ++clipCount;
+					var clipId = "gfx_clip" + idIndex;
+					var clipUrl = "url(#" + clipId + ")";
+					this.rawNode.setAttribute("clip-path", clipUrl);
+					clipNode = _createElementNS(svg.xmlns.svg, "clipPath");
+					clipShape = _createElementNS(svg.xmlns.svg, clipType);
+					clipNode.appendChild(clipShape);
+					this.rawNode.parentNode.insertBefore(clipNode, this.rawNode);
+					domAttr.set(clipNode, "id", clipId);
+				}
+				domAttr.set(clipShape, clip);
+			}else{
+				//remove clip-path
+				this.rawNode.removeAttribute("clip-path");
+				if(clipNode){
+					clipNode.parentNode.removeChild(clipNode);
+				}
+			}
+			return this;
+		},
+		_removeClipNode: function(){
+			var clipNode, clipPathProp = domAttr.get(this.rawNode, "clip-path");
+			if(clipPathProp){
+				clipNode = dom.byId(clipPathProp.match(/gfx_clip[\d]+/)[0]);
+				if(clipNode){
+					clipNode.parentNode.removeChild(clipNode);
+				}
+			}
+			return clipNode;
+		}
+	});
+
+
+	svg.Group = declare("dojox.gfx.svg.Group", svg.Shape, {
+		// summary:
+		//		a group shape (SVG), which can be used
+		//		to logically group shapes (e.g, to propagate matricies)
+		constructor: function(){
+			gs.Container._init.call(this);
+		},
+		setRawNode: function(rawNode){
+			// summary:
+			//		sets a raw SVG node to be used by this shape
+			// rawNode: Node
+			//		an SVG node
+			this.rawNode = rawNode;
+			// Bind GFX object with SVG node for ease of retrieval - that is to
+			// save code/performance to keep this association elsewhere
+			this.rawNode.__gfxObject__ = this;
+		},
+		destroy: function(){
+			// summary:
+			//		Releases all internal resources owned by this shape. Once this method has been called,
+			//		the instance is considered disposed and should not be used anymore.
+			this.clear(true);
+			// avoid this.inherited
+			svg.Shape.prototype.destroy.apply(this, arguments);
+		}
+	});
+	svg.Group.nodeType = "g";
+
+	svg.Rect = declare("dojox.gfx.svg.Rect", [svg.Shape, gs.Rect], {
+		// summary:
+		//		a rectangle shape (SVG)
+		setShape: function(newShape){
+			// summary:
+			//		sets a rectangle shape object (SVG)
+			// newShape: Object
+			//		a rectangle shape object
+			this.shape = g.makeParameters(this.shape, newShape);
+			this.bbox = null;
+			for(var i in this.shape){
+				if(i != "type" && i != "r"){
+					var v = this.shape[i];
+					if(i === "width" || i === "height"){
+						v = v < 0 ? 0 : v;
+					}
+					this.rawNode.setAttribute(i, v);
+				}
+			}
+			if(this.shape.r != null){
+				this.rawNode.setAttribute("ry", this.shape.r);
+				this.rawNode.setAttribute("rx", this.shape.r);
+			}
+			return this;	// self
+		}
+	});
+	svg.Rect.nodeType = "rect";
+
+	svg.Ellipse = declare("dojox.gfx.svg.Ellipse", [svg.Shape, gs.Ellipse], {});
+	svg.Ellipse.nodeType = "ellipse";
+
+	svg.Circle = declare("dojox.gfx.svg.Circle", [svg.Shape, gs.Circle], {});
+	svg.Circle.nodeType = "circle";
+
+	svg.Line = declare("dojox.gfx.svg.Line", [svg.Shape, gs.Line], {});
+	svg.Line.nodeType = "line";
+
+	svg.Polyline = declare("dojox.gfx.svg.Polyline", [svg.Shape, gs.Polyline], {
+		// summary:
+		//		a polyline/polygon shape (SVG)
+		setShape: function(points, closed){
+			// summary:
+			//		sets a polyline/polygon shape object (SVG)
+			// points: Object|Array
+			//		a polyline/polygon shape object, or an array of points
+			if(points && points instanceof Array){
+				this.shape = g.makeParameters(this.shape, { points: points });
+				if(closed && this.shape.points.length){
+					this.shape.points.push(this.shape.points[0]);
+				}
+			}else{
+				this.shape = g.makeParameters(this.shape, points);
+			}
+			this.bbox = null;
+			this._normalizePoints();
+			var attr = [], p = this.shape.points;
+			for(var i = 0; i < p.length; ++i){
+				attr.push(p[i].x.toFixed(8), p[i].y.toFixed(8));
+			}
+			this.rawNode.setAttribute("points", attr.join(" "));
+			return this;	// self
+		}
+	});
+	svg.Polyline.nodeType = "polyline";
+
+	svg.Image = declare("dojox.gfx.svg.Image", [svg.Shape, gs.Image], {
+		// summary:
+		//		an image (SVG)
+		setShape: function(newShape){
+			// summary:
+			//		sets an image shape object (SVG)
+			// newShape: Object
+			//		an image shape object
+			this.shape = g.makeParameters(this.shape, newShape);
+			this.bbox = null;
+			var rawNode = this.rawNode;
+			for(var i in this.shape){
+				if(i != "type" && i != "src"){
+					var v = this.shape[i];
+					if(i === "width" || i === "height"){
+						v = v < 0 ? 0 : v;
+					}
+					rawNode.setAttribute(i, v);
+				}
+			}
+			rawNode.setAttribute("preserveAspectRatio", "none");
+			_setAttributeNS(rawNode, svg.xmlns.xlink, "xlink:href", this.shape.src);
+			// Bind GFX object with SVG node for ease of retrieval - that is to
+			// save code/performance to keep this association elsewhere
+			rawNode.__gfxObject__ = this;
+			return this;	// self
+		}
+	});
+	svg.Image.nodeType = "image";
+
+	svg.Text = declare("dojox.gfx.svg.Text", [svg.Shape, gs.Text], {
+		// summary:
+		//		an anchored text (SVG)
+		setShape: function(newShape){
+			// summary:
+			//		sets a text shape object (SVG)
+			// newShape: Object
+			//		a text shape object
+			this.shape = g.makeParameters(this.shape, newShape);
+			this.bbox = null;
+			var r = this.rawNode, s = this.shape;
+			r.setAttribute("x", s.x);
+			r.setAttribute("y", s.y);
+			r.setAttribute("text-anchor", s.align);
+			r.setAttribute("text-decoration", s.decoration);
+			r.setAttribute("rotate", s.rotated ? 90 : 0);
+			r.setAttribute("kerning", s.kerning ? "auto" : 0);
+			r.setAttribute("text-rendering", textRenderingFix);
+
+			// update the text content
+			if(r.firstChild){
+				r.firstChild.nodeValue = s.text;
+			}else{
+				r.appendChild(_createTextNode(s.text));
+			}
+			return this;	// self
+		},
+		getTextWidth: function(){
+			// summary:
+			//		get the text width in pixels
+			var rawNode = this.rawNode,
+				oldParent = rawNode.parentNode,
+				_measurementNode = rawNode.cloneNode(true);
+			_measurementNode.style.visibility = "hidden";
+
+			// solution to the "orphan issue" in FF
+			var _width = 0, _text = _measurementNode.firstChild.nodeValue;
+			oldParent.appendChild(_measurementNode);
+
+			// solution to the "orphan issue" in Opera
+			// (nodeValue == "" hangs firefox)
+			if(_text!=""){
+				while(!_width){
+//Yang: work around svgweb bug 417 -- http://code.google.com/p/svgweb/issues/detail?id=417
+if (_measurementNode.getBBox)
+					_width = parseInt(_measurementNode.getBBox().width);
+else
+	_width = 68;
+				}
+			}
+			oldParent.removeChild(_measurementNode);
+			return _width;
+		},
+		getBoundingBox: function(){
+			var s = this.getShape(), bbox = null;
+			if(s.text){
+				// try/catch the FF native getBBox error.
+				try {
+					bbox = this.rawNode.getBBox();
+				} catch (e) {
+					// under FF when the node is orphan (all other browsers return a 0ed bbox.
+					bbox = {x:0, y:0, width:0, height:0};
+				}
+			}
+			return bbox;
+		}
+	});
+	svg.Text.nodeType = "text";
+
+	svg.Path = declare("dojox.gfx.svg.Path", [svg.Shape, pathLib.Path], {
+		// summary:
+		//		a path shape (SVG)
+		_updateWithSegment: function(segment){
+			// summary:
+			//		updates the bounding box of path with new segment
+			// segment: Object
+			//		a segment
+			this.inherited(arguments);
+			if(typeof(this.shape.path) == "string"){
+				this.rawNode.setAttribute("d", this.shape.path);
+			}
+		},
+		setShape: function(newShape){
+			// summary:
+			//		forms a path using a shape (SVG)
+			// newShape: Object
+			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
+			this.inherited(arguments);
+			if(this.shape.path){
+				this.rawNode.setAttribute("d", this.shape.path);
+			}else{
+				this.rawNode.removeAttribute("d");
+			}
+			return this;	// self
+		}
+	});
+	svg.Path.nodeType = "path";
+
+	svg.TextPath = declare("dojox.gfx.svg.TextPath", [svg.Shape, pathLib.TextPath], {
+		// summary:
+		//		a textpath shape (SVG)
+		_updateWithSegment: function(segment){
+			// summary:
+			//		updates the bounding box of path with new segment
+			// segment: Object
+			//		a segment
+			this.inherited(arguments);
+			this._setTextPath();
+		},
+		setShape: function(newShape){
+			// summary:
+			//		forms a path using a shape (SVG)
+			// newShape: Object
+			//		an SVG path string or a path object (see dojox/gfx.defaultPath)
+			this.inherited(arguments);
+			this._setTextPath();
+			return this;	// self
+		},
+		_setTextPath: function(){
+			if(typeof this.shape.path != "string"){ return; }
+			var r = this.rawNode;
+			if(!r.firstChild){
+				var tp = _createElementNS(svg.xmlns.svg, "textPath"),
+					tx = _createTextNode("");
+				tp.appendChild(tx);
+				r.appendChild(tp);
+			}
+			var ref  = r.firstChild.getAttributeNS(svg.xmlns.xlink, "href"),
+				path = ref && svg.getRef(ref);
+			if(!path){
+				var surface = this._getParentSurface();
+				if(surface){
+					var defs = surface.defNode;
+					path = _createElementNS(svg.xmlns.svg, "path");
+					var id = g._base._getUniqueId();
+					path.setAttribute("id", id);
+					defs.appendChild(path);
+					_setAttributeNS(r.firstChild, svg.xmlns.xlink, "xlink:href", "#" + id);
+				}
+			}
+			if(path){
+				path.setAttribute("d", this.shape.path);
+			}
+		},
+		_setText: function(){
+			var r = this.rawNode;
+			if(!r.firstChild){
+				var tp = _createElementNS(svg.xmlns.svg, "textPath"),
+					tx = _createTextNode("");
+				tp.appendChild(tx);
+				r.appendChild(tp);
+			}
+			r = r.firstChild;
+			var t = this.text;
+			r.setAttribute("alignment-baseline", "middle");
+			switch(t.align){
+				case "middle":
+					r.setAttribute("text-anchor", "middle");
+					r.setAttribute("startOffset", "50%");
+					break;
+				case "end":
+					r.setAttribute("text-anchor", "end");
+					r.setAttribute("startOffset", "100%");
+					break;
+				default:
+					r.setAttribute("text-anchor", "start");
+					r.setAttribute("startOffset", "0%");
+					break;
+			}
+			//r.parentNode.setAttribute("alignment-baseline", "central");
+			//r.setAttribute("dominant-baseline", "central");
+			r.setAttribute("baseline-shift", "0.5ex");
+			r.setAttribute("text-decoration", t.decoration);
+			r.setAttribute("rotate", t.rotated ? 90 : 0);
+			r.setAttribute("kerning", t.kerning ? "auto" : 0);
+			r.firstChild.data = t.text;
+		}
+	});
+	svg.TextPath.nodeType = "text";
+
+	// Fix for setDimension bug:
+	// http://bugs.dojotoolkit.org/ticket/16100
+	// (https://code.google.com/p/chromium/issues/detail?id=162628)
+	var hasSvgSetAttributeBug = (function(){ var matches = /WebKit\/(\d*)/.exec(uagent); return matches ? matches[1] : 0})() > 534;
+
+	svg.Surface = declare("dojox.gfx.svg.Surface", gs.Surface, {
+		// summary:
+		//		a surface object to be used for drawings (SVG)
+		constructor: function(){
+			gs.Container._init.call(this);
+		},
+		destroy: function(){
+			// no need to call svg.Container.clear to remove the children raw
+			// nodes since the surface raw node will be removed. So, only dispose at gfx level	
+			gs.Container.clear.call(this, true); 
+			this.defNode = null;	// release the external reference
+			this.inherited(arguments);
+		},
+		setDimensions: function(width, height){
+			// summary:
+			//		sets the width and height of the rawNode
+			// width: String
+			//		width of surface, e.g., "100px"
+			// height: String
+			//		height of surface, e.g., "100px"
+			if(!this.rawNode){ return this; }
+			var w = width < 0 ? 0 : width,
+				h = height < 0 ? 0 : height;
+			this.rawNode.setAttribute("width",  w);
+			this.rawNode.setAttribute("height", h);
+			if(hasSvgSetAttributeBug){
+				this.rawNode.style.width =  w;
+				this.rawNode.style.height =  h;
+			}
+			return this;	// self
+		},
+		getDimensions: function(){
+			// summary:
+			//		returns an object with properties "width" and "height"
+			var t = this.rawNode ? {
+				width:  g.normalizedLength(this.rawNode.getAttribute("width")),
+				height: g.normalizedLength(this.rawNode.getAttribute("height"))} : null;
+			return t;	// Object
+		}
+	});
+
+	svg.createSurface = function(parentNode, width, height){
+		// summary:
+		//		creates a surface (SVG)
+		// parentNode: Node
+		//		a parent node
+		// width: String|Number
+		//		width of surface, e.g., "100px" or 100
+		// height: String|Number
+		//		height of surface, e.g., "100px" or 100
+		// returns: dojox/gfx/shape.Surface
+		//     newly created surface
+
+		var s = new svg.Surface();
+		s.rawNode = _createElementNS(svg.xmlns.svg, "svg");
+		s.rawNode.setAttribute("overflow", "hidden");
+		if(width){
+			s.rawNode.setAttribute("width",  width < 0 ? 0 : width);
+		}
+		if(height){
+			s.rawNode.setAttribute("height", height < 0 ? 0 : height);
+		}
+
+		var defNode = _createElementNS(svg.xmlns.svg, "defs");
+		s.rawNode.appendChild(defNode);
+		s.defNode = defNode;
+
+		s._parent = dom.byId(parentNode);
+		s._parent.appendChild(s.rawNode);
+
+		g._base._fixMsTouchAction(s);
+
+		return s;	// dojox/gfx.Surface
+	};
+
+	// Extenders
+
+	var Font = {
+		_setFont: function(){
+			// summary:
+			//		sets a font object (SVG)
+			var f = this.fontStyle;
+			// next line doesn't work in Firefox 2 or Opera 9
+			//this.rawNode.setAttribute("font", dojox.gfx.makeFontString(this.fontStyle));
+			this.rawNode.setAttribute("font-style", f.style);
+			this.rawNode.setAttribute("font-variant", f.variant);
+			this.rawNode.setAttribute("font-weight", f.weight);
+			this.rawNode.setAttribute("font-size", f.size);
+			this.rawNode.setAttribute("font-family", f.family);
+		}
+	};
+
+	var C = gs.Container;
+	var Container = svg.Container = {
+		openBatch: function() {
+			// summary:
+			//		starts a new batch, subsequent new child shapes will be held in
+			//		the batch instead of appending to the container directly
+			if(!this._batch){
+				this.fragment = _createFragment();
+			}
+			++this._batch;
+			return this;
+		},
+		closeBatch: function() {
+			// summary:
+			//		submits the current batch, append all pending child shapes to DOM
+			this._batch = this._batch > 0 ? --this._batch : 0;
+			if (this.fragment && !this._batch) {
+				this.rawNode.appendChild(this.fragment);
+				delete this.fragment;
+			}
+			return this;
+		},
+		add: function(shape){
+			// summary:
+			//		adds a shape to a group/surface
+			// shape: dojox/gfx/shape.Shape
+			//		an VML shape object
+			if(this != shape.getParent()){
+				if (this.fragment) {
+					this.fragment.appendChild(shape.rawNode);
+				} else {
+					this.rawNode.appendChild(shape.rawNode);
+				}
+				C.add.apply(this, arguments);
+				// update clipnode with new parent
+				shape.setClip(shape.clip);
+			}
+			return this;	// self
+		},
+		remove: function(shape, silently){
+			// summary:
+			//		remove a shape from a group/surface
+			// shape: dojox/gfx/shape.Shape
+			//		an VML shape object
+			// silently: Boolean?
+			//		if true, regenerate a picture
+			if(this == shape.getParent()){
+				if(this.rawNode == shape.rawNode.parentNode){
+					this.rawNode.removeChild(shape.rawNode);
+				}
+				if(this.fragment && this.fragment == shape.rawNode.parentNode){
+					this.fragment.removeChild(shape.rawNode);
+				}
+				// remove clip node from parent 
+				shape._removeClipNode();
+				C.remove.apply(this, arguments);
+			}
+			return this;	// self
+		},
+		clear: function(){
+			// summary:
+			//		removes all shapes from a group/surface
+			var r = this.rawNode;
+			while(r.lastChild){
+				r.removeChild(r.lastChild);
+			}
+			var defNode = this.defNode;
+			if(defNode){
+				while(defNode.lastChild){
+					defNode.removeChild(defNode.lastChild);
+				}
+				r.appendChild(defNode);
+			}
+			return C.clear.apply(this, arguments);
+		},
+		getBoundingBox: C.getBoundingBox,
+		_moveChildToFront: C._moveChildToFront,
+		_moveChildToBack:  C._moveChildToBack
+	};
+
+	var Creator = svg.Creator = {
+		// summary:
+		//		SVG shape creators
+		createObject: function(shapeType, rawShape){
+			// summary:
+			//		creates an instance of the passed shapeType class
+			// shapeType: Function
+			//		a class constructor to create an instance of
+			// rawShape: Object
+			//		properties to be passed in to the classes "setShape" method
+			if(!this.rawNode){ return null; }
+			var shape = new shapeType(),
+				node = _createElementNS(svg.xmlns.svg, shapeType.nodeType);
+
+			shape.setRawNode(node);
+			shape.setShape(rawShape);
+			// rawNode.appendChild() will be done inside this.add(shape) below
+			this.add(shape);
+			return shape;	// dojox/gfx/shape.Shape
+		}
+	};
+
+	lang.extend(svg.Text, Font);
+	lang.extend(svg.TextPath, Font);
+
+	lang.extend(svg.Group, Container);
+	lang.extend(svg.Group, gs.Creator);
+	lang.extend(svg.Group, Creator);
+
+	lang.extend(svg.Surface, Container);
+	lang.extend(svg.Surface, gs.Creator);
+	lang.extend(svg.Surface, Creator);
+
+	// Mouse/Touch event
+	svg.fixTarget = function(event, gfxElement) {
+		// summary:
+		//		Adds the gfxElement to event.gfxTarget if none exists. This new
+		//		property will carry the GFX element associated with this event.
+		// event: Object
+		//		The current input event (MouseEvent or TouchEvent)
+		// gfxElement: Object
+		//		The GFX target element
+		if (!event.gfxTarget) {
+			if (safMobile && event.target.wholeText) {
+				// Workaround iOS bug when touching text nodes
+				event.gfxTarget = event.target.parentElement.__gfxObject__;
+			} else {
+				event.gfxTarget = event.target.__gfxObject__;
+			}
+		}
+		return true;
+	};
+
+	// some specific override for svgweb + flash
+	if(svg.useSvgWeb){
+		// override createSurface()
+		svg.createSurface = function(parentNode, width, height){
+			var s = new svg.Surface();
+			
+			width = width < 0 ? 0 : width;
+			height = height < 0 ? 0 : height;
+
+			// ensure width / height
+			if(!width || !height){
+				var pos = domGeom.position(parentNode);
+				width  = width  || pos.w;
+				height = height || pos.h;
+			}
+
+			// ensure id
+			parentNode = dom.byId(parentNode);
+			var id = parentNode.id ? parentNode.id+'_svgweb' : g._base._getUniqueId();
+
+			// create dynamic svg root
+			var mockSvg = _createElementNS(svg.xmlns.svg, 'svg');
+			mockSvg.id = id;
+			mockSvg.setAttribute('width', width);
+			mockSvg.setAttribute('height', height);
+			svgweb.appendChild(mockSvg, parentNode);
+
+			// notice: any call to the raw node before flash init will fail.
+			mockSvg.addEventListener('SVGLoad', function(){
+				// become loaded
+				s.rawNode = this;
+				s.isLoaded = true;
+
+				// init defs
+				var defNode = _createElementNS(svg.xmlns.svg, "defs");
+				s.rawNode.appendChild(defNode);
+				s.defNode = defNode;
+
+				// notify application
+				if (s.onLoad)
+					s.onLoad(s);
+			}, false);
+
+			// flash not loaded yet
+			s.isLoaded = false;
+			return s;
+		};
+
+		// override Surface.destroy()
+		svg.Surface.extend({
+			destroy: function(){
+				var mockSvg = this.rawNode;
+				svgweb.removeChild(mockSvg, mockSvg.parentNode);
+			}
+		});
+
+		// override connect() & disconnect() for Shape & Surface event processing
+		var _eventsProcessing = {
+			connect: function(name, object, method){
+				// connect events using the mock addEventListener() provided by svgweb
+				if (name.substring(0, 2)==='on') { name = name.substring(2); }
+				if (arguments.length == 2) {
+					method = object;
+				} else {
+					method = lang.hitch(object, method);
+				}
+				this.getEventSource().addEventListener(name, method, false);
+				return [this, name, method];
+			},
+			disconnect: function(token){
+				// disconnect events using the mock removeEventListener() provided by svgweb
+				this.getEventSource().removeEventListener(token[1], token[2], false);
+				delete token[0];
+			}
+		};
+
+		lang.extend(svg.Shape, _eventsProcessing);
+		lang.extend(svg.Surface, _eventsProcessing);
+	}
+
+	return svg;
+});
+
+},
+'dojox/gfx/filters':function(){
+define([
+	"dojo/_base/lang",
+	"dojo/_base/array"
+], function(lang, array){
+
+	/*=====
+	return {
+	// summary:
+	//		A module that defines a minimal API to create SVG filter definition objects to be used with the
+	//		dojox/gfx/svgext/Shape.setFilter() API, as well as a set of predefined filters.
+	// description:
+	//		The module defines the following API:
+	//		- filters.createFilter(config, primitives) : Creates a filter object from the specified config and the
+	//		given filter primitives.
+	//		- a set of methods to create the corresponding SVG filter primitives, based on the same
+	//		naming as the specification (e.g. filters.feGaussianBlur() ). A filter primitive method follows the
+	//		following signature (taking feGaussianBlur as an example):
+	//			filters.feGaussianBlur(properties, children?)
+	//			filters.feGaussianBlur(children)
+	//		The "properties" parameter must define the primitive attributes as defined by the specification.
+	//		The "children" array parameter is an array of child filter primitives.
+	//		In addition to this API, the module provides the following predefined filters:
+	//		- filters.convolutions.boxBlur3,
+	//		- filters.convolutions.boxBlur5,
+	//		- filters.convolutions.verticalEdges,
+	//		- filters.convolutions.horizontalEdges,
+	//		- filters.convolutions.allEdges3,
+	//		- filters.convolutions.edgeEnhance,
+	//		- filters.shadows.fastSmallDropShadow,
+	//		- filters.shadows.fastDropShadow,
+	//		- filters.shadows.fastDropShadowLight,
+	//		- filters.shadows.dropShadow,
+	//		- filters.shadows.dropShadowLight,
+	//		- filters.shadows.smallDropShadow,
+	//		- filters.shadows.smallDropShadowLight,
+	//		- filters.blurs.blur1,
+	//		- filters.blurs.blur2,
+	//		- filters.blurs.blur4,
+	//		- filters.blurs.blur8,
+	//		- filters.blurs.glow,
+	//		- filters.colors.negate,
+	//		- filters.colors.sepia,
+	//		- filters.colors.grayscale,
+	//		- filters.colors.showRed,
+	//		- filters.colors.showGreen,
+	//		- filters.colors.showBlue,
+	//		- filters.colors.hueRotate60,
+	//		- filters.colors.hueRotate120,
+	//		- filters.colors.hueRotate180,
+	//		- filters.colors.hueRotate270,
+	//		- filters.miscs.thinEmbossDropShadow,
+	//		- filters.miscs.embossDropShadow,
+	//		- filters.miscs.largeEmbossDropShadow,
+	//		- filters.miscs.thinEmbossDropShadowLight,
+	//		- filters.miscs.embossDropShadowLight,
+	//		- filters.miscs.largeEmbossDropShadowLight,
+	//		- filters.miscs.fuzzy,
+	//		- filters.miscs.veryFuzzy,
+	//		- filters.miscs.melting,
+	//		- filters.miscs.impressionist,
+	//		- filters.miscs.holes,
+	//		- filters.miscs.holesComplement,
+	//		- filters.reliefs.bumpIn,
+	//		- filters.reliefs.bumpOut,
+	//		- filters.reliefs.thinEmboss,
+	//		- filters.reliefs.emboss,
+	//		- filters.reliefs.largeEmboss,
+	//		- filters.textures.paper,
+	//		- filters.textures.swirl,
+	//		- filters.textures.swirl2,
+	//		- filters.textures.gold
+	//		Note: the dojox/gfx/tests/test_filter.html test shows the rendering of all the predefined filters.
+	}
+	=====*/
+
+	var filters = {}, defaultFilterBBox = {x:"0%", y:"0%", width:"100%", height:"100%"}, lib = {};
+
+	//
+	// A minimal facade API to create primitives
+	//
+
+	filters.createFilter = function(/*Object*/args, /*Array*/primitives){
+		// summary:
+		//		Creates a filter with the specified primitives.
+		// description:
+		//		This function creates a new filter object configured with the optional 'args' parameter, and
+		//		adds the filter primitives specified in the 'primitives' array'. The dojox/gfx/filters module
+		//		provides convenient methods to create the corresponding SVG filter primitives, based on the same
+		//		naming as the specification (e.g. filters.feGaussianBlur() ).
+		//		A filter primitive method follows the following signature (taking feGaussianBlur as an example):
+		//			filters.feGaussianBlur(/*Object*/properties, /*Array?*/children)
+		//			filters.feGaussianBlur(/*Array?*/children)
+		//		The "properties" parameter must define the primitive attributes as defined by the specification.
+		//		The optional "children" array parameter is an array of child filter primitives.
+		// args: Object
+		//		The configuration object for the filter.
+		// primitives: Array
+		//		An array of primitives object.
+
+		var filter = lang.mixin({}, defaultFilterBBox, args);
+		if(!filter.primitives){
+			filter.primitives = [];
+		}
+		if(primitives){
+			Array.prototype.push.apply(filter.primitives, primitives);
+		}
+		return filter; /*Object*/
+	};
+
+	var _createFePrimitive = function(tag, args, children){
+		if(args instanceof Array){
+			children = args;
+			args = null;
+		}
+		var fe = lang.mixin({}, args);
+		fe.children = children;
+		fe.tag = tag;
+		return fe;
+	};
+	var _createFeMerge = function(args, children){
+		if(typeof args === "string"){
+			// list of primitives to merge via the 'in' property
+			var toMerge = [];
+			for(var i=0; i<arguments.length; ++i){
+				toMerge.push(filters.feMergeNode({"in":arguments[i]}));
+			}
+			return _createFePrimitive("feMerge", {}, toMerge);
+		}
+		return _createFePrimitive("feMerge", args, children);
+	};
+
+	array.forEach(["feBlend", "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix", "feDiffuseLighting",
+		"feDisplacementMap", "feFlood", "feGaussianBlur", "feImage", "feMorphology", "feOffset", "feSpecularLighting",
+		"feTile", "feTurbulence", "feDistantLight", "fePointLight", "feSpotLight", "feMergeNode", "feFuncA", "feFuncR",
+		"feFuncG", "feFuncB"], function(fe){
+		filters[fe] = function(args, children){
+			return _createFePrimitive(fe, args, children);
+		};
+	});
+	// special case for feMarge to ease syntax
+	filters.feMerge = _createFeMerge;
+
+
+	var createFilter = filters.createFilter;
+
+	//
+	// Convolution-based filters
+	//
+	lib.convolutions = [
+		createFilter({_gfxName:"boxBlur3"}, [
+			filters.feConvolveMatrix({
+				"in":"SourceGraphic","order":3,"divisor":9,"kernelMatrix":"1,1,1,1,1,1,1,1,1"
+			})
+		]),
+		createFilter({_gfxName:"boxBlur5"}, [
+			filters.feConvolveMatrix({
+				"in":"SourceGraphic","order":5,"divisor":25,"kernelMatrix":"1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"
+			})
+		]),
+		createFilter({_gfxName:"verticalEdges", filterUnits:"objectBoundingBox"}, [
+			filters.feConvolveMatrix({
+				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"-1 0 1 -1 0 1 -1 0 1"
+			}),
+			filters.feComponentTransfer({
+				"in":"kernel"
+			}, [
+				filters.feFuncA({"type":"table","tableValues":"1,1"})
+			])
+		]),
+		createFilter({_gfxName:"horizontalEdges", filterUnits:"objectBoundingBox"}, [
+			filters.feConvolveMatrix({
+				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"1 1 1 0 0 0 -1 -1 -1"
+			}),
+			filters.feComponentTransfer({
+				"in":"kernel"
+			}, [
+				filters.feFuncA({"type":"table","tableValues":"1,1"})
+			])
+		]),
+		createFilter({_gfxName:"allEdges3", filterUnits:"objectBoundingBox"}, [
+			filters.feConvolveMatrix({
+				"in":"SourceGraphic","result":"kernel","order":3,"divisor":1,"kernelMatrix":"-1 -1 -1 -1 8 -1 -1 -1 -1"
+			}),
+			filters.feComponentTransfer({
+				"in":"kernel"
+			},[
+				filters.feFuncA({"type":"table","tableValues":"1,1"})
+			])
+		]),
+		createFilter({_gfxName: "edgeEnhance", filterUnits:"objectBoundingBox"}, [
+			filters.feConvolveMatrix({
+				"in": "SourceGraphic","result": "kernel","order": 3,"divisor": -1,"kernelMatrix": "0 1 0 1 -5 1 0 1 0"
+			}),
+			filters.feComponentTransfer({
+				"in": "kernel"
+			},[
+				filters.feFuncA({"type":"table","tableValues": "1,1"})
+			])
+		])
+	];
+	array.forEach(lib.convolutions, function(f){
+		lang.mixin(f, defaultFilterBBox);
+	});
+
+	//
+	// Drop Shadow filters
+	//
+	lib.shadows = [
+		createFilter({_gfxName:"fastSmallDropShadow"}, [
+			filters.feColorMatrix({
+				"in":"SourceAlpha","type":"matrix","result":"grey",
+				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
+			}),
+			filters.feOffset({"dx":3,"dy":3,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur", "SourceGraphic")
+		]),
+		createFilter({_gfxName:"fastDropShadow"}, [
+			filters.feColorMatrix({
+				"in":"SourceAlpha","type":"matrix","result":"grey",
+				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
+			}),
+			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur", "SourceGraphic")
+		]),
+		createFilter({_gfxName:"fastDropShadowLight"}, [
+			filters.feColorMatrix({
+				"in":"SourceAlpha","type":"matrix","result":"grey",
+				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.4,0"
+			}),
+			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur", "SourceGraphic")
+		]),
+		createFilter({_gfxName:"dropShadow"}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":4}),
+			filters.feOffset({"dx":5,"dy":5,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur","SourceGraphic")
+		]),
+		createFilter({_gfxName:"dropShadowLight"}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":4,"result":"blur"}),
+			filters.feComponentTransfer({
+				"in":"blur","result":"lessblur"
+			},[
+				filters.feFuncA({"type":"linear","slope":0.5})
+			]),
+			filters.feOffset({"in":"lessblur","dx":5,"dy":5,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur", "SourceGraphic")
+		]),
+		createFilter({_gfxName:"smallDropShadow"}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":3}),
+			filters.feOffset({"dx":2,"dy":2,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur", "SourceGraphic")
+		]),
+		createFilter({_gfxName:"smallDropShadowLight"}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":3,"result":"blur"}),
+			filters.feComponentTransfer({
+				"in":"blur","result":"lessblur"
+			},[
+				filters.feFuncA({"type":"linear","slope":0.5})
+			]),
+			filters.feOffset({"in":"lessblur","dx":2,"dy":2,"result":"offsetBlur"}),
+			filters.feMerge("offsetBlur","SourceGraphic")
+		])
+	];
+	var defaultDropShadowBBox = {
+		x:"-10%",
+		y:"-10%",
+		width:"125%",
+		height:"125%"
+	};
+	array.forEach(lib.shadows, function(f){
+		lang.mixin(f, defaultDropShadowBBox);
+	});
+
+	//
+	// Blur effects
+	//
+	lib.blurs = [
+		createFilter({
+			_gfxName: "blur1",x:"-5%",y:"-5%",width:"110%",height:"110%"
+		},[
+			filters.feGaussianBlur({"in":"SourceGraphic",stdDeviation:1})
+		]),
+		createFilter({
+			_gfxName: "blur2",x:"-15%",y:"-15%",width:"130%",height:"130%"
+		},[
+			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 2})
+		]),
+		createFilter({
+			_gfxName: "blur4",x:"-15%",y:"-15%",width:"130%",height:"130%"
+		},[
+			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 4})
+		]),
+		createFilter({
+			_gfxName: "blur8",x:"-20%",y:"-20%",width:"140%",height:"140%"
+		},[
+			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 8})
+		]),
+		createFilter({
+			_gfxName: "glow",x:"-10%",y:"-10%",width:"120%",height:"120%"
+		},[
+			filters.feGaussianBlur({"in": "SourceGraphic","stdDeviation": 2}),
+			filters.feComponentTransfer([
+				filters.feFuncA({"type":"linear","slope":10})
+			])
+		])
+	];
+
+	//
+	// Colors filters
+	//
+	lib.colors = [
+		createFilter({_gfxName:"negate"}, [
+			filters.feComponentTransfer([
+				filters.feFuncR({"type":"table","tableValues":"1,0"}),
+				filters.feFuncG({"type":"table","tableValues":"1,0"}),
+				filters.feFuncB({"type":"table","tableValues":"1,0"})
+			])
+		]),
+		createFilter({_gfxName:"sepia"}, [
+			filters.feColorMatrix({
+				"result":"grey",
+				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,1,0"
+			}),
+			filters.feComponentTransfer({
+				"in":"grey"
+			},[
+				filters.feFuncR({"type":"linear","slope":0.5,"intercept":0.5}),
+				filters.feFuncB({"type":"table","tableValues":"0,0"})
+			])
+		]),
+		createFilter({_gfxName:"grayscale"}, [
+			filters.feColorMatrix({
+				"values":"0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,1,0"
+			})
+		]),
+		createFilter({_gfxName:"showRed"}, [
+			filters.feComponentTransfer([
+				filters.feFuncG({"type":"table","tableValues":"0,0"}),
+				filters.feFuncB({"type":"table","tableValues":"0,0"})
+			])
+		]),
+		createFilter({_gfxName:"showGreen"}, [
+			filters.feComponentTransfer([
+				filters.feFuncR({"type":"table","tableValues":"0,0"}),
+				filters.feFuncB({"type":"table","tableValues":"0,0"})
+			])
+		]),
+		createFilter({_gfxName:"showBlue"}, [
+			filters.feComponentTransfer([
+				filters.feFuncR({"type":"table","tableValues":"0,0"}),
+				filters.feFuncG({"type":"table","tableValues":"0,0"})
+			])
+		]),
+		createFilter({_gfxName:"hueRotate60"}, [
+			filters.feColorMatrix({"type":"hueRotate","values":60})
+		]),
+		createFilter({_gfxName:"hueRotate120"}, [
+			filters.feColorMatrix({"type":"hueRotate","values":120})
+		]),
+		createFilter({_gfxName:"hueRotate180"}, [
+			filters.feColorMatrix({"type":"hueRotate","values":180})
+		]),
+		createFilter({_gfxName:"hueRotate270"}, [
+			filters.feColorMatrix({"type":"hueRotate","values":270})
+		])
+	];
+	array.forEach(lib.colors, function(f){
+		lang.mixin(f, defaultFilterBBox);
+	});
+
+	lib.miscs = [
+		createFilter({
+			_gfxName:"thinEmbossDropShadow",
+			x:"-5%",y:"-5%",width:"120%",height:"120%"
+		}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":1,"result":"blur"}),
+			filters.feOffset({"in":"blur",dx:6,dy:6,"result":"offsetBlur"}),
+			filters.feSpecularLighting({
+				"in":"blur","surfaceScale":8,"specularConstant":1,"specularExponent":12,"result":"specOut"
+			}, [
+				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
+			]),
+			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic","result":"litPaint",
+				"k1":0,"k2":1,"k3":1,"k4":0}),
+			filters.feMerge("offsetBlur", "litPaint")
+		]),
+		createFilter({
+			_gfxName:"embossDropShadow",
+			x:"-5%",y:"-5%",width:"120%",height:"120%"
+		}, [
+			filters.feGaussianBlur({"in": "SourceAlpha","stdDeviation":"4","result":"blur"}),
+			filters.feOffset({"in":"blur","dx":4,"dy":4,"result":"offsetBlur"}),
+			filters.feSpecularLighting({
+				"in":"blur","surfaceScale":5,"specularConstant":0.75,"specularExponent":20,
+				"lighting-color":"#bbbbbb","result":"specOut"
+			}, [filters.fePointLight({x:-5000,y:-10000,z:20000})]),
+			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic",k1:0,k2:1,k3:1,k4:0,"result":"litPaint"
+			}),
+			filters.feMerge("offsetBlur","litPaint")
+		]),
+		createFilter({
+			_gfxName:"largeEmbossDropShadow",
+			x:"-20%",y:"-20%",width:"140%",height:"140%"
+		}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":5,"result":"blur"}),
+			filters.feOffset({"in":"blur",dx:6,dy:6,"result":"offsetBlur"}),
+			filters.feSpecularLighting({
+				"in":"blur","surfaceScale":8,"specularConstant":1,"specularExponent":12,"result":"spec"
+			},[
+				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
+			]),
+			filters.feComposite({"in":"spec","in2":"SourceGraphic","operator":"in","result":"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic","in2":"specOut","operator":"arithmetic","result":"litPaint",
+				"k1":0,"k2":1,"k3":1,"k4":0
+			}),
+			filters.feMerge("offsetBlur", "litPaint")
+		]),
+		createFilter({
+			_gfxName:"thinEmbossDropShadowLight",
+			x:"-5%",y:"-5%",width:"120%",height:"120%"
+		}, [
+			filters.feGaussianBlur({"in":"SourceAlpha","stdDeviation":1,"result":"blur"}),
+			filters.feComponentTransfer({"in":"blur",result:"lessblur"
+			},[
+				filters.feFuncA({type:"linear",slope:"0.5"})
+			]),
+			filters.feOffset({"in":"lessblur","dx":"6","dy":"6","result":"offsetBlur"}),
+			filters.feSpecularLighting({
+				"in":"lessblur","surfaceScale":8,"specularConstant":1,"specularExponent":"12","result":"specOut"
+			},[
+				filters.fePointLight({x:"-5000",y:"-10000",z:"12000"})
+			]),
+			filters.feComposite({"in":"specOut","in2":"SourceAlpha","operator":"in","result":"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic","in2":"specOut","result":"litPaint","operator":"arithmetic",
+				"k1":0,"k2":1,"k3":1,"k4":0
+			}),
+			filters.feMerge("offsetBlur", "litPaint")
+		]),
+		createFilter({
+			_gfxName: "embossDropShadowLight",
+			x: "-5%",y: "-5%",width: "120%",height: "120%"
+		}, [
+			filters.feGaussianBlur({"in": "SourceAlpha",stdDeviation:"3",result:"blur"}),
+			filters.feComponentTransfer({
+				"in": "blur",result: "lessblur"
+			},[
+				filters.feFuncA({type: "linear",slope: "0.5"})
+			]),
+			filters.feOffset({"in": "lessblur",dx: "6",dy: "6",result: "offsetBlur"}),
+			filters.feSpecularLighting({
+				"in": "lessblur",surfaceScale: "8",specularConstant: "1",specularExponent: "12",result: "specOut"
+			},[
+				filters.fePointLight({x: "-5000",y: "-10000",z: "12000"})
+			]),
+			filters.feComposite({"in": "specOut",in2: "SourceAlpha",operator: "in",result: "specOut"}),
+			filters.feComposite({
+				"in": "SourceGraphic",in2: "specOut",result: "litPaint",operator: "arithmetic",
+				k1: "0",k2: "1",k3: "1",k4: "0"
+			}),
+			filters.feMerge("offsetBlur", "litPaint")
+		]),
+		createFilter({
+			_gfxName: "largeEmbossDropShadowLight",
+			x: "-20%",y: "-20%",width: "140%",height: "140%"
+		},[
+			filters.feGaussianBlur({"in": "SourceAlpha",stdDeviation: "5",result: "blur"}),
+			filters.feComponentTransfer({"in": "blur",result: "lessblur"
+			},[
+				filters.feFuncA({type: "linear",slope: "0.5"})
+			]),
+			filters.feOffset({"in": "lessblur",dx: "6",dy: "6",result: "offsetBlur"}),
+			filters.feSpecularLighting({
+				"in": "blur",surfaceScale: "8",specularConstant: "1",specularExponent: "12",result: "spec"
+			},[
+				filters.fePointLight({x: "-5000",y: "-10000",z: "12000"})
+			]),
+			filters.feComposite({"in": "spec",in2: "SourceGraphic",operator: "in",result: "specOut"}),
+			filters.feComposite({
+				"in": "SourceGraphic",in2: "specOut",operator: "arithmetic",k1: "0",k2: "1",k3: "1",k4: "0",
+				result: "litPaint"
+			}),
+			filters.feMerge("offsetBlur", "litPaint")
+		]),
+		createFilter({
+			_gfxName:"fuzzy",
+			x:"-10%", y:"-10%", width:"120%", height:"120%"
+		},[
+			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"1",result:"turb2"}),
+			filters.feDisplacementMap({
+				"in":"SourceGraphic",in2:"turb2",result:"turb2",scale:"20",xChannelSelector:"R",yChannelSelector:"G"
+			})
+		]),
+		createFilter({
+			_gfxName:"veryFuzzy",
+			x:"-20%", y:"-20%", width:"140%", height:"140%"
+		},[
+			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"1",result:"turb2"}),
+			filters.feDisplacementMap({
+				"in":"SourceGraphic",in2:"turb2",result:"turb2",scale:"35",xChannelSelector:"R",yChannelSelector:"G"
+			})
+		]),
+		createFilter({
+			_gfxName:"melting",
+			x:"-10%", y:"-10%", width:"120%", height:"120%"
+		}, [
+			filters.feTurbulence({type:"fractalNoise",baseFrequency:"0.1",numOctaves:"2",result:"turb"}),
+			filters.feDisplacementMap({
+				result:"bended","in":"SourceGraphic",in2:"turb",scale:"25",xChannelSelector:"R",yChannelSelector:"G"
+			}),
+			filters.feGaussianBlur({"in":"bended",stdDeviation:"1",result:"bb"}),
+			filters.feComponentTransfer({"in": "bb",result: "BendedSource"
+			},[
+				filters.feFuncA({type: "linear",slope: 10,intercept: "-1"})
+			]),
+			filters.feComponentTransfer({
+				"in": "BendedSource",
+				result: "BendedAlpha"
+			}, [
+				filters.feFuncR({ type: "linear", slope: "0", intercept: "0"}),
+				filters.feFuncG({ type: "linear", slope: "0", intercept: "0"}),
+				filters.feFuncB({ type: "linear", slope: "0", intercept: "0"}),
+				filters.feFuncA({ type: "linear", slope: "1", intercept: "0"})
+			]),
+			filters.feGaussianBlur({
+				"in": "BendedAlpha", stdDeviation: "1", result: "blur"
+			}),
+			filters.feSpecularLighting({
+				"in": "blur","lighting-color": "rgb(80%, 80%, 80%)","surfaceScale": "5",
+				specularConstant: "1",specularExponent: "10",result: "specularOut"
+			},[
+				filters.fePointLight({ x: "-5000", y: "-10000", z: "20000"})
+			]),
+			filters.feComposite({
+				"in": "specularOut", in2: "BendedAlpha", operator: "in", result: "specularOut"
+			}),
+			filters.feComposite({
+				"in": "BendedSource",in2: "specularOut",operator: "arithmetic",k1: "0", k2: "1", k3: "1", k4: "0",
+				result: "litPaint"
+			})
+		]),
+		createFilter({
+			_gfxName:"impressionist", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feMorphology({
+				"in":"SourceGraphic", operator:"dilate", radius:"2"
+			})
+		]),
+		createFilter({
+			_gfxName:"holes", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feTurbulence({
+				type:"fractalNoise", baseFrequency:"0.1", numOctaves:"1", result:"texture"
+			}),
+			filters.feComponentTransfer({
+				"in":"texture", result:"holes"
+			},[
+				filters.feFuncA({type:"discrete", tableValues:"0,1"})
+			]),
+			filters.feComposite({
+				"in":"SourceGraphic", in2:"holes", operator:"out"
+			})
+		]),
+		createFilter({
+			_gfxName:"holesComplement", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feTurbulence({
+				type:"fractalNoise", baseFrequency:"0.1", numOctaves:"1", result:"texture"
+			}),
+			filters.feComponentTransfer({
+				"in":"texture", result:"holes"
+			},[
+				filters.feFuncA({ type:"discrete", tableValues:"1,0"})
+			]),
+			filters.feComposite({"in":"SourceGraphic", in2:"holes", operator:"out"})
+		])
+	];
+	
+	lib.reliefs = [
+		createFilter({
+			_gfxName:"bumpIn", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feColorMatrix({"in":"SourceGraphic", type:"luminanceToAlpha",result:"lumalpha"}),
+			filters.feComponentTransfer({
+				"in":"lumalpha", result:"invertedalpha"
+			},[
+				filters.feFuncA({ type:"table",tableValues:"1,0"})
+			]),
+			filters.feDiffuseLighting({
+				"in":"invertedalpha","lighting-color":"rgb(60%, 60%, 60%)",result:"diffuse",surfaceScale:"5"
+			},[
+				filters.feDistantLight({ azimuth:"135",elevation:"60"})
+			]),
+			filters.feSpecularLighting({
+				"in":"invertedalpha", result:"specular", surfaceScale:"5",specularExponent:"6"
+			},[
+				filters.feDistantLight({ azimuth:"135",elevation:"30"})
+			]),
+			filters.feComposite({ "in":"diffuse",in2:"specular",operator:"arithmetic",k2:"1.0",k3:"1.0"})
+		]),
+		createFilter({
+			_gfxName:"bumpOut", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feColorMatrix({ "in":"SourceGraphic", type:"luminanceToAlpha", result:"lumalpha"}),
+			filters.feDiffuseLighting({
+				"in":"lumalpha", "lighting-color":"rgb(60%, 60%, 60%)", result:"diffuse", surfaceScale:"5"
+			},[
+				filters.feDistantLight({ azimuth:"135", elevation:"60"})
+			]),
+			filters.feSpecularLighting({
+				"in":"lumalpha", result:"specular", surfaceScale:"5", specularExponent:"6"
+			},[
+				filters.feDistantLight({ azimuth:"135", elevation:"30"})
+			]),
+			filters.feComposite({ "in":"diffuse", in2:"specular", operator:"arithmetic", k2:"1.0", k3:"1.0"})
+		]),
+		createFilter({
+			_gfxName:"thinEmboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
+		},[
+			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"1", result:"blur"}),
+			filters.feSpecularLighting({
+				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
+			},[
+				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
+			]),
+			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
+			})
+		]),
+		createFilter({
+			_gfxName:"emboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
+		},[
+			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"3", result:"blur"}),
+			filters.feSpecularLighting({
+				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
+			},[
+				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
+			]),
+			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
+			})
+		]),
+		createFilter({
+			_gfxName:"largeEmboss", x:"-5%", y:"-5%", width:"110%", height:"110%"
+		},[
+			filters.feGaussianBlur({ "in":"SourceAlpha", stdDeviation:"5", result:"blur"}),
+			filters.feSpecularLighting({
+				"in":"blur", surfaceScale:"8", specularConstant:"1", specularExponent:"12", result:"specOut"
+			},[
+				filters.fePointLight({ x:"-5000", y:"-10000", z:"12000"})
+			]),
+			filters.feComposite({ "in":"specOut", in2:"SourceAlpha", operator:"in",  result:"specOut"}),
+			filters.feComposite({
+				"in":"SourceGraphic", in2:"specOut", operator:"arithmetic", k1:"0", k2:"1", k3:"1", k4:"0"
+			})
+		])
+	];
+	
+	lib.textures = [
+		createFilter({
+			_gfxName: "paper", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feTurbulence({ type:"turbulence", baseFrequency:"0.01", numOctaves:"5",result:"texture"}),
+			filters.feDiffuseLighting({
+				"in":"texture", result:"diffuse", surfaceScale:"-10"
+			},[
+				filters.feDistantLight({ azimuth:"135", elevation:"60"})
+			]),
+			filters.feComposite({ "in":"diffuse", in2:"SourceGraphic", operator:"arithmetic", k1:"1", k2:"0", k3:"0", k4:"0"})
+		]),
+		createFilter({
+			_gfxName:"swirl", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feTurbulence({ type:"turbulence",baseFrequency:"0.05",numOctaves:"1",result:"texture"}),
+			filters.feDiffuseLighting({
+				"in":"texture",result:"diffuse",surfaceScale:"-10"
+			},[
+				filters.feDistantLight({ azimuth:"135",elevation:"60"})
+			]),
+			filters.feComposite({"in":"diffuse",in2:"SourceGraphic",operator:"arithmetic",k1:"1",k2:"0",k3:"0",k4:"0"})
+		]),
+		createFilter({
+			_gfxName:"swirl2", x:"0%", y:"0%", width:"100%", height:"100%"
+		},[
+			filters.feTurbulence({ type:"turbulence",baseFrequency:"0.15",numOctaves:"1",result:"texture"}),
+			filters.feDiffuseLighting({
+				"in":"texture",result:"diffuse",surfaceScale:"-10"
+			},[
+				filters.feDistantLight({ azimuth:"135",elevation:"60"})
+			]),
+			filters.feComposite({"in":"diffuse",in2:"SourceGraphic",operator:"arithmetic",k1:"1",k2:"0",k3:"0",k4:"0"})
+		]),
+		createFilter({
+			_gfxName:"gold", x:"-5%", y:"-5%", width:"115%", height:"110%"
+		},[
+			filters.feTurbulence({ baseFrequency:"0.2", numOctaves:"1", type:"turbulence", result:"turb"}),
+			filters.feComposite({
+				"in":"SourceGraphic", in2:"turb", operator:"arithmetic", k2:"0.6", k3:"0.4", result:"turb"
+			}),
+			filters.feComposite({ "in":"turb", in2:"SourceGraphic", operator:"in", result:"bump"}),
+			filters.feDiffuseLighting({
+				"in":"turb", surfaceScale:"6.0", "lighting-color":"rgb(60%, 50%, 0%)", diffuseConstant:"1.0", result:"diffuse"
+			},[
+				filters.feDistantLight({ azimuth:"135", elevation:"60"})
+			]),
+			filters.feSpecularLighting({
+				"in":"bump", surfaceScale:"6.0", specularConstant:"1.0", specularExponent:"10.0", result:"specularOut"
+			},[
+				filters.feDistantLight({ azimuth:"135", elevation:"60"})
+			]),
+			filters.feComposite({ "in":"specularOut", in2:"SourceGraphic", operator:"in", result:"specularOut"}),
+			filters.feComposite({ "in":"bump", in2:"diffuse", operator:"arithmetic", k1:"0.7", k2:"0.3", result:"litPaint"}),
+			filters.feComposite({ "in":"litPaint", in2:"specularOut", operator:"arithmetic", k2:"1.0", k3:"0.7", result:"litPaint"})
+		])
+	];
+
+	// exports filters defined in lib as function via the returned object
+	// i.e. var filter = filters.convolution.verticalEdge({x:.., y:..., width:..., height:...})
+	for(var category in lib){
+		if(lib.hasOwnProperty(category)){
+			filters[category] = {};
+			var  cat = lib[category];
+			for(var i=0; i<cat.length;++i){
+				(function(){
+					var f = cat[i];
+					filters[category][f._gfxName] = function(args){
+						return lang.delegate(f, args);
+					};
+				})();
+			}
+		}
+	}
+
+	return filters;
+});
+
+},
+'dojox/gfx/svgext':function(){
+define([
+	"dojo/dom",
+	"dojo/_base/array",
+	"dojo/_base/window",
+	"./_base",
+	"./svg"], 
+	function(dom, array, win, gfx, svg){
+
+	/*=====
+	return {
+		// summary:
+		//		A module that adds svg-specific features to the gfx api. You should require this module
+		//		when your application specifically targets the SVG renderer.
+	}
+	=====*/
+
+	var svgext = gfx.svgext = {};
+	var toIgnore = {
+		primitives:null,
+		tag:null,
+		children:null
+	};
+
+	function buildFilterPrimitivesDOM(primitive, parentNode){
+		var node =  parentNode.ownerDocument.createElementNS(svg.xmlns.svg, primitive.tag);
+		parentNode.appendChild(node);
+		for(var p in primitive){
+			if(!(p in toIgnore)){
+				node.setAttribute(p, primitive[p]);
+			}
+		}
+		if(primitive.children){
+			array.forEach(primitive.children, function(f){buildFilterPrimitivesDOM(f, node);});
+		}
+		return node;
+	}
+
+	/*=====
+	declare("dojox.gfx.svgext.__FilterPrimitiveArgs", null, {
+		// summary:
+		//		Represents an SVG filter primitive.
+		// description:
+		//		In addition to the following properties, a FilterPrimitiveArgs should define the properties specific to
+		//		this primitive, as defined by the SVG spec.
+		// example:
+		//		Define a simple feGaussianBlur primitive:
+		//	|	var blurPrimitive = {
+		//	|		"tag": "feGaussianBlur",
+		//	|		"in": "SourceAlpha",
+		//	|		"stdDeviation":"4",
+		//	|		"result":"blur"
+		//	|	};
+		//
+		// example:
+		//		Define a feSpecularLighting primitive with one fePointLight child
+		//	|	var lighting = {
+		//	|		"tag": "feSpecularLighting",
+		//	|		"in":"blur",
+		//	|		"surfaceScale":5,
+		//	|		"specularConstant":.75,
+		//	|		"specularExponent":20,
+		//	|		"lighting-color":"#bbbbbb",
+		//	|		"result":"specOut"
+		//	|		"children": [
+		//	|			"tag": "fePointLight"
+		//	|			"x":-5000,
+		//	|			"y":-10000,
+		//	|			"z":20000
+		//	|		]
+		//	|	};
+
+		// tag: String?
+		//		The type of the primitive, as specified by the SVG spec (http://www.w3.org/TR/SVG/filters.html)
+		tag: null,
+
+		// children: dojox.gfx.svgext.__FilterPrimitiveArgs[]?
+		//		An array of child primitives, if any.
+		children: null
+	});
+	=====*/
+
+
+	/*=====
+	declare("dojox.gfx.svgext.__FilterArgs", null, {
+		// summary:
+		//		The filter arguments passed to the dojox/gfx/svgext/Shape.setFilter method.
+		// description:
+		//		An object defining the properties of a SVG Filter.
+		// example:
+		//		Define a drop shadow filter:
+		//	|	var filter = {
+		//	|		"id": "fastSmallDropShadow",
+		//	|		"x": "-10%",
+		//	|		"y": "-10%",
+		//	|		"width": "125%",
+		//	|		"height": "125%",
+		//	|		"primitives": [{
+		//	|			"tag": "feColorMatrix",
+		//	|			"in": "SourceAlpha",
+		//	|			"type": "matrix",
+		//	|			"result": "grey",
+		//	|			"values": "0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
+		//	|		},{
+		//	|			"tag": "feOffset",
+		//	|			"dx": 3,
+		//	|			"dy": 3,
+		//	|			"result": "offsetBlur"
+		//	|		},{
+		//	|			"tag": "feMerge",
+		//	|			"children":[{
+		//	|				"tag": "feMergeNode",
+		//	|				"in": "offsetBlur"
+		//	|			},{
+		//	|				"tag": "feMergeNode",
+		//	|				"in": "SourceGraphic"
+		//	|			}]
+		//	|		}]
+		//	|	};
+
+
+		// id: String?
+		//		The filter identifier. If none is provided, a generated id will be used.
+		id: null,
+
+		// filterUnits: String?
+		//		The coordinate system of the filter. Default is "userSpaceOnUse".
+		filterUnits: "userSpaceOnUse",
+
+		// primitives: dojox.gfx.svgext.__FilterPrimitiveArgs[]
+		//		An array of filter primitives that define this filter.
+		primitives: []
+	});
+	=====*/
+
+	svg.Shape.extend({
+		addRenderingOption: function(/*String*/option, /*String*/value){
+			// summary:
+			//		Adds the specified SVG rendering option on this shape.
+			// option: String
+			//		The name of the rendering option to add to this shape, as specified by the
+			//		SVG specification (http://www.w3.org/TR/SVG/painting.html#RenderingProperties)
+			// value: String
+			//		the option value.
+			this.rawNode.setAttribute(option, value);
+			return this; // self
+		},
+
+		setFilter: function(/*dojox.gfx.svgext.__FilterArgs*/filter){
+			// summary:
+			//		Sets the specified SVG Filter on this shape.
+			// filter: dojox.gfx.svgext.__FilterArgs
+			//		An object that defines the filter properties. Note that in order to make the creation of such filter
+			//		easier, the dojox/gfx/filters module defines both a simple API to easily create filter objects and
+			//		also a set of predefined filters like drop shadows, blurs, textures effects (among others).
+			// example:
+			//		Sets a drop shadow filter:
+			//	|	var filter = {
+			//	|		"id": "fastSmallDropShadow",
+			//	|		"x": "-10%",
+			//	|		"y": "-10%",
+			//	|		"width": "125%",
+			//	|		"height": "125%",
+			//	|		"primitives": [{
+			//	|			"tag": "feColorMatrix",
+			//	|			"in": "SourceAlpha",
+			//	|			"type": "matrix",
+			//	|			"result": "grey",
+			//	|			"values": "0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0.2125,0.7154,0.0721,0,0,0,0,0,0.7,0"
+			//	|		},{
+			//	|			"tag": "feOffset",
+			//	|			"dx": 3,
+			//	|			"dy": 3,
+			//	|			"result": "offsetBlur"
+			//	|		},{
+			//	|			"tag": "feMerge",
+			//	|			"in": "offsetBlur",
+			//	|			"in2": "SourceGraphic"
+			//	|		}]
+			//	|	};
+			//	|	var shape = surface.createRect().setFilter(filter);
+			//
+			// example:
+			//		Sets a predefined filter from the dojox/gfx/filters module:
+			//	|	require(["dojox/gfx/filters","dojox/gfx/svgext",...], function(filters, svgext){
+			//	|		...
+			//	|		var filter = filters.textures.paper({"id":"myFilter","x":0,"y":0,"width":100,"height":100});
+			//	|		var shape = surface.createRect().setFilter(filter);
+
+			if(!filter){
+				this.rawNode.removeAttribute("filter");
+				this.filter = null;
+				return this;
+			}
+			this.filter = filter;
+			filter.id = filter.id || gfx._base._getUniqueId();
+			var filterNode = dom.byId(filter.id);
+			if(!filterNode){
+				filterNode = this.rawNode.ownerDocument.createElementNS(svg.xmlns.svg, "filter");
+				filterNode.setAttribute("filterUnits", "userSpaceOnUse");
+				for(var p in filter){
+					if(!(p in toIgnore)){
+						filterNode.setAttribute(p, filter[p]);
+					}
+				}
+				array.forEach(filter.primitives, function(p){
+					buildFilterPrimitivesDOM(p, filterNode);
+				});
+				var surface = this._getParentSurface();
+				if(surface){
+					var defs = surface.defNode;
+					defs.appendChild(filterNode);
+				}
+			}
+			this.rawNode.setAttribute("filter", "url(#"+filter.id+")");
+			return this;
+		},
+
+		getFilter: function(){
+			// summary:
+			//		Gets the shape SVG Filter.
+			return this.filter;
+		}
+	});
+	return svgext;
+});
+
+},
+'esri/dijit/Attribution':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+// No attribution data, No copyright - just ignore this layer
+
+// No need to update layers that just have copyright
+
+// Nothing to do for layers that have copyright text
+
+// Does layerId have copyright text that is a duplicate of 
+
+define(["dojo/_base/declare","dojo/_base/lang","dojo/_base/array","dojo/_base/connect","dojo/_base/kernel","dojo/has","dojo/query","dojo/dom","dojo/dom-attr","dojo/dom-construct","dojo/dom-style","dojo/dom-class","dojo/dom-geometry","../kernel","../lang","../SpatialReference","../geometry/webMercatorUtils","../geometry/Extent"],function(t,e,i,s,o,n,r,a,d,h,c,l,u,_,m,p,f,y){var g=t(null,{declaredClass:"esri.dijit.Attribution",itemDelimiter:" | ",listClass:"esriAttributionList",itemClass:"esriAttributionItem",lastItemClass:"esriAttributionLastItem",delimiterClass:"esriAttributionDelim",constructor:function(t,i){try{e.mixin(this,t),this._attributions={},this._pendingDfds={},this._activeLayers=[],this._sharedLayers=[];var n=this.domNode=a.byId(i),r=this.map,h="<span class='"+this.listClass+"'></span>";if(n&&(d.set(n,"innerHTML",h),this.listNode=o.query(".esriAttributionList",n)[0],this.itemNodes={}),this._eventConnections=[s.connect(r,"onLayerAdd",this,this._onLayerAdd),s.connect(r,"onLayerRemove",this,this._onLayerRemove),s.connect(r,"onLayerSuspend",this,this._onLayerSuspend),s.connect(r,"onLayerResume",this,this._onLayerResume),s.connect(r,"onResize",this,this._adjustFocus),s.connect(r,"onExtentChange",this,this._onExtentChange)],r.loaded){var c,l,u=r.layerIds.concat(r.graphicsLayerIds),_=u.length;for(l=0;_>l;l++)c=r.getLayer(u[l]),c.loaded&&this._onLayerAdd(c)}}catch(m){}},startup:function(){},destroy:function(){i.forEach(this._eventConnections,s.disconnect),h.destroy(this.listNode),this.map=this.domNode=this._eventConnections=this.listNode=this._attributions=this._pendingDfds=this.itemNodes=this._activeLayers=this._lastItem=this._sharedLayers=null},_onLayerAdd:function(t){try{var i=this._attributions,s=t.id;if(m.isDefined(i[s])||!t.showAttribution)return;if(t.hasAttributionData){var o=t.getAttributionData();this._pendingDfds[s]=1,i[s]=o,o.addBoth(e.partial(this._onAttributionLoad,this,t))}else i[s]=t.copyright||t.copyrightText||"",i[s]?(t.suspended||this._activeLayers.push(s),this._createNode(s)):this._onLayerRemove(t)}catch(n){}},_onAttributionLoad:function(t,e,i){var s=t._attributions,o=t._pendingDfds,n=e.id;o&&o[n]&&(delete o[n],(!i||i instanceof Error)&&(i=""),i?s[n]=t._createIndexByLevel(i,-1!==e.declaredClass.toLowerCase().indexOf("vetiledlayer")):s[n]=e.copyright||e.copyrightText||"",s[n]?(e.suspended||t._activeLayers.push(n),t._createNode(n)):t._onLayerRemove(e))},_onLayerRemove:function(t){try{var e,s=t.id,o=this.itemNodes,n=-1;this._onLayerSuspend(t),delete this._attributions[s],delete this._pendingDfds[s],e=this._getGroupIndex(s),-1!==e&&(n=i.indexOf(this._sharedLayers[e],s),-1!==n&&(this._sharedLayers[e].splice(n,1),this._sharedLayers[e].length<=1&&this._sharedLayers.splice(e,1))),o[s]&&-1===n&&h.destroy(o[s]),delete o[s],this._updateLastItem()}catch(r){}},_onLayerSuspend:function(t){try{var e=t.id;if(this._attributions[e]){var s=i.indexOf(this._activeLayers,e),o=this.itemNodes[e];-1!==s&&this._activeLayers.splice(s,1),o&&this._toggleItem(o,!1,this._getGroupIndex(e))}}catch(n){}},_adjustFocus:function(){var t=this.domNode.scrollWidth>this.domNode.clientWidth,e=l.contains(this.domNode,"esriAttributionOpen");d.set(this.domNode,"tabIndex",t||e?"0":"")},_onLayerResume:function(t){try{var s=t.id,o=this._attributions[s],n=this.itemNodes[s];if(o&&(-1===i.indexOf(this._activeLayers,s)&&this._activeLayers.push(s),n)){var r=e.isString(o)?o:this._getContributorsList(o,this.map.extent,this.map.getLevel());e.isString(o)||d.set(n,"innerHTML",r?r+this._getDelimiter():""),r&&this._toggleItem(n,!0,this._getGroupIndex(s))}}catch(a){}},_onExtentChange:function(t,i,s,o){try{var n,r,a,h,c=this._activeLayers,l=this._attributions,u=this.itemNodes,_=c.length||0;for(h=0;_>h;h++)if(r=c[h],a=l[r],n=u[r],n&&!e.isString(a)){var m=this._getContributorsList(a,t,o?o.level:-1);d.set(n,"innerHTML",m?m+this._getDelimiter():""),this._toggleItem(n,!!m,-1)}}catch(p){}this._adjustCursorStyle()},_createNode:function(t){if(this.domNode){var i,s=this._checkShareInfo(t),o=s&&s.sharedWith,n=o&&this.itemNodes[o],r=this.map,a=this._attributions[t],d=e.isString(a)?a:this._getContributorsList(a,r.extent,r.getLevel()),c=!!d&&!r.getLayer(t).suspended;n?(this.itemNodes[t]=n,this._toggleItem(n,c,s.index)):(i=this.itemNodes[t]=h.create("span",{"class":this.itemClass,innerHTML:d?d+this._getDelimiter():"",style:{display:c?"inline":"none"}},this.listNode),c&&this._setLastItem(i)),this._adjustCursorStyle()}},_checkShareInfo:function(t){var s,o,n,r=this._attributions,a=-1,d=r[t];if(d&&e.isString(d)){for(o in r)if(s=r[o],o!==t&&s&&e.isString(s)&&s.length===d.length&&s.toLowerCase()===d.toLowerCase()){n=o;break}var h,c=this._sharedLayers,l=c.length;if(n){for(o=0;l>o;o++)if(h=c[o],-1!==i.indexOf(h,n)){a=o,h.push(t);break}-1===a&&(a=c.push([n,t])-1)}}return a>-1?{index:a,sharedWith:n}:null},_getGroupIndex:function(t){var e,s=this._sharedLayers,o=s.length,n=-1;for(e=0;o>e;e++)if(-1!==i.indexOf(s[e],t)){n=e;break}return n},_getDelimiter:function(){var t=this.itemDelimiter;return t?"<span class='"+this.delimiterClass+"'>"+t+"</span>":""},_toggleItem:function(t,e,s){if(s>-1&&!e){var o,n=this._sharedLayers[s],r=n.length,a=this._activeLayers;for(o=0;r>o;o++)if(-1!==i.indexOf(a,n[o]))return}c.set(t,"display",e?"inline":"none"),this._updateLastItem()},_updateLastItem:function(){var t,e,i=this.listNode.childNodes,s=i.length;if(s)for(t=s-1;t>=0;t--)if(e=i[t],"none"!==c.get(e,"display")){this._setLastItem(e);break}this._adjustCursorStyle()},_setLastItem:function(t){var e=this.itemClass,i=this.lastItemClass;this._lastItem&&l.replace(this._lastItem,e,i),t&&(l.replace(t,i,e),this._lastItem=t)},_createIndexByLevel:function(t,e){var i,s,o,n,r,a,d,h,c,l=t.contributors,u=l?l.length:0,_=new p(4326),g={};for(n=0;u>n;n++)for(i=l[n],s=i.coverageAreas,a=s?s.length:0,r=0;a>r;r++)for(o=s[r],c=o.bbox,h={extent:f.geographicToWebMercator(new y(c[1],c[0],c[3],c[2],_)),attribution:i.attribution||"",zoomMin:o.zoomMin-(e&&o.zoomMin?1:0),zoomMax:o.zoomMax-(e&&o.zoomMax?1:0),score:m.isDefined(o.score)?o.score:100,objectId:n},d=h.zoomMin;d<=h.zoomMax;d++)g[d]=g[d]||[],g[d].push(h);return g},_getContributorsList:function(t,e,i){var s="";if(e&&m.isDefined(i)&&i>-1){var o,n,r=t[i],a=e.getCenter().normalize(),d=r?r.length:0,h=[],c={};for(n=0;d>n;n++)o=r[n],!c[o.objectId]&&o.extent.contains(a)&&(c[o.objectId]=1,h.push(o));for(h.sort(function(t,e){return e.score-t.score||t.objectId-e.objectId}),d=h.length,n=0;d>n;n++)h[n]=h[n].attribution;s=h.join(", ")}return s},_adjustCursorStyle:function(){var t=u.position(this.listNode.parentNode,!0).h;l.contains(this.listNode.parentNode,"esriAttributionOpen")?(l.remove(this.listNode.parentNode,"esriAttributionOpen"),t>u.position(this.listNode.parentNode,!0).h?(c.set(this.listNode.parentNode,"cursor","pointer"),l.add(this.listNode.parentNode,"esriAttributionOpen")):c.set(this.listNode.parentNode,"cursor","default")):(l.add(this.listNode.parentNode,"esriAttributionOpen"),t<u.position(this.listNode.parentNode,!0).h?c.set(this.listNode.parentNode,"cursor","pointer"):c.set(this.listNode.parentNode,"cursor","default"),l.remove(this.listNode.parentNode,"esriAttributionOpen")),this._adjustFocus()}});return n("extend-esri")&&e.setObject("dijit.Attribution",g,_),g});
+},
+'esri/SpatialReference':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","./kernel","./lang"],function(e,i,r,t,a,_){var n='PROJCS["WGS_1984_Web_Mercator_Auxiliary_Sphere",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator_Auxiliary_Sphere"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],PARAMETER["Auxiliary_Sphere_Type",0.0],UNIT["Meter",1.0]]',l=[-20037508.342788905,20037508.342788905],s=[-20037508.342787,20037508.342787],M=e(null,{declaredClass:"esri.SpatialReference",constructor:function(e){e&&(r.isObject(e)?r.mixin(this,e):r.isString(e)?this.wkt=e:this.wkid=e)},wkid:null,wkt:null,_info:{102113:{wkTemplate:'PROJCS["WGS_1984_Web_Mercator",GEOGCS["GCS_WGS_1984_Major_Auxiliary_Sphere",DATUM["D_WGS_1984_Major_Auxiliary_Sphere",SPHEROID["WGS_1984_Major_Auxiliary_Sphere",6378137.0,0.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',valid:l,origin:s,dx:1e-5},102100:{wkTemplate:n,valid:l,origin:s,dx:1e-5},3785:{wkTemplate:'PROJCS["WGS_1984_Web_Mercator",GEOGCS["GCS_WGS_1984_Major_Auxiliary_Sphere",DATUM["D_WGS_1984_Major_Auxiliary_Sphere",SPHEROID["WGS_1984_Major_Auxiliary_Sphere",6378137.0,0.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Mercator"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],PARAMETER["Standard_Parallel_1",0.0],UNIT["Meter",1.0]]',valid:l,origin:s,dx:1e-5},3857:{wkTemplate:n,valid:l,origin:s,dx:1e-5},4326:{wkTemplate:'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",${Central_Meridian}],UNIT["Degree",0.0174532925199433]]',altTemplate:'PROJCS["WGS_1984_Plate_Carree",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Plate_Carree"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",${Central_Meridian}],UNIT["Degrees",111319.491]]',valid:[-180,180],origin:[-180,180],dx:1e-5}},_isWebMercator:function(){return-1!==i.indexOf([102113,102100,3857,3785],this.wkid)},_isWrappable:function(){return-1!==i.indexOf([102113,102100,3857,3785,4326],this.wkid)},_getInfo:function(){return this.wkid?this._info[this.wkid]:null},_canProject:function(e){var i=!1;return e&&(i=this.isWebMercator()&&4326===e.wkid||e.isWebMercator()&&4326===this.wkid),i},isWebMercator:function(){return this._isWebMercator()},equals:function(e){var i=!1;return e&&(this===e&&(i=!0),this.wkid||e.wkid?i=this.wkid===e.wkid||this.isWebMercator()&&e.isWebMercator()||this.wkid===e.latestWkid||e.wkid===this.latestWkid:this.wkt&&e.wkt&&(i=this.wkt.toUpperCase()===e.wkt.toUpperCase())),i},toJson:function(){var e=null,i=_.isDefined;return i(this.wkid)?e={wkid:this.wkid}:i(this.wkt)&&(e={wkt:this.wkt}),e&&i(this.latestWkid)&&(e.latestWkid=this.latestWkid),e}});return t("extend-esri")&&(a.SpatialReference=M),M});
+},
+'esri/geometry/webMercatorUtils':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/array","dojo/_base/lang","dojo/has","../kernel","../SpatialReference","./Point"],function(e,n,t,r,o,a){function i(n,t,r,a){if("point"===n.type){var i=t(n.x,n.y,a);return new n.constructor(i[0],i[1],new o(r))}if("extent"===n.type){var c=t(n.xmin,n.ymin,a),u=t(n.xmax,n.ymax,a);return new n.constructor(c[0],c[1],u[0],u[1],new o(r))}if("polyline"===n.type||"polygon"===n.type){var l,s="polyline"===n.type,p=s?n.paths:n.rings,f=[];return e.forEach(p,function(n){f.push(l=[]),e.forEach(n,function(e){l.push(t(e[0],e[1],a))})}),s?new n.constructor({paths:f,spatialReference:new o(r)}):new n.constructor({rings:f,spatialReference:new o(r)})}if("multipoint"===n.type){var w=[];return e.forEach(n.points,function(e){w.push(t(e[0],e[1],a))}),new n.constructor({points:w,spatialReference:new o(r)})}}function c(e,n){var t=e&&(null!=e.wkid?e:e.spatialReference),r=n&&(null!=n.wkid?n:n.spatialReference);return t&&r?r.equals(t)?!0:r._canProject(t):!1}function u(e,n){var t=e&&e.spatialReference,r=n&&(null!=n.wkid?n:n.spatialReference);return t&&r?t.equals(r)?e=new e.constructor(e.toJson()):c(t,r)?r.isWebMercator()?e=i(e,a.lngLatToXY,{wkid:102100}):4326===r.wkid&&(e=i(e,a.xyToLngLat,{wkid:4326})):e=null:e=null,e}var l={canProject:c,project:u,lngLatToXY:a.lngLatToXY,xyToLngLat:a.xyToLngLat,geographicToWebMercator:function(e){return i(e,a.lngLatToXY,{wkid:102100})},webMercatorToGeographic:function(e,n){return i(e,a.xyToLngLat,{wkid:4326},n)}};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,r),l),l});
+},
+'esri/geometry/Point':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/declare","dojo/_base/lang","dojo/has","../kernel","../lang","../SpatialReference","./Geometry","../srUtils"],function(t,e,i,s,n,a,r,h){function o(t){return t*y}function c(t){return t*p}function u(t,e){e>89.99999?e=89.99999:-89.99999>e&&(e=-89.99999);var i=c(e);return[c(t)*l,l/2*Math.log((1+Math.sin(i))/(1-Math.sin(i)))]}function f(t,e,i){var s=o(t/l);return i?[s,o(d/2-2*Math.atan(Math.exp(-1*e/l)))]:[s-360*Math.floor((s+180)/360),o(d/2-2*Math.atan(Math.exp(-1*e/l)))]}var l=6378137,d=3.141592653589793,y=57.29577951308232,p=.017453292519943,x={type:"point",x:0,y:0},M=t(r,{declaredClass:"esri.geometry.Point",constructor:function(t,i,s){e.mixin(this,x),e.isArray(t)?(this.x=t[0],this.y=t[1],this.spatialReference=i):e.isObject(t)?(e.mixin(this,t),n.isDefined(this.latitude)&&(this.y=this.latitude),n.isDefined(this.longitude)&&(this.x=this.longitude),this.spatialReference&&(this.spatialReference=h.createSpatialReference(this.spatialReference))):(this.x=t,this.y=i,this.spatialReference=s),this.verifySR()},offset:function(t,e){return new this.constructor(this.x+t,this.y+e,this.spatialReference)},setX:function(t){return this.x=t,this.clearCache(),this},setY:function(t){return this.y=t,this.clearCache(),this},setLongitude:function(t){var e=this.spatialReference;return e&&(e._isWebMercator()?this.setX(u(t,this.y)[0]):4326===e.wkid&&this.setX(t)),this},setLatitude:function(t){var e=this.spatialReference;return e&&(e._isWebMercator()?this.setY(u(this.x,t)[1]):4326===e.wkid&&this.setY(t)),this},getLongitude:function(){var t,e=this.spatialReference;return e&&(e._isWebMercator()?t=f(this.x,this.y)[0]:4326===e.wkid&&(t=this.x)),t},getLatitude:function(){var t,e=this.spatialReference;return e&&(e._isWebMercator()?t=f(this.x,this.y)[1]:4326===e.wkid&&(t=this.y)),t},update:function(t,e){return this.x=t,this.y=e,this.clearCache(),this},normalize:function(){var t=this.x,e=this.spatialReference;if(e){var i=e._getInfo();if(i){var s,n=i.valid[0],a=i.valid[1],r=2*a;t>a?(s=Math.ceil(Math.abs(t-a)/r),t-=s*r):n>t&&(s=Math.ceil(Math.abs(t-n)/r),t+=s*r)}}return new this.constructor(t,this.y,e)},toJson:function(){var t={x:this.x,y:this.y},e=this.spatialReference;return e&&(t.spatialReference=e.toJson()),t}});return M.lngLatToXY=u,M.xyToLngLat=f,M.defaultProps=x,i("extend-esri")&&(e.setObject("geometry.Point",M,s),s.geometry.defaultPoint=x),M});
+},
+'esri/geometry/Geometry':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/declare","dojo/_base/lang","dojo/has","../kernel","../SpatialReference"],function(e,t,c,n,a){var i=e(null,{declaredClass:"esri.geometry.Geometry",spatialReference:null,type:null,cache:void 0,setSpatialReference:function(e){return this.spatialReference=e,this},verifySR:function(){this.spatialReference||this.setSpatialReference(new a(4326))},getExtent:function(){return null},clearCache:function(){this.cache=void 0},getCacheValue:function(e){return this.cache&&this.cache[e]},setCacheValue:function(e,t){this.cache||(this.cache={}),this.cache[e]=t}});return c("extend-esri")&&t.setObject("geometry.Geometry",i,n),i});
+},
+'esri/srUtils':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["./SpatialReference","./ImageSpatialReference","./kernel","./sniff","dojo/_base/lang"],function(e,n,i,r,a){function t(e){var n=!1;return e&&(e.ics||e.icsid)&&(n=!0),n}function c(i){var r=null;return i&&(r=t(i)?new n(i):new e(i)),r}var f={isICS:t,createSpatialReference:c};return r("extend-esri")&&a.mixin(i,f),f});
+},
+'esri/ImageSpatialReference':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/declare","dojo/_base/lang","dojo/has","./kernel","./lang","./SpatialReference"],function(i,e,s,r,c,n){var t=i(n,{declaredClass:"esri.ImageSpatialReference",constructor:function(i){i&&(e.isObject(i)&&e.mixin(this,i),this.url||console.error("ImageSpatialReference: must provide image service URL."))},icsid:null,ics:null,_isWebMercator:function(){return!1},_isWrappable:function(){return!1},equals:function(i){var e=!1;return i&&(this.icsid&&i.icsid?e=this.icsid===i.icsid:this.ics&&i.ics&&(e=this.ics===i.ics)),e},toJson:function(i){var e=null,s=c.isDefined;return i=s(i)?i:!0,s(this.icsid)?e={icsid:this.icsid}:s(this.ics)&&(e={ics:this.ics}),s(this.url)&&s(e)&&i&&(e.url=this.url),e}});return s("extend-esri")&&(r.ImageSpatialReference=t),t});
+},
+'esri/geometry/Extent':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","../kernel","../lang","../SpatialReference","./Geometry","./Point","./webMercatorUtils","./mathUtils","../srUtils"],function(t,e,i,n,s,a,r,h,x,m,o,c){var f={type:"extent",xmin:0,ymin:0,xmax:0,ymax:0},u=t(h,{declaredClass:"esri.geometry.Extent",constructor:function(t,e,n,s,a){i.mixin(this,f),i.isObject(t)?(i.mixin(this,t),this.spatialReference&&(this.spatialReference=c.createSpatialReference(this.spatialReference))):this.update(t,e,n,s,a),this.verifySR()},getWidth:function(){return Math.abs(this.xmax-this.xmin)},getHeight:function(){return Math.abs(this.ymax-this.ymin)},getCenter:function(){return new x((this.xmin+this.xmax)/2,(this.ymin+this.ymax)/2,this.spatialReference)},centerAt:function(t){var e=this.getCenter(),i=t.x-e.x,n=t.y-e.y;return new u(this.xmin+i,this.ymin+n,this.xmax+i,this.ymax+n,this.spatialReference)},update:function(t,e,i,n,s){return this.xmin=t,this.ymin=e,this.xmax=i,this.ymax=n,this.spatialReference=s,this.clearCache(),this},offset:function(t,e){return new u(this.xmin+t,this.ymin+e,this.xmax+t,this.ymax+e,this.spatialReference)},expand:function(t){var e=(1-t)/2,i=this.getWidth()*e,n=this.getHeight()*e;return new u(this.xmin+i,this.ymin+n,this.xmax-i,this.ymax-n,this.spatialReference)},intersects:function(t){if(!t)return!1;var e=t.type,i=this.spatialReference,n=t.spatialReference;switch(i&&n&&!i.equals(n)&&i._canProject(n)&&(t=i.isWebMercator()?m.geographicToWebMercator(t):m.webMercatorToGeographic(t,!0)),e){case"point":return this.contains(t);case"multipoint":return this._intersectsMultipoint(t);case"extent":return this._intersectsExtent(t);case"polygon":return this._intersectsPolygon(t);case"polyline":return this._intersectsPolyline(t)}},normalize:function(){var t=this._normalize(!1,!0);return i.isArray(t)||(t=[t]),t},shiftCentralMeridian:function(){return this._normalize(!0)},bisect:function(){var t=this.spatialReference,e=t&&t._getInfo(),i=[],n=0;if(e&&this._isOutOfBounds(e)){var s=this,a=s.xmin,h=s.ymin,x=s.ymax,m=e.valid[0],o=e.valid[1];if(s.getWidth()>2*o){var c=s.getCenter();s=new u(c.x-o,h,c.x+o,x,new r(t.toJson()))}n=s.xmin-a;var f=this._normalizeX(s.xmin,e),l=this._normalizeX(s.xmax,e);f.frameId===l.frameId?i.push(new u(f.x,h,l.x,x,new r(t.toJson()))):i.push(new u(f.x,h,o,x,new r(t.toJson())),new u(m,h,l.x,x,new r(t.toJson())))}else i.push(this.getExtent());return{extents:i,marginLeft:n}},_intersectsMultipoint:function(t){var e,i=t.points.length;for(e=0;i>e;e++)if(this.contains(t.getPoint(e)))return!0;return!1},_intersectsExtent:function(t){var e,i,n,s,a=!1;return this.xmin<=t.xmin?(e=t.xmin,this.xmax<e?a=!0:n=Math.min(this.xmax,t.xmax)-e):(e=this.xmin,t.xmax<e?a=!0:n=Math.min(this.xmax,t.xmax)-e),this.ymin<=t.ymin?(i=t.ymin,this.ymax<i?a=!0:s=Math.min(this.ymax,t.ymax)-i):(i=this.ymin,t.ymax<i?a=!0:s=Math.min(this.ymax,t.ymax)-i),a?null:new u(e,i,e+n,i+s,this.spatialReference)},_intersectsPolygon:function(t){var e,i,n,s,a=[this.xmin,this.ymax],r=[this.xmax,this.ymax],h=[this.xmin,this.ymin],m=[this.xmax,this.ymin],o=[a,r,h,m],c=[[h,a],[a,r],[r,m],[m,h]],f=t.rings,u=f.length,l=new x(0,0,this.spatialReference);for(s=o.length,e=0;s>e;e++)if(l.update(o[e][0],o[e][1]),t.contains(l))return!0;l.setSpatialReference(t.spatialReference);var y,p;for(e=0;u>e;e++)if(n=f[e],s=n.length){if(y=n[0],l.update(y[0],y[1]),this.contains(l))return!0;for(i=1;s>i;i++){if(p=n[i],l.update(p[0],p[1]),this.contains(l)||this._intersectsLine([y,p],c))return!0;y=p}}return!1},_intersectsPolyline:function(t){var e,i,n,s,a,r,h=[[[this.xmin,this.ymin],[this.xmin,this.ymax]],[[this.xmin,this.ymax],[this.xmax,this.ymax]],[[this.xmax,this.ymax],[this.xmax,this.ymin]],[[this.xmax,this.ymin],[this.xmin,this.ymin]]],m=t.paths,o=m.length,c=new x(0,0,t.spatialReference);for(e=0;o>e;e++)if(n=m[e],s=n.length){if(a=n[0],c.update(a[0],a[1]),this.contains(c))return!0;for(i=1;s>i;i++){if(r=n[i],c.update(r[0],r[1]),this.contains(c)||this._intersectsLine([a,r],h))return!0;a=r}}return!1},_intersectsLine:function(t,e){var i,n=o._getLineIntersection2,s=e.length;for(i=0;s>i;i++)if(n(t,e[i]))return!0;return!1},contains:function(t){if(!t)return!1;var e=t.type;if("point"===e){var i,n=this.spatialReference,s=t.spatialReference,a=t.x,r=t.y;return n&&s&&!n.equals(s)&&n._canProject(s)&&(i=n.isWebMercator()?x.lngLatToXY(a,r):x.xyToLngLat(a,r,!0),a=i[0],r=i[1]),a>=this.xmin&&a<=this.xmax&&r>=this.ymin&&r<=this.ymax}return"extent"===e?this._containsExtent(t):!1},_containsExtent:function(t){var e=t.xmin,i=t.ymin,n=t.xmax,s=t.ymax,a=t.spatialReference,r=new x(e,i,a),h=new x(e,s,a),m=new x(n,s,a),o=new x(n,i,a);return this.contains(r)&&this.contains(h)&&this.contains(m)&&this.contains(o)?!0:!1},union:function(t){return new u(Math.min(this.xmin,t.xmin),Math.min(this.ymin,t.ymin),Math.max(this.xmax,t.xmax),Math.max(this.ymax,t.ymax),this.spatialReference)},getExtent:function(){var t=this.spatialReference;return new u(this.xmin,this.ymin,this.xmax,this.ymax,t&&new r(t.toJson()))},_shiftCM:function(t){var e=this.getCacheValue("_shifted");if(!e){var i=new u(this.toJson()),n=i.spatialReference;if(t=t||n._getInfo()){var s=this._getCM(t);if(s){var h=n._isWebMercator()?m.webMercatorToGeographic(s):s;i.xmin-=s.x,i.xmax-=s.x,n._isWebMercator()||(h.x=this._normalizeX(h.x,t).x),i.setSpatialReference(new r(a.substitute({Central_Meridian:h.x},4326===n.wkid?t.altTemplate:t.wkTemplate)))}}e=i,this.setCacheValue("_shifted",e)}return e},_getCM:function(t){var e;return this._isOutOfBounds(t)&&(e=this.getCenter()),e},_isOutOfBounds:function(t){var e=t.valid[0],i=t.valid[1],n=this.xmin,s=this.xmax,a=n>=e&&i>=n,r=s>=e&&i>=s;return!(a&&r)},_normalize:function(t,i,n){var s=new u(this.toJson()),a=s.spatialReference;if(a&&(n=n||a._getInfo())){var r=e.map(this._getParts(n),function(t){return t.extent});return r.length>2?t?this._shiftCM(n):s.update(n.valid[0],s.ymin,n.valid[1],s.ymax,a):2===r.length?t?this._shiftCM(n):i?r:{rings:e.map(r,function(t){return[[t.xmin,t.ymin],[t.xmin,t.ymax],[t.xmax,t.ymax],[t.xmax,t.ymin],[t.xmin,t.ymin]]}),spatialReference:a}:r[0]||s}return s},_getParts:function(t){var e=this.getCacheValue("_parts");if(!e){e=[];var i,n,s,a,r=this.xmin,h=this.xmax,x=this.ymin,m=this.ymax,o=this.spatialReference,c=this.getWidth(),f=r,l=h,y=0,p=0;if(t=t||o._getInfo(),n=t.valid[0],s=t.valid[1],i=this._normalizeX(r,t),r=i.x,y=i.frameId,i=this._normalizeX(h,t),h=i.x,p=i.frameId,a=r===h&&c>0,c>2*s){var d,g=new u(l>f?r:h,x,s,m,o),_=new u(n,x,l>f?h:r,m,o),v=new u(0,x,s,m,o),w=new u(n,x,0,m,o),M=[],R=[];for(g.contains(v)&&M.push(y),g.contains(w)&&R.push(y),_.contains(v)&&M.push(p),_.contains(w)&&R.push(p),d=y+1;p>d;d++)M.push(d),R.push(d);e.push({extent:g,frameIds:[y]},{extent:_,frameIds:[p]},{extent:v,frameIds:M},{extent:w,frameIds:R})}else r>h||a?e.push({extent:new u(r,x,s,m,o),frameIds:[y]},{extent:new u(n,x,h,m,o),frameIds:[p]}):e.push({extent:new u(r,x,h,m,o),frameIds:[y]});this.setCacheValue("_parts",e)}return e},_normalizeX:function(t,e){var i,n=0,s=e.valid[0],a=e.valid[1],r=2*a;return t>a?(i=Math.ceil(Math.abs(t-a)/r),t-=i*r,n=i):s>t&&(i=Math.ceil(Math.abs(t-s)/r),t+=i*r,n=-i),{x:t,frameId:n}},toJson:function(){var t={xmin:this.xmin,ymin:this.ymin,xmax:this.xmax,ymax:this.ymax},e=this.spatialReference;return e&&(t.spatialReference=e.toJson()),t}});return u.defaultProps=f,n("extend-esri")&&(i.setObject("geometry.Extent",u,s),s.geometry.defaultExtent=f),u});
+},
+'esri/geometry/mathUtils':function(){
+// COPYRIGHT © 2017 Esri
+//
+// All rights reserved under the copyright laws of the United States
+// and applicable international laws, treaties, and conventions.
+//
+// This material is licensed for use under the Esri Master License
+// Agreement (MLA), and is bound by the terms of that agreement.
+// You may redistribute and use this code without modification,
+// provided you adhere to the terms of the MLA and include this
+// copyright notice.
+//
+// See use restrictions at http://www.esri.com/legal/pdfs/mla_e204_e300/english
+//
+// For additional information, contact:
+// Environmental Systems Research Institute, Inc.
+// Attn: Contracts and Legal Services Department
+// 380 New York Street
+// Redlands, California, USA 92373
+// USA
+//
+// email: contracts@esri.com
+//
+// See http://js.arcgis.com/3.19/esri/copyright.txt for details.
+
+define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
+},
 'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
-'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
+'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
+'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
+'url:app/analytics_config.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/analytics/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/analytics/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/analytics/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/analytics/\"\r\n}",
+'url:app/templates/Analytics_template.html':"<div data-dojo-attach-point='content'></div>",
+'url:app/templates/Viewer3d_template.html':"<div data-dojo-attach-point='content'></div>",
+'url:app/templates/PublishingTools_template.html':"<div data-dojo-attach-point=\"content\"></div>",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"Available Now\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Admin Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"* only available to GIS_admin members\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}\r\n]\r\n\t",
+'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,
 '*noref':1}});
