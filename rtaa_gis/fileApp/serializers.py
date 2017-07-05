@@ -22,9 +22,9 @@ class GridSerializer(serializers.ModelSerializer):
 
 class EngFileHyperLinkedRelatedField(serializers.HyperlinkedRelatedField):
     queryset = EngineeringFileModel.objects.all()
-    view_name = 'engineering-filemodel-detail'
+    view_name = 'engineeringfilemodel-detail'
     lookup_field = 'pk'
-    many = False
+    many = True
 
     def display_value(self, instance):
         return instance.file_path
@@ -32,7 +32,7 @@ class EngFileHyperLinkedRelatedField(serializers.HyperlinkedRelatedField):
 
 class GridPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     queryset = GridCell.objects.all()
-    many = False
+    many = True
     pk_field = 'Name'
 
     def display_value(self, instance):

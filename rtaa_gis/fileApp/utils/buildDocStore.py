@@ -15,11 +15,13 @@ django.setup()
 from fileApp import models
 from fileApp.serializers import EngSerializer
 from fileApp.models import EngineeringFileModel, EngineeringDiscipline, EngineeringSheetType, GridCell
+from fileApp.models import engineering_sheet_types, engineering_discipline_choices
 from fileApp.utils import function_definitions
 from django.conf import settings
 
-TOP_DIRs = settings.FILE_APP_TOP_DIRS
-
+# TOP_DIRs = settings.FILE_APP_TOP_DIRS
+# for testing load the sample pdf files
+TOP_DIRs = [os.path.join(settings.BASE_DIR, "fileApp/fixtures/data")]
 
 PDF = {"pdf": "application/pdf"}
 ODT = {"odt": "application/vnd.oasis.opendocument.text"}
@@ -247,6 +249,19 @@ class FileStoreBuilder:
                                     _object.size = size
                                     _object.save()
 
+            # Populate the Discipline and the Sheet Type tables
+            for type in engineering_sheet_types:
+                new_obj = EngineeringSheetType.objects.create(
+                    name=type[0]
+                )
+                new_obj.save()
+
+            for type in engineering_discipline_choices:
+                new_obj = EngineeringDiscipline.objects.create(
+                    name=type[0]
+                )
+                new_obj.save()
+
         except Exception as e:
             logging.warning(e)
 
@@ -255,7 +270,9 @@ class FileStoreBuilder:
     def clean_store(self):
         """Remove paths that don't exist;
         Remove directories;
-        remove paths that don't match with TOP_DIRs;"""
+        remove paths that don't match with TOP_DIRs;
+
+        Remove any disciplines and sheet types that don't exist in the model"""
         def check_roots(in_path, roots):
             d = False
             for x in roots:
@@ -280,6 +297,15 @@ class FileStoreBuilder:
                         raise Error("Duplicate file objects with path {}".format(path))
                         # TODO - if two files are the same path, merge their grid cell assignments
                         pass
+            for sheet_type in EngineeringSheetType.objects.all():
+                types = [x[0] for x in engineering_sheet_types]
+                if sheet_type not in types:
+                    sheet_type.delete()
+
+            for discipline in EngineeringDiscipline.objects.all():
+                discs = [x[0] for x in engineering_discipline_choices]
+                if discipline not in discs:
+                    discipline.delete()
 
         except Exception as e:
             print(e)
@@ -345,4 +371,4 @@ class AssignmentManager:
 
 if __name__ == '__main__':
     x = FileStoreBuilder()
-    x.load_accdb()
+    x.build_store()

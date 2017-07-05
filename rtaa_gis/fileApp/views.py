@@ -195,7 +195,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     queryset = EngineeringAssignment.objects.all()
     serializer_class = EngAssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
-    renderer_classes = (JSONPRenderer,)
+    # renderer_classes = (JSONPRenderer,)
 
     @list_route(methods=['post', ])
     def _delete(self, request):
