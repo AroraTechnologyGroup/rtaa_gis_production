@@ -16,8 +16,9 @@ from fileApp import models
 from fileApp.serializers import EngSerializer
 from fileApp.models import EngineeringFileModel, EngineeringDiscipline, EngineeringSheetType, GridCell
 from fileApp.utils import function_definitions
-fixtures_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures\\data')
-TOP_DIRs = [fixtures_path]
+from django.conf import settings
+
+TOP_DIRs = settings.FILE_APP_TOP_DIRS
 
 
 PDF = {"pdf": "application/pdf"}
@@ -214,11 +215,11 @@ class FileStoreBuilder:
                         extension = _file.split(".")[-1].lower()
                         for mapping in iter(FILE_TYPE_CHOICES.values()):
                             # there is only one key for each mapping dict so testing
-                            # if the extension is IN the dict as a value is good enough
+                            # if the extension is IN the dict as a key is good enough
                             if extension in mapping:
                                 file_path = os.path.join(root, _file)
                                 base_name = os.path.basename(file_path)
-                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)[0]
+                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)
                                 mime = mimetypes.guess_type(file_path)[0]
                                 if mime is None:
                                     mime = FILE_TYPE_CHOICES[file_type][extension]
@@ -292,14 +293,12 @@ class GridCellBuilder:
     def build_store():
         # send query request to esri rest api
         login_params = {
-            'f': 'json',
-            'client_id': 'Yer7Ki5IEHLbDzqv',
-            'client_secret': 'a6b5f07dbd6d4228a0cb334cdad8d575',
-            'grant_type': 'client_credentials',
-            'expiration': '1440',
+            'client_id': 'iVMcOt2MrFfgmRBF',
+            'client_secret': 'e6df1381878a49e8b3df8e5c654c0110',
+            'grant_type': 'client_credentials'
         }
 
-        token = requests.post('https://www.arcgis.com/sharing/rest/oauth2/token/',
+        token = requests.get('https://www.arcgis.com/sharing/rest/oauth2/token/',
                               params=login_params)
         access_token = token.json()['access_token']
 
