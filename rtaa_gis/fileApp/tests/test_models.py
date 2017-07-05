@@ -1,35 +1,36 @@
 from django.test import TestCase
-from fileApp.models import Assignment, FileModel, GridCell
+from fileApp.models import EngineeringDiscipline, EngineeringSheetType, EngineeringAssignment, EngineeringFileModel, GridCell
 import os
+from rtaa_gis.settings import BASE_DIR
 
 os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures/json'))
 
 
 class TestFileModel(TestCase):
-    fixtures = ['filemodel', 'assignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
 
     def test_list(self):
-        _files = FileModel.objects.all()
+        _files = EngineeringFileModel.objects.all()
         self.assertTrue(_files)
         self.assertGreater(len(_files), 1)
         pass
 
     def test_get(self):
-        _file = FileModel.objects.get(file_path="C:\\GitHub\\rtaa_gis\\rtaa_gis\\fileApp\\"
-                                                         "fixtures\\data\\DemoDocument0.pdf")
-        self.assertIsInstance(_file, FileModel)
+        _file = EngineeringFileModel.objects.get(file_path=os.path.join(BASE_DIR, "fileApp\\"
+                                                         "fixtures\\data\\DemoDocument0.pdf"))
+        self.assertIsInstance(_file, EngineeringFileModel)
         pass
 
     def test_get_assignments(self):
-        _file = FileModel.objects.get(pk="6440")
+        _file = EngineeringFileModel.objects.get(pk="6440")
         assigns = _file.assignment_set.all()
         self.assertEqual(len(assigns), 2)
-        self.assertIsInstance(assigns[0], Assignment)
+        self.assertIsInstance(assigns[0], EngineeringAssignment)
 
     def test_drop_assignment(self):
-        _file = FileModel.objects.get(pk="6351")
+        _file = EngineeringFileModel.objects.get(pk="6351")
         assign = _file.assignment_set.get(grid_cell="A01")
-        self.assertIsInstance(assign, Assignment)
+        self.assertIsInstance(assign, EngineeringAssignment)
         assign.delete()
         assigns = _file.assignment_set.all()
         self.assertEqual(len(assigns), 0)
@@ -37,7 +38,7 @@ class TestFileModel(TestCase):
 
 
 class TestGridCell(TestCase):
-    fixtures = ['filemodel', 'assignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
 
     def test_list(self):
         _grids = GridCell.objects.all()
@@ -57,10 +58,10 @@ class TestGridCell(TestCase):
 
 
 class TestAssignment(TestCase):
-    fixtures = ['filemodel', 'assignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
 
     def test_list(self):
-        _assigns = Assignment.objects.all()
+        _assigns = EngineeringAssignment.objects.all()
         self.assertTrue(_assigns)
         self.assertEqual(len(_assigns), 4)
         pass
@@ -68,21 +69,21 @@ class TestAssignment(TestCase):
     def test_create(self):
         kwargs = dict()
         kwargs['grid_cell'] = GridCell.objects.get(name="A14")
-        kwargs['file'] = FileModel.objects.get(file_path="C:\\GitHub\\rtaa_gis\\rtaa_gis\\fileApp\\"
-                                                         "fixtures\\data\\DemoDocument0.pdf")
+        kwargs['file'] = EngineeringFileModel.objects.get(file_path=os.path.join(BASE_DIR, "fileApp\\"
+                                                         "fixtures\\data\\DemoDocument0.pdf"))
         kwargs['base_name'] = 'DemoDocument0'
         kwargs['date_assigned'] = '2016-10-12'
         kwargs['comment'] = "Look how the test assignment gets added"
-        _assignment = Assignment(**kwargs)
+        _assignment = EngineeringAssignment(**kwargs)
         _assignment.save()
-        _assigns = Assignment.objects.all()
+        _assigns = EngineeringAssignment.objects.all()
         self.assertTrue(len(_assigns), 5)
         pass
 
     def test_delete(self):
-        _assign = Assignment.objects.get(pk="4")
+        _assign = EngineeringAssignment.objects.get(pk="4")
         _assign.delete()
-        _assigns = Assignment.objects.all()
+        _assigns = EngineeringAssignment.objects.all()
         self.assertTrue(len(_assigns), 3)
         pass
 
