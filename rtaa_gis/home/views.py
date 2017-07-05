@@ -55,7 +55,7 @@ def clear_users(request, format=None):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
-@method_decorator(never_cache, name="dispatch")
+# @method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the opening homepage"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
