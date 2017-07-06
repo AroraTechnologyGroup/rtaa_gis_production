@@ -28,6 +28,6 @@ def dump(model):
         new_fixt.write(output)
         new_fixt.close()
 
-models = ['EngineeringFileModel', 'GridCell', 'EngineeringAssignment', 'EngineeringSheetType', 'EngineeringDiscipline']
+models = ['EngineeringFileModel', 'GridCell', 'EngineeringAssignment']
 for x in models:
     dump(x)

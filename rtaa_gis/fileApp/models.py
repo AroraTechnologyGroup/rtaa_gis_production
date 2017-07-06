@@ -1,30 +1,6 @@
 from django.db import models
 
 
-engineering_discipline_choices = (
-        ('MISC', 'Miscellaneous'),
-        ('CIVIL', 'Civil'),
-        ('ARCH', 'Architectural'),
-        ('STRUCTURAL', 'Structural'),
-        ('LANDSCAPING', 'Landscaping'),
-        ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
-        ('PLUMBING', 'Plumbing'),
-        ('ELECTRICAL', 'Electrical')
-    )
-
-engineering_sheet_types = (
-        ('DETAILS', 'Details'),
-        ('PLAN', 'Plan'),
-        ('TITLE', 'Title'),
-        ('KEY', 'Key'),
-        ('INDEX', 'Index'),
-        ('ELEVATIONS', 'Elevations'),
-        ('NOTES', 'Notes'),
-        ('SECTIONS', 'Sections'),
-        ('SYMBOLS', 'Symbols')
-    )
-
-
 class GridCell(models.Model):
     def __str__(self):
         return "%s" % self.name
@@ -89,28 +65,6 @@ class Assignment(models.Model):
     )
 
 
-class EngineeringDiscipline(models.Model):
-    def __str__(self):
-        return "{}".format(self.get_name_display())
-
-    class Meta:
-        ordering = ('name',)
-        app_label = 'fileApp'
-
-    name = models.CharField(max_length=125, blank=True, unique=True, choices=engineering_discipline_choices)
-
-
-class EngineeringSheetType(models.Model):
-    def __str__(self):
-        return "{}".format(self.get_name_display())
-
-    class Meta:
-        ordering = ('name',)
-        app_label = 'fileApp'
-
-    name = models.CharField(max_length=125, blank=True, unique=True, choices=engineering_sheet_types)
-
-
 # Models that inherit from the above
 class EngineeringFileModel(FileModel):
     def __str__(self):
@@ -132,14 +86,15 @@ class EngineeringFileModel(FileModel):
 
     sheet_title = models.CharField(max_length=255, blank=True)
 
-    sheet_type = models.ManyToManyField(EngineeringSheetType)
+    sheet_type = models.CharField(max_length=255, blank=True)
 
     sheet_description = models.CharField(max_length=255, blank=True)
 
     vendor = models.CharField(max_length=255, blank=True)
 
-    discipline = models.ManyToManyField(EngineeringDiscipline)
+    discipline = models.CharField(max_length=255, blank=True)
 
+    # the model serializer will automatically consume these choices
     airport = models.CharField(max_length=125, blank=True, choices=(
         ('RNO', 'Reno-Tahoe International Airport'),
         ('RTS', 'Reno/Stead Airport')
@@ -150,9 +105,13 @@ class EngineeringFileModel(FileModel):
     grant_number = models.CharField(max_length=255, blank=True)
 
 
+# This model inherits from above
 class EngineeringAssignment(Assignment):
     def __str__(self):
         return "%s %s" % (self.grid_cell, self.file)
+
+    class Meta:
+        unique_together = (("file", "grid_cell"),)
 
     file = models.ForeignKey(
         EngineeringFileModel,

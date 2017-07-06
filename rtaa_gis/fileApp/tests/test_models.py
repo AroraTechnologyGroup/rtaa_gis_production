@@ -1,5 +1,5 @@
 from django.test import TestCase
-from fileApp.models import EngineeringDiscipline, EngineeringSheetType, EngineeringAssignment, EngineeringFileModel, GridCell
+from fileApp.models import EngineeringAssignment, EngineeringFileModel, GridCell
 import os
 from rtaa_gis.settings import BASE_DIR
 
@@ -12,33 +12,34 @@ class TestFileModel(TestCase):
     def test_list(self):
         _files = EngineeringFileModel.objects.all()
         self.assertTrue(_files)
-        self.assertGreater(len(_files), 1)
         pass
 
     def test_get(self):
-        _file = EngineeringFileModel.objects.get(file_path=os.path.join(BASE_DIR, "fileApp\\"
-                                                         "fixtures\\data\\DemoDocument0.pdf"))
-        self.assertIsInstance(_file, EngineeringFileModel)
+        t_path = os.path.join(BASE_DIR, "fileApp/fixtures/data/DemoDocument0.pdf")
+        t_path = t_path.replace("\\", "/")
+        _file = EngineeringFileModel.objects.filter(file_path=t_path)
+        self.assertIsInstance(_file[0], EngineeringFileModel)
         pass
 
     def test_get_assignments(self):
-        _file = EngineeringFileModel.objects.get(pk="6440")
-        assigns = _file.assignment_set.all()
-        self.assertEqual(len(assigns), 2)
+        _file = EngineeringFileModel.objects.get(pk=13)
+        assigns = _file.engineeringassignment_set.all()
+        self.assertTrue(len(assigns))
         self.assertIsInstance(assigns[0], EngineeringAssignment)
 
     def test_drop_assignment(self):
-        _file = EngineeringFileModel.objects.get(pk="6351")
-        assign = _file.assignment_set.get(grid_cell="A01")
-        self.assertIsInstance(assign, EngineeringAssignment)
-        assign.delete()
-        assigns = _file.assignment_set.all()
-        self.assertEqual(len(assigns), 0)
+        _file = EngineeringFileModel.objects.get(pk=13)
+        assigns = _file.engineeringassignment_set.filter(grid_cell="A37")
+        self.assertIsInstance(assigns[0], EngineeringAssignment)
+        for x in assigns:
+            x.delete()
+        assigns = _file.engineeringassignment_set.all()
+        self.assertFalse(len(assigns))
         pass
 
 
 class TestGridCell(TestCase):
-    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
+    fixtures = ['gridcell']
 
     def test_list(self):
         _grids = GridCell.objects.all()
@@ -62,29 +63,33 @@ class TestAssignment(TestCase):
 
     def test_list(self):
         _assigns = EngineeringAssignment.objects.all()
-        self.assertTrue(_assigns)
-        self.assertEqual(len(_assigns), 4)
+        self.assertTrue(len(_assigns))
+        self.assertIsInstance(_assigns[0], EngineeringAssignment)
         pass
 
     def test_create(self):
-        kwargs = dict()
-        kwargs['grid_cell'] = GridCell.objects.get(name="A14")
-        kwargs['file'] = EngineeringFileModel.objects.get(file_path=os.path.join(BASE_DIR, "fileApp\\"
-                                                         "fixtures\\data\\DemoDocument0.pdf"))
-        kwargs['base_name'] = 'DemoDocument0'
-        kwargs['date_assigned'] = '2016-10-12'
-        kwargs['comment'] = "Look how the test assignment gets added"
+        test_file = EngineeringFileModel.objects.get(pk=5)
+        grid_cell = GridCell.objects.get(name="B15")
+        kwargs = {
+            'grid_cell': grid_cell,
+            'file': test_file,
+            'comment': "Look how the test assignment gets added"
+        }
+
         _assignment = EngineeringAssignment(**kwargs)
         _assignment.save()
+
         _assigns = EngineeringAssignment.objects.all()
-        self.assertTrue(len(_assigns), 5)
+        self.assertTrue(len(_assigns))
+        new_obj = EngineeringAssignment.objects.filter(file=5).filter(grid_cell=grid_cell)
+        self.assertIsInstance(new_obj[0], EngineeringAssignment)
         pass
 
     def test_delete(self):
         _assign = EngineeringAssignment.objects.get(pk="4")
         _assign.delete()
-        _assigns = EngineeringAssignment.objects.all()
-        self.assertTrue(len(_assigns), 3)
+        _assigns = EngineeringAssignment.objects.filter(pk='4')
+        self.assertFalse(len(_assigns))
         pass
 
 
