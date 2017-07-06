@@ -101,8 +101,9 @@ class EngSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EngineeringFileModel
-        fields = ('project_title', 'grid_cells', 'project_description', 'project_date', 'sheet_title', 'sheet_type',
-                  'sheet_description', 'vendor', 'discipline', 'airport', 'funding_type', 'grant_number', 'file_path')
+        fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'sheet_title', 'sheet_type',
+                  'project_title', 'project_description', 'project_date', 'sheet_description', 'vendor', 'discipline',
+                  'airport', 'funding_type', 'grant_number', 'file_path')
         depth = 1
         read_only_fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'mime')
 

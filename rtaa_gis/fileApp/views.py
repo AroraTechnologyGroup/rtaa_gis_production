@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-from rest_framework_jsonp.renderers import JSONPRenderer
+from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
 from .utils import buildDocStore
 from .utils import WatchDogTrainer
@@ -195,7 +195,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     queryset = EngineeringAssignment.objects.all()
     serializer_class = EngAssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
-    # renderer_classes = (JSONPRenderer,)
+    renderer_classes = (JSONRenderer,)
 
     @list_route(methods=['post', ])
     def _delete(self, request):
@@ -265,7 +265,7 @@ class EngViewSet(viewsets.ModelViewSet):
     queryset = EngineeringFileModel.objects.all()
     serializer_class = EngSerializer
     filter_fields = ('project_title', 'sheet_name', 'airport')
-    renderer_classes = (JSONPRenderer,)
+    renderer_classes = (JSONRenderer,)
 
     @detail_route()
     def _grids(self, request, pk=None):
@@ -364,12 +364,12 @@ class EngIOViewSet(viewsets.ViewSet):
             file_path = file_obj[0].file_path
             mime_type = file_obj[0].mime
             base_name = file_obj[0].base_name
-            filename_header = base_name.encode('utf_8')
+            # filename_header = base_name.encode('utf_8')
             # response is the file binary / the request is made from an dojo anchor html element with
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
             response = HttpResponse(fp.read(), content_type=mime_type)
-            response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
+            response['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
             return response
         else:
             return redirect(reverse('home:login'))
