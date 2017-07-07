@@ -200,20 +200,16 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post', ])
     def _delete(self, request):
         """Remove the specified assignment object"""
-        data = request.POST['files']
-        if "," in data:
-            file_pks = data.split(",")
-        else:
-            file_pks = [data]
-        cell_value = request.POST['grid_cell']
-        grid_cell = GridCell.objects.get(pk=cell_value)
+        files = request.POST['files'].split(",")
+        cell_values = request.POST['grid_cells'].split(",")
         pre_assignments = len(EngineeringAssignment.objects.all())
 
-        for x in file_pks:
+        for x in files:
             file = EngineeringFileModel.objects.get(pk=x)
-            obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=grid_cell)
-            for x in obj:
-                x.delete()
+            for cell_value in cell_values:
+                obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=cell_value)
+                for o in obj:
+                    o.delete()
 
         post_assignments = len(EngineeringAssignment.objects.all())
 
@@ -221,11 +217,8 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
         num_removed = pre_assignments - post_assignments
 
         if num_removed > 0:
-            if num_removed == len(file_pks):
-                resp['status'] = True
-            else:
-                resp['status'] = "{} of {} assignments were removed".format(
-                    num_removed, len(file_pks))
+            resp['status'] = "{} of {} assignments were removed".format(
+                    num_removed, pre_assignments)
         else:
             resp['status'] = False
         return Response(resp)
@@ -234,7 +227,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     def _create(self, request):
         """Create assignment from the list of files and the grid cell on the Post request"""
         file_pks = request.POST['files'].split(",")
-        cell_value = request.POST['grid_cell']
+        cell_values = request.POST['grid_cells'].split(",")
 
         pre_assignments = len(EngineeringAssignment.objects.all())
 
@@ -242,14 +235,17 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
 
         for x in file_pks:
             file = EngineeringFileModel.objects.get(pk=x)
-            grid = GridCell.objects.get(pk=cell_value)
-            kwargs = dict()
-            kwargs['file'] = file
-            kwargs['grid_cell'] = grid
-            base_name = EngineeringFileModel.objects.get(pk=x).base_name
-            kwargs['base_name'] = base_name
-            assign = EngineeringAssignment.objects.create(**kwargs)
-            new_assignments.append(assign.pk)
+            for cell_value in cell_values:
+                grid = GridCell.objects.get(pk=cell_value)
+                kwargs = dict()
+                kwargs['file'] = file
+                kwargs['grid_cell'] = grid
+                base_name = EngineeringFileModel.objects.get(pk=x).base_name
+                kwargs['base_name'] = base_name
+                # the grid_cell and file fields are defined as unique together in the model
+                # TODO - check what happens when we try to create a duplicate
+                assign = EngineeringAssignment.objects.create(**kwargs)
+                new_assignments.append(assign.pk)
 
         post_assignments = len(EngineeringAssignment.objects.all())
         if post_assignments > pre_assignments:
