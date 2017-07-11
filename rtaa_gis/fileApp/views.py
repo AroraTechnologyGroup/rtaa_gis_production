@@ -236,16 +236,19 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
         for x in file_pks:
             file = EngineeringFileModel.objects.get(pk=x)
             for cell_value in cell_values:
-                grid = GridCell.objects.get(pk=cell_value)
-                kwargs = dict()
-                kwargs['file'] = file
-                kwargs['grid_cell'] = grid
-                base_name = EngineeringFileModel.objects.get(pk=x).base_name
-                kwargs['base_name'] = base_name
-                # the grid_cell and file fields are defined as unique together in the model
-                # TODO - check what happens when we try to create a duplicate
-                assign = EngineeringAssignment.objects.create(**kwargs)
-                new_assignments.append(assign.pk)
+                try:
+                    grid = GridCell.objects.get(pk=cell_value)
+                    kwargs = dict()
+                    kwargs['file'] = file
+                    kwargs['grid_cell'] = grid
+                    base_name = EngineeringFileModel.objects.get(pk=x).base_name
+                    kwargs['base_name'] = base_name
+                    # the grid_cell and file fields are defined as unique together in the model
+                    # Exception is thrown if the Unique Together fails
+                    assign = EngineeringAssignment.objects.create(**kwargs)
+                    new_assignments.append(assign.pk)
+                except Exception as e:
+                    logging.error(e)
 
         post_assignments = len(EngineeringAssignment.objects.all())
         if post_assignments > pre_assignments:
