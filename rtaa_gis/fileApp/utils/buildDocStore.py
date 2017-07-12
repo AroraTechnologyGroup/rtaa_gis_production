@@ -13,12 +13,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from fileApp import models
-from fileApp.serializers import EngSerializer
-from fileApp.models import EngineeringFileModel, EngineeringDiscipline, EngineeringSheetType, GridCell
+from fileApp.models import EngineeringFileModel, EngineeringAssignment, GridCell
+from fileApp.serializers import EngSerializer, EngAssignmentSerializer, engineering_sheet_types, engineering_discipline_choices
 from fileApp.utils import function_definitions
-fixtures_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures\\data')
-TOP_DIRs = [fixtures_path]
+from django.conf import settings
 
+# TOP_DIRs = settings.FILE_APP_TOP_DIRS
+# acc_db_path = ""
+# for testing load the sample pdf files
+test_dir = os.path.join(settings.BASE_DIR, "fileApp/fixtures/data")
+TOP_DIRs = [test_dir]
+acc_db_path = test_dir
 
 PDF = {"pdf": "application/pdf"}
 ODT = {"odt": "application/vnd.oasis.opendocument.text"}
@@ -88,7 +93,7 @@ class FileStoreBuilder:
         try:
             conn_str = (
                 r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
-                r'DBQ=%s;' % os.path.join(fixtures_path, 'reno.accdb')
+                r'DBQ=%s;' % os.path.join(acc_db_path, 'reno.accdb')
             )
             cnxn = pyodbc.connect(conn_str)
             cursor = cnxn.cursor()
@@ -119,86 +124,53 @@ class FileStoreBuilder:
                     if not sheet_description:
                         sheet_description = ""
 
-                    if row[-1] != 'text':
-                        if len(filtered) == 0:
-                            new_obj = {
-                                'file_path': file_path,
-                                'sheet_type': [],
-                                'discipline': [],
-                                'project_title': project_title,
-                                'sheet_description': sheet_description,
-                                'sheet_title': sheet_title,
-                                'project_date': project_date,
-                                'vendor': vendor,
-                                'airport': '',
-                                'project_description': '',
-                                'funding_type': '',
-                                'grant_number': ''
-                            }
-                            ser_obj = EngSerializer(data=new_obj)
-                            if ser_obj.is_valid():
-                                ser_obj.save()
-                                # add the relationships tables
-                                _obj = EngineeringFileModel.objects.get(file_path=file_path)
-                                if discipline:
-                                    # using the disciplines defined in the model
-                                    disc_upper = discipline.upper()
-                                    discs = []
-                                    for x in models.engineering_sheet_types:
-                                        pass
-                                    discs = EngineeringDiscipline.objects.get(name=disc_upper)
-                                    _obj.discipline.add(discs)
-                                if sheet_type:
-                                    stypes = EngineeringSheetType.objects.get(name=sheet_type)
-                                    _obj.sheet_type.add(stypes)
+                    if len(filtered) == 0:
+                        new_obj = {
+                            'file_path': file_path,
+                            'sheet_type': sheet_type,
+                            'discipline': discipline,
+                            'project_title': project_title,
+                            'sheet_description': sheet_description,
+                            'sheet_title': sheet_title,
+                            'project_date': project_date,
+                            'vendor': vendor,
+                            'airport': '',
+                            'project_description': '',
+                            'funding_type': '',
+                            'grant_number': ''
+                        }
+                        ser_obj = EngSerializer(data=new_obj)
+                        if ser_obj.is_valid():
+                            ser_obj.save()
+                        else:
+                            print(ser_obj.errors)
 
+                    elif len(filtered) == 1:
+                        _object = filtered[0]
+                        serializer = EngSerializer(_object)
+                        update_data = {
+                            "file_path": file_path,
+                            "sheet_type": sheet_type,
+                            "project_title": project_title,
+                            "sheet_description": sheet_description,
+                            "sheet_title": sheet_title,
+                            "project_date": project_date,
+                            "vendor": vendor,
+                            "airport": '',
+                            "project_description": '',
+                            "funding_type": '',
+                            "grant_number": ''
+                        }
+
+                        try:
+                            new_s = EngSerializer(data=update_data)
+                            if new_s.is_valid():
+                                serializer.update(new_s.data)
                             else:
-                                print(ser_obj.errors)
-                        elif len(filtered) == 1:
-                            _object = filtered[0]
-                            serializer = EngSerializer(_object)
-                            new_data = {}
-
-                            if sheet_type:
-                                sh = sheet_type.upper()
-                                stypes = []
-                                for x in models.engineering_sheet_types:
-                                    if x[0] in sh:
-                                        stypes.append(x[0])
-                                stypes = EngineeringSheetType.objects.filter(name__in=stypes)
-                                for t in stypes:
-                                    _object.sheet_type.add(t)
-
-                            if discipline:
-                                disc = discipline.upper()
-                                discs = []
-                                for x in models.engineering_discipline_choices:
-                                    if x[0] in disc:
-                                        discs.append(x[0])
-                                discs = EngineeringDiscipline.objects.filter(name__in=discs)
-                                for d in discs:
-                                    _object.discipline.add(d)
-
-                            new_data["file_path"] = file_path
-                            new_data["project_title"] = project_title
-                            new_data["sheet_description"] = sheet_description
-                            new_data["sheet_title"] = sheet_title
-                            new_data["project_date"] = project_date,
-                            new_data["vendor"] = vendor
-                            new_data["airport"] = ''
-                            new_data["project_description"] = ''
-                            new_data["funding_type"] = ''
-                            new_data["grant_number"] = ''
-
-                            try:
-                                new_s = EngSerializer(data=new_data)
-                                if new_s.is_valid():
-                                    serializer.update(new_s.data)
-                                else:
-                                    print(new_s.errors)
-                            except:
-                                exc_type, exc_value, exc_traceback = sys.exc_info()
-                                traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+                                print(new_s.errors)
+                        except:
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -214,11 +186,12 @@ class FileStoreBuilder:
                         extension = _file.split(".")[-1].lower()
                         for mapping in iter(FILE_TYPE_CHOICES.values()):
                             # there is only one key for each mapping dict so testing
-                            # if the extension is IN the dict as a value is good enough
+                            # if the extension is IN the dict as a key is good enough
                             if extension in mapping:
                                 file_path = os.path.join(root, _file)
+                                file_path = file_path.replace("\\", "/")
                                 base_name = os.path.basename(file_path)
-                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)[0]
+                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)
                                 mime = mimetypes.guess_type(file_path)[0]
                                 if mime is None:
                                     mime = FILE_TYPE_CHOICES[file_type][extension]
@@ -240,6 +213,7 @@ class FileStoreBuilder:
                                 elif len(filtered) == 1:
                                     # The File Exists in the Database and will be updated
                                     _object = filtered[0]
+                                    _object.file_path = file_path
                                     _object.base_name = base_name
                                     _object.file_type = file_type
                                     _object.mime = mime
@@ -254,7 +228,8 @@ class FileStoreBuilder:
     def clean_store(self):
         """Remove paths that don't exist;
         Remove directories;
-        remove paths that don't match with TOP_DIRs;"""
+        remove paths that don't match with TOP_DIRs;
+       """
         def check_roots(in_path, roots):
             d = False
             for x in roots:
@@ -290,16 +265,15 @@ class GridCellBuilder:
 
     @staticmethod
     def build_store():
+        """This will create new grid cell rows only if they dont exist"""
         # send query request to esri rest api
         login_params = {
-            'f': 'json',
-            'client_id': 'Yer7Ki5IEHLbDzqv',
-            'client_secret': 'a6b5f07dbd6d4228a0cb334cdad8d575',
-            'grant_type': 'client_credentials',
-            'expiration': '1440',
+            'client_id': 'iVMcOt2MrFfgmRBF',
+            'client_secret': 'e6df1381878a49e8b3df8e5c654c0110',
+            'grant_type': 'client_credentials'
         }
 
-        token = requests.post('https://www.arcgis.com/sharing/rest/oauth2/token/',
+        token = requests.get('https://www.arcgis.com/sharing/rest/oauth2/token/',
                               params=login_params)
         access_token = token.json()['access_token']
 
@@ -343,7 +317,44 @@ class AssignmentManager:
     def clear(self, data):
         pass
 
+    @staticmethod
+    def create_test_assignments():
+        files = EngineeringFileModel.objects.all()
+        grid_cells = GridCell.objects.all()
+        i = 0
+        for file in files:
+            try:
+                grid_cell = grid_cells[i]
+                new_obj = {
+                    "file": "http://127.0.0.1:8080/fileApp/eng-files/{}/".format(file.pk),
+                    "grid_cell": grid_cell.name
+                }
+                i += 3
+
+                try:
+                    existing = EngineeringAssignment.objects.filter(grid_cell=grid_cell).filter(file=file)
+                    if len(existing):
+                        check = EngAssignmentSerializer(existing[0], data=new_obj)
+                    else:
+                        check = EngAssignmentSerializer(data=new_obj)
+
+                    if check.is_valid():
+                        check.save()
+
+                    else:
+                        print("{} and {} could not be assigned".format(grid_cell, file.base_name))
+                except Exception:
+                    print(Exception)
+
+            except IndexError:
+                pass
+
 
 if __name__ == '__main__':
     x = FileStoreBuilder()
-    x.load_accdb()
+    x.build_store()
+    cell = GridCellBuilder()
+    cell.build_store()
+    ass = AssignmentManager()
+    ass.create_test_assignments()
+

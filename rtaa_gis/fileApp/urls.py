@@ -3,7 +3,7 @@ from . import views
 from django.conf.urls import url
 
 router = routers.DefaultRouter()
-router.register(r'eng-grids', views.EngGridViewSet)
+router.register(r'grids', views.EngGridViewSet)
 router.register(r'eng-assignments', views.EngAssignmentViewSet)
 router.register(r'eng-all-files', views.EngViewSet)
 router.register(r'eng-io', views.EngIOViewSet)

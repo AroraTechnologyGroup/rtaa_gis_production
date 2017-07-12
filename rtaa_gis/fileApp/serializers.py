@@ -1,9 +1,32 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import GridCell, EngineeringAssignment, EngineeringFileModel, EngineeringSheetType, EngineeringDiscipline
+from .models import GridCell, EngineeringAssignment, EngineeringFileModel
 from .utils import function_definitions
 import mimetypes
 import os
+
+engineering_discipline_choices = [
+        ('MISC', 'Miscellaneous'),
+        ('CIVIL', 'Civil'),
+        ('ARCH', 'Architectural'),
+        ('STRUCTURAL', 'Structural'),
+        ('LANDSCAPING', 'Landscaping'),
+        ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
+        ('PLUMBING', 'Plumbing'),
+        ('ELECTRICAL', 'Electrical')
+    ]
+
+engineering_sheet_types = [
+        ('DETAILS', 'Details'),
+        ('PLAN', 'Plan'),
+        ('TITLE', 'Title'),
+        ('KEY', 'Key'),
+        ('INDEX', 'Index'),
+        ('ELEVATIONS', 'Elevations'),
+        ('NOTES', 'Notes'),
+        ('SECTIONS', 'Sections'),
+        ('SYMBOLS', 'Symbols')
+    ]
 
 
 class GridSerializer(serializers.ModelSerializer):
@@ -22,9 +45,9 @@ class GridSerializer(serializers.ModelSerializer):
 
 class EngFileHyperLinkedRelatedField(serializers.HyperlinkedRelatedField):
     queryset = EngineeringFileModel.objects.all()
-    view_name = 'engineering-filemodel-detail'
+    view_name = 'engineeringfilemodel-detail'
     lookup_field = 'pk'
-    many = False
+    many = True
 
     def display_value(self, instance):
         return instance.file_path
@@ -32,11 +55,21 @@ class EngFileHyperLinkedRelatedField(serializers.HyperlinkedRelatedField):
 
 class GridPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     queryset = GridCell.objects.all()
-    many = False
+    many = True
     pk_field = 'Name'
 
     def display_value(self, instance):
         return '%s' % instance.name
+
+
+class EngineeringDisciplinesField(serializers.MultipleChoiceField):
+    choices = engineering_discipline_choices
+    allow_blank = True
+
+
+class EngineeringSheetTypesField(serializers.MultipleChoiceField):
+    choices = engineering_sheet_types
+    allow_blank = True
 
 
 class EngAssignmentSerializer(serializers.ModelSerializer):
@@ -53,10 +86,7 @@ class EngAssignmentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         base_name = validated_data['file'].base_name
-
-        assignment = EngineeringAssignment.objects.create(base_name=base_name, **validated_data)
-        assignment.save()
-        return assignment
+        return EngineeringAssignment.objects.create(base_name=base_name, **validated_data)
 
     def update(self, instance, validated_data):
         instance.grid_cell = validated_data.get('grid_cell', instance.grid_cell)
@@ -67,27 +97,21 @@ class EngAssignmentSerializer(serializers.ModelSerializer):
         return instance
 
 
-# These inherit from those above
 class EngSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EngineeringFileModel
-        fields = ('project_title', 'grid_cells', 'project_description', 'project_date', 'sheet_title', 'sheet_type',
-                  'sheet_description', 'vendor', 'discipline', 'airport', 'funding_type', 'grant_number', 'file_path')
+        fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'sheet_title', 'sheet_type',
+                  'project_title', 'project_description', 'project_date', 'sheet_description', 'vendor', 'discipline',
+                  'airport', 'funding_type', 'grant_number', 'file_path')
         depth = 1
         read_only_fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'mime')
 
     grid_cells = serializers.SerializerMethodField()
 
-    sheet_type = serializers.SlugRelatedField(
-        many=True,
-        queryset=EngineeringSheetType.objects.all(),
-        slug_field='name')
+    sheet_type = EngineeringSheetTypesField
 
-    discipline = serializers.SlugRelatedField(
-        many=True,
-        queryset=EngineeringDiscipline.objects.all(),
-        slug_field='name')
+    discipline = EngineeringDisciplinesField
 
     @staticmethod
     def get_grid_cells(self):
@@ -112,6 +136,7 @@ class EngSerializer(serializers.ModelSerializer):
             base_name = os.path.basename(file_path)
             file_type = base_name.split(".")[-1]
             size = function_definitions.convert_size(os.path.getsize(file_path))
+            # TODO-use the same mimetype assigning done in the Build FileStore script
             mime = mimetypes.guess_type(file_path)[0]
             if mime is None:
                 mime = ''

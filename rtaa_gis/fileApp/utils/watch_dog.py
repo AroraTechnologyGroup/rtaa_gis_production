@@ -3,18 +3,19 @@ import time
 import sys
 import logging
 import django
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
+django.setup()
+from django.conf import settings
+
 from fileApp.utils import buildDocStore
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
-
-
-sys.path.append("{}\\fileApp".format(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
-django.setup()
-
 from fileApp.models import FileModel as FileModel
 from fileApp.serializers import FileSerializer as FileSerializer
-from rtaa_gis.settings import BASE_DIR
+
+BASE_DIR = settings.BASE_DIR
 
 
 class MyHandler(PatternMatchingEventHandler):

@@ -22,6 +22,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
