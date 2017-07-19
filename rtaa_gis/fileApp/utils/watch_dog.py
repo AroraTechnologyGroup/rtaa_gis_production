@@ -13,7 +13,7 @@ from fileApp.utils import buildDocStore
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from fileApp.models import FileModel as FileModel
-from fileApp.serializers import FileSerializer as FileSerializer
+from fileApp.serializers import EngSerializer as FileSerializer
 
 BASE_DIR = settings.BASE_DIR
 
