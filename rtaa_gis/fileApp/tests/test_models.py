@@ -3,6 +3,7 @@ from fileApp.models import EngineeringAssignment, EngineeringFileModel, GridCell
 import os
 from rtaa_gis.settings import BASE_DIR
 
+# setting this environment variable allows fixtures to be loaded
 os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures/json'))
 
 

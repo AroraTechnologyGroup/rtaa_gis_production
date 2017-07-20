@@ -15,9 +15,9 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_gis/"
+FORCE_SCRIPT_NAME = "/rtaa_prod/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -170,16 +170,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    # 'azure_sql_server': {
-    #     'ENGINE': 'sql_server.pyodbc',
-    #     'NAME': 'eDocDiscovery',
-    #     'HOST': 'sql-server-azure.database.windows.net',
-    #     'USER': 'gissetup@sql-server-azure',
-    #     'PASSWORD': "Heddie01!",
-    #     'OPTIONS': {
-    #         'driver': 'SQL Server Native Client 11.0'
-    #      }
-    #  },
+    'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'rtaa_gis_prod',
+        'HOST': 'gis.aroraengineers.com',
+        'USER': 'gissetup',
+        'PASSWORD': "AroraGIS123!",
+        'OPTIONS': {
+            'driver': 'SQL Server Native Client 11.0'
+         }
+     },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -188,10 +188,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    'default': {
-         'ENGINE': 'django.db.backends.sqlite3',
-         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-     }
+    # 'default': {
+    #      'ENGINE': 'django.db.backends.sqlite3',
+    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #  }
 }
 
 
