@@ -18,12 +18,12 @@ from fileApp.serializers import EngSerializer, EngAssignmentSerializer, engineer
 from fileApp.utils import function_definitions
 from django.conf import settings
 
-# TOP_DIRs = settings.FILE_APP_TOP_DIRS
-# acc_db_path = ""
+TOP_DIRs = settings.FILE_APP_TOP_DIRS
+acc_db_path = ""
 # for testing load the sample pdf files
-test_dir = os.path.join(settings.BASE_DIR, "fileApp/fixtures/data")
-TOP_DIRs = [test_dir]
-acc_db_path = test_dir
+# test_dir = os.path.join(settings.BASE_DIR, "fileApp/fixtures/data")
+# TOP_DIRs = [test_dir]
+# acc_db_path = test_dir
 
 PDF = {"pdf": "application/pdf"}
 ODT = {"odt": "application/vnd.oasis.opendocument.text"}

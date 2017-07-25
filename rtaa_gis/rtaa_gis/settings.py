@@ -15,12 +15,14 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_prod/"
+# FORCE_SCRIPT_NAME = "/rtaa_prod/"
+FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "gisapps.aroraengineers.com"
+LDAP_URL = "gis.renoairport.net"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
@@ -58,9 +60,8 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 # CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
-CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
+CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com',
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
@@ -170,16 +171,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'rtaa_gis_prod',
-        'HOST': 'gis.aroraengineers.com',
-        'USER': 'gissetup',
-        'PASSWORD': "AroraGIS123!",
-        'OPTIONS': {
-            'driver': 'SQL Server Native Client 11.0'
-         }
-     },
+    # 'default': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': 'rtaa_gis_prod',
+    #     'HOST': 'gis.aroraengineers.com',
+    #     'USER': 'gissetup',
+    #     'PASSWORD': "AroraGIS123!",
+    #     'OPTIONS': {
+    #         'driver': 'SQL Server Native Client 11.0'
+    #      }
+    #  },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -188,10 +189,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    # 'default': {
-    #      'ENGINE': 'django.db.backends.sqlite3',
-    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    #  }
+    'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
 
 
