@@ -18,8 +18,27 @@
     {{ block.super }}
 {% endblock %}
 
-{% block main_content %}
-
+{#This main_content block resides within the Content Block on the home_body.html#}
+{% block content %}
+    <header class="sub-nav" role="banner">
+        <div class="grid-container">
+            <div class="column-24">
+                <h1 class="sub-nav-title text-white">GIS Admin Page</h1>
+                <nav class="sub-nav-list" role="navigation" aria-labelledby="subnav">
+                    <a class="sub-nav-link" href="#"></a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <div id="collector-guide">
+        {% include 'analytics/collector-guide.html' %}
+    </div>
+    <div id="admin-viewer">
+        {% include 'analytics/admin-viewer.html' %}
+    </div>
+    <div id="publishing-tools">
+        {% include 'analytics/publishing-tools.html' %}
+    </div>
 {% endblock %}
 
 {% block footer %}
