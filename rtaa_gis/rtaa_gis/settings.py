@@ -63,9 +63,11 @@ CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraenginee
                         'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -77,19 +79,15 @@ CORS_ORIGIN_WHITELIST = (
     '127.0.0.1',
     'localhost:3000'
 )
-CORS_ALLOW_HEADERS = (
-    # 'content-range',
-    'x-requested-with',
-)
 
 CORS_EXPOSE_HEADERS = (
-    'x-requested-with',
-    'content-type',
-    'content-range',
-    'accept',
-    'origin',
-    'authorization',
-    'x-csrftoken',
+    # 'x-requested-with',
+    # 'content-type',
+    # 'content-range',
+    # 'accept',
+    # 'origin',
+    # 'authorization',
+    # 'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -98,14 +96,15 @@ ALLOWED_HOSTS = [
     'gis.renoairport.net',
     'localhost',
     '127.0.0.1',
-    '172.72.118.217'
+    '172.72.118.217',
+    '13.90.210.35'
 ]
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    CORS_REPLACE_HTTPS_REFERER = True
+    CORS_REPLACE_HTTPS_REFERER = False
     CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
@@ -124,7 +123,8 @@ INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'fileApp.apps.FileAppConfig',
     'cloudSync.apps.CloudsyncConfig',
-    'printTool.apps.PrinttoolConfig'
+    'printTool.apps.PrinttoolConfig',
+    'analytics.apps.AnalyticsConfig'
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -235,7 +235,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         #'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
@@ -262,7 +262,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "ERROR",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -288,6 +288,10 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': "DEBUG"
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['file'],
+            'propagate': False,
         }
     },
 }

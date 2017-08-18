@@ -226,8 +226,10 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post', ])
     def _create(self, request):
         """Create assignment from the list of files and the grid cell on the Post request"""
-        file_pks = request.POST['files'].split(",")
-        cell_values = request.POST['grid_cells'].split(",")
+        file_pks = [f.strip() for f in request.POST['files'].split(",")]
+        if not file_pks:
+            logging.warning("No files in message data, unable to create new assignments")
+        cell_values = [c.strip() for c in request.POST['grid_cells'].split(",")]
 
         pre_assignments = len(EngineeringAssignment.objects.all())
 
