@@ -1,7 +1,8 @@
 from django.contrib import admin
-from .models import GridCell, FileModel, Assignment
+from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 
 admin.site.register(GridCell)
-admin.site.register(FileModel)
-admin.site.register(Assignment)
+admin.site.register(EngineeringFileModel)
+admin.site.register(EngineeringAssignment)
+
 

@@ -22,6 +22,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "renoairport.net"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
@@ -62,9 +63,11 @@ CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraenginee
                         'gisapps.aroraengineers.com:443', 'gis.renoairport.net', 'localhost')
 
 CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -76,19 +79,15 @@ CORS_ORIGIN_WHITELIST = (
     '127.0.0.1',
     'localhost:3000'
 )
-CORS_ALLOW_HEADERS = (
-    # 'content-range',
-    'x-requested-with',
-)
 
 CORS_EXPOSE_HEADERS = (
-    'x-requested-with',
-    'content-type',
-    'content-range',
-    'accept',
-    'origin',
-    'authorization',
-    'x-csrftoken',
+    # 'x-requested-with',
+    # 'content-type',
+    # 'content-range',
+    # 'accept',
+    # 'origin',
+    # 'authorization',
+    # 'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -97,14 +96,15 @@ ALLOWED_HOSTS = [
     'gis.renoairport.net',
     'localhost',
     '127.0.0.1',
-    '172.72.118.217'
+    '172.72.118.217',
+    '13.90.210.35'
 ]
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    CORS_REPLACE_HTTPS_REFERER = True
+    CORS_REPLACE_HTTPS_REFERER = False
     CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
@@ -123,7 +123,8 @@ INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'fileApp.apps.FileAppConfig',
     'cloudSync.apps.CloudsyncConfig',
-    'printTool.apps.PrinttoolConfig'
+    'printTool.apps.PrinttoolConfig',
+    'analytics.apps.AnalyticsConfig'
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -169,27 +170,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'sql_server.pyodbc',
-    #     'HOST': 'gis.aroraengineers.com',
-    #     'PORT': '1433',
-    #     'USER': 'gissetup',
-    #     'PASSWORD': 'AroraGIS123!',
-    #     'NAME': 'rtaa_gis_prod',
-    #     'OPTIONS': {
-    #         'driver': 'SQL Server Native Client 11.0'
-    #     }
-    # }
-    # 'azure_sql_server': {
-    #     'ENGINE': 'sql_server.pyodbc',
-    #     'NAME': 'eDocDiscovery',
-    #     'HOST': 'sql-server-azure.database.windows.net',
-    #     'USER': 'gissetup@sql-server-azure',
-    #     'PASSWORD': "Heddie01!",
-    #     'OPTIONS': {
-    #         'driver': 'SQL Server Native Client 11.0'
-    #      }
-    #  },
+    'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'rtaa_gis_prod',
+        'HOST': 'gis.aroraengineers.com',
+        'USER': 'gissetup',
+        'PASSWORD': "AroraGIS123!",
+        'OPTIONS': {
+            'driver': 'SQL Server Native Client 11.0'
+         }
+     },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -198,10 +188,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    'default': {
-         'ENGINE': 'django.db.backends.sqlite3',
-         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-     }
+    # 'default': {
+    #      'ENGINE': 'django.db.backends.sqlite3',
+    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #  }
 }
 
 
@@ -245,7 +235,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         #'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
@@ -267,7 +257,7 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'formatter': 'standard'
         },
         'file': {
@@ -298,6 +288,10 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file'],
             'level': "DEBUG"
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['file'],
+            'propagate': False,
         }
     },
 }

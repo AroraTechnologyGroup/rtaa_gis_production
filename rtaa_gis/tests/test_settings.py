@@ -16,7 +16,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'fileApp.apps.FileAppConfig',
-    'home.apps.HomeConfig'
+    'home.apps.HomeConfig',
+    'cloudSync.apps.CloudsyncConfig',
+    'printTool.apps.PrinttoolConfig'
 ]
 DATABASES = {
     'default': {

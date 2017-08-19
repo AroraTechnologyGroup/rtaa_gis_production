@@ -23,16 +23,14 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include('home.urls')),
+    url(r'^gis-admin/', include('analytics.urls')),
     url(r'^print/', include('printTool.urls')),
     url(r'^cloudSync/', include('cloudSync.urls')),
-    url(r'^edoc/', include('fileApp.urls')),
+    url(r'^fileApp/', include('fileApp.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 
-# urlpatterns = [
-#     url(r'^rtaa_gis/', include(site_urlpatterns))
-# ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
