@@ -172,10 +172,10 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'rtaa_gis_prod',
-        'HOST': 'gis.aroraengineers.com',
-        'USER': 'gissetup',
-        'PASSWORD': "AroraGIS123!",
+        'NAME': 'GIS_Web',
+        'HOST': 'gis.renoairport.net',
+        'USER': 'gis',
+        'PASSWORD': "GIS@RTAA123!",
         'OPTIONS': {
             'driver': 'SQL Server Native Client 11.0'
          }
