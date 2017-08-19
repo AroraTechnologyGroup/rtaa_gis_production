@@ -67,7 +67,7 @@ CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -97,7 +97,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '172.72.118.217',
-    '13.90.210.35'
+    # '13.90.210.35'
 ]
 
 if not DEBUG:
