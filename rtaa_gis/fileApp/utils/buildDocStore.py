@@ -14,66 +14,18 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from fileApp import models
 from fileApp.models import EngineeringFileModel, EngineeringAssignment, GridCell
-from fileApp.serializers import EngSerializer, EngAssignmentSerializer, engineering_sheet_types, engineering_discipline_choices
+from fileApp.serializers import EngSerializer, EngAssignmentSerializer, engineering_sheet_types, engineering_discipline_choices, FileTypes
+
 from fileApp.utils import function_definitions
 from django.conf import settings
 
 TOP_DIRs = settings.FILE_APP_TOP_DIRS
-acc_db_path = ""
+acc_db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures/data/reno.accdb")
+
 # for testing load the sample pdf files
 # test_dir = os.path.join(settings.BASE_DIR, "fileApp/fixtures/data")
 # TOP_DIRs = [test_dir]
 # acc_db_path = test_dir
-
-PDF = {"pdf": "application/pdf"}
-ODT = {"odt": "application/vnd.oasis.opendocument.text"}
-ODS = {"ods": "application/vnd.oasis.opendocument.spreadsheet"}
-ODP = {"odp": "application/vnd.oasis.opendocument.presentation"}
-MSDOC = {"doc": "application/msword"}
-MSDOCX = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
-EXCEL1 = {"xls": "application/vnd.ms-excel"}
-EXCEL2 = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-TEXT = {"txt": "text/plain"}
-CSV = {"csv": "text/csv"}
-PNG = {"png": "image/png"}
-JPEG = {"jpg": "image/jpeg"}
-TIFF = {"tiff": "image/tiff"}
-DWG = {"dwg": "image/vnd.dwg"}
-LYR = {"lyr": "application/octet-stream"}
-MPK = {"mpk": "application/octet-stream"}
-MXD = {"mxd": "application/octet-stream"}
-
-FILE_TYPE_CHOICES = {
-    "PDF": PDF,
-    "OPEN OFFICE DOC": ODT,
-    "OPEN OFFICE SHEET": ODS,
-    "OPEN OFFICE PRESENTATION": ODP,
-    "MS Word doc": MSDOC,
-    "MS Word docx": MSDOCX,
-    "TEXT": TEXT,
-    "MS Excel xls": EXCEL1,
-    "MS Excel xlsx": EXCEL2,
-    "CSV Spreadsheet": CSV,
-    "PNG Image": PNG,
-    "JPEG Image": JPEG,
-    "TIFF Image": TIFF,
-    "AutoCad dwg": DWG,
-    "ESRI Layer File": LYR,
-    "ESRI Map Package": MPK,
-    "ESRI Map Document": MXD
-}
-
-DOC_VIEWER_TYPES = ['docx', 'doc', 'txt']
-
-TABLE_VIEWER_TYPES = ['xls', 'xlsx', 'ods']
-
-IMAGE_VIEWER_TYPES = ['tiff', 'jpg', 'png']
-
-
-def __init__(self):
-    self.FILE_TYPE_CHOICES = FILE_TYPE_CHOICES
-    self.TOP_DIRs = TOP_DIRs
-    return
 
 
 class Error(Exception):
@@ -87,13 +39,14 @@ class Error(Exception):
 class FileStoreBuilder:
     def __init__(self):
         self.top_dirs = TOP_DIRs
+        self.FileTypes = FileTypes()
         pass
 
     def load_accdb(self):
         try:
             conn_str = (
                 r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
-                r'DBQ=%s;' % os.path.join(acc_db_path, 'reno.accdb')
+                r'DBQ=%s;' % acc_db_path
             )
             cnxn = pyodbc.connect(conn_str)
             cursor = cnxn.cursor()
@@ -104,8 +57,14 @@ class FileStoreBuilder:
                 if row[-1] != 'text':
                     file_path, sheet_type, discipline, project_title, sheet_description, sheet_title, project_date, vendor = row
                     file_path = file_path.replace('#', '')
+                    file_path = file_path.lstrip(r"i:\\")
+                    file_path = r"//renofs2/groups/" + file_path
+                    file_path = file_path.replace("\\", "/")
+                    file_path = file_path.lower()
+
                     if not file_path:
                         file_path = ""
+                    # All File Paths in the system are in lower case
                     filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                     if not vendor:
                         vendor = ""
@@ -125,6 +84,8 @@ class FileStoreBuilder:
                         sheet_description = ""
 
                     if len(filtered) == 0:
+                        # The file object was not located in the fileStore using the file_path
+
                         new_obj = {
                             'file_path': file_path,
                             'sheet_type': sheet_type,
@@ -137,17 +98,21 @@ class FileStoreBuilder:
                             'airport': '',
                             'project_description': '',
                             'funding_type': '',
-                            'grant_number': ''
+                            'grant_number': '',
+                            'comment': ''
                         }
-                        ser_obj = EngSerializer(data=new_obj)
-                        if ser_obj.is_valid():
-                            ser_obj.save()
-                        else:
-                            print(ser_obj.errors)
+                        try:
+                            ser_obj = EngSerializer(data=new_obj)
+                            if ser_obj.is_valid():
+                                ser_obj.save()
+                            else:
+                                print(ser_obj.errors)
+                        except:
+                            exc_type, exc_value, exc_traceback = sys.exc_info()
+                            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
                     elif len(filtered) == 1:
                         _object = filtered[0]
-                        serializer = EngSerializer(_object)
                         update_data = {
                             "file_path": file_path,
                             "sheet_type": sheet_type,
@@ -156,16 +121,17 @@ class FileStoreBuilder:
                             "sheet_title": sheet_title,
                             "project_date": project_date,
                             "vendor": vendor,
-                            "airport": '',
-                            "project_description": '',
-                            "funding_type": '',
-                            "grant_number": ''
+                            "airport": "",
+                            "project_description": "",
+                            "funding_type": "",
+                            "grant_number": "",
+                            "comment": ""
                         }
 
                         try:
-                            new_s = EngSerializer(data=update_data)
+                            new_s = EngSerializer(_object, data=update_data, partial=True)
                             if new_s.is_valid():
-                                serializer.update(new_s.data)
+                                new_s.save()
                             else:
                                 print(new_s.errors)
                         except:
@@ -179,46 +145,44 @@ class FileStoreBuilder:
     def build_store(self):
         try:
             top_dirs = self.top_dirs
+            file_types = self.FileTypes
             for top_dir in top_dirs:
                 for root, dirs, files in os.walk(top_dir):
                     for _file in files:
-                        # solves bug where file extensions are uppercase
-                        extension = _file.split(".")[-1].lower()
-                        for mapping in iter(FILE_TYPE_CHOICES.values()):
+
+                        for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
                             # there is only one key for each mapping dict so testing
                             # if the extension is IN the dict as a key is good enough
+                            # This basically limits the types of files we are including
+                            extension = _file.split(".")[-1].lower()
                             if extension in mapping:
                                 file_path = os.path.join(root, _file)
                                 file_path = file_path.replace("\\", "/")
-                                base_name = os.path.basename(file_path)
-                                file_type = function_definitions.check_file_type(FILE_TYPE_CHOICES, extension)
-                                mime = mimetypes.guess_type(file_path)[0]
-                                if mime is None:
-                                    mime = FILE_TYPE_CHOICES[file_type][extension]
-                                    # print mime
-                                size = function_definitions.convert_size(os.path.getsize(file_path))
-
+                                # all file_paths in the system are lower case
+                                file_path = file_path.lower()
                                 filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                                 if len(filtered) == 0:
                                     # File has not been added to the database
-                                    new_obj = EngineeringFileModel.objects.create(
-                                            file_path=file_path,
-                                            base_name=base_name,
-                                            file_type=file_type,
-                                            mime=mime,
-                                            size=size
-                                    )
-                                    new_obj.save()
+                                    ser = EngSerializer(data={
+                                        "file_path": file_path,
+                                        "project_title": ""
+                                    })
+                                    if ser.is_valid():
+                                        ser.save()
+                                    else:
+                                        logging.error(ser.errors)
 
                                 elif len(filtered) == 1:
                                     # The File Exists in the Database and will be updated
                                     _object = filtered[0]
-                                    _object.file_path = file_path
-                                    _object.base_name = base_name
-                                    _object.file_type = file_type
-                                    _object.mime = mime
-                                    _object.size = size
-                                    _object.save()
+                                    serializer = EngSerializer(_object, data={
+                                        "file_path": file_path,
+                                        "project_title": ""
+                                    }, partial=True)
+                                    if serializer.is_valid():
+                                        serializer.save()
+                                    else:
+                                        logging.error(serializer.errors)
 
         except Exception as e:
             logging.warning(e)
@@ -351,10 +315,12 @@ class AssignmentManager:
 
 
 if __name__ == '__main__':
-    x = FileStoreBuilder()
-    x.build_store()
+    # x = FileStoreBuilder()
+    # x.build_store()
+    # if os.path.exists(acc_db_path):
+    #     x.load_accdb()
     cell = GridCellBuilder()
     cell.build_store()
-    ass = AssignmentManager()
-    ass.create_test_assignments()
+    # ass = AssignmentManager()
+    # ass.create_test_assignments()
 
