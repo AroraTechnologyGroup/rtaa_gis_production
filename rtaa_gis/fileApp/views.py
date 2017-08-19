@@ -245,11 +245,13 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     @list_route(methods=['post', ])
     def _delete(self, request):
         """Remove the specified assignment object"""
-        files = request.POST['files'].split(",")
-        cell_values = request.POST['grid_cells'].split(",")
+        file_pks = [f.strip() for f in request.POST['files'].split(",")]
+        if not file_pks:
+            logging.warning("No file pks in message data, unable to remove assignment")
+        cell_values = [c.strip() for c in request.POST['grid_cells'].split(",")]
         pre_assignments = len(EngineeringAssignment.objects.all())
 
-        for x in files:
+        for x in file_pks:
             file = EngineeringFileModel.objects.get(pk=x)
             for cell_value in cell_values:
                 obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=cell_value)
@@ -273,7 +275,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
         """Create assignment from the list of files and the grid cell on the Post request"""
         file_pks = [f.strip() for f in request.POST['files'].split(",")]
         if not file_pks:
-            logging.warning("No files in message data, unable to create new assignments")
+            logging.warning("No file pks in message data, unable to create new assignments")
         cell_values = [c.strip() for c in request.POST['grid_cells'].split(",")]
 
         pre_assignments = len(EngineeringAssignment.objects.all())
