@@ -2,8 +2,8 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
-from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
+from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
@@ -14,9 +14,7 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
-from .utils import buildDocStore
 from .utils import WatchDogTrainer
-from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
@@ -33,7 +31,7 @@ if platform.system() == 'Windows':
     pass
 
 logger = logging.getLogger(__name__)
-trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
+trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
 
 @api_view()
