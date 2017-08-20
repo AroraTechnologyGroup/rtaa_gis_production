@@ -17,7 +17,8 @@ import urllib
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_prod/"
+# FORCE_SCRIPT_NAME = "/rtaa_prod/"
+FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -58,9 +59,8 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 # CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
-CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
+CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com',
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
