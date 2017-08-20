@@ -32,7 +32,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
-        name = 'gissetup'
+        name = 'siteadmin'
 
     user_obj = User.objects.get(username=name)
 
@@ -54,7 +54,7 @@ def clear_users(request, format=None):
     return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
 
 
-@method_decorator(ensure_csrf_cookie, name="dispatch")
+# @method_decorator(ensure_csrf_cookie, name="dispatch")
 # @method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the main homepage or an app depending on the template"""
@@ -77,10 +77,11 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
-        query = LDAPQuery(local_name, settings.LDAP_URL)
+        query = LDAPQuery(name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
-        logger.info("username = {}".format(name))
+        logger.info("username = {}".format(local_name))
+        logger.info(datetime.now())
 
         user_obj = User.objects.get(username=name)
         users_groups = user_obj.groups.all()

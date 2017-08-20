@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -81,13 +81,13 @@ CORS_ORIGIN_WHITELIST = (
 )
 
 CORS_EXPOSE_HEADERS = (
-    # 'x-requested-with',
-    # 'content-type',
-    # 'content-range',
-    # 'accept',
-    # 'origin',
-    # 'authorization',
-    # 'x-csrftoken',
+    'x-requested-with',
+    'content-type',
+    'content-range',
+    'accept',
+    'origin',
+    'authorization',
+    'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -234,8 +234,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        #'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
