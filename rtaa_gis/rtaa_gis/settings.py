@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -58,9 +58,8 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 # CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
-CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net', 'localhost')
+CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com',
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
@@ -79,15 +78,19 @@ CORS_ORIGIN_WHITELIST = (
     '127.0.0.1',
     'localhost:3000'
 )
+CORS_ALLOW_HEADERS = (
+    # 'content-range',
+    'x-requested-with',
+)
 
 CORS_EXPOSE_HEADERS = (
-    'x-requested-with',
-    'content-type',
-    'content-range',
-    'accept',
-    'origin',
-    'authorization',
-    'x-csrftoken',
+    # 'x-requested-with',
+    # 'content-type',
+    # 'content-range',
+    # 'accept',
+    # 'origin',
+    # 'authorization',
+    # 'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -97,14 +100,14 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '172.72.118.217',
-    '13.90.210.35'
+    # '13.90.210.35'
 ]
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    CORS_REPLACE_HTTPS_REFERER = False
+    CORS_REPLACE_HTTPS_REFERER = True
     CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
@@ -234,7 +237,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
@@ -262,7 +265,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "ERROR",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

@@ -5,7 +5,9 @@
     <Title>{{ app_name|upper }}</Title>
 {% endblock %}
 
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock %}
 
 {% block header_nav %}
     <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
@@ -32,9 +34,9 @@
     </div>
 
     <div style="overflow: visible">
-      <header class="top-nav">
-        <div class="grid-container">
-          <div class="column-24">
+{#      <header class="top-nav">#}
+{#        <div class="grid-container">#}
+{#          <div class="column-24">#}
 {#            <div class="tablet-hide">#}
 {#              <a href="{% url 'home:index' %}#home" class="top-nav-title">Home</a>#}
 {#              <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">#}
@@ -83,10 +85,10 @@
                     <a href="{% url 'home:login' %}" class="btn btn-small btn-clear">Sign-In</a>
                 </nav>
             {% endif %}
-
-          </div>
-        </div>
-      </header>
+{##}
+{#          </div>#}
+{#        </div>#}
+{#      </header>#}
     </div>
 {% endblock %}
 

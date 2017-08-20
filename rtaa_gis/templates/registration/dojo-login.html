@@ -21,7 +21,7 @@
     {% endif %}
 
     <form data-dojo-type="dijit/form/Form" method="post" action="{% url 'home:login' %}">
-    {% csrf_token %}
+{#    {% csrf_token %}#}
     <table>
     <tr>
         <td>{{ form.username.label_tag }}</td>

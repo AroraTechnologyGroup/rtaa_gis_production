@@ -26,3 +26,6 @@ rtaa_gis/media/
 **/fixtures/data/
 **/fixtures/json/
 **/creds.json
+**/migrations/**.py
+**/CollectorProjectBuildGuide.htm
+**/CollectorProjectBuildGuide_files/
