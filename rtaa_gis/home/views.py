@@ -22,7 +22,7 @@ from django.views.decorators.cache import never_cache
 logger = logging.getLogger(__package__)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def user_groups(request, format=None):
     try:
         name = request.META['REMOTE_USER']
@@ -32,7 +32,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
-        name = 'gissetup'
+        name = 'siteadmin'
 
     user_obj = User.objects.get(username=name)
 

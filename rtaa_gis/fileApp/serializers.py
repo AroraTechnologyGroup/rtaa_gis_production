@@ -6,27 +6,81 @@ import mimetypes
 import os
 
 engineering_discipline_choices = [
-        ('MISC', 'Miscellaneous'),
-        ('CIVIL', 'Civil'),
-        ('ARCH', 'Architectural'),
-        ('STRUCTURAL', 'Structural'),
-        ('LANDSCAPING', 'Landscaping'),
-        ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
-        ('PLUMBING', 'Plumbing'),
-        ('ELECTRICAL', 'Electrical')
-    ]
-
+                ('MISC', 'Miscellaneous'),
+                ('CIVIL', 'Civil'),
+                ('ARCH', 'Architectural'),
+                ('STRUCTURAL', 'Structural'),
+                ('LANDSCAPING', 'Landscaping'),
+                ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
+                ('PLUMBING', 'Plumbing'),
+                ('ELECTRICAL', 'Electrical')
+            ]
 engineering_sheet_types = [
-        ('DETAILS', 'Details'),
-        ('PLAN', 'Plan'),
-        ('TITLE', 'Title'),
-        ('KEY', 'Key'),
-        ('INDEX', 'Index'),
-        ('ELEVATIONS', 'Elevations'),
-        ('NOTES', 'Notes'),
-        ('SECTIONS', 'Sections'),
-        ('SYMBOLS', 'Symbols')
-    ]
+                ('DETAILS', 'Details'),
+                ('PLAN', 'Plan'),
+                ('TITLE', 'Title'),
+                ('KEY', 'Key'),
+                ('INDEX', 'Index'),
+                ('ELEVATIONS', 'Elevations'),
+                ('NOTES', 'Notes'),
+                ('SECTIONS', 'Sections'),
+                ('SYMBOLS', 'Symbols')
+            ]
+
+
+class FileTypes:
+    """the type of files that we are interested in are defined here"""
+
+    def __init__(self):
+        PDF = {"pdf": "application/pdf"}
+        ODT = {"odt": "application/vnd.oasis.opendocument.text"}
+        ODS = {"ods": "application/vnd.oasis.opendocument.spreadsheet"}
+        ODP = {"odp": "application/vnd.oasis.opendocument.presentation"}
+        MSDOC = {"doc": "application/msword"}
+        MSDOCX = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+        EXCEL1 = {"xls": "application/vnd.ms-excel"}
+        EXCEL2 = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+        TEXT = {"txt": "text/plain"}
+        CSV = {"csv": "text/csv"}
+        PNG = {"png": "image/png"}
+        JPEG = {"jpg": "image/jpeg"}
+        TIFF = {"tiff": "image/tiff"}
+        DWG = {"dwg": "image/vnd.dwg"}
+        LYR = {"lyr": "application/octet-stream"}
+        MPK = {"mpk": "application/octet-stream"}
+        MXD = {"mxd": "application/octet-stream"}
+
+        self.FILE_TYPE_CHOICES = {
+            "PDF": PDF,
+            "OPEN OFFICE DOC": ODT,
+            "OPEN OFFICE SHEET": ODS,
+            "OPEN OFFICE PRESENTATION": ODP,
+            "MS Word doc": MSDOC,
+            "MS Word docx": MSDOCX,
+            "TEXT": TEXT,
+            "MS Excel xls": EXCEL1,
+            "MS Excel xlsx": EXCEL2,
+            "CSV Spreadsheet": CSV,
+            "PNG Image": PNG,
+            "JPEG Image": JPEG,
+            "TIFF Image": TIFF,
+            "AutoCad dwg": DWG,
+            "ESRI Layer File": LYR,
+            "ESRI Map Package": MPK,
+            "ESRI Map Document": MXD
+        }
+
+        self.DOC_VIEWER_TYPES = ['docx', 'doc', 'txt']
+
+        self.TABLE_VIEWER_TYPES = ['xls', 'xlsx', 'ods']
+
+        self.IMAGE_VIEWER_TYPES = ['tiff', 'jpg', 'png']
+
+        self.engineering_discipline_choices = engineering_discipline_choices
+
+        self.engineering_sheet_types = engineering_sheet_types
+
+        return
 
 
 class GridSerializer(serializers.ModelSerializer):
@@ -131,43 +185,66 @@ class EngSerializer(serializers.ModelSerializer):
         return cells
 
     def create(self, validated_data):
-        file_path = validated_data['file_path']
-        if os.path.exists(file_path):
-            base_name = os.path.basename(file_path)
-            file_type = base_name.split(".")[-1]
-            size = function_definitions.convert_size(os.path.getsize(file_path))
-            # TODO-use the same mimetype assigning done in the Build FileStore script
-            mime = mimetypes.guess_type(file_path)[0]
-            if mime is None:
-                mime = ''
-            comment = validated_data['comment']
-        else:
-            base_name = file_path.split("\\")[-1]
-            file_type = base_name.split(".")[-1]
-            size = ''
-            mime = ''
-            comment = 'eDoc system unable to locate file using the file_path'
-        _file = EngineeringFileModel.objects.create(
-            file_path=file_path,
-            base_name=base_name,
-            file_type=file_type,
-            size=size,
-            mime=mime,
-            comment=comment
-        )
+        try:
+            file_types = FileTypes()
+            file_path = validated_data['file_path']
+            if os.path.exists(file_path):
+                extension = file_path.split(".")[-1].lower()
+                base_name = os.path.basename(file_path)
+                file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+                size = function_definitions.convert_size(os.path.getsize(file_path))
+                mime = mimetypes.guess_type(file_path)[0]
 
-        _file.save()
-        return _file
+                if mime is None:
+                    # solves bug where file extensions are uppercase
+                    for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
+                        if extension in mapping:
+                            mime = file_types.FILE_TYPE_CHOICES[file_type][extension]
+
+            else:
+                base_name = file_path.split("\\")[-1]
+                file_type = base_name.split(".")[-1]
+                size = ''
+                mime = ''
+                validated_data["comment"] = 'eDoc system unable to locate file using the file_path'
+
+            # This is very important, all file_paths will be lower case in this system
+            validated_data["file_path"] = file_path.lower()
+            validated_data["base_name"] = base_name
+            validated_data["file_type"] = file_type
+            validated_data["size"] = size
+            validated_data["mime"] = mime
+
+            _file = EngineeringFileModel.objects.create(**validated_data)
+            _file.save()
+            return _file
+        except Exception as e:
+            print(e)
 
     def update(self, instance, validated_data):
-        file_path = validated_data.get('file_path', instance.file_path)
-        instance.file_path = file_path
-        if os.path.exists(file_path):
-            base_name = os.path.basename(file_path)
+        instance.file_path = validated_data.get('file_path', instance.file_path)
+        if os.path.exists(instance.file_path):
+            # These attributes are calculated from the actual file object
+            # TODO - utilize the same functions from the buildDocStore here
+            base_name = os.path.basename(instance.file_path)
             instance.base_name = base_name
             instance.file_type = base_name.split(".")[-1]
-            instance.size = function_definitions.convert_size(os.path.getsize(file_path))
-            instance.mime = mimetypes.guess_type(file_path)[0]
+            instance.size = function_definitions.convert_size(os.path.getsize(instance.file_path))
+            instance.mime = mimetypes.guess_type(instance.file_path)[0]
+
         instance.comment = validated_data.get('comment', instance.comment)
+
+        # These variables are brought in from the Access Database of Tiffany
+        instance.sheet_type = validated_data.get("sheet_type", instance.sheet_type)
+        instance.project_title = validated_data.get("project_title", instance.project_title)
+        instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)
+        instance.sheet_title = validated_data.get("sheet_title", instance.sheet_title)
+        instance.project_date = validated_data.get("project_date", instance.project_date)
+        instance.vendor = validated_data.get("vendor", instance.vendor)
+        instance.airport = validated_data.get("airport", instance.airport)
+        instance.project_description = validated_data.get("project_description", instance.project_description)
+        instance.funding_type = validated_data.get("funding_type", instance.funding_type)
+        instance.grant_number = validated_data.get("grant_number", instance.grant_number)
+        instance.comment = validated_data.get("comment", instance.comment)
         instance.save()
         return instance

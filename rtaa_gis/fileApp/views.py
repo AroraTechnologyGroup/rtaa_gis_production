@@ -2,8 +2,10 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
-from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
+from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
+from .utils import buildDocStore
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
+
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
@@ -14,9 +16,7 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
-from .utils import buildDocStore
 from .utils import WatchDogTrainer
-from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
@@ -33,7 +33,7 @@ if platform.system() == 'Windows':
     pass
 
 logger = logging.getLogger(__name__)
-trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
+trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
 
 @api_view()
@@ -68,7 +68,7 @@ def create_response_object(in_path, extension):
         response.write(fp.read())
         fp.close()
 
-    elif extension in DOC_VIEWER_TYPES:
+    elif extension in FileTypes.DOC_VIEWER_TYPES:
         # TODO MSWORD Documents should not be written to the hard drive
         try:
             temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
@@ -95,7 +95,7 @@ def create_response_object(in_path, extension):
             o_doc = OpenOfficeConverter(in_path)
             response = o_doc.convert()
 
-    elif extension in TABLE_VIEWER_TYPES:
+    elif extension in FileTypes.TABLE_VIEWER_TYPES:
         # TODO MSEXCEL File should not be written to the hard drive
         try:
             temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
@@ -122,7 +122,7 @@ def create_response_object(in_path, extension):
             response = o_doc.convert()
             pass
 
-    elif extension in IMAGE_VIEWER_TYPES:
+    elif extension in FileTypes.IMAGE_VIEWER_TYPES:
         """This response changes the content_type to image/png"""
         response = create_image_object(in_path)
 

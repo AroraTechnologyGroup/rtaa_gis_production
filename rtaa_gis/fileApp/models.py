@@ -78,7 +78,7 @@ class EngineeringFileModel(FileModel):
                                         through_fields=('file', 'grid_cell')
                                         )
 
-    project_title = models.CharField(max_length=255)
+    project_title = models.CharField(max_length=255, blank=True)
 
     project_description = models.CharField(max_length=255, blank=True)
 
