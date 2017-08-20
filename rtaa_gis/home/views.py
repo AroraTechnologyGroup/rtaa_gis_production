@@ -22,7 +22,7 @@ from django.views.decorators.cache import never_cache
 logger = logging.getLogger(__package__)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def user_groups(request, format=None):
     try:
         name = request.META['REMOTE_USER']
@@ -32,7 +32,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
-        name = 'gissetup'
+        name = 'siteadmin'
 
     user_obj = User.objects.get(username=name)
 
@@ -57,7 +57,7 @@ def clear_users(request, format=None):
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
-    """View that renders the opening homepage"""
+    """View that renders the main homepage or an app depending on the template"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
     permission_classes = (AllowAny,)
     template = r'home/home_body.html'

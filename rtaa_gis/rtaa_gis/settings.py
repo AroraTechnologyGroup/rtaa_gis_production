@@ -15,13 +15,15 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_gis/"
+# FORCE_SCRIPT_NAME = "/rtaa_prod/"
+FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "gisapps.aroraengineers.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
@@ -57,9 +59,8 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 # CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
-CSRF_TRUSTED_ORIGINS = ('gisapps.aroraengineers.com:8004', 'gisapps.aroraengineers.com:8443', 'localhost:3003',
-                        'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com', '10.0.0.5:8004',
-                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:8443', 'localhost')
+CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com',
+                        'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
 CORS_ALLOW_CREDENTIALS = True
@@ -123,7 +124,8 @@ INSTALLED_APPS = [
     'home.apps.HomeConfig',
     'fileApp.apps.FileAppConfig',
     'cloudSync.apps.CloudsyncConfig',
-    'printTool.apps.PrinttoolConfig'
+    'printTool.apps.PrinttoolConfig',
+    'analytics.apps.AnalyticsConfig'
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -169,12 +171,12 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    # 'azure_sql_server': {
+    # 'default': {
     #     'ENGINE': 'sql_server.pyodbc',
-    #     'NAME': 'eDocDiscovery',
-    #     'HOST': 'sql-server-azure.database.windows.net',
-    #     'USER': 'gissetup@sql-server-azure',
-    #     'PASSWORD': "Heddie01!",
+    #     'NAME': 'rtaa_gis_prod',
+    #     'HOST': 'gis.aroraengineers.com',
+    #     'USER': 'gissetup',
+    #     'PASSWORD': "AroraGIS123!",
     #     'OPTIONS': {
     #         'driver': 'SQL Server Native Client 11.0'
     #      }
@@ -256,12 +258,12 @@ LOGGING = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'formatter': 'standard'
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "ERROR",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

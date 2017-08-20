@@ -28,3 +28,5 @@ Installation
 - Run the collectstatic task to copy all of the static files from the dependencies to the project's static directory.
 
 - Run check, test, and runserver to verify that the django site is running correctly.
+
+- After building the document store, run the dump_fixtures.py script to create the test fixtures

@@ -2,8 +2,8 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL
-from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
+from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
@@ -12,11 +12,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-from rest_framework_jsonp.renderers import JSONPRenderer
+from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
-from .utils import buildDocStore
 from .utils import WatchDogTrainer
-from .utils.buildDocStore import DOC_VIEWER_TYPES, TABLE_VIEWER_TYPES, IMAGE_VIEWER_TYPES
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
@@ -33,7 +31,7 @@ if platform.system() == 'Windows':
     pass
 
 logger = logging.getLogger(__name__)
-trainer = WatchDogTrainer.Observers(buildDocStore.TOP_DIRs)
+trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
 
 @api_view()
@@ -195,25 +193,21 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     queryset = EngineeringAssignment.objects.all()
     serializer_class = EngAssignmentSerializer
     filter_fields = ('grid_cell', 'file', 'date_assigned')
-    renderer_classes = (JSONPRenderer,)
+    renderer_classes = (JSONRenderer,)
 
     @list_route(methods=['post', ])
     def _delete(self, request):
         """Remove the specified assignment object"""
-        data = request.POST['files']
-        if "," in data:
-            file_pks = data.split(",")
-        else:
-            file_pks = [data]
-        cell_value = request.POST['grid_cell']
-        grid_cell = GridCell.objects.get(pk=cell_value)
+        files = request.POST['files'].split(",")
+        cell_values = request.POST['grid_cells'].split(",")
         pre_assignments = len(EngineeringAssignment.objects.all())
 
-        for x in file_pks:
+        for x in files:
             file = EngineeringFileModel.objects.get(pk=x)
-            obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=grid_cell)
-            for x in obj:
-                x.delete()
+            for cell_value in cell_values:
+                obj = EngineeringAssignment.objects.filter(file=file).filter(grid_cell=cell_value)
+                for o in obj:
+                    o.delete()
 
         post_assignments = len(EngineeringAssignment.objects.all())
 
@@ -221,11 +215,8 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
         num_removed = pre_assignments - post_assignments
 
         if num_removed > 0:
-            if num_removed == len(file_pks):
-                resp['status'] = True
-            else:
-                resp['status'] = "{} of {} assignments were removed".format(
-                    num_removed, len(file_pks))
+            resp['status'] = "{} of {} assignments were removed".format(
+                    num_removed, pre_assignments)
         else:
             resp['status'] = False
         return Response(resp)
@@ -234,7 +225,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     def _create(self, request):
         """Create assignment from the list of files and the grid cell on the Post request"""
         file_pks = request.POST['files'].split(",")
-        cell_value = request.POST['grid_cell']
+        cell_values = request.POST['grid_cells'].split(",")
 
         pre_assignments = len(EngineeringAssignment.objects.all())
 
@@ -242,14 +233,20 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
 
         for x in file_pks:
             file = EngineeringFileModel.objects.get(pk=x)
-            grid = GridCell.objects.get(pk=cell_value)
-            kwargs = dict()
-            kwargs['file'] = file
-            kwargs['grid_cell'] = grid
-            base_name = EngineeringFileModel.objects.get(pk=x).base_name
-            kwargs['base_name'] = base_name
-            assign = EngineeringAssignment.objects.create(**kwargs)
-            new_assignments.append(assign.pk)
+            for cell_value in cell_values:
+                try:
+                    grid = GridCell.objects.get(pk=cell_value)
+                    kwargs = dict()
+                    kwargs['file'] = file
+                    kwargs['grid_cell'] = grid
+                    base_name = EngineeringFileModel.objects.get(pk=x).base_name
+                    kwargs['base_name'] = base_name
+                    # the grid_cell and file fields are defined as unique together in the model
+                    # Exception is thrown if the Unique Together fails
+                    assign = EngineeringAssignment.objects.create(**kwargs)
+                    new_assignments.append(assign.pk)
+                except Exception as e:
+                    logging.error(e)
 
         post_assignments = len(EngineeringAssignment.objects.all())
         if post_assignments > pre_assignments:
@@ -265,7 +262,7 @@ class EngViewSet(viewsets.ModelViewSet):
     queryset = EngineeringFileModel.objects.all()
     serializer_class = EngSerializer
     filter_fields = ('project_title', 'sheet_name', 'airport')
-    renderer_classes = (JSONPRenderer,)
+    renderer_classes = (JSONRenderer,)
 
     @detail_route()
     def _grids(self, request, pk=None):
@@ -364,12 +361,12 @@ class EngIOViewSet(viewsets.ViewSet):
             file_path = file_obj[0].file_path
             mime_type = file_obj[0].mime
             base_name = file_obj[0].base_name
-            filename_header = base_name.encode('utf_8')
+            # filename_header = base_name.encode('utf_8')
             # response is the file binary / the request is made from an dojo anchor html element with
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
             response = HttpResponse(fp.read(), content_type=mime_type)
-            response['Content-Disposition'] = "attachment; filename= '{}'".format(filename_header)
+            response['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
             return response
         else:
             return redirect(reverse('home:login'))

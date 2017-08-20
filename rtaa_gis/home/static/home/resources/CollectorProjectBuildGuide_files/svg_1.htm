@@ -1,0 +1,159 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5"/>
+<link rel="stylesheet" type="text/css" href="visio.css"/>
+<title>Collector Project Build Guide</title>
+<script type="text/javascript" language="javascript">
+function UpdateTooltip(){};
+function OnShapeClick(){};
+</script>
+
+<script src="svg_1.js" type="text/javascript" language="javascript"></script>
+<script src="png_1.js" type="text/javascript" language="javascript"></script>
+
+<script type="text/javascript" language="javascript">
+
+var pageID = 7;
+var viewMgr = null;
+var OnShapeClick = null;
+if (!parent.isMac)
+{
+	OnShapeClick = parent.OnShapeClick;
+}
+
+var g_svgOrigScale = 1;
+var g_svgOrigTranslateX = 0;
+var g_svgOrigTranslateY = 0;
+
+if (parent.g_FirstPageToLoad != null && parent.g_FirstPageToLoad.length > 0)
+{
+	if (parent.g_FileList[parent.g_CurPageIndex].PageID != pageID)
+	{
+		location.replace(parent.g_FileList[parent.g_CurPageIndex].PriImage);
+	}
+
+	parent.g_FirstPageToLoad = null;
+}
+
+function GetSVGDOM ()
+{
+	g_svgDoc = document.SVGViewer1.getSVGDocument ().rootElement;
+	if (g_svgDoc != null)
+	{
+		g_svgOrigScale = g_svgDoc.currentScale;
+		g_svgOrigTranslateX = g_svgDoc.currentTranslate.x;
+		g_svgOrigTranslateY = g_svgDoc.currentTranslate.y;
+	}
+}
+
+function load()
+{
+	viewMgr = new parent.CViewMgr("", "arrowDiv");
+	var bSVG = (document.all ("RasterImage") == null);
+
+	viewMgr.visBBoxLeft = 0.243056;
+	viewMgr.visBBoxRight = 4.641520;
+	viewMgr.visBBoxBottom = 8.256944;
+	viewMgr.visBBoxTop = 1.668056;
+
+	if (bSVG)
+	{
+		viewMgr.put_Location = ViewMgrSetSVGLocation;
+
+		if (parent.isUpLevel)
+		{
+			eval ("try { GetSVGDOM() } catch (e) {}");
+		}
+	}
+	else
+	{
+		viewMgr.put_Location = ViewMgrSetRasterLocation;
+		var tempBottom = viewMgr.visBBoxBottom;
+		viewMgr.visBBoxBottom = viewMgr.visBBoxTop;
+		viewMgr.visBBoxTop = tempBottom;
+		
+		arrowdiv.innerHTML = '<img id="arrowgif" alt="Shows the location of the selected shape" src="arrow.gif"/>';
+	}
+
+	viewMgr.Zoom = null;
+	viewMgr.setView = null;
+	viewMgr.PostZoomProcessing = null;
+	viewMgr.getPNZ = null;
+
+	viewMgr.SupportsDetails = !bSVG;
+	viewMgr.SupportsSearch = true;
+
+	parent.viewMgr = viewMgr;
+
+	var pageIndex = parent.PageIndexFromID (pageID);
+	parent.CurPageUpdate (pageIndex);
+}
+
+function unload()
+{
+	viewMgr = null;
+	parent.viewMgr = null;
+}
+
+var g_svgDoc = null;
+
+var isUpLevel = parent.isUpLevel;
+var OnShapeKey = parent.OnShapeKey;
+var UpdateTooltip = parent.UpdateTooltip;
+var clickMenu = parent.clickMenu;
+var toggleMenuDiv = parent.toggleMenuDiv;
+var toggleMenuLink = parent.toggleMenuLink;
+var GoToPage = parent.GoToPage;
+window.onload = load;
+window.onunload = unload;
+document.onclick = clickMenu;
+
+</script>
+
+</head>
+
+<body style="margin:10;">
+
+<div id=arrowdiv style="position:absolute;top:0;left:0;visibility:hidden;z-index:5">
+</div>
+
+<div id="menu1" onclick="clickMenu()" class="hlMenu">
+</div>
+
+<object width="100%" height="100%" id="SVGViewer1" data="svg_1.svg" type="image/svg+xml" VIEWASTEXT>
+	<DIV id=RasterDiv>
+<center>
+  <IMG id="ConvertedImage" SRC="png_1.png" ALT="Build the Project" name=RasterImage BORDER="0" USEMAP="#visImageMap">
+</center>
+
+<MAP NAME="visImageMap">
+  <AREA shape="POLYGON" tabindex="1" ALT="START" origTitle="START" TITLE="START"  target="_top" COORDS="233,68,308,68,315,67,322,64,327,59,330,53,331,46,330,39,327,33,322,28,315,24,308,23,233,23,226,24,220,28,215,33,212,39,211,46,212,53,215,59,220,64,226,67,233,68" onmouseover="UpdateTooltip(this,7,1039,event)" onfocus="UpdateTooltip(this,7,1039,event)" onclick="return OnShapeClick(7,1039,event);" onkeyup="OnShapeKey(7,1039,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="END" origTitle="END" TITLE="END"  target="_top" COORDS="428,301,504,301,510,300,517,297,522,292,525,285,526,278,525,271,522,265,517,260,510,257,504,256,428,256,422,257,415,260,410,265,407,271,406,278,407,285,410,292,415,297,422,300,428,301" onmouseover="UpdateTooltip(this,7,1037,event)" onfocus="UpdateTooltip(this,7,1037,event)" onclick="return OnShapeClick(7,1037,event);" onkeyup="OnShapeKey(7,1037,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Open the Collector App and perform the Collection  -  See RTAA..." origTitle="Open the Collector App and perform the Collection  -  See RTAA..." TITLE="Open the Collector App and perform the Collection  -  See RTAA..."  target="_top" COORDS="406,496,526,496,526,376,406,376,406,496" onmouseover="UpdateTooltip(this,7,1035,event)" onfocus="UpdateTooltip(this,7,1035,event)" onclick="return OnShapeClick(7,1035,event);" onkeyup="OnShapeKey(7,1035,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create WebMap" origTitle="Create WebMap" TITLE="Create WebMap" HREF="svg_5.htm" target="frmDrawing" COORDS="507,535,507,625,515,625,515,535,507,535" onmouseover="UpdateTooltip(this,7,1033,event)" onfocus="UpdateTooltip(this,7,1033,event)" onclick="return OnShapeClick(7,1033,event);" onkeyup="OnShapeKey(7,1033,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create WebMap" origTitle="Create WebMap" TITLE="Create WebMap" HREF="svg_5.htm" target="frmDrawing" COORDS="417,535,417,625,425,625,425,535,417,535" onmouseover="UpdateTooltip(this,7,1033,event)" onfocus="UpdateTooltip(this,7,1033,event)" onclick="return OnShapeClick(7,1033,event);" onkeyup="OnShapeKey(7,1033,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create WebMap" origTitle="Create WebMap" TITLE="Create WebMap" HREF="svg_5.htm" target="frmDrawing" COORDS="526,535,406,535,406,625,526,625,526,535" onmouseover="UpdateTooltip(this,7,1033,event)" onfocus="UpdateTooltip(this,7,1033,event)" onclick="return OnShapeClick(7,1033,event);" onkeyup="OnShapeKey(7,1033,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Configure the Settings on the Published Layer  - See Video" origTitle="Configure the Settings on the Published Layer  - See Video" TITLE="Configure the Settings on the Published Layer  - See Video" HREF="svg_4.htm" target="frmDrawing" COORDS="507,670,507,790,515,790,515,670,507,670" onmouseover="UpdateTooltip(this,7,1032,event)" onfocus="UpdateTooltip(this,7,1032,event)" onclick="return OnShapeClick(7,1032,event);" onkeyup="OnShapeKey(7,1032,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Configure the Settings on the Published Layer  - See Video" origTitle="Configure the Settings on the Published Layer  - See Video" TITLE="Configure the Settings on the Published Layer  - See Video" HREF="svg_4.htm" target="frmDrawing" COORDS="417,670,417,790,425,790,425,670,417,670" onmouseover="UpdateTooltip(this,7,1032,event)" onfocus="UpdateTooltip(this,7,1032,event)" onclick="return OnShapeClick(7,1032,event);" onkeyup="OnShapeKey(7,1032,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Configure the Settings on the Published Layer  - See Video" origTitle="Configure the Settings on the Published Layer  - See Video" TITLE="Configure the Settings on the Published Layer  - See Video" HREF="svg_4.htm" target="frmDrawing" COORDS="526,670,406,670,406,790,526,790,526,670" onmouseover="UpdateTooltip(this,7,1032,event)" onfocus="UpdateTooltip(this,7,1032,event)" onclick="return OnShapeClick(7,1032,event);" onkeyup="OnShapeKey(7,1032,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Publish the layer to ArcGIS Online  - See Video" origTitle="Publish the layer to ArcGIS Online  - See Video" TITLE="Publish the layer to ArcGIS Online  - See Video"  target="_top" COORDS="226,775,346,775,346,685,226,685,226,775" onmouseover="UpdateTooltip(this,7,1027,event)" onfocus="UpdateTooltip(this,7,1027,event)" onclick="return OnShapeClick(7,1027,event);" onkeyup="OnShapeKey(7,1027,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Symbolize the Layer" origTitle="Symbolize the Layer" TITLE="Symbolize the Layer" HREF="svg_3.htm" target="frmDrawing" COORDS="117,685,117,775,125,775,125,685,117,685" onmouseover="UpdateTooltip(this,7,1022,event)" onfocus="UpdateTooltip(this,7,1022,event)" onclick="return OnShapeClick(7,1022,event);" onkeyup="OnShapeKey(7,1022,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Symbolize the Layer" origTitle="Symbolize the Layer" TITLE="Symbolize the Layer" HREF="svg_3.htm" target="frmDrawing" COORDS="27,685,27,775,35,775,35,685,27,685" onmouseover="UpdateTooltip(this,7,1022,event)" onfocus="UpdateTooltip(this,7,1022,event)" onclick="return OnShapeClick(7,1022,event);" onkeyup="OnShapeKey(7,1022,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Symbolize the Layer" origTitle="Symbolize the Layer" TITLE="Symbolize the Layer" HREF="svg_3.htm" target="frmDrawing" COORDS="136,685,16,685,16,775,136,775,136,685" onmouseover="UpdateTooltip(this,7,1022,event)" onfocus="UpdateTooltip(this,7,1022,event)" onclick="return OnShapeClick(7,1022,event);" onkeyup="OnShapeKey(7,1022,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Enable Attachments for the feature class  - See Video" origTitle="Enable Attachments for the feature class  - See Video" TITLE="Enable Attachments for the feature class  - See Video"  target="_top" COORDS="16,637,136,637,136,547,16,547,16,637" onmouseover="UpdateTooltip(this,7,1009,event)" onfocus="UpdateTooltip(this,7,1009,event)" onclick="return OnShapeClick(7,1009,event);" onkeyup="OnShapeKey(7,1009,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Enable Editor Tracking on the feature class  - See Video" origTitle="Enable Editor Tracking on the feature class  - See Video" TITLE="Enable Editor Tracking on the feature class  - See Video"  target="_top" COORDS="16,481,136,481,136,391,16,391,16,481" onmouseover="UpdateTooltip(this,7,1008,event)" onfocus="UpdateTooltip(this,7,1008,event)" onclick="return OnShapeClick(7,1008,event);" onkeyup="OnShapeKey(7,1008,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Acquire Feature Class Schema" origTitle="Acquire Feature Class Schema" TITLE="Acquire Feature Class Schema" HREF="svg_2.htm" target="frmDrawing" COORDS="117,256,117,346,125,346,125,256,117,256" onmouseover="UpdateTooltip(this,7,1004,event)" onfocus="UpdateTooltip(this,7,1004,event)" onclick="return OnShapeClick(7,1004,event);" onkeyup="OnShapeKey(7,1004,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Acquire Feature Class Schema" origTitle="Acquire Feature Class Schema" TITLE="Acquire Feature Class Schema" HREF="svg_2.htm" target="frmDrawing" COORDS="27,256,27,346,35,346,35,256,27,256" onmouseover="UpdateTooltip(this,7,1004,event)" onfocus="UpdateTooltip(this,7,1004,event)" onclick="return OnShapeClick(7,1004,event);" onkeyup="OnShapeKey(7,1004,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Acquire Feature Class Schema" origTitle="Acquire Feature Class Schema" TITLE="Acquire Feature Class Schema" HREF="svg_2.htm" target="frmDrawing" COORDS="136,256,16,256,16,346,136,346,136,256" onmouseover="UpdateTooltip(this,7,1004,event)" onfocus="UpdateTooltip(this,7,1004,event)" onclick="return OnShapeClick(7,1004,event);" onkeyup="OnShapeKey(7,1004,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add the Master Geodatabase to the Project  - See Video" origTitle="Add the Master Geodatabase to the Project  - See Video" TITLE="Add the Master Geodatabase to the Project  - See Video"  target="_top" COORDS="1,211,151,211,151,121,1,121,1,211" onmouseover="UpdateTooltip(this,7,1002,event)" onfocus="UpdateTooltip(this,7,1002,event)" onclick="return OnShapeClick(7,1002,event);" onkeyup="OnShapeKey(7,1002,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create a new ArcPro Project  - See Video" origTitle="Create a new ArcPro Project  - See Video" TITLE="Create a new ArcPro Project  - See Video"  target="_top" COORDS="16,91,136,91,136,1,16,1,16,91" onmouseover="UpdateTooltip(this,7,1001,event)" onfocus="UpdateTooltip(this,7,1001,event)" onclick="return OnShapeClick(7,1001,event);" onkeyup="OnShapeKey(7,1001,event);">
+</MAP>
+
+	</div>
+</object>
+
+
+</body>
+</html>
+

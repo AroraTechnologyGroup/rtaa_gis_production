@@ -24,4 +24,6 @@ rtaa_gis/media/
 **/static/fileApp/pdf.js
 **/static/fileApp/pdf.worker.js
 **/fixtures/data/
+**/fixtures/json/
 **/creds.json
+**/migrations/**.py
