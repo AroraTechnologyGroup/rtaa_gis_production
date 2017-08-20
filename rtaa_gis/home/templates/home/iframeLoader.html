@@ -5,7 +5,9 @@
     <Title>{{ app_name|upper }}</Title>
 {% endblock %}
 
-{% block stylesheets %}{% endblock %}
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock %}
 
 {% block header_nav %}
     <div class="drawer drawer-left js-drawer" data-drawer="top-nav" tabindex="0">
