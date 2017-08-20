@@ -24352,7 +24352,8 @@ define([
 						handleAs: 'json',
 						headers: {
 				            "X-Requested-With": null
-				        }
+				        },
+				        withCredentials: true
 					}).then(function(data) {
 						console.log(data);
 						deferred.resolve(data);
