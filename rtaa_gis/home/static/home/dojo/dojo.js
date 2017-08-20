@@ -2159,6 +2159,13 @@ define([
 					console.log(err);
 				});
 
+				router.register("gisportal/guides", function(evt) {
+					evt.preventDefault();
+					console.log('loading ' + evt.newPath);
+					// scroll to project guide div
+					win.scrollIntoView('project-guides');
+				});
+				
 				router.register("gisportal/analytics", function(evt) {
 					evt.preventDefault();
 					console.log('loading ' + evt.newPath);
@@ -24216,6 +24223,7 @@ define([
 	'app/Analytics',
 	'app/Viewer3d',
 	'app/PublishingTools',
+	'app/ProjectGuides',
 	'esri/IdentityManager',
 	'esri/arcgis/OAuthInfo',
 	'dijit/layout/ContentPane',
@@ -24249,6 +24257,7 @@ define([
 		Analytics,
 		Viewer3d,
 		PublishingTools,
+		ProjectGuides,
 		esriId,
 		OAuthInfo,
 		ContentPane,
@@ -24429,9 +24438,14 @@ define([
 								title: '2D Data Viewer',
 								href: 'gisportal/2dviewer'
 							}, {
-								title: '3D Data Viewer',
-								href: 'gisportal/3dviewer'
-							}, {
+								title: 'Project Documentation',
+								href: 'gisportal/guides'
+							}, 
+							// {
+							// 	title: '3D Data Viewer',
+							// 	href: 'gisportal/3dviewer'
+							// }, 
+							{
 								title: 'Publishing Tools',
 								href: 'gisportal/publishing-tools'
 							}];
@@ -24439,30 +24453,35 @@ define([
 					self.header = new PageBanner({
 							id: 'gisportal-banner',
 							class: 'text-white font-size-4 page-banner',
-							title: 'Geographic Information Systems',
+							title: 'Administrative Portal',
 							routes: routes
 						});
+				
 
 					var pane = registry.byId('header-pane');
 					pane.set('content', self.header);
 					pane.resize();
 					
-					// create the sticky buttons to navigate the page
-					var nav_btns = domConstruct.create("div", {
-						class: "js-sticky scroll-show is-sticky",
-						"data-top": "50px",
-						"innerHTML": "<a href='#'>Back to Top</a>"
-					}, 'main-content');
+					// // create the sticky buttons to navigate the page
+					// var nav_btns = domConstruct.create("div", {
+					// 	class: "js-sticky scroll-show is-sticky",
+					// 	"data-top": "50px",
+					// 	"innerHTML": "<a href='#'>Back to Top</a>"
+					// }, 'main-content');
 
 					self.buildAnalytics(evt, groups).then(function(resp) {
 						self.build2dViewer(evt, groups).then(function(resp2) {
-							self.build3dViewer(evt, groups).then(function(resp3) {
-								self.buildBackEndAPIs(evt, groups).then(function(resp4) {
-									console.log("all gisportal loaded");
-									deferred.resolve(resp4);
-								}, function(err) {
-									console.log(err);
-								});
+							self.buildProjectGuides(evt, groups).then(function(resp) {
+								// self.build3dViewer(evt, groups).then(function(resp3) {
+									self.buildBackEndAPIs(evt, groups).then(function(resp4) {
+										console.log("all gisportal loaded");
+										deferred.resolve(resp4);
+									}, function(err) {
+										console.log(err);
+									});
+								// }, function(err) {
+								// 	console.log(err);
+								// });
 							}, function(err) {
 								console.log(err);
 							});
@@ -24475,6 +24494,17 @@ define([
 				}, function(err) {
 					console.log(err);
 					deferred.cancel(err);
+				});
+				return deferred.promise;
+			},
+
+			buildProjectGuides: function(event, gr) {
+				var self = this;
+				var deferred = new Deferred();
+				var projectGuides = new ProjectGuides();
+				projectGuides.startup().then(function(e) {
+					domConstruct.place(projectGuides.domNode, 'main-content');
+					deferred.resolve(e);
 				});
 				return deferred.promise;
 			},
@@ -25091,6 +25121,64 @@ define([
 			startup: function() {
 				this.inherited(arguments);
 				console.log("publishingTools::startup()");
+				var deferred = new Deferred();
+				deferred.resolve();
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/ProjectGuides':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin',
+	'dojo/text!./templates/ProjectGuides_template.html'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin,
+		template
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("project-guides::constructor()");
+			},
+			postCreate: function() {
+				this.inherited(arguments);
+				console.log("project-guides::postCreate()");
+				var cp = new ContentPane({
+					id: 'project-guides',
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%",
+					href: 'app/resources/CollectorProjectBuildGuide.htm'
+				});
+				cp.set('content', domConstruct.toDom("<h1>Project Guides</h1>"));
+				// request html page from server and set as content in the pane
+				
+				cp.placeAt(this.content);
+				cp.startup();
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("project-guides::startup()");
 				var deferred = new Deferred();
 				deferred.resolve();
 				return deferred.promise;
@@ -41740,12 +41828,13 @@ define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){fu
 'url:app/templates/Analytics_template.html':"<div data-dojo-attach-point='content'></div>",
 'url:app/templates/Viewer3d_template.html':"<div data-dojo-attach-point='content'></div>",
 'url:app/templates/PublishingTools_template.html':"<div data-dojo-attach-point=\"content\"></div>",
+'url:app/templates/ProjectGuides_template.html':"<div data-dojo-attach-point='content'></div>",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"Available Now\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Admin Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"* only available to GIS_admin members\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection Guide\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}\r\n]\r\n\t",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Admin Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"* only available to GIS_admin members\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* Now in Beta Testing\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection Guide\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}\r\n]\r\n\t",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,
