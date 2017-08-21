@@ -27,6 +27,8 @@ class FileModel(models.Model):
 
     file_path = models.CharField(max_length=255, unique=True)
 
+    lower_file_path = models.CharField(max_length=255, unique=True)
+
     base_name = models.CharField(max_length=255)
 
     file_type = models.CharField(max_length=25)

@@ -37,7 +37,7 @@ class LDAPQuery:
                 Group.objects.get(name=group)
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
-        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=False)
         # self.server = Server(ldap_url, get_info=ALL)
 
     def get_groups(self):
@@ -45,7 +45,7 @@ class LDAPQuery:
         slicegroup = list()
         try:
             conn = Connection(self.server, user="RENOAIRPORT\\AroraTeam", password="@R0r@G1$", authentication=NTLM,
-                              auto_bind=True)
+                              auto_bind=False)
             # conn = Connection(self.server, auto_bind=True)
             conn.bind()
             # conn.start_tls()

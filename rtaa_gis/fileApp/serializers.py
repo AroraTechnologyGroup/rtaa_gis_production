@@ -168,6 +168,34 @@ class EngSerializer(serializers.ModelSerializer):
     discipline = EngineeringDisciplinesField
 
     @staticmethod
+    def sys_atts(file_path):
+        file_types = FileTypes()
+        extension = file_path.split(".")[-1].lower()
+        if os.path.exists(file_path):
+            base_name = os.path.basename(file_path)
+            file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+            size = function_definitions.convert_size(os.path.getsize(file_path))
+            mime = None
+            for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
+                if extension in mapping:
+                    mime = file_types.FILE_TYPE_CHOICES[file_type][extension]
+
+            if mime is None:
+                mime = mimetypes.guess_type(file_path)[0]
+        else:
+            base_name = file_path.split("\\")[-1]
+            file_type = base_name.split(".")[-1]
+            size = ''
+            mime = ''
+
+        return {
+            "base_name": base_name,
+            "file_type": file_type,
+            "size": size,
+            "mime": mime
+        }
+
+    @staticmethod
     def get_grid_cells(self):
         base_name = self.base_name
         file_path = self.file_path
@@ -186,30 +214,17 @@ class EngSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            file_types = FileTypes()
             file_path = validated_data['file_path']
-            if os.path.exists(file_path):
-                extension = file_path.split(".")[-1].lower()
-                base_name = os.path.basename(file_path)
-                file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
-                size = function_definitions.convert_size(os.path.getsize(file_path))
-                mime = mimetypes.guess_type(file_path)[0]
 
-                if mime is None:
-                    # solves bug where file extensions are uppercase
-                    for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
-                        if extension in mapping:
-                            mime = file_types.FILE_TYPE_CHOICES[file_type][extension]
+            atts_dict = self.sys_atts(file_path)
 
-            else:
-                base_name = file_path.split("\\")[-1]
-                file_type = base_name.split(".")[-1]
-                size = ''
-                mime = ''
-                validated_data["comment"] = 'eDoc system unable to locate file using the file_path'
+            base_name = atts_dict["base_name"]
+            file_type = atts_dict["file_type"]
+            size = atts_dict["size"]
+            mime = atts_dict["mime"]
 
-            # This is very important, all file_paths will be lower case in this system
-            validated_data["file_path"] = file_path.lower()
+            validated_data["file_path"] = file_path
+            validated_data["lower_file_path"] = file_path.lower()
             validated_data["base_name"] = base_name
             validated_data["file_type"] = file_type
             validated_data["size"] = size
@@ -223,14 +238,12 @@ class EngSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.file_path = validated_data.get('file_path', instance.file_path)
-        if os.path.exists(instance.file_path):
-            # These attributes are calculated from the actual file object
-            # TODO - utilize the same functions from the buildDocStore here
-            base_name = os.path.basename(instance.file_path)
-            instance.base_name = base_name
-            instance.file_type = base_name.split(".")[-1]
-            instance.size = function_definitions.convert_size(os.path.getsize(instance.file_path))
-            instance.mime = mimetypes.guess_type(instance.file_path)[0]
+        instance.lower_file_path = instance.file_path.lower()
+
+        instance.base_name = instance.base_name
+        instance.file_type = instance.file_type
+        instance.size = instance.size
+        instance.mime = instance.mime
 
         instance.comment = validated_data.get('comment', instance.comment)
 

@@ -32,7 +32,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
-        name = 'siteadmin'
+        name = 'arorateam'
 
     user_obj = User.objects.get(username=name)
 
@@ -54,8 +54,8 @@ def clear_users(request, format=None):
     return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
 
 
-# @method_decorator(ensure_csrf_cookie, name="dispatch")
-# @method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
+@method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the main homepage or an app depending on the template"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)

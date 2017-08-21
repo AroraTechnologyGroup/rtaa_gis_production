@@ -60,12 +60,10 @@ class FileStoreBuilder:
                     file_path = file_path.lstrip(r"i:\\")
                     file_path = r"//renofs2/groups/" + file_path
                     file_path = file_path.replace("\\", "/")
-                    file_path = file_path.lower()
+                    lower_file_path = file_path.lower()
 
-                    if not file_path:
-                        file_path = ""
-                    # All File Paths in the system are in lower case
-                    filtered = EngineeringFileModel.objects.filter(file_path=file_path)
+                    # All File Paths need to be stored in lower and original casing to allow for comparisons
+                    filtered = EngineeringFileModel.objects.filter(lower_file_path=lower_file_path)
                     if not vendor:
                         vendor = ""
                     if project_date:
@@ -83,35 +81,35 @@ class FileStoreBuilder:
                     if not sheet_description:
                         sheet_description = ""
 
-                    if len(filtered) == 0:
-                        # The file object was not located in the fileStore using the file_path
+                    # if len(filtered) == 0:
+                    #     # The file object was not located in the fileStore using the file_path
+                    #
+                    #     new_obj = {
+                    #         'file_path': file_path,
+                    #         'sheet_type': sheet_type,
+                    #         'discipline': discipline,
+                    #         'project_title': project_title,
+                    #         'sheet_description': sheet_description,
+                    #         'sheet_title': sheet_title,
+                    #         'project_date': project_date,
+                    #         'vendor': vendor,
+                    #         'airport': '',
+                    #         'project_description': '',
+                    #         'funding_type': '',
+                    #         'grant_number': '',
+                    #         'comment': ''
+                    #     }
+                    #     try:
+                    #         ser_obj = EngSerializer(data=new_obj)
+                    #         if ser_obj.is_valid():
+                    #             ser_obj.save()
+                    #         else:
+                    #             print(ser_obj.errors)
+                    #     except:
+                    #         exc_type, exc_value, exc_traceback = sys.exc_info()
+                    #         traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
-                        new_obj = {
-                            'file_path': file_path,
-                            'sheet_type': sheet_type,
-                            'discipline': discipline,
-                            'project_title': project_title,
-                            'sheet_description': sheet_description,
-                            'sheet_title': sheet_title,
-                            'project_date': project_date,
-                            'vendor': vendor,
-                            'airport': '',
-                            'project_description': '',
-                            'funding_type': '',
-                            'grant_number': '',
-                            'comment': ''
-                        }
-                        try:
-                            ser_obj = EngSerializer(data=new_obj)
-                            if ser_obj.is_valid():
-                                ser_obj.save()
-                            else:
-                                print(ser_obj.errors)
-                        except:
-                            exc_type, exc_value, exc_traceback = sys.exc_info()
-                            traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-
-                    elif len(filtered) == 1:
+                    if len(filtered) == 1:
                         _object = filtered[0]
                         update_data = {
                             "file_path": file_path,
@@ -158,8 +156,8 @@ class FileStoreBuilder:
                             if extension in mapping:
                                 file_path = os.path.join(root, _file)
                                 file_path = file_path.replace("\\", "/")
-                                # all file_paths in the system are lower case
-                                file_path = file_path.lower()
+                                # # all file_paths in the system are lower case
+                                # file_path = file_path.lower()
                                 filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                                 if len(filtered) == 0:
                                     # File has not been added to the database
