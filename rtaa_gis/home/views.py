@@ -56,7 +56,6 @@ def clear_users(request, format=None):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
-@method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the main homepage or an app depending on the template"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -74,7 +73,6 @@ class HomePage(APIView):
             name = request.user.username
 
         resp = Response(template_name=self.template)
-        resp['Cache-Control'] = 'no-cache'
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
