@@ -31,9 +31,10 @@ schema_view = get_schema_view(title='RTAA API', renderer_classes=[OpenAPIRendere
 def user_groups(request, format=None):
     try:
         name = request.META['REMOTE_USER']
-        logger.info("username = {}".format(name))
+        logger.info("Remote username = {}".format(name))
     except KeyError:
         name = request.user.username
+        logger.info("non-Remote username = {}".format(name))
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
