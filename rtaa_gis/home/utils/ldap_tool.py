@@ -37,8 +37,8 @@ class LDAPQuery:
                 Group.objects.get(name=group)
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
-        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=False)
-        # self.server = Server(ldap_url, get_info=ALL)
+        # self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=False)
+        self.server = Server(ldap_url, get_info=ALL)
 
     def get_groups(self):
 
