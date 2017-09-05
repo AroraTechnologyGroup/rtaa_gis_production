@@ -17,10 +17,10 @@ import urllib
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_prod/"
+FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-LDAP_URL = "gisapps.aroraengineers.com"
+LDAP_URL = "renoairport.net"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
@@ -175,10 +175,10 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'rtaa_gis_prod',
-        'HOST': 'gis.aroraengineers.com',
-        'USER': 'gissetup',
-        'PASSWORD': "AroraGIS123!",
+        'NAME': 'GIS_Web',
+        'HOST': 'gis.renoairport.net',
+        'USER': 'gis',
+        'PASSWORD': "GIS@RTAA123!",
         'OPTIONS': {
             'driver': 'SQL Server Native Client 11.0'
          }
