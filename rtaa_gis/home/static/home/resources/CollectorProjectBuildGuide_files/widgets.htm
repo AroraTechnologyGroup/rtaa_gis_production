@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<title>Collector Project Build Guide</title>
+<title>CollectorProjectBuildGuide</title>
 <meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5"/>
 <link href="visio.css" rel="stylesheet">
 <script src="keys.js" type="text/javascript" language="javascript"></script>
@@ -259,6 +259,93 @@
 	</div>
 
 	
+	<div id="divSearch" class="holder">
+		<table width="100%" cellspacing="0" cellpadding="0" border="0" class="holderTable">
+		<tr><td>
+			<div class="fillcolor" dir=ltr>
+				<table width="100%" cellspacing="0" cellpadding="1" border="0" class="fillcolor">
+				<tr>
+				<td style="padding:3px;"><a id="exp11" title="Collapse Search Pages" href="javascript:widgets.ToggleWidget(hideSearch);"><p class="label" style="display:inline;">Search Pages</p></a></td>
+				<td width="15"><a id="exp12" title="Collapse Search Pages" href="javascript:widgets.ToggleWidget(hideSearch);"><img src="minimize.gif" id="exp1" alt="Collapse Search Pages" width="15" height="15" border="0"></a></td>
+				</tr>
+				</table>
+			</div>
+
+		</td></tr>
+		<tr><td>	
+
+			<div id="hideSearch" img="exp1" class="hiderScroll" openAlt="Collapse Search Pages" closedAlt="Expand Search Pages">
+								<form name=theForm onsubmit="FindOnClick(); return false;" ID="Form1">
+									<table width="100%" cellspacing="0" cellpadding="3" border="0">
+									<tr>
+									<td width="100%">
+										<input class="formText" type="text" name="findString" maxlength="255" size="26" title="Enter text for search. Press Enter to begin search.">
+									</td>
+									<td width="18" class="gobutton">
+										<input type="image" src="go.gif" alt="Start searching" width="18" height="18" ID="GoButton" NAME="GoButton">
+									</td>
+									</tr>
+									<tr>
+									<td colspan="2" class="p2">
+										<a href="javascript:{};" tabindex="0" onclick="TogglePlus(hideAdvSrch,as0);" class="blu1"><img src="plus.gif" alt="Shows/hides advanced searching options" border="0" id="as0">Advanced</a>
+											<div id="hideAdvSrch" class="hiderScroll" style="display:none;">
+												<b>Search By:</b>
+												<div id="divS"></div>
+											</div>
+										<hr width="100%" size="1" color="#cccccc">
+										<div id="hideResults" class="hiderScroll" style="display:none;"></div>
+									</td>
+									</tr>
+									</table>
+								</form>
+			</div>					
+
+		</td></tr>
+		</table>
+		
+		
+		<script type="text/javascript" language="javascript">
+		    var hideSearch = document.getElementById("hideSearch");
+			hideSearch.img = "exp1";
+			widgets.Add(hideSearch, "Search");
+			widgets.divCount++;
+			
+			makeAdvancedFindCheckboxes(document.getElementById("divS"));
+			
+			
+			var imgPlus = new Image();
+			imgPlus.src = "plus.gif";
+	
+			var imgMinus = new Image();
+			imgMinus.src = "minus.gif";
+			
+			function TogglePlus(div, img, container)
+			{
+				if(typeof(img) == "string")	
+					img = document.getElementById(img)
+				if(typeof(div) == "string")
+					div = document.getElementById(div)
+					
+				widget = widgets.Search;
+				if(div && img)
+				{
+					if(div.style.display == "none")
+					{
+						div.style.display = "";
+						img.src = imgMinus.src;
+						div.open = "true";
+					}
+					else
+					{
+						div.style.display = "none";
+						img.src = imgPlus.src;
+						
+						div.open = "false";
+					}
+				}
+			}
+		</script>
+	</div>
 
 
 </div>

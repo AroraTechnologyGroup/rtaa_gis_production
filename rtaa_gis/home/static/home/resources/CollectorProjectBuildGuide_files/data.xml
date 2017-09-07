@@ -62,12 +62,12 @@
 					</Prop>
 				</Shape>
 				<Shape ID="1002" UniqueID="{F099FE35-A844-45E6-B17E-FE11308F067B}" Name="Process.1002" NameU="Process.1002" Master="15">
-					<Text>Add the Master Geodatabase to the Project
+					<Text>Add the Master Geodatabase to the Project, by adding the locally saved connection file to the Sub-Default version.  D:\\EsriGDB\ConnectionFiles\Sub-Default_MasterGDB.sde
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.875000009411259</PinX>
-						<PinY Unit="IN_F">6.875000081564251</PinY>
+						<PinX Unit="IN_F">0.875000000000000</PinX>
+						<PinY Unit="IN_F">6.658333374115459</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -103,8 +103,8 @@
 				</Shape>
 				<Shape ID="1003" UniqueID="{41A4BD1F-2CE2-486A-89FD-A9F4F894AA14}" Name="Dynamic connector.1003" NameU="Dynamic connector.1003" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.875000009411259</PinX>
-						<PinY Unit="IN">7.375000040782126</PinY>
+						<PinX Unit="IN">0.875000004705630</PinX>
+						<PinY Unit="IN_F">7.454166687057730</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -113,8 +113,8 @@
 				<Shape ID="1004" UniqueID="{4833EC38-12F9-4727-8BB7-1CFBF8FF0AFA}" Name="Subprocess.1004" NameU="Subprocess.1004" Master="13">
 					<Text>Acquire Feature Class Schema</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.875000009411260</PinX>
-						<PinY Unit="IN_F">5.750000000000000</PinY>
+						<PinX Unit="IN_F">0.875000000000000</PinX>
+						<PinY Unit="IN_F">5.325000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -166,8 +166,8 @@
 				</Shape>
 				<Shape ID="1005" UniqueID="{88EC5917-2DCD-4E22-82CF-49A9224C8F4C}" Name="Dynamic connector.1005" NameU="Dynamic connector.1005" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.875000009411259</PinX>
-						<PinY Unit="IN">6.312500040782126</PinY>
+						<PinX Unit="IN">0.875000000000000</PinX>
+						<PinY Unit="IN">5.804166687057730</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -178,8 +178,8 @@
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.875000009411260</PinX>
-						<PinY Unit="IN_F">4.624999918435749</PinY>
+						<PinX Unit="IN_F">0.875000000000000</PinX>
+						<PinY Unit="IN_F">4.250000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -309,8 +309,8 @@
 				</Shape>
 				<Shape ID="1024" UniqueID="{C76BC4AD-C6DA-40F7-840A-4F2BD0E34A4E}" Name="Dynamic connector.1024" NameU="Dynamic connector.1024" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.875000009411260</PinX>
-						<PinY Unit="IN_F">5.187499959217874</PinY>
+						<PinX Unit="IN">0.875000000000000</PinX>
+						<PinY Unit="IN_F">4.787500000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -318,8 +318,8 @@
 				</Shape>
 				<Shape ID="1025" UniqueID="{F93E8CD9-48E5-4CB3-91E5-D4E920C2A50C}" Name="Dynamic connector.1025" NameU="Dynamic connector.1025" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.875000009411260</PinX>
-						<PinY Unit="IN">3.974999959217874</PinY>
+						<PinX Unit="IN">0.875000004705630</PinX>
+						<PinY Unit="IN">3.787500000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -448,7 +448,7 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1033" UniqueID="{A0BE2F08-5301-4686-B05F-C5F5863462C5}" Name="Subprocess.1033" NameU="Subprocess.1033" Master="13">
+				<Shape ID="1033" UniqueID="{6673202F-77F0-4AE5-9D0C-10E7A5D155DB}" Name="Subprocess.1033" NameU="Subprocess.1033" Master="13">
 					<Text>Create WebMap</Text>
 					<XForm>
 						<PinX Unit="IN_F">4.125000000000000</PinX>
@@ -502,7 +502,7 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1034" UniqueID="{2FDC9FD5-4073-410A-99D3-0F8F0ADF5AB7}" Name="Dynamic connector.1034" NameU="Dynamic connector.1034" Master="2">
+				<Shape ID="1034" UniqueID="{9DC8225F-9946-444F-A02D-AA6463D64CE9}" Name="Dynamic connector.1034" NameU="Dynamic connector.1034" Master="2">
 					<XForm>
 						<PinX Unit="IN">4.125000000000000</PinX>
 						<PinY Unit="IN_F">2.862500000000000</PinY>
@@ -511,7 +511,7 @@
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1035" UniqueID="{01856674-BF52-4E70-B795-F7AAD927601E}" Name="Process.1035" NameU="Process.1035" Master="15">
+				<Shape ID="1035" UniqueID="{F942C084-2CF2-405D-A422-D79B2F4DA3CD}" Name="Process.1035" NameU="Process.1035" Master="15">
 					<Text>Open the Collector App and perform the Collection
 
 -  See RTAA Collector User Guide</Text>
@@ -551,7 +551,7 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1036" UniqueID="{AA5585A3-C7E4-49EB-A53C-1A053135FCA6}" Name="Dynamic connector.1036" NameU="Dynamic connector.1036" Master="2">
+				<Shape ID="1036" UniqueID="{FDE77D0E-4248-496F-8C10-52242E1EED2A}" Name="Dynamic connector.1036" NameU="Dynamic connector.1036" Master="2">
 					<XForm>
 						<PinX Unit="IN">4.125000000000000</PinX>
 						<PinY Unit="IN">3.962499959217874</PinY>
@@ -560,11 +560,11 @@
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1037" UniqueID="{E8CDE01C-002F-4623-8B53-D09E120902B6}" Name="Start/End.11" NameU="Start/End.11" Master="11">
+				<Shape ID="1037" UniqueID="{846B35A6-5160-4403-A2B6-8C644CBA867D}" Name="Start/End.11" NameU="Start/End.11" Master="11">
 					<Text>END</Text>
 					<XForm>
 						<PinX Unit="IN_F">4.125000000000000</PinX>
-						<PinY Unit="IN_F">5.937500000000000</PinY>
+						<PinY Unit="IN_F">6.812499918435749</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -598,16 +598,16 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1038" UniqueID="{07333DF5-3CB7-4A5D-BA00-EEC196E2DCDA}" Name="Dynamic connector" NameU="Dynamic connector" Master="2">
+				<Shape ID="1038" UniqueID="{806A3B67-6825-4964-8B15-F1CC93C29BE9}" Name="Dynamic connector" NameU="Dynamic connector" Master="2">
 					<XForm>
 						<PinX Unit="IN">4.125000000000000</PinX>
-						<PinY Unit="IN">5.437499959217874</PinY>
+						<PinY Unit="IN_F">5.249999959217874</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1039" UniqueID="{D6656C9B-FB4A-4037-8D7E-3D59DE8F35CC}" Name="Start/End.1039" NameU="Start/End.1039" Master="11">
+				<Shape ID="1039" UniqueID="{DCC18E90-6CB9-4E45-94E2-AE0F658F4CDF}" Name="Start/End.1039" NameU="Start/End.1039" Master="11">
 					<Text>START</Text>
 					<XForm>
 						<PinX Unit="IN_F">2.500000018822520</PinX>
@@ -645,14 +645,49 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1040" UniqueID="{B5E6517B-D795-4AFC-9FAA-1BA71B72ACE0}" Name="Dynamic connector.1040" NameU="Dynamic connector.1040" Master="2">
+				<Shape ID="1040" UniqueID="{E6D6A33F-7776-4594-A3C8-BCF2353FCB23}" Name="Dynamic connector.1040" NameU="Dynamic connector.1040" Master="2">
 					<XForm>
-						<PinX Unit="IN">1.687500014116889</PinX>
+						<PinX Unit="IN">1.687500014116890</PinX>
 						<PinY Unit="IN">7.875000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
+				</Shape>
+				<Shape ID="1042" UniqueID="{7FC51D47-5D92-4771-BA80-D5B6BA77D071}" Name="Dynamic connector.1042" NameU="Dynamic connector.1042" Master="2">
+					<XForm>
+						<PinX Unit="IN">4.125000000000000</PinX>
+						<PinY Unit="IN">6.437499959217874</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1041" UniqueID="{50DC5EA4-56EA-4911-904B-759289A24ECD}" Name="Off-page reference.1041" NameU="Off-page reference.1041" Master="1000">
+					<Text>Go to BackEnd Workflow</Text>
+					<XForm>
+						<PinX Unit="IN_F">4.125000000000000</PinX>
+						<PinY Unit="IN_F">5.812500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1;0</LayerMember>
+					</LayerMem>
+					<Scratch>
+						<B>
+							<SolutionXML>
+								<HLURL:Hyperlinks xmlns:HLURL="urn:schemas-microsoft-com:office:visio:dghlinkext">
+									<HLURL:Hyperlink ID="1">
+										<HLURL:Description>Off-page Re&amp;ference</HLURL:Description>
+										<HLURL:Address></HLURL:Address>
+										<HLURL:SubAddress>Backend Workflow</HLURL:SubAddress>
+										<HLURL:ExtraInfo></HLURL:ExtraInfo>
+										<HLURL:Default>0</HLURL:Default>
+										<HLURL:NewWindow>0</HLURL:NewWindow>
+									</HLURL:Hyperlink>
+								</HLURL:Hyperlinks>
+							</SolutionXML>
+						</B>
+					</Scratch>
 				</Shape>
 			</Shapes>
 		</Page>
@@ -676,7 +711,7 @@
 					<Text>Determine the type of Collection</Text>
 					<XForm>
 						<PinX Unit="IN_F">0.881250000000000</PinX>
-						<PinY Unit="IN_F">8.062500000000000</PinY>
+						<PinY Unit="IN_F">7.812499826604674</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -714,7 +749,7 @@
 					<Text>Are there existing features that need verification?</Text>
 					<XForm>
 						<PinX Unit="IN_F">0.881250000000000</PinX>
-						<PinY Unit="IN_F">6.901562500000000</PinY>
+						<PinY Unit="IN_F">6.548958116589175</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -751,7 +786,7 @@
 				<Shape ID="43" UniqueID="{84CEB80E-8637-4ACF-8934-510E45912C5F}" Name="Dynamic connector" NameU="Dynamic connector" Master="2">
 					<XForm>
 						<PinX Unit="IN_F">0.881250000000000</PinX>
-						<PinY Unit="IN_F">7.625000000000000</PinY>
+						<PinY Unit="IN_F">7.323697721596924</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -760,8 +795,8 @@
 				<Shape ID="45" UniqueID="{535CD7B8-AB66-4F1E-90EE-B0F3E7D91B12}" Name="Dynamic connector.45" NameU="Dynamic connector.45" Master="2">
 					<Text>No</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.881250000000000</PinX>
-						<PinY Unit="IN_F">6.123784722222222</PinY>
+						<PinX Unit="IN">0.884374999999999</PinX>
+						<PinY Unit="IN">5.912760254108548</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -770,8 +805,8 @@
 				<Shape ID="49" UniqueID="{354E9BD1-D3F0-4424-BCB8-782989B45681}" Name="Dynamic connector.49" NameU="Dynamic connector.49" Master="2">
 					<Text>Yes</Text>
 					<XForm>
-						<PinX Unit="IN_F">1.852083333333333</PinX>
-						<PinY Unit="IN_F">6.901562500000000</PinY>
+						<PinX Unit="IN_F">1.925000000000000</PinX>
+						<PinY Unit="IN_F">7.035937391627921</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -780,8 +815,8 @@
 				<Shape ID="1002" UniqueID="{58E56FD9-AB4B-4381-A35B-93069CFEDED1}" Name="Decision.1002" NameU="Decision.1002" Master="12">
 					<Text>Are there new features that need to be collected?</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.881250000000001</PinX>
-						<PinY Unit="IN_F">5.346006944444444</PinY>
+						<PinX Unit="IN_F">0.881250000000000</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -815,21 +850,11 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1003" UniqueID="{C7C7DAB1-7168-41E7-9B29-21D3738126A9}" Name="Dynamic connector.1003" NameU="Dynamic connector.1003" Master="2">
-					<Text>Yes</Text>
-					<XForm>
-						<PinX Unit="IN_F">0.881250000000001</PinX>
-						<PinY Unit="IN_F">4.308940972222222</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
 				<Shape ID="1004" UniqueID="{ED73831E-5BBA-4976-AED4-24C59D52D0FB}" Name="Decision.1004" NameU="Decision.1004" Master="12">
-					<Text>Do the features exist in the MasterGDB?</Text>
+					<Text>Do the features needing verification exist in the MasterGDB?</Text>
 					<XForm>
-						<PinX Unit="IN_F">4.143750000000000</PinX>
-						<PinY Unit="IN_F">6.901562500000000</PinY>
+						<PinX Unit="IN_F">3.250000000000000</PinX>
+						<PinY Unit="IN_F">7.522916666666665</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -866,67 +891,20 @@
 				<Shape ID="1005" UniqueID="{CC11FE5F-4C9C-4E90-BC0C-06C2119C7793}" Name="Dynamic connector.1005" NameU="Dynamic connector.1005" Master="2">
 					<Text>Yes</Text>
 					<XForm>
-						<PinX Unit="IN_F">3.578125000000000</PinX>
-						<PinY Unit="IN_F">5.990625000000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1007" UniqueID="{ED6FF413-7E1C-44DB-BF64-537C7F58DDD5}" Name="Dynamic connector.1007" NameU="Dynamic connector.1007" Master="2">
-					<XForm>
-						<PinX Unit="IN_F">2.996875000000000</PinX>
-						<PinY Unit="IN_F">3.435937500000000</PinY>
+						<PinX Unit="IN_F">4.695833333333331</PinX>
+						<PinY Unit="IN_F">7.529166666666666</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
 				<Shape ID="1006" UniqueID="{4C115337-C69A-4AEE-93BE-1A4FB40B4BE7}" Name="Process.1006" NameU="Process.1006" Master="15">
-					<Text>Copy the Source Feature Class from the MasterGDB to the Project’s default geodatabase
+					<Text>Copy the Source Feature Class from its source location to the Project’s default geodatabase
 
 - See Video</Text>
 					<XForm>
 						<PinX Unit="IN_F">3.250000000000000</PinX>
-						<PinY Unit="IN_F">4.183333333333334</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>1</LayerMember>
-					</LayerMem>
-					<Prop ID="1" Name="Cost" NameU="Cost">
-						<Value></Value>
-						<Label>Cost</Label>
-					</Prop>
-					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
-						<Value></Value>
-						<Label>Process Number</Label>
-					</Prop>
-					<Prop ID="3" Name="Owner" NameU="Owner">
-						<Value></Value>
-						<Label>Owner</Label>
-					</Prop>
-					<Prop ID="4" Name="Function" NameU="Function">
-						<Value></Value>
-						<Label>Function</Label>
-					</Prop>
-					<Prop ID="5" Name="StartDate" NameU="StartDate">
-						<Value></Value>
-						<Label>Start Date</Label>
-					</Prop>
-					<Prop ID="6" Name="EndDate" NameU="EndDate">
-						<Value></Value>
-						<Label>End Date</Label>
-					</Prop>
-					<Prop ID="7" Name="Status" NameU="Status">
-						<Value></Value>
-						<Label>Status</Label>
-					</Prop>
-				</Shape>
-				<Shape ID="1008" UniqueID="{88B600E9-EBC7-4DF8-9CDE-D38654B0FDB4}" Name="Process.1008" NameU="Process.1008" Master="15">
-					<Text>Determine which feature class should hold the features</Text>
-					<XForm>
-						<PinX Unit="IN_F">2.691666666666666</PinX>
-						<PinY Unit="IN_F">6.901562500000000</PinY>
+						<PinY Unit="IN_F">5.838541666666666</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -963,103 +941,8 @@
 				<Shape ID="1011" UniqueID="{228B8F49-47C1-45D7-B1B6-5AFEC11EB461}" Name="Process.1011" NameU="Process.1011" Master="15">
 					<Text>Choose the target feature class from the MasterGDB</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.881250000000001</PinX>
-						<PinY Unit="IN_F">3.370312500000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>1</LayerMember>
-					</LayerMem>
-					<Prop ID="1" Name="Cost" NameU="Cost">
-						<Value></Value>
-						<Label>Cost</Label>
-					</Prop>
-					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
-						<Value></Value>
-						<Label>Process Number</Label>
-					</Prop>
-					<Prop ID="3" Name="Owner" NameU="Owner">
-						<Value></Value>
-						<Label>Owner</Label>
-					</Prop>
-					<Prop ID="4" Name="Function" NameU="Function">
-						<Value></Value>
-						<Label>Function</Label>
-					</Prop>
-					<Prop ID="5" Name="StartDate" NameU="StartDate">
-						<Value></Value>
-						<Label>Start Date</Label>
-					</Prop>
-					<Prop ID="6" Name="EndDate" NameU="EndDate">
-						<Value></Value>
-						<Label>End Date</Label>
-					</Prop>
-					<Prop ID="7" Name="Status" NameU="Status">
-						<Value></Value>
-						<Label>Status</Label>
-					</Prop>
-				</Shape>
-				<Shape ID="1012" UniqueID="{69E23B94-F96A-4095-BEA0-709E1B8FDD92}" Name="Dynamic connector.1012" NameU="Dynamic connector.1012" Master="2">
-					<XForm>
-						<PinX Unit="IN">2.065625000000000</PinX>
-						<PinY Unit="IN">3.776822916666667</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1013" UniqueID="{17EF6523-853A-4257-B14B-25EFD11B2062}" Name="Decision.1013" NameU="Decision.1013" Master="12">
-					<Text>Are there existing features that need verification?</Text>
-					<XForm>
-						<PinX Unit="IN_F">2.743750000000000</PinX>
-						<PinY Unit="IN_F">2.715104166666668</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>1</LayerMember>
-					</LayerMem>
-					<Prop ID="1" Name="Cost" NameU="Cost">
-						<Value></Value>
-						<Label>Cost</Label>
-					</Prop>
-					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
-						<Value></Value>
-						<Label>Process Number</Label>
-					</Prop>
-					<Prop ID="3" Name="Owner" NameU="Owner">
-						<Value></Value>
-						<Label>Owner</Label>
-					</Prop>
-					<Prop ID="4" Name="Function" NameU="Function">
-						<Value></Value>
-						<Label>Function</Label>
-					</Prop>
-					<Prop ID="5" Name="StartDate" NameU="StartDate">
-						<Value></Value>
-						<Label>Start Date</Label>
-					</Prop>
-					<Prop ID="6" Name="EndDate" NameU="EndDate">
-						<Value></Value>
-						<Label>End Date</Label>
-					</Prop>
-					<Prop ID="7" Name="Status" NameU="Status">
-						<Value></Value>
-						<Label>Status</Label>
-					</Prop>
-				</Shape>
-				<Shape ID="1014" UniqueID="{AE1137E5-B1C7-4B43-9FB3-F4C00912631C}" Name="Dynamic connector.1014" NameU="Dynamic connector.1014" Master="2">
-					<Text>No</Text>
-					<XForm>
-						<PinX Unit="IN_F">2.743750000000000</PinX>
-						<PinY Unit="IN_F">2.111458333333334</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1015" UniqueID="{663E2FE7-6A89-4B74-B4B7-442E92F6B8CC}" Name="Process.1015" NameU="Process.1015" Master="15">
-					<Text>Delete All Rows from the Feature Class</Text>
-					<XForm>
-						<PinX Unit="IN_F">2.743750000000000</PinX>
-						<PinY Unit="IN_F">1.606250000000000</PinY>
+						<PinX Unit="IN_F">0.887499999999998</PinX>
+						<PinY Unit="IN_F">5.374999891627921</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1096,8 +979,8 @@
 				<Shape ID="1017" UniqueID="{580FC047-3E58-4584-A651-4DA73C042CA3}" Name="Process.1017" NameU="Process.1017" Master="15">
 					<Text>Remove any features that do not need verification</Text>
 					<XForm>
-						<PinX Unit="IN_F">7.500000000000000</PinX>
-						<PinY Unit="IN_F">3.187500000000000</PinY>
+						<PinX Unit="IN_F">10.037500000000000</PinX>
+						<PinY Unit="IN_F">4.926562500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1131,32 +1014,13 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1018" UniqueID="{FE0B26D9-EF21-45CD-A9D1-CE979BF73102}" Name="Dynamic connector.1018" NameU="Dynamic connector.1018" Master="2">
-					<Text>Yes</Text>
-					<XForm>
-						<PinX Unit="IN_F">3.740625000000000</PinX>
-						<PinY Unit="IN_F">2.834895833333333</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1021" UniqueID="{7B88457B-9212-41A4-9AA7-7415CDA15088}" Name="Dynamic connector.1021" NameU="Dynamic connector.1021" Master="2">
-					<XForm>
-						<PinX Unit="IN_F">2.881250000000000</PinX>
-						<PinY Unit="IN_F">4.930729166666667</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
 				<Shape ID="1020" UniqueID="{AFD34357-0D21-4E38-A1A0-B6A766A0B1D9}" Name="Process.1020" NameU="Process.1020" Master="15">
-					<Text>Copy the GlobalIDs to the AssetID field
+					<Text>Calculate the GlobalIDs into the AssetID field
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">2.512500000000000</PinX>
-						<PinY Unit="IN_F">5.553125000000000</PinY>
+						<PinX Unit="IN_F">7.225000000000000</PinX>
+						<PinY Unit="IN_F">6.402083333333332</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1193,18 +1057,18 @@
 				<Shape ID="1023" UniqueID="{D8164DC6-1119-4A5C-9B4F-4783E2378DB8}" Name="Dynamic connector.1023" NameU="Dynamic connector.1023" Master="2">
 					<Text>Yes</Text>
 					<XForm>
-						<PinX Unit="IN">7.106250000000000</PinX>
-						<PinY Unit="IN">3.989843750000000</PinY>
+						<PinX Unit="IN_F">9.293749999999999</PinX>
+						<PinY Unit="IN">4.928906250000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
 				<Shape ID="1022" UniqueID="{45B7598F-2632-4C99-8372-B9551FF1688F}" Name="Decision.1022" NameU="Decision.1022" Master="12">
-					<Text>Are all the feature to be verified currently in the feature class?</Text>
+					<Text>Are all the features to be verified currently in the feature class?</Text>
 					<XForm>
-						<PinX Unit="IN_F">6.000000000000000</PinX>
-						<PinY Unit="IN_F">4.417187500000000</PinY>
+						<PinX Unit="IN_F">8.287500000000000</PinX>
+						<PinY Unit="IN_F">4.931250000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1241,8 +1105,8 @@
 				<Shape ID="1025" UniqueID="{3C67BE8C-10DB-41D1-B8AB-D4624A578BF8}" Name="Dynamic connector.1025" NameU="Dynamic connector.1025" Master="2">
 					<Text>No</Text>
 					<XForm>
-						<PinX Unit="IN_F">6.000000000000000</PinX>
-						<PinY Unit="IN_F">3.517187500000000</PinY>
+						<PinX Unit="IN_F">8.287500000000000</PinX>
+						<PinY Unit="IN_F">3.877083303531011</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -1253,8 +1117,8 @@
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">9.941666666666666</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">2.525000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1288,22 +1152,13 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1027" UniqueID="{98845363-D1E7-41F6-A703-15C69C09E82A}" Name="Dynamic connector.1027" NameU="Dynamic connector.1027" Master="2">
-					<XForm>
-						<PinX Unit="IN">4.184375000000000</PinX>
-						<PinY Unit="IN_F">0.967968750000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
 				<Shape ID="1029" UniqueID="{0FE85CCE-4DEE-45E6-8125-40EE6E93C8AC}" Name="Process.1029" NameU="Process.1029" Master="15">
 					<Text>Add Coded Value Domains for the New Fields
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">9.941666666666666</PinX>
-						<PinY Unit="IN_F">1.704687500000000</PinY>
+						<PinX Unit="IN_F">0.881250000000000</PinX>
+						<PinY Unit="IN_F">1.079687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1339,8 +1194,8 @@
 				</Shape>
 				<Shape ID="1030" UniqueID="{274509F4-D146-4AFA-A795-9BEF885CD0DA}" Name="Dynamic connector.1030" NameU="Dynamic connector.1030" Master="2">
 					<XForm>
-						<PinX Unit="IN">9.941666666666666</PinX>
-						<PinY Unit="IN">1.204687500000000</PinY>
+						<PinX Unit="IN">1.453125000000000</PinX>
+						<PinY Unit="IN">0.829687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -1348,8 +1203,8 @@
 				</Shape>
 				<Shape ID="1032" UniqueID="{CD72CB92-C0A7-4A8B-B378-8D9B3F7BB2A5}" Name="Dynamic connector.1032" NameU="Dynamic connector.1032" Master="2">
 					<XForm>
-						<PinX Unit="IN_F">6.750000000000000</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">5.650000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -1360,8 +1215,8 @@
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">6.125000000000000</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">6.275000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1397,8 +1252,8 @@
 				</Shape>
 				<Shape ID="1034" UniqueID="{C8DC81D0-AD15-4210-BCE9-8CCE4E14DAD7}" Name="Dynamic connector.1034" NameU="Dynamic connector.1034" Master="2">
 					<XForm>
-						<PinX Unit="IN_F">8.016666666666666</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">4.400000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -1407,8 +1262,8 @@
 				<Shape ID="1033" UniqueID="{0FE79DCC-F98F-4BFC-9CCD-4016B2297373}" Name="Process.1033" NameU="Process.1033" Master="15">
 					<Text>Remove Domains from the Geodatabase that are not needed</Text>
 					<XForm>
-						<PinX Unit="IN_F">7.375000000000000</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">5.025000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1445,8 +1300,8 @@
 				<Shape ID="1035" UniqueID="{3BC58919-0D24-43BA-89FA-579DAB9B86A2}" Name="Process.1035" NameU="Process.1035" Master="15">
 					<Text>Of the remaining Domains, remove values that won’t be used in the Collection</Text>
 					<XForm>
-						<PinX Unit="IN_F">8.658333333333333</PinX>
-						<PinY Unit="IN_F">0.704687500000000</PinY>
+						<PinX Unit="IN_F">3.775000000000000</PinX>
+						<PinY Unit="IN_F">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1482,8 +1337,8 @@
 				</Shape>
 				<Shape ID="1036" UniqueID="{2F327DE8-2C75-48AD-B7E8-796CF39F044B}" Name="Dynamic connector.1036" NameU="Dynamic connector.1036" Master="2">
 					<XForm>
-						<PinX Unit="IN">9.300000000000001</PinX>
-						<PinY Unit="IN">0.704687500000000</PinY>
+						<PinX Unit="IN">3.150000000000000</PinX>
+						<PinY Unit="IN">0.954687500000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -1492,8 +1347,8 @@
 				<Shape ID="1037" UniqueID="{439738C3-1D86-43EF-87DB-57624D238E18}" Name="Process.1037" NameU="Process.1037" Master="15">
 					<Text>Add a field named ‘Verified’ and calculate all Values to be No, set the default value to ‘Yes’</Text>
 					<XForm>
-						<PinX Unit="IN_F">4.606250000000000</PinX>
-						<PinY Unit="IN_F">2.954687500000000</PinY>
+						<PinX Unit="IN_F">5.095833333333330</PinX>
+						<PinY Unit="IN_F">5.838541666666666</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1530,8 +1385,8 @@
 				<Shape ID="1039" UniqueID="{C93121E2-42F1-44CE-8039-497CC61F22ED}" Name="Start/End.1039" NameU="Start/End.1039" Master="11">
 					<Text>END</Text>
 					<XForm>
-						<PinX Unit="IN_F">9.941666666666666</PinX>
-						<PinY Unit="IN_F">2.954687500000000</PinY>
+						<PinX Unit="IN_F">0.881250000000000</PinX>
+						<PinY Unit="IN_F">2.499999956651168</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1567,38 +1422,29 @@
 				</Shape>
 				<Shape ID="1040" UniqueID="{19CEBD4B-955D-4D43-BD46-16BB635FF0F5}" Name="Dynamic connector.1040" NameU="Dynamic connector.1040" Master="2">
 					<XForm>
-						<PinX Unit="IN">9.941666666666666</PinX>
-						<PinY Unit="IN">2.423437500000000</PinY>
+						<PinX Unit="IN">0.881250000000000</PinX>
+						<PinY Unit="IN">1.883593728325585</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1041" UniqueID="{A3FE4C80-4E03-4925-B9DA-7DDFF9844065}" Name="Dynamic connector.1041" NameU="Dynamic connector.1041" Master="2">
+				<Shape ID="1042" UniqueID="{94C33A60-9E8F-4987-B418-050E17892B78}" Name="Dynamic connector.1042" NameU="Dynamic connector.1042" Master="2">
 					<XForm>
-						<PinX Unit="IN_F">4.946875000000000</PinX>
-						<PinY Unit="IN_F">3.935937500000000</PinY>
+						<PinX Unit="IN">8.406250000000000</PinX>
+						<PinY Unit="IN">2.753125000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1042" UniqueID="{0A9E727D-86BE-4045-9509-89AD4F4C57D1}" Name="Dynamic connector.1042" NameU="Dynamic connector.1042" Master="2">
-					<XForm>
-						<PinX Unit="IN">7.000000000000000</PinX>
-						<PinY Unit="IN_F">2.321093750000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1043" UniqueID="{B2EFD33E-6EC2-4B7C-A636-C086D24637BA}" Name="Process.1043" NameU="Process.1043" Master="15">
+				<Shape ID="1043" UniqueID="{62248013-A809-4535-B20D-7F4698D76344}" Name="Process.1043" NameU="Process.1043" Master="15">
 					<Text>Delete All Rows from the Feature Class
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">6.000000000000000</PinX>
-						<PinY Unit="IN_F">2.954687500000000</PinY>
+						<PinX Unit="IN_F">8.287500000000000</PinX>
+						<PinY Unit="IN_F">3.210416607062022</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1632,13 +1478,13 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1044" UniqueID="{D05CD16D-4C64-45F4-90F1-DFD0E3E971E7}" Name="Process.1044" NameU="Process.1044" Master="15">
+				<Shape ID="1044" UniqueID="{EECB3266-759E-4C33-ACCF-5D078EB1DBE3}" Name="Process.1044" NameU="Process.1044" Master="15">
 					<Text>Append the existing features to be verified to the target feature class
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">6.000000000000000</PinX>
-						<PinY Unit="IN_F">1.829687500000000</PinY>
+						<PinX Unit="IN_F">8.287500000000000</PinX>
+						<PinY Unit="IN_F">2.085416620608532</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
@@ -1672,48 +1518,474 @@
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1045" UniqueID="{C77478F3-F69D-43DF-AB09-90D3209F5276}" Name="Dynamic connector.1045" NameU="Dynamic connector.1045" Master="2">
+				<Shape ID="1045" UniqueID="{F1CFAE05-CA29-4FCA-AB9E-233F2A27916B}" Name="Dynamic connector.1045" NameU="Dynamic connector.1045" Master="2">
 					<XForm>
-						<PinX Unit="IN">6.000000000000000</PinX>
-						<PinY Unit="IN_F">2.454687500000000</PinY>
+						<PinX Unit="IN">8.287500000000000</PinX>
+						<PinY Unit="IN_F">2.710416613835277</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1046" UniqueID="{44D61F1F-5F01-4E57-8A8B-C92DF2B1F306}" Name="Dynamic connector.1046" NameU="Dynamic connector.1046" Master="2">
-					<XForm>
-						<PinX Unit="IN">6.062500000000000</PinX>
-						<PinY Unit="IN">1.204687500000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1047" UniqueID="{00943BC0-5D4E-4B1C-B82D-83200805FB48}" Name="Dynamic connector.1047" NameU="Dynamic connector.1047" Master="2">
-					<XForm>
-						<PinX Unit="IN_F">3.352083333333334</PinX>
-						<PinY Unit="IN_F">6.901562500000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1048" UniqueID="{A881E354-3023-412C-93E5-F53AB103080B}" Name="Dynamic connector.1048" NameU="Dynamic connector.1048" Master="2">
+				<Shape ID="1048" UniqueID="{50B65B5C-7BED-4AE7-A150-8BDDEE146AFF}" Name="Dynamic connector.1048" NameU="Dynamic connector.1048" Master="2">
 					<Text>No</Text>
 					<XForm>
-						<PinX Unit="IN">4.262500000000000</PinX>
-						<PinY Unit="IN_F">5.542447916666667</PinY>
+						<PinX Unit="IN">3.250000000000000</PinX>
+						<PinY Unit="IN_F">6.651041666666666</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1050" UniqueID="{2E1C51CB-5C43-4FD7-A0A2-A2E2A78F3653}" Name="Dynamic connector.1050" NameU="Dynamic connector.1050" Master="2">
+				<Shape ID="1052" UniqueID="{B1A0F5D2-CDA6-4F6D-9D02-7B167094F79D}" Name="Dynamic connector.1052" NameU="Dynamic connector.1052" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">6.479166666666663</PinX>
+						<PinY Unit="IN_F">7.535416666666665</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1051" UniqueID="{7D7CEA68-3866-4CF0-A843-8A30096C7BFC}" Name="Process.1051" NameU="Process.1051" Master="15">
+					<Text>Add the target feature class from the MasterGDB to the map</Text>
+					<XForm>
+						<PinX Unit="IN_F">5.729166666666663</PinX>
+						<PinY Unit="IN_F">7.535416666666665</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1054" UniqueID="{6E684362-36E3-4B8E-99F3-391056889E8E}" Name="Dynamic connector.1054" NameU="Dynamic connector.1054" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">7.979166666666664</PinX>
+						<PinY Unit="IN_F">7.535416666666665</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1053" UniqueID="{7FA6DC09-532F-415B-9DCB-E70CCBE752B1}" Name="Process.1053" NameU="Process.1053" Master="15">
+					<Text>Enable the ‘Maintain Global IDs’ environment setting in ArcPro</Text>
+					<XForm>
+						<PinX Unit="IN_F">7.229166666666663</PinX>
+						<PinY Unit="IN_F">7.535416666666665</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1056" UniqueID="{55595B81-EC7F-4493-BC0C-ACA9A64ADCEB}" Name="Dynamic connector.1056" NameU="Dynamic connector.1056" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">8.727083333333331</PinX>
+						<PinY Unit="IN_F">6.906250000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1055" UniqueID="{E35D7B66-4FA1-4246-8C4F-83D792491D51}" Name="Process.1055" NameU="Process.1055" Master="15">
+					<Text>Copy the target feature class from the MasterGDB and Paste it in the Project’s default geodatabase</Text>
+					<XForm>
+						<PinX Unit="IN_F">8.729166666666666</PinX>
+						<PinY Unit="IN_F">7.535416666666665</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1057" UniqueID="{D4A654FB-B757-4B6D-83EC-808D0E09581D}" Name="Process.1057" NameU="Process.1057" Master="15">
+					<Text>Add a text field named assetID.  Accept the default max length</Text>
+					<XForm>
+						<PinX Unit="IN_F">8.725000000000000</PinX>
+						<PinY Unit="IN_F">6.402083333333332</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1058" UniqueID="{7C98BF0C-336A-489E-A299-B07B3638338A}" Name="Dynamic connector.1058" NameU="Dynamic connector.1058" Master="2">
+					<XForm>
+						<PinX Unit="IN">7.975000000000000</PinX>
+						<PinY Unit="IN">6.402083333333332</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1064" UniqueID="{315F4723-C5F2-4860-AA1F-3AB22A6F5874}" Name="Dynamic connector.1064" NameU="Dynamic connector.1064" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">0.884374999999999</PinX>
+						<PinY Unit="IN_F">4.837239529147293</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1065" UniqueID="{306BD563-85A4-4A64-9846-75F58613C375}" Name="Dynamic connector.1065" NameU="Dynamic connector.1065" Master="2">
+					<XForm>
+						<PinX Unit="IN">4.172916666666665</PinX>
+						<PinY Unit="IN_F">5.838541666666666</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1066" UniqueID="{86E5F7D6-DA82-4248-B95A-04281C9458CF}" Name="Dynamic connector.1066" NameU="Dynamic connector.1066" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.160416666666663</PinX>
+						<PinY Unit="IN">6.120312500000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1067" UniqueID="{2BB2B8DB-312C-4C9C-A0BA-20D03AFC842B}" Name="Dynamic connector.1067" NameU="Dynamic connector.1067" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.310416666666663</PinX>
+						<PinY Unit="IN_F">5.134895833333332</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1068" UniqueID="{2D7F623E-5AA5-40A1-A298-A017C875F50D}" Name="Decision.1068" NameU="Decision.1068" Master="12">
+					<Text>Does the target feature class exist in the Master Geodatabase?</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.525000000000000</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1069" UniqueID="{B21D43BA-073B-4B9B-93FD-D202B9D3F895}" Name="Dynamic connector.1069" NameU="Dynamic connector.1069" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN_F">1.637500000000000</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1070" UniqueID="{4B30A879-AF07-48EE-94B1-BAD5DBBE2714}" Name="Process.1070" NameU="Process.1070" Master="15">
+					<Text>Copy the target feature class from the MasterGDB and Paste it in the Project’s default geodatabase</Text>
+					<XForm>
+						<PinX Unit="IN_F">4.275000000000006</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1071" UniqueID="{DBAFCCED-3CB1-48D2-9B45-396B3DEC7211}" Name="Process.1071" NameU="Process.1071" Master="15">
+					<Text>Delete All Rows from the Feature Class
+
+- See Video</Text>
+					<XForm>
+						<PinX Unit="IN_F">5.525000000000000</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1073" UniqueID="{4D8E49DE-063C-4E7D-9EA6-1A8A5FC7D9FC}" Name="Dynamic connector.1073" NameU="Dynamic connector.1073" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN_F">3.531250000000000</PinX>
+						<PinY Unit="IN_F">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1074" UniqueID="{97E7E315-812A-4396-9BDC-B977FEC006DC}" Name="Dynamic connector.1074" NameU="Dynamic connector.1074" Master="2">
+					<XForm>
+						<PinX Unit="IN">4.900000000000000</PinX>
+						<PinY Unit="IN">4.201041666666667</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1075" UniqueID="{29F7A188-F416-4FE3-B782-663EEC4864B6}" Name="Dynamic connector.1075" NameU="Dynamic connector.1075" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.150000000000000</PinX>
+						<PinY Unit="IN">2.765364583333334</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1077" UniqueID="{1A337560-92B3-4DCE-B318-DB1EF553734D}" Name="Process.1077" NameU="Process.1077" Master="15">
+					<Text>Create a new feature class in the Project’s default geodatabase using the desired target schema</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.525000000000000</PinX>
+						<PinY Unit="IN_F">2.499999956651168</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1078" UniqueID="{CBBFFC53-7AD2-4803-93C7-2A1DF2967FAB}" Name="Dynamic connector.1078" NameU="Dynamic connector.1078" Master="2">
 					<Text>No</Text>
 					<XForm>
-						<PinX Unit="IN">5.727083333333334</PinX>
-						<PinY Unit="IN">4.244097222222222</PinY>
+						<PinX Unit="IN">2.525000000000000</PinX>
+						<PinY Unit="IN_F">3.219270811658918</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1079" UniqueID="{162AA922-4143-48B9-8EAA-9F0D7CB9D5FB}" Name="Dynamic connector.1079" NameU="Dynamic connector.1079" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">1.703125000000000</PinX>
+						<PinY Unit="IN_F">2.499999956651167</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1080" UniqueID="{42B7ABF9-7ACD-4ECA-B927-C7FFB41BBC91}" Name="Dynamic connector.1080" NameU="Dynamic connector.1080" Master="2">
+					<XForm>
+						<PinX Unit="IN">7.531250000000000</PinX>
+						<PinY Unit="IN">1.270052060304266</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1083" UniqueID="{E6DDEC0F-B379-4BB1-A825-D7E5453B0DCD}" Name="Dynamic connector.1083" NameU="Dynamic connector.1083" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.881250000000000</PinX>
+						<PinY Unit="IN_F">3.207552061658918</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -2259,8 +2531,8 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1023" UniqueID="{F2305752-BF42-40A8-990B-CE7C13EDA7DE}" Name="Process.1023" NameU="Process.1023" Master="15">
-					<Text>Define the filter to be ‘Start Date of Data Validity is after the (select the latest date from that field)’
+				<Shape ID="1023" UniqueID="{D957A4B1-4693-4FE3-A424-522763545D2E}" Name="Process.1023" NameU="Process.1023" Master="15">
+					<Text>Define the filter to be ‘created_date’ is after the (select the latest date from that field)’
 
 - See Video</Text>
 					<XForm>
@@ -2299,7 +2571,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1024" UniqueID="{63AA4398-D686-435A-A5BF-611A56107AED}" Name="Dynamic connector.1024" NameU="Dynamic connector.1024" Master="2">
+				<Shape ID="1024" UniqueID="{D67BA57F-93D1-484E-8CB0-54EAA8AC163B}" Name="Dynamic connector.1024" NameU="Dynamic connector.1024" Master="2">
 					<XForm>
 						<PinX Unit="IN">5.550000000000000</PinX>
 						<PinY Unit="IN_F">5.750000000000000</PinY>
@@ -2308,7 +2580,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1025" UniqueID="{2863BBE0-383A-408A-B739-1048DFCADCFA}" Name="Process.1025" NameU="Process.1025" Master="15">
+				<Shape ID="1025" UniqueID="{03BA16E6-CB7D-45D7-9745-EB177529F40B}" Name="Process.1025" NameU="Process.1025" Master="15">
 					<Text>Define the filter for the published layer to be ‘Start Date of Data Validity is before (select the latest date from that field)</Text>
 					<XForm>
 						<PinX Unit="IN_F">1.875000000000000</PinX>
@@ -2346,7 +2618,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1027" UniqueID="{93D7F564-BF4A-4CDD-9966-C16B9A8C9F9C}" Name="Dynamic connector.1027" NameU="Dynamic connector.1027" Master="2">
+				<Shape ID="1027" UniqueID="{88B8F7A9-95B5-4088-9BDB-2B7B67F782FA}" Name="Dynamic connector.1027" NameU="Dynamic connector.1027" Master="2">
 					<XForm>
 						<PinX Unit="IN">7.387500000000000</PinX>
 						<PinY Unit="IN_F">5.837500000000000</PinY>
@@ -2355,7 +2627,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1028" UniqueID="{00BE03CA-0048-4F66-BF7B-95A3B9076B69}" Name="Process.1028" NameU="Process.1028" Master="15">
+				<Shape ID="1028" UniqueID="{27B33118-EE23-4E77-9D53-29591AFC1062}" Name="Process.1028" NameU="Process.1028" Master="15">
 					<Text>Open the item details page for the layer and select the following
 
 Prevent this item from being accidentally deleted
@@ -2407,7 +2679,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1031" UniqueID="{0A5B5BF6-C3AC-40C4-A18B-03063C196855}" Name="Dynamic connector.1031" NameU="Dynamic connector.1031" Master="2">
+				<Shape ID="1031" UniqueID="{E8342665-D4B8-4962-BC3A-31BB62AAC44D}" Name="Dynamic connector.1031" NameU="Dynamic connector.1031" Master="2">
 					<XForm>
 						<PinX Unit="IN_F">2.500000000000000</PinX>
 						<PinY Unit="IN_F">0.750000000000000</PinY>
@@ -2416,7 +2688,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1033" UniqueID="{7C3D4732-24AF-462D-8760-5DC912A40E75}" Name="Dynamic connector.1033" NameU="Dynamic connector.1033" Master="2">
+				<Shape ID="1033" UniqueID="{01161D37-6BF3-4429-95DF-C754D5FA269A}" Name="Dynamic connector.1033" NameU="Dynamic connector.1033" Master="2">
 					<XForm>
 						<PinX Unit="IN">1.062500000000000</PinX>
 						<PinY Unit="IN_F">1.225000000000000</PinY>
@@ -2425,7 +2697,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1035" UniqueID="{E1CA31C0-D74C-461C-94FB-A398F3FE0319}" Name="Dynamic connector.1035" NameU="Dynamic connector.1035" Master="2">
+				<Shape ID="1035" UniqueID="{FA954B04-7808-48DA-ADE7-325B6B3BB49C}" Name="Dynamic connector.1035" NameU="Dynamic connector.1035" Master="2">
 					<XForm>
 						<PinX Unit="IN_F">3.906250000000000</PinX>
 						<PinY Unit="IN_F">0.906250000000000</PinY>
@@ -2434,7 +2706,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1034" UniqueID="{EFF08BC0-F5AD-48AA-B515-248C95433AA9}" Name="Process.1034" NameU="Process.1034" Master="15">
+				<Shape ID="1034" UniqueID="{1627CC9A-940A-4E32-B26C-75D2C130D4EC}" Name="Process.1034" NameU="Process.1034" Master="15">
 					<Text>Configure the Popup for the layer
 
 - See Video</Text>
@@ -2474,7 +2746,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1036" UniqueID="{BBECE48B-CB79-4A4F-BCE9-D35D7FB575A3}" Name="Dynamic connector.1036" NameU="Dynamic connector.1036" Master="2">
+				<Shape ID="1036" UniqueID="{BF9D457A-7F64-46F8-88F4-FD8A236261D6}" Name="Dynamic connector.1036" NameU="Dynamic connector.1036" Master="2">
 					<XForm>
 						<PinX Unit="IN_F">3.750000000000000</PinX>
 						<PinY Unit="IN_F">3.062500000000000</PinY>
@@ -2483,7 +2755,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1037" UniqueID="{E3DA9D30-677F-434A-9499-E4D47E16B8D6}" Name="Dynamic connector.1037" NameU="Dynamic connector.1037" Master="2">
+				<Shape ID="1037" UniqueID="{268C0CC8-1EFC-47F9-8548-44B254D62032}" Name="Dynamic connector.1037" NameU="Dynamic connector.1037" Master="2">
 					<Text>Yes</Text>
 					<XForm>
 						<PinX Unit="IN">5.000000000000000</PinX>
@@ -2493,7 +2765,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1039" UniqueID="{C1B0CB98-5069-4E23-9159-7854497B0A4C}" Name="Dynamic connector.1039" NameU="Dynamic connector.1039" Master="2">
+				<Shape ID="1039" UniqueID="{749EE395-EEE1-409D-B170-33AEC18260DD}" Name="Dynamic connector.1039" NameU="Dynamic connector.1039" Master="2">
 					<XForm>
 						<PinX Unit="IN">3.850000000000000</PinX>
 						<PinY Unit="IN_F">5.750000000000000</PinY>
@@ -2502,7 +2774,7 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1040" UniqueID="{16EFB616-4F23-4834-958B-A0FF43637C52}" Name="Process.1040" NameU="Process.1040" Master="15">
+				<Shape ID="1040" UniqueID="{62C3349E-D35A-47FA-84EB-95FB167B51BE}" Name="Process.1040" NameU="Process.1040" Master="15">
 					<Text>Share each layer and view with the Published Layers Group.  Verify that all people doing the collection have been added to the Published Layers group.</Text>
 					<XForm>
 						<PinX Unit="IN_F">8.375000000000000</PinX>
@@ -2540,7 +2812,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1041" UniqueID="{852232FF-6968-47C9-82AE-2D0D180F47B9}" Name="Dynamic connector.1041" NameU="Dynamic connector.1041" Master="2">
+				<Shape ID="1041" UniqueID="{5498D7AA-0EF9-43FE-B3F1-64610C31CE4B}" Name="Dynamic connector.1041" NameU="Dynamic connector.1041" Master="2">
 					<XForm>
 						<PinX Unit="IN">8.375000000000000</PinX>
 						<PinY Unit="IN">7.181250000000000</PinY>
@@ -2567,10 +2839,10 @@ Allow others to export to different formats</Text>
 				<Visible>1</Visible>
 			</Layer>
 			<Shapes>
-				<Shape ID="1000" UniqueID="{79A917CB-E27C-46E8-B738-18D1404F8F64}" Name="Start/End.1000" NameU="Start/End.1000" Master="11">
+				<Shape ID="1000" UniqueID="{3B028DB7-2329-4219-8EA8-E7689C5094D8}" Name="Start/End.1000" NameU="Start/End.1000" Master="11">
 					<Text>START</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinX Unit="IN_F">0.875000000000000</PinX>
 						<PinY Unit="IN_F">8.062500000000000</PinY>
 					</XForm>
 					<LayerMem>
@@ -2605,12 +2877,12 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1001" UniqueID="{D250215A-6E2F-4E07-941A-EF83E7AC5487}" Name="Process.1001" NameU="Process.1001" Master="15">
-					<Text>Add the published layer to the Map Viewer
+				<Shape ID="1001" UniqueID="{E99527A1-EB3A-489B-A456-ECB08E6F9D9F}" Name="Process.1001" NameU="Process.1001" Master="15">
+					<Text>Add the published layer to a new Web Map
 
 - See Video</Text>
 					<XForm>
-						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinX Unit="IN_F">0.875000000000000</PinX>
 						<PinY Unit="IN_F">7.250000090975512</PinY>
 					</XForm>
 					<LayerMem>
@@ -2645,8 +2917,8 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1002" UniqueID="{1E5C877B-E6CA-4FE2-B47B-6B5A029B92FF}" Name="Decision.1002" NameU="Decision.1002" Master="12">
-					<Text>Did you create a View for collecting new features?</Text>
+				<Shape ID="1002" UniqueID="{E1021E80-D13D-4211-A6CF-F419A6026BF4}" Name="Decision.1002" NameU="Decision.1002" Master="12">
+					<Text>Did you create a Layer View for collecting new features?</Text>
 					<XForm>
 						<PinX Unit="IN_F">0.875000090975512</PinX>
 						<PinY Unit="IN_F">6.000000090975512</PinY>
@@ -2683,7 +2955,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1003" UniqueID="{637C30E4-B6D5-49B9-B7AC-807D459EF1CA}" Name="Process.1003" NameU="Process.1003" Master="15">
+				<Shape ID="1003" UniqueID="{7FBE32D0-809D-48A2-B5F5-C9E1463A82CB}" Name="Process.1003" NameU="Process.1003" Master="15">
 					<Text>Add the View to the webmap</Text>
 					<XForm>
 						<PinX Unit="IN_F">0.875000090975512</PinX>
@@ -2721,7 +2993,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1004" UniqueID="{BD161927-F022-4008-B211-A76867ADB6A6}" Name="Dynamic connector.1004" NameU="Dynamic connector.1004" Master="2">
+				<Shape ID="1004" UniqueID="{8231D141-324F-4B5C-B0AC-F483E05CDA79}" Name="Dynamic connector.1004" NameU="Dynamic connector.1004" Master="2">
 					<Text>Yes</Text>
 					<XForm>
 						<PinX Unit="IN">0.875000090975512</PinX>
@@ -2731,31 +3003,31 @@ Allow others to export to different formats</Text>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1005" UniqueID="{920B29C9-4EEB-4D65-B604-0DD2647FF9BE}" Name="Dynamic connector.1005" NameU="Dynamic connector.1005" Master="2">
+				<Shape ID="1005" UniqueID="{2AADE221-DD03-47D9-871E-2C4E8B006EC5}" Name="Dynamic connector.1005" NameU="Dynamic connector.1005" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinX Unit="IN">0.875000000000000</PinX>
 						<PinY Unit="IN">7.750000045487756</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1006" UniqueID="{C8377F0A-B98A-4E27-9B5A-8D88152328BE}" Name="Dynamic connector.1006" NameU="Dynamic connector.1006" Master="2">
+				<Shape ID="1006" UniqueID="{65A2A2FB-0A7D-4D3F-8C1C-D96725AF0A0A}" Name="Dynamic connector.1006" NameU="Dynamic connector.1006" Master="2">
 					<XForm>
-						<PinX Unit="IN">0.812500045487756</PinX>
+						<PinX Unit="IN">0.875000045487756</PinX>
 						<PinY Unit="IN_F">6.750000136463267</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1007" UniqueID="{1D0AEFC1-989B-4784-994A-48CBA4C84D48}" Name="Process.1007" NameU="Process.1007" Master="15">
+				<Shape ID="1007" UniqueID="{7AD3EBFA-180A-4BAF-85D0-636D72D2D50B}" Name="Process.1007" NameU="Process.1007" Master="15">
 					<Text>Add the Aerial Imagery 1ft Web Mercator as the basemap
 
 - See Video</Text>
 					<XForm>
 						<PinX Unit="IN_F">2.750000000000000</PinX>
-						<PinY Unit="IN_F">6.125000090975512</PinY>
+						<PinY Unit="IN_F">6.000000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>0</LayerMember>
@@ -2789,74 +3061,38 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1008" UniqueID="{EB5D430C-25D2-4BDA-AE7D-2AF4657E5212}" Name="Dynamic connector.1008" NameU="Dynamic connector.1008" Master="2">
+				<Shape ID="1008" UniqueID="{4A5BEF3D-E0A2-42F9-A3C4-1515D459A89C}" Name="Dynamic connector.1008" NameU="Dynamic connector.1008" Master="2">
 					<Text>No</Text>
 					<XForm>
 						<PinX Unit="IN_F">1.875000090975512</PinX>
-						<PinY Unit="IN_F">6.062500090975512</PinY>
+						<PinY Unit="IN_F">6.000000045487756</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1009" UniqueID="{463B6FAB-833B-4C55-84F3-BB01D07841DE}" Name="Dynamic connector.1009" NameU="Dynamic connector.1009" Master="2">
+				<Shape ID="1009" UniqueID="{684DE5DF-18E1-4606-92CA-4DDA50962C5C}" Name="Dynamic connector.1009" NameU="Dynamic connector.1009" Master="2">
 					<XForm>
-						<PinX Unit="IN">2.062500045487756</PinX>
-						<PinY Unit="IN">5.125000045487756</PinY>
+						<PinX Unit="IN">1.812500045487756</PinX>
+						<PinY Unit="IN_F">4.875000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1010" UniqueID="{C8AC66AD-D03C-4E19-8E3C-AC3C0AD6B323}" Name="Process.1010" NameU="Process.1010" Master="15">
-					<Text>Save the web map</Text>
-					<XForm>
-						<PinX Unit="IN_F">2.750000000000000</PinX>
-						<PinY Unit="IN_F">7.050000000000000</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>0</LayerMember>
-					</LayerMem>
-					<Prop ID="1" Name="Cost" NameU="Cost">
-						<Value></Value>
-						<Label>Cost</Label>
-					</Prop>
-					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
-						<Value></Value>
-						<Label>Process Number</Label>
-					</Prop>
-					<Prop ID="3" Name="Owner" NameU="Owner">
-						<Value></Value>
-						<Label>Owner</Label>
-					</Prop>
-					<Prop ID="4" Name="Function" NameU="Function">
-						<Value></Value>
-						<Label>Function</Label>
-					</Prop>
-					<Prop ID="5" Name="StartDate" NameU="StartDate">
-						<Value></Value>
-						<Label>Start Date</Label>
-					</Prop>
-					<Prop ID="6" Name="EndDate" NameU="EndDate">
-						<Value></Value>
-						<Label>End Date</Label>
-					</Prop>
-					<Prop ID="7" Name="Status" NameU="Status">
-						<Value></Value>
-						<Label>Status</Label>
-					</Prop>
-				</Shape>
-				<Shape ID="1011" UniqueID="{0E0F4502-69AD-4819-83EA-2D3F4B843C95}" Name="Dynamic connector.1011" NameU="Dynamic connector.1011" Master="2">
+				<Shape ID="1011" UniqueID="{71BE16C9-49F4-4F28-84D3-DDA851E19400}" Name="Dynamic connector.1011" NameU="Dynamic connector.1011" Master="2">
 					<XForm>
 						<PinX Unit="IN">2.750000000000000</PinX>
-						<PinY Unit="IN_F">6.650000045487756</PinY>
+						<PinY Unit="IN_F">6.750000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1012" UniqueID="{106FC695-38C0-4BAF-86B5-92178C33C61E}" Name="Process.1012" NameU="Process.1012" Master="15">
-					<Text>Share the web map with the Web Map Group.  When prompted to update the sharing on the layers select No.  Verify that all people doing the Collection have been added to the Web Map group.
+				<Shape ID="1012" UniqueID="{5734BE6C-C7E8-4C9A-933C-92A2F0D67DFD}" Name="Process.1012" NameU="Process.1012" Master="15">
+					<Text>Share the web map with the Web Map Group.  When prompted to update the sharing on the layers select No. 
+
+ Verify that all people doing the Collection have been added to the Web Map group.
 
 - See Video</Text>
 					<XForm>
@@ -2895,7 +3131,7 @@ Allow others to export to different formats</Text>
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1014" UniqueID="{42A3D5FE-76A7-4274-922A-76382DDB9913}" Name="Process.1014" NameU="Process.1014" Master="15">
+				<Shape ID="1014" UniqueID="{34B9546C-ACB2-4FB4-B212-FFC591AB05D2}" Name="Process.1014" NameU="Process.1014" Master="15">
 					<Text>Open the Settings page for the Web Map and select the following.
 
 Prevent this item from being accidentally deleted
@@ -2939,16 +3175,7 @@ In the Advanced Options verify that all options are checked for retrieving featu
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1015" UniqueID="{42B1FC02-A0CE-47E2-8306-AF7607AFFF7F}" Name="Dynamic connector.1015" NameU="Dynamic connector.1015" Master="2">
-					<XForm>
-						<PinX Unit="IN">3.500000000000000</PinX>
-						<PinY Unit="IN">6.587500045487756</PinY>
-					</XForm>
-					<LayerMem>
-						<LayerMember>1</LayerMember>
-					</LayerMem>
-				</Shape>
-				<Shape ID="1016" UniqueID="{F203A824-7776-4E27-B7C5-79BF03EE3648}" Name="Dynamic connector.1016" NameU="Dynamic connector.1016" Master="2">
+				<Shape ID="1016" UniqueID="{2B39BFA6-FEB3-4DEA-8D9A-D95B95013425}" Name="Dynamic connector.1016" NameU="Dynamic connector.1016" Master="2">
 					<XForm>
 						<PinX Unit="IN">5.000000000000000</PinX>
 						<PinY Unit="IN_F">6.125000090975512</PinY>
@@ -2957,7 +3184,7 @@ In the Advanced Options verify that all options are checked for retrieving featu
 						<LayerMember>1</LayerMember>
 					</LayerMem>
 				</Shape>
-				<Shape ID="1017" UniqueID="{3B684BE1-63C7-4E6D-BC23-AA0A9952C1E8}" Name="Start/End.1017" NameU="Start/End.1017" Master="11">
+				<Shape ID="1017" UniqueID="{33B5DA35-3A21-4448-8EA4-0CA96013D516}" Name="Start/End.1017" NameU="Start/End.1017" Master="11">
 					<Text>END</Text>
 					<XForm>
 						<PinX Unit="IN_F">7.750000000000000</PinX>
@@ -2995,10 +3222,1696 @@ In the Advanced Options verify that all options are checked for retrieving featu
 						<Label>Status</Label>
 					</Prop>
 				</Shape>
-				<Shape ID="1018" UniqueID="{1FA30344-878D-4284-8D04-9C66F0211BD3}" Name="Dynamic connector.1018" NameU="Dynamic connector.1018" Master="2">
+				<Shape ID="1018" UniqueID="{A3A54B19-BFE2-431D-9718-121F05DF5A42}" Name="Dynamic connector.1018" NameU="Dynamic connector.1018" Master="2">
 					<XForm>
 						<PinX Unit="IN">6.750000000000000</PinX>
 						<PinY Unit="IN">6.125000090975510</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1020" UniqueID="{FBD693A6-86A4-41EE-A363-D373AC8EE72E}" Name="Dynamic connector.1020" NameU="Dynamic connector.1020" Master="2">
+					<XForm>
+						<PinX Unit="IN_F">3.500000000000000</PinX>
+						<PinY Unit="IN_F">6.750000045487756</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1019" UniqueID="{8824F686-D324-4CBE-B107-98921E06F81A}" Name="Process.1019" NameU="Process.1019" Master="15">
+					<Text>Save the Web Map</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.750000000000000</PinX>
+						<PinY Unit="IN_F">7.375000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+			</Shapes>
+		</Page>
+		<Page ID="18" Name="Backend Workflow" NameU="Backend Workflow">
+			<PageProps>
+				<PageScale Unit="IN">1.000000000000000</PageScale>
+				<DrawingScale Unit="IN_F">1.000000000000000</DrawingScale>
+			</PageProps>
+			<Layer IX="0">
+				<Name>Connector</Name>
+				<NameUniv>Connector</NameUniv>
+				<Visible>1</Visible>
+			</Layer>
+			<Layer IX="1">
+				<Name>Flowchart</Name>
+				<NameUniv>Flowchart</NameUniv>
+				<Visible>1</Visible>
+			</Layer>
+			<Shapes>
+				<Shape ID="1000" UniqueID="{2E316840-FF06-462A-BDB9-86D6DD1107FE}" Name="Off-page reference.1041" NameU="Off-page reference.1041" Master="1000">
+					<Text>Start Here</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.999999989162792</PinX>
+						<PinY Unit="IN_F">7.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0;1</LayerMember>
+					</LayerMem>
+					<Scratch>
+						<B>
+							<SolutionXML>
+								<HLURL:Hyperlinks xmlns:HLURL="urn:schemas-microsoft-com:office:visio:dghlinkext">
+									<HLURL:Hyperlink ID="1">
+										<HLURL:Description>Off-page Re&amp;ference</HLURL:Description>
+										<HLURL:Address></HLURL:Address>
+										<HLURL:SubAddress>Build the Project</HLURL:SubAddress>
+										<HLURL:ExtraInfo></HLURL:ExtraInfo>
+										<HLURL:Default>0</HLURL:Default>
+										<HLURL:NewWindow>0</HLURL:NewWindow>
+									</HLURL:Hyperlink>
+								</HLURL:Hyperlinks>
+							</SolutionXML>
+						</B>
+					</Scratch>
+				</Shape>
+				<Shape ID="1001" UniqueID="{D6FB6F03-98B4-479B-8E8E-834DE26FF800}" Name="Subprocess.1001" NameU="Subprocess.1001" Master="13">
+					<Text>Download the geodatabase from ArcGIS Online</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.999999989162792</PinX>
+						<PinY Unit="IN_F">6.433333291086459</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Scratch>
+						<B>
+							<SolutionXML>
+								<HLURL:Hyperlinks xmlns:HLURL="urn:schemas-microsoft-com:office:visio:dghlinkext">
+									<HLURL:Hyperlink ID="1">
+										<HLURL:Description></HLURL:Description>
+										<HLURL:Address></HLURL:Address>
+										<HLURL:SubAddress>Download the geodatabase from ArcGIS Online</HLURL:SubAddress>
+										<HLURL:ExtraInfo></HLURL:ExtraInfo>
+										<HLURL:Default>0</HLURL:Default>
+										<HLURL:NewWindow>0</HLURL:NewWindow>
+									</HLURL:Hyperlink>
+								</HLURL:Hyperlinks>
+							</SolutionXML>
+						</B>
+					</Scratch>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1002" UniqueID="{73076E95-D3F5-4873-9AC5-62FE322BBCD4}" Name="Dynamic connector.1002" NameU="Dynamic connector.1002" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.999999989162792</PinX>
+						<PinY Unit="IN">7.029166645543230</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1005" UniqueID="{B133539C-0A6B-452E-A049-EC0798B117D2}" Name="Process.15" NameU="Process.15" Master="15">
+					<Text>Add the feature class that is being updated from the Master Geodatabase to the map</Text>
+					<XForm>
+						<PinX Unit="IN_F">4.316666666666666</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1007" UniqueID="{A7476ECB-FF79-4184-832A-0EEA1858804C}" Name="Process.1024" NameU="Process.1024" Master="15">
+					<Text>For each of the downloaded features, select the corresponding original feature by comparing the assetID field from the downloaded feature class to the GLOBALID field in the master feature class. </Text>
+					<XForm>
+						<PinX Unit="IN_F">5.758333333333333</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1011" UniqueID="{BB2D2BE0-B7CE-4FED-BA1F-3466E8B27CF5}" Name="Process.1028" NameU="Process.1028" Master="15">
+					<Text>Append the selected features to the target feature class.</Text>
+					<XForm>
+						<PinX Unit="IN_F">9.125000000000000</PinX>
+						<PinY Unit="IN_F">3.125000076634549</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1012" UniqueID="{55ABAF04-4B43-4E63-BD09-CD90040362A7}" Name="Process.1041" NameU="Process.1041" Master="15">
+					<Text>Review data updates by running data reviewer checks
+
+--See Video</Text>
+					<XForm>
+						<PinX Unit="IN_F">3.125000000000000</PinX>
+						<PinY Unit="IN_F">0.875000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1014" UniqueID="{C8501C51-22F5-4DE9-BF92-2DF4282C149E}" Name="Process.1043" NameU="Process.1043" Master="15">
+					<Text>Verify that the updates were successfully posted to the master
+
+--See Video</Text>
+					<XForm>
+						<PinX Unit="IN_F">3.125000000000000</PinX>
+						<PinY Unit="IN_F">3.124999913302337</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1015" UniqueID="{83C540E7-F46F-4C61-A0A8-06F20E51DCAB}" Name="Dynamic connector" NameU="Dynamic connector" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.999999985098839</PinX>
+						<PinY Unit="IN_F">5.841666625139234</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1018" UniqueID="{EB2C11AC-1A67-483A-863A-7074FACAB930}" Name="Dynamic connector.1018" NameU="Dynamic connector.1018" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.062499981034886</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1017" UniqueID="{324DCD68-3DE4-4DF1-8D5A-7C3406E87DD9}" Name="Decision.1017" NameU="Decision.1017" Master="12">
+					<Text>Does the downloaded feature class exist in the Master GDB?</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.999999981034886</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1019" UniqueID="{BA37AFCD-284D-435E-852A-7360E1995955}" Name="Process.1019" NameU="Process.1019" Master="15">
+					<Text>Create a new feature class with the same name and use the downloaded feature class as the template
+
+-- See Video</Text>
+					<XForm>
+						<PinX Unit="IN_F">1.000000000000000</PinX>
+						<PinY Unit="IN_F">2.941666665227785</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1020" UniqueID="{B0706617-54C5-48D7-8662-7BA3B76999AB}" Name="Dynamic connector.1020" NameU="Dynamic connector.1020" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.999999990517443</PinX>
+						<PinY Unit="IN_F">3.908333331175011</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1021" UniqueID="{23D20205-4D57-45AC-B54A-814892A38B4D}" Name="Process.1021" NameU="Process.1021" Master="15">
+					<Text>Append the downloaded features to the new feature class</Text>
+					<XForm>
+						<PinX Unit="IN_F">1.000000000000000</PinX>
+						<PinY Unit="IN_F">1.691666666666666</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1022" UniqueID="{8270C069-D46C-451D-A2FE-D4DD5A5E95A9}" Name="Dynamic connector.1022" NameU="Dynamic connector.1022" Master="2">
+					<XForm>
+						<PinX Unit="IN">1.000000000000000</PinX>
+						<PinY Unit="IN">2.129166665947226</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1023" UniqueID="{720DDA06-0063-41ED-BC06-BAF183340DE1}" Name="Process.1023" NameU="Process.1023" Master="15">
+					<Text>Use the attribute data to either remove, or modify the newly appended features.</Text>
+					<XForm>
+						<PinX Unit="IN_F">1.999999945813960</PinX>
+						<PinY Unit="IN_F">0.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1024" UniqueID="{1C5FC529-9C86-4DC8-B7D6-6685A07EA0F9}" Name="Dynamic connector.1024" NameU="Dynamic connector.1024" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.937499945813960</PinX>
+						<PinY Unit="IN">1.220833333333333</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1025" UniqueID="{B8FA66E2-0973-411B-91EB-FC01BE11E02D}" Name="Process.1025" NameU="Process.1025" Master="15">
+					<Text>Connect to the Sub-Default Version of the Master Geodatabase by using the sde connection file</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.875000000000000</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1026" UniqueID="{EEDF93CC-7CBE-493D-85AA-A9D5D19A21BC}" Name="Dynamic connector.1026" NameU="Dynamic connector.1026" Master="2">
+					<XForm>
+						<PinX Unit="IN">3.595833333333333</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1027" UniqueID="{A15B95AF-A2C6-4D57-A1AC-0DE51790F824}" Name="Decision.1027" NameU="Decision.1027" Master="12">
+					<Text>Is the last_edited_date field on the downloaded feature more recent than the same field in the master feature class?</Text>
+					<XForm>
+						<PinX Unit="IN_F">6.451086906494401</PinX>
+						<PinY Unit="IN_F">2.941666741862335</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1028" UniqueID="{8B23936C-FADD-47F6-977A-C1009E46FEA8}" Name="Dynamic connector.1028" NameU="Dynamic connector.1028" Master="2">
+					<XForm>
+						<PinX Unit="IN">5.037500000000000</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1029" UniqueID="{1C56EDD1-C11D-4D70-926E-751E1FA01DF5}" Name="Dynamic connector.1029" NameU="Dynamic connector.1029" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.441666666666665</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1030" UniqueID="{5EBDFD9A-E2D0-4879-B51A-2691C0C60BA5}" Name="Decision.1030" NameU="Decision.1030" Master="12">
+					<Text>Is the assetID value Null?</Text>
+					<XForm>
+						<PinX Unit="IN_F">7.125000000000000</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1031" UniqueID="{47342C65-DA3E-460D-A298-C1C28A8F0848}" Name="Dynamic connector.1031" NameU="Dynamic connector.1031" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN">6.788043453247199</PinX>
+						<PinY Unit="IN_F">4.095833398327003</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1032" UniqueID="{A53D25E3-786D-4B2C-BA86-C4C99540A4FE}" Name="Decision.1032" NameU="Decision.1032" Master="12">
+					<Text>This is a new feature location.  Is there a feature ID In the ‘MOVE TO THIS LOCATION’ field?</Text>
+					<XForm>
+						<PinX Unit="IN_F">9.125000000000000</PinX>
+						<PinY Unit="IN_F">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1033" UniqueID="{9603D477-F508-457C-B5C6-73E67596EA24}" Name="Dynamic connector.1033" NameU="Dynamic connector.1033" Master="2">
+					<XForm>
+						<PinX Unit="IN">7.849490476623599</PinX>
+						<PinY Unit="IN">4.874999978157122</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1034" UniqueID="{7A0D4C58-B860-462D-9BEB-8BADAC34B36D}" Name="Process.1034" NameU="Process.1034" Master="15">
+					<Text>Move the specified feature, from the master feature class, to the location of this point from the downloaded feature class</Text>
+					<XForm>
+						<PinX Unit="IN_F">10.250000000000000</PinX>
+						<PinY Unit="IN_F">3.375000076634549</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1035" UniqueID="{D1237C08-058F-4288-BDDA-7D9316526861}" Name="Dynamic connector.1035" NameU="Dynamic connector.1035" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN">10.213009523376400</PinX>
+						<PinY Unit="IN_F">4.437500027395836</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1036" UniqueID="{7EBA92D9-AD3F-4A14-94B1-436EF22403CC}" Name="Process.1036" NameU="Process.1036" Master="15">
+					<Text>Delete the new point from the downloaded feature class since the master feature location has been updated</Text>
+					<XForm>
+						<PinX Unit="IN_F">10.250000000000000</PinX>
+						<PinY Unit="IN_F">2.000000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1037" UniqueID="{546D121E-FBFE-4E20-BEA6-1DCD142DAA64}" Name="Dynamic connector.1037" NameU="Dynamic connector.1037" Master="2">
+					<XForm>
+						<PinX Unit="IN">10.250000000000000</PinX>
+						<PinY Unit="IN_F">2.625000038317275</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1038" UniqueID="{87D6F1C5-FFFB-42E6-B441-8F02A93701D7}" Name="Dynamic connector.1038" NameU="Dynamic connector.1038" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN">9.125000000000000</PinX>
+						<PinY Unit="IN">3.749575424582169</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1039" UniqueID="{6D924BDF-8F14-45F3-842C-74DE4880364D}" Name="Process.1039" NameU="Process.1039" Master="15">
+					<Text>Copy all of the attributes from the downloaded feature and paste them into the selected master feature.</Text>
+					<XForm>
+						<PinX Unit="IN_F">8.000000000000000</PinX>
+						<PinY Unit="IN_F">1.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1040" UniqueID="{72343638-839C-4BB4-9240-D00D139F9B9E}" Name="Dynamic connector.1040" NameU="Dynamic connector.1040" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN">7.881793453247201</PinX>
+						<PinY Unit="IN_F">2.595833370931167</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1041" UniqueID="{D4C23131-27A7-44CF-BC2D-1DB8DD23017D}" Name="Sheet.1041" NameU="Sheet.1041" Master="15">
+					<Text>No change needed on the original feature</Text>
+					<XForm>
+						<PinX Unit="IN_F">6.451086906494401</PinX>
+						<PinY Unit="IN_F">1.375000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1042" UniqueID="{A901BA32-0C41-4264-ABA2-C336726663A5}" Name="Dynamic connector.1042" NameU="Dynamic connector.1042" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN">6.451086906494401</PinX>
+						<PinY Unit="IN">1.970833332613893</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1044" UniqueID="{538B4CE9-2E2B-4E3F-9849-FC1052E2D253}" Name="Decision.1044" NameU="Decision.1044" Master="12">
+					<Text>Have all of the downloaded features been inspected?</Text>
+					<XForm>
+						<PinX Unit="IN_F">5.250000000000000</PinX>
+						<PinY Unit="IN_F">0.875000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1045" UniqueID="{30C1C304-4A93-482D-A945-08E4E39C069C}" Name="Dynamic connector.1045" NameU="Dynamic connector.1045" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.163043453247201</PinX>
+						<PinY Unit="IN_F">0.937500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1046" UniqueID="{BB610893-EC08-4A34-BB85-E1E25F7F296A}" Name="Dynamic connector.1046" NameU="Dynamic connector.1046" Master="2">
+					<XForm>
+						<PinX Unit="IN">6.937500000000000</PinX>
+						<PinY Unit="IN_F">1.062500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1047" UniqueID="{5045FF2D-68D5-4B5C-909B-1CE089EEBCF3}" Name="Dynamic connector.1047" NameU="Dynamic connector.1047" Master="2">
+					<XForm>
+						<PinX Unit="IN">8.062500000000000</PinX>
+						<PinY Unit="IN_F">1.187500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1048" UniqueID="{45586DE8-14CB-4C1B-9A13-9397D59F38CD}" Name="Dynamic connector.1048" NameU="Dynamic connector.1048" Master="2">
+					<XForm>
+						<PinX Unit="IN">7.500000000000000</PinX>
+						<PinY Unit="IN_F">1.812500038317275</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1049" UniqueID="{FD63B161-1593-489D-A4DB-6AEC6922A11A}" Name="Dynamic connector.1049" NameU="Dynamic connector.1049" Master="2">
+					<XForm>
+						<PinX Unit="IN">2.562499972906980</PinX>
+						<PinY Unit="IN">0.812500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1050" UniqueID="{221E93E2-2C12-4DEC-9931-4647AEDF36A3}" Name="Dynamic connector.1050" NameU="Dynamic connector.1050" Master="2">
+					<Text>Yes</Text>
+					<XForm>
+						<PinX Unit="IN">4.125000000000000</PinX>
+						<PinY Unit="IN_F">0.875000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1051" UniqueID="{DBAFAD4F-353D-4B5E-8023-899E4D6E0F6D}" Name="Dynamic connector.1051" NameU="Dynamic connector.1051" Master="2">
+					<Text>No</Text>
+					<XForm>
+						<PinX Unit="IN">5.504166666666666</PinX>
+						<PinY Unit="IN_F">2.749999989078561</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1052" UniqueID="{69732985-17ED-454C-977D-43A58CF6AB54}" Name="Dynamic connector.1052" NameU="Dynamic connector.1052" Master="2">
+					<XForm>
+						<PinX Unit="IN">3.125000000000000</PinX>
+						<PinY Unit="IN_F">1.499999978325584</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1053" UniqueID="{7B7FD8A9-6903-4A6E-813E-5CC3931C43EC}" Name="Start/End.1053" NameU="Start/End.1053" Master="11">
+					<Text>END</Text>
+					<XForm>
+						<PinX Unit="IN_F">3.125000000000000</PinX>
+						<PinY Unit="IN_F">4.033333398327003</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1054" UniqueID="{BBC5EDB6-C059-4856-AEF1-1BB39B16B320}" Name="Dynamic connector.1054" NameU="Dynamic connector.1054" Master="2">
+					<XForm>
+						<PinX Unit="IN">3.125000000000000</PinX>
+						<PinY Unit="IN">3.735416655814670</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1056" UniqueID="{8A22CAC6-10A6-4F7A-B6E1-24D8B1051FDA}" Name="Dynamic connector.1056" NameU="Dynamic connector.1056" Master="2">
+					<XForm>
+						<PinX Unit="IN">3.125000000000000</PinX>
+						<PinY Unit="IN_F">2.499999934976753</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1055" UniqueID="{3F80D040-E234-4F31-88C3-4F69C2E1E58A}" Name="Process.1055" NameU="Process.1055" Master="15">
+					<Text>Reconcile and Post the changes with the Default Version
+
+--See Video</Text>
+					<XForm>
+						<PinX Unit="IN_F">3.125000000000000</PinX>
+						<PinY Unit="IN_F">1.999999956651168</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1057" UniqueID="{5514B3F3-C98A-4531-92D3-90EEB1B5C06F}" Name="Process.1057" NameU="Process.1057" Master="15">
+					<Text>Enable Editor Tracking on the new feature class</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.874999891627921</PinX>
+						<PinY Unit="IN_F">0.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1058" UniqueID="{0300ED81-2B37-4485-AB01-AD92B63B78D9}" Name="Dynamic connector.1058" NameU="Dynamic connector.1058" Master="2">
+					<XForm>
+						<PinX Unit="IN">1.437499918720941</PinX>
+						<PinY Unit="IN">0.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+				</Shape>
+			</Shapes>
+		</Page>
+		<Page ID="19" Name="Download the geodatabase from ArcGIS Online" NameU="Download the geodatabase from ArcGIS Online">
+			<PageProps>
+				<PageScale Unit="IN">1.000000000000000</PageScale>
+				<DrawingScale Unit="IN_F">1.000000000000000</DrawingScale>
+			</PageProps>
+			<Layer IX="0">
+				<Name>Flowchart</Name>
+				<NameUniv>Flowchart</NameUniv>
+				<Visible>1</Visible>
+			</Layer>
+			<Layer IX="1">
+				<Name>Connector</Name>
+				<NameUniv>Connector</NameUniv>
+				<Visible>1</Visible>
+			</Layer>
+			<Shapes>
+				<Shape ID="1000" UniqueID="{B69F8890-FDDA-49B7-A082-C5D92D554EE5}" Name="Start/End.1000" NameU="Start/End.1000" Master="11">
+					<Text>START</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">8.062500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1001" UniqueID="{C32A72E7-AF56-4992-B10A-0741169FC975}" Name="Process.1001" NameU="Process.1001" Master="15">
+					<Text>Open a web browser and Sign In to the RTAA ArcGIS Online Organization</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">6.816666666666666</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1002" UniqueID="{C5847EF1-0FE0-4C08-8E4F-311EAC5F8293}" Name="Process.1002" NameU="Process.1002" Master="15">
+					<Text>Click on the Content Tab</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">5.750000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1003" UniqueID="{2C185927-7998-455D-999E-43AB7AC9C97D}" Name="Process.1003" NameU="Process.1003" Master="15">
+					<Text>On the left, in the Folders section, click on the folder that contains the layer being collected.  The folders are organized by feature dataset from the master Geodatabase.  </Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">4.125000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1004" UniqueID="{DD0C6764-4FA9-4453-8184-AD53FD34F3EE}" Name="Process.1004" NameU="Process.1004" Master="15">
+					<Text>Select the name of the layer being collected to open the Item Details page.
+
+*Hint – Layers with “New” in front of their name are Views and should not be exported</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">2.125000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1005" UniqueID="{76CF70B1-23A9-4612-AABD-A47DB0B04578}" Name="Process.1005" NameU="Process.1005" Master="15">
+					<Text>On the right, expand the Export Data dropdown and choose ‘Export to FGDB’</Text>
+					<XForm>
+						<PinX Unit="IN_F">0.750000000000000</PinX>
+						<PinY Unit="IN_F">0.687500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1006" UniqueID="{9CE12D89-F735-40CE-80B6-7926010837E0}" Name="Process.1006" NameU="Process.1006" Master="15">
+					<Text>Copy the Title text and paste it into the Tags and Summary fields.  Leave the ‘Save in folder’ option as the default which will be the folder containing the layer you are exporting.
+
+Click Export.</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.375000000000000</PinX>
+						<PinY Unit="IN_F">1.125000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1007" UniqueID="{794D46A5-4E75-4BAB-A9D4-A9B7E53BB7EF}" Name="Process.1007" NameU="Process.1007" Master="15">
+					<Text>After a minute or two, the Item Details for the File Geodatabase will be displayed.  On the right, click the Download button.</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.375000000000000</PinX>
+						<PinY Unit="IN_F">2.875000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1008" UniqueID="{497FBA1A-BD72-4403-9EE3-0EE4E2678328}" Name="Process.1008" NameU="Process.1008" Master="15">
+					<Text>Copy the downloaded zip file to a folder accessible in your Pro Project.  Extract the zip file.</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.375000000000000</PinX>
+						<PinY Unit="IN_F">4.250000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1009" UniqueID="{F7B0461B-1F3A-4F6B-BB0E-8675D871EBB9}" Name="Dynamic connector" NameU="Dynamic connector" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinY Unit="IN">7.533333333333333</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1010" UniqueID="{39E44651-A85F-43FF-A125-881F4E2D136A}" Name="Dynamic connector.1010" NameU="Dynamic connector.1010" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinY Unit="IN">6.283333333333333</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1011" UniqueID="{7C1AF722-9D53-4819-9744-A9985046804F}" Name="Dynamic connector.1011" NameU="Dynamic connector.1011" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinY Unit="IN_F">5.187500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1012" UniqueID="{04E48182-DADA-49AA-AA03-9D8A3761BECB}" Name="Dynamic connector.1012" NameU="Dynamic connector.1012" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinY Unit="IN_F">3.125000000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1013" UniqueID="{F8173AD6-0F04-4091-989E-DCEA49083BD6}" Name="Dynamic connector.1013" NameU="Dynamic connector.1013" Master="2">
+					<XForm>
+						<PinX Unit="IN">0.750000000000000</PinX>
+						<PinY Unit="IN_F">1.187500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1014" UniqueID="{6EDACC69-14AA-407E-A58E-509F5EF1F418}" Name="Dynamic connector.1014" NameU="Dynamic connector.1014" Master="2">
+					<XForm>
+						<PinX Unit="IN">1.562500000000000</PinX>
+						<PinY Unit="IN_F">0.906250000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1015" UniqueID="{41A61185-4E0D-4272-AB40-71556EB8AA39}" Name="Dynamic connector.1015" NameU="Dynamic connector.1015" Master="2">
+					<XForm>
+						<PinX Unit="IN">2.375000000000000</PinX>
+						<PinY Unit="IN_F">2.187500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1016" UniqueID="{9C0B5AC5-6944-43A3-AF97-615EB70B4A96}" Name="Dynamic connector.1016" NameU="Dynamic connector.1016" Master="2">
+					<XForm>
+						<PinX Unit="IN">2.375000000000000</PinX>
+						<PinY Unit="IN_F">3.562500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>1</LayerMember>
+					</LayerMem>
+				</Shape>
+				<Shape ID="1017" UniqueID="{C978582D-CDBF-4E31-AEE3-38B5F0F651E5}" Name="Start/End.1017" NameU="Start/End.1017" Master="11">
+					<Text>END</Text>
+					<XForm>
+						<PinX Unit="IN_F">2.375000000000000</PinX>
+						<PinY Unit="IN_F">5.437500000000000</PinY>
+					</XForm>
+					<LayerMem>
+						<LayerMember>0</LayerMember>
+					</LayerMem>
+					<Prop ID="1" Name="Cost" NameU="Cost">
+						<Value></Value>
+						<Label>Cost</Label>
+					</Prop>
+					<Prop ID="2" Name="ProcessNumber" NameU="ProcessNumber">
+						<Value></Value>
+						<Label>Process Number</Label>
+					</Prop>
+					<Prop ID="3" Name="Owner" NameU="Owner">
+						<Value></Value>
+						<Label>Owner</Label>
+					</Prop>
+					<Prop ID="4" Name="Function" NameU="Function">
+						<Value></Value>
+						<Label>Function</Label>
+					</Prop>
+					<Prop ID="5" Name="StartDate" NameU="StartDate">
+						<Value></Value>
+						<Label>Start Date</Label>
+					</Prop>
+					<Prop ID="6" Name="EndDate" NameU="EndDate">
+						<Value></Value>
+						<Label>End Date</Label>
+					</Prop>
+					<Prop ID="7" Name="Status" NameU="Status">
+						<Value></Value>
+						<Label>Status</Label>
+					</Prop>
+				</Shape>
+				<Shape ID="1018" UniqueID="{E610018B-94C9-4E70-864F-F0D8C49FAC4C}" Name="Dynamic connector.1018" NameU="Dynamic connector.1018" Master="2">
+					<XForm>
+						<PinX Unit="IN">2.375000000000000</PinX>
+						<PinY Unit="IN">5.000000000000000</PinY>
 					</XForm>
 					<LayerMem>
 						<LayerMember>1</LayerMember>

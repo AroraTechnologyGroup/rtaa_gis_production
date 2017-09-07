@@ -34,10 +34,19 @@
  <o:File HRef="svg_5.htm"/>
  <o:File HRef="svg_5.svg"/>
  <o:File HRef="png_5.png"/>
+ <o:File HRef="svg_6.htm"/>
+ <o:File HRef="svg_6.svg"/>
+ <o:File HRef="png_6.png"/>
+ <o:File HRef="svg_7.htm"/>
+ <o:File HRef="svg_7.svg"/>
+ <o:File HRef="png_7.png"/>
  <o:File HRef="zoom.htm"/>
  <o:File HRef="find.js"/>
  <o:File HRef="widgets.htm"/>
+ <o:File HRef="PRpt000.htm"/>
+ <o:File HRef="PRpt001.htm"/>
  <o:File HRef="toolbar.htm"/>
+ <o:File HRef="main_2.htm"/>
  <o:MainFile HRef="../CollectorProjectBuildGuide.htm"/>
  <o:File HRef="filelist.xml"/>
 </xml>
