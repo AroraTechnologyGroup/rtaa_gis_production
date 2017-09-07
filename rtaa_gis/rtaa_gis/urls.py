@@ -23,7 +23,8 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include('home.urls')),
-    url(r'^gis-admin/', include('analytics.urls')),
+    url(r'^diagrams/', include('diagrams.urls')),
+    url(r'^analytics/', include('analytics.urls')),
     url(r'^print/', include('printTool.urls')),
     url(r'^cloudSync/', include('cloudSync.urls')),
     url(r'^fileApp/', include('fileApp.urls')),

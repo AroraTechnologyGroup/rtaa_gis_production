@@ -1,0 +1,29 @@
+{% extends "diagrams/diagrams_body.html" %}
+{% load static %}
+
+{% block icon %}
+    <link rel="shortcut icon" href="{%  static "diagrams/img/icons/favicon.ico" %}">
+{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <style>
+    html {
+        overflow-y: hidden;
+    }
+    </style>
+{% endblock %}
+
+{% block title %}
+    <Title>RTAA Project Guides</Title>
+{% endblock %}
+
+{% block busy_indicator %}{% endblock %}
+{% block content %}
+    <iframe src="{% static 'diagrams/CollectorProjectBuildGuide_files/main_2.htm' %}" style="position: absolute; top: 25; left: 0" height="90%" width="100%" frameborder="0" allowfullscreen scrolling="auto">
+		<!-- No iframesupport -->
+	</iframe>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
+{% block footer %}{% endblock %}

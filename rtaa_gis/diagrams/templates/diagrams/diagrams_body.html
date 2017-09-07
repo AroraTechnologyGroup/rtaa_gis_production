@@ -1,0 +1,28 @@
+{% extends "home/home_body.html" %}
+{% load static %}
+
+{% block icon %}
+    <link rel="shortcut icon" href="{%  static "diagrams/img/icons/favicon.ico" %}">
+{% endblock %}
+
+{% block stylesheets %}
+    {{ block.super }}
+    <style>
+    html {
+        overflow-y: hidden;
+    }
+    </style>
+{% endblock %}
+
+{% block title %}
+    <Title>RTAA Project Guides</Title>
+{% endblock %}
+
+{% block busy_indicator %}{% endblock %}
+
+{% block content %}
+    <a href="{% url 'diagrams:collector' %}">Collector Project Guide</a>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
+{% block footer %}{% endblock %}

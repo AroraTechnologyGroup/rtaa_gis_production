@@ -23,6 +23,7 @@
 {#                {% if "_RTAA GIS" in groups %}#}
               <a href="{% url 'home:index' %}#gisportal/home" class="side-nav-link">GIS Admin</a>
 {#                {% endif %}#}
+              <a class="top-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
               <a href="{% url 'home:index' %}#web-resources/home" class="side-nav-link">Web Resources</a>
               <a href="{% url 'home:index' %}#help/home" class="side-nav-link">Help</a>
             </aside>
@@ -30,7 +31,7 @@
         </div>
 
         <div style="overflow: visible">
-          <header class="top-nav animate-in-down">
+          <header class="top-nav">
             <div class="grid-container">
               <div class="column-24">
                 <div class="tablet-hide">
@@ -39,6 +40,7 @@
 {#                      {% if '_RTAA GIS' in groups %}#}
                     <a class="top-nav-link" href="{% url 'home:index' %}#gisportal/home">GIS Admin</a>
 {#                      {% endif %}#}
+                    <a class="top-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
                     <a class="top-nav-link" href="{% url 'home:index' %}#web-resources/home">Web Resources</a>
                     <a class="top-nav-link" href="{% url 'home:index' %}#help/home">Help</a>
                   </nav>
