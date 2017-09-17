@@ -102,11 +102,13 @@
 			<title>Dynamic connector.1016</title>
 			<path d="M9 612 L9 591.04" class="st6"/>
 		</g>
-		<g id="shape1017-117" transform="translate(135,-378)">
-			<title>Start/End.11.1017</title>
-			<desc>END</desc>
-			<path d="M13.5 612 L58.5 612 A13.5 13.5 -180 0 0 58.5 585 L13.5 585 A13.5 13.5 -180 1 0 13.5 612 Z" class="st1"/>
-			<text x="28.59" y="600.9" class="st2">END</text>		</g>
+		<a xlink:href="svg_2.htm">
+			<g id="shape1017-117" transform="translate(135,-378)">
+				<title>Start/End.11.1017</title>
+				<desc>END</desc>
+				<path d="M13.5 612 L58.5 612 A13.5 13.5 -180 0 0 58.5 585 L13.5 585 A13.5 13.5 -180 1 0 13.5 612 Z" class="st1"/>
+				<text x="28.59" y="600.9" class="st2">END</text>			</g>
+		</a>
 		<g id="shape1018-120" transform="translate(162,-342)">
 			<title>Dynamic connector.1018</title>
 			<path d="M9 612 L9 582.04" class="st6"/>
