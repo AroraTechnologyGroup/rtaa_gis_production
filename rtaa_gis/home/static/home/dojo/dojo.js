@@ -15401,27 +15401,22 @@ define([
     id: null,
     baseClass: "_Card",
     options: {
-      imgSrc: null,
       path: null,
       header: null,
       content1: null,
       content2: null,
-      isActive: null,
-      isAdmin: null
+      isActive: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
 
-      var imgSrc = options.imgSrc;
       var path = options.path;
       var port = window.location.port;
       var pathname = window.location.pathname.split("/")[1];
       var origin = window.location.origin;
       var url;
       if (Array.indexOf([8000, 8080, 3000], port) === -1) {
-        var new_imgSrc = "static/home/" + imgSrc;
         var new_path = pathname + "/" + path;
-        options.imgSrc = new_imgSrc;
         options.path = origin + "/" + new_path + "/";
       } 
       
@@ -24356,9 +24351,7 @@ define([
 						path: e.path,
 						content1: e.content1,
 						content2: e.content2,
-						imgSrc: e.imgSrc,
 						header: e.header,
-						isAdmin: e.isAdmin,
 						isActive: e.isActive
 					}, div);
 					return deferred.resolve(new_card);
@@ -24429,12 +24422,7 @@ define([
 					// these are loaded from dojo/text!./application_cards.json
 					var cards = JSON.parse(app_cards);
 
-					// remove cards that are not admin
-					var reg_cards = Array.filter(cards, function(e) {
-						return !e.isAdmin;
-					}); 
-
-					self.loadCards(Card, reg_cards).then(function(e) {
+					self.loadCards(Card, cards).then(function(e) {
 						console.log(e);
 						deferred.resolve(pane);
 					}, function(err) {
@@ -24466,7 +24454,7 @@ define([
 					self.header = new PageBanner({
 							id: 'gisportal-banner',
 							class: 'text-white font-size-4 page-banner',
-							title: 'Administrative Portal',
+							title: 'GIS Administrative Portal',
 							routes: routes
 						});
 				
@@ -41843,7 +41831,7 @@ define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){fu
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Admin Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"* only available to GIS_admin members\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection Guide\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}\r\n]\r\n\t",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"\",\r\n\t\t\"content2\": \"The main GIS Application for RTAA containing most of the published layers\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"The eDoc app provides an interface for retrieving documents\",\r\n\t\t\"content2\": \"Several types of searches, including by grid cell, are available\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": false,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\",\r\n\t\t\"content2\": \"Participate in the workflow for managing lease spaces\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Resources for creating, configuring, and maintaining a mobile collection\",\r\n\t\t\"content2\": \"\"\r\n\t}\r\n]\r\n\t",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,
