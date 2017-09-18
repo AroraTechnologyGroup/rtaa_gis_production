@@ -1,7 +1,6 @@
 from django.test import TestCase
 from fileApp.models import EngineeringAssignment, EngineeringFileModel, GridCell
 import os
-from rtaa_gis.settings import BASE_DIR
 
 # setting this environment variable allows fixtures to be loaded
 os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures/json'))
@@ -16,8 +15,7 @@ class TestFileModel(TestCase):
         pass
 
     def test_get(self):
-        t_path = os.path.join(BASE_DIR, "fileApp/fixtures/data/DemoDocument0.pdf")
-        t_path = t_path.replace("\\", "/")
+        t_path = "//renofs2/groups/Engineering/Drawings/Std/01_4SD_Cover.pdf"
         _file = EngineeringFileModel.objects.filter(file_path=t_path)
         self.assertIsInstance(_file[0], EngineeringFileModel)
         pass
