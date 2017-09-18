@@ -9,9 +9,9 @@
 		.st3 {font-size:1em}
 		.st4 {marker-end:url(#mrkr4-14);stroke:#6bae2f;stroke-linecap:round;stroke-linejoin:round;stroke-width:0.5}
 		.st5 {fill:#6bae2f;fill-opacity:1;stroke:#6bae2f;stroke-opacity:1;stroke-width:0.16556291390728}
-		.st6 {fill:#ffffff;stroke:none;stroke-linecap:butt;stroke-width:7.2}
+		.st6 {fill:#ffffff;stroke:none;stroke-linecap:butt}
 		.st7 {fill:#528722;font-family:Franklin Gothic Book;font-size:0.666664em}
-		.st8 {fill:#ffffff;stroke:none;stroke-linecap:butt}
+		.st8 {fill:#ffffff;stroke:none;stroke-linecap:butt;stroke-width:7.2}
 		.st9 {fill:#9cc882;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round;stroke-width:1}
 		.st10 {fill:#ffffff;font-family:Franklin Gothic Book;font-size:0.666664em}
 		.st11 {font-family:Symbol;font-size:1em}
@@ -77,7 +77,7 @@
 			<title>Dynamic connector.1017</title>
 			<desc>No</desc>
 			<path d="M0 612 L184.5 612 L184.5 321.94" class="st4"/>
-			<rect x="179.793" y="551.4" width="9.41391" height="9.59985" class="st6"/>
+			<rect x="179.793" y="551.4" width="9.41391" height="9.59985" class="st8"/>
 			<text x="179.79" y="558.6" class="st7">No</text>		</g>
 		<g id="shape1018-87" transform="translate(45,-571.2)">
 			<title>Dynamic connector.1018</title>
@@ -88,66 +88,66 @@
 			<desc>Define the symbology for the layer or view using a single sym...</desc>
 			<rect x="0" y="522" width="72" height="90" class="st9"/>
 			<text x="18.49" y="535.8" class="st10">Define the <tspan x="6.31" dy="1.2em" class="st3">symbology for the </tspan><tspan x="4.98" dy="1.2em" class="st3">layer or view using </tspan><tspan x="5.75" dy="1.2em" class="st3">a single symbol to </tspan><tspan x="6.41" dy="1.2em" class="st3">show the location </tspan><tspan x="29.17" dy="1.2em" class="st3">only  </tspan><tspan x="17.18" dy="2.4em" class="st3">-</tspan> See Video</text>		</g>
-		<g id="shape1023-101" transform="translate(424.8,-369)">
+		<g id="shape1023-101" transform="translate(424.8,-378)">
 			<title>Process.15.1023</title>
-			<desc>Define the filter to be ‘Start Date of Data Validity is after...</desc>
-			<rect x="0" y="522" width="72" height="90" class="st9"/>
-			<text x="5.51" y="535.8" class="st10">Define the filter to <tspan x="8.3" dy="1.2em" class="st3">be </tspan>‘Start Date of <tspan x="2.17" dy="1.2em" class="st3">Data Validity is after </tspan><tspan x="11.85" dy="1.2em" class="st3">the (select the </tspan><tspan x="9.13" dy="1.2em" class="st3">latest date from </tspan><tspan x="18.82" dy="1.2em" class="st3">that field)</tspan>’  <tspan x="17.18" dy="2.4em" class="st3">-</tspan> See Video</text>		</g>
-		<g id="shape1024-110" transform="translate(374.4,-405)">
+			<desc>Define the filter to be ‘created_date’ is after the (select t...</desc>
+			<rect x="0" y="540" width="72" height="72" class="st9"/>
+			<text x="5.51" y="549.6" class="st10">Define the filter to <tspan x="2.57" dy="1.2em" class="st3">be </tspan>‘created_date’ is <tspan x="2.9" dy="1.2em" class="st3">after the (select the </tspan><tspan x="9.13" dy="1.2em" class="st3">latest date from </tspan><tspan x="18.82" dy="1.2em" class="st3">that field)</tspan>’  <tspan x="17.18" dy="2.4em" class="st3">-</tspan> See Video</text>		</g>
+		<g id="shape1024-109" transform="translate(374.4,-405)">
 			<title>Dynamic connector.1024</title>
 			<path d="M0 603 L44.36 603" class="st4"/>
 		</g>
-		<g id="shape1025-115" transform="translate(99,-18)">
+		<g id="shape1025-114" transform="translate(99,-18)">
 			<title>Process.15.1025</title>
 			<desc>Define the filter for the published layer to be ‘Start Date o...</desc>
 			<rect x="0" y="540" width="72" height="72" class="st9"/>
 			<text x="4.23" y="549.6" class="st10">Define the filter for <tspan x="3.89" dy="1.2em" class="st3">the published layer </tspan><tspan x="4" dy="1.2em" class="st3">to be </tspan>‘Start Date of <tspan x="11.12" dy="1.2em" class="st3">Data Validity is </tspan><tspan x="6.41" dy="1.2em" class="st3">before (select the </tspan><tspan x="9.13" dy="1.2em" class="st3">latest date from </tspan><tspan x="19.82" dy="1.2em" class="st3">that field)</tspan></text>		</g>
-		<g id="shape1027-124" transform="translate(496.8,-411.3)">
+		<g id="shape1027-123" transform="translate(496.8,-411.3)">
 			<title>Dynamic connector.1027</title>
 			<path d="M0 609.3 L18 609.3 L18 596.7 L64.16 596.7" class="st4"/>
 		</g>
-		<g id="shape1028-129" transform="translate(18,-122.4)">
+		<g id="shape1028-128" transform="translate(18,-122.4)">
 			<title>Process.1028</title>
 			<desc>Open the item details page for the layer and select the follo...</desc>
 			<rect x="0" y="270" width="72" height="342" class="st9"/>
 			<text x="2" y="282.38" class="st10">Open the item <tspan x="2" dy="1.2em" class="st3">details page for the </tspan><tspan x="2" dy="1.2em" class="st3">layer and select the </tspan><tspan x="2" dy="1.2em" class="st3">following  </tspan><tspan x="2" dy="2.422em" class="st11">·</tspan><tspan class="st11"> </tspan>Prevent this <tspan x="20" dy="1.207em" class="st3">item from </tspan><tspan x="20" dy="1.2em" class="st3">being </tspan><tspan x="20" dy="1.2em" class="st3">accidentally </tspan><tspan x="20" dy="1.2em" class="st3">deleted  </tspan><tspan x="2" dy="2.255em" class="st12">·</tspan><tspan class="st12"> </tspan><tspan dx="0.501em" class="st13">Only update </tspan><tspan x="20" dy="1.207em" class="st13">feature </tspan><tspan x="20" dy="1.2em" class="st13">attributes</tspan><tspan class="st13">’  </tspan><tspan x="2" dy="2.459em" class="st11">·</tspan><tspan class="st11"> </tspan>Enable Editing  <tspan x="2" dy="2.429em" class="st11">·</tspan><tspan class="st11"> </tspan>Keep track of <tspan x="20" dy="1.207em" class="st3">create and </tspan><tspan x="20" dy="1.2em" class="st3">updated </tspan><tspan x="20" dy="1.2em" class="st3">features  </tspan><tspan x="2" dy="2.422em" class="st11">·</tspan><tspan class="st11"> </tspan>Keep track of <tspan x="20" dy="1.207em" class="st3">who created </tspan><tspan x="20" dy="1.2em" class="st3">and last </tspan><tspan x="20" dy="1.2em" class="st3">updated </tspan><tspan x="20" dy="1.2em" class="st3">features  </tspan><tspan x="2" dy="2.422em" class="st11">·</tspan><tspan class="st11"> </tspan>Enable Sync!!  <tspan x="2" dy="2.429em" class="st11">·</tspan><tspan class="st11"> </tspan>Allow others to <tspan x="20" dy="1.207em" class="st3">export to </tspan><tspan x="20" dy="1.2em" class="st3">different </tspan><tspan x="20" dy="1.2em" class="st3">formats</tspan></text>		</g>
-		<g id="shape1031-167" transform="translate(171,-45)">
+		<g id="shape1031-166" transform="translate(171,-45)">
 			<title>Dynamic connector.1031</title>
 			<path d="M0 603 L11.96 603" class="st4"/>
 		</g>
-		<g id="shape1033-172" transform="translate(54,-122.4)">
+		<g id="shape1033-171" transform="translate(54,-122.4)">
 			<title>Dynamic connector.1033</title>
 			<path d="M0 612 L0 680.4 L38.96 680.4" class="st4"/>
 		</g>
-		<g id="shape1035-177" transform="translate(261,-54)">
+		<g id="shape1035-176" transform="translate(261,-54)">
 			<title>Dynamic connector.1035</title>
 			<path d="M0 612 L18 612 L18 589.5 L34.46 589.5" class="st4"/>
 		</g>
-		<g id="shape1034-182" transform="translate(189,-27)">
+		<g id="shape1034-181" transform="translate(189,-27)">
 			<title>Process.15.1034</title>
 			<desc>Configure the Popup for the layer - See Video</desc>
 			<rect x="0" y="558" width="72" height="54" class="st9"/>
 			<text x="13.32" y="573" class="st10">Configure the <tspan x="4.08" dy="1.2em" class="st3">Popup for the layer  </tspan><tspan x="17.18" dy="2.4em" class="st3">-</tspan> See Video</text>		</g>
-		<g id="shape1036-187" transform="translate(324,-207)">
+		<g id="shape1036-186" transform="translate(324,-207)">
 			<title>Dynamic connector.1036</title>
 			<path d="M0 612 L-108 612 L-108 591.04" class="st4"/>
 		</g>
-		<g id="shape1037-192" transform="translate(351,-135)">
+		<g id="shape1037-191" transform="translate(351,-135)">
 			<title>Dynamic connector.1037</title>
 			<desc>Yes</desc>
 			<path d="M9 612 L9 582.04" class="st4"/>
-			<rect x="3.02158" y="589.2" width="11.957" height="9.59985" class="st6"/>
+			<rect x="3.02158" y="589.2" width="11.957" height="9.59985" class="st8"/>
 			<text x="3.02" y="596.4" class="st7">Yes</text>		</g>
-		<g id="shape1039-199" transform="translate(252,-405)">
+		<g id="shape1039-198" transform="translate(252,-405)">
 			<title>Dynamic connector.1039</title>
 			<path d="M0 603 L44.36 603" class="st4"/>
 		</g>
-		<g id="shape1040-204" transform="translate(567,-372.6)">
+		<g id="shape1040-203" transform="translate(567,-372.6)">
 			<title>Process.15.1040</title>
 			<desc>Share each layer and view with the Published Layers Group. Ve...</desc>
 			<rect x="0" y="504" width="72" height="108" class="st9"/>
 			<text x="7.73" y="522" class="st10">Share each layer <tspan x="6.67" dy="1.2em" class="st3">and view with the </tspan><tspan x="7.37" dy="1.2em" class="st3">Published Layers </tspan><tspan x="5.65" dy="1.2em" class="st3">Group.  Verify that </tspan><tspan x="2.85" dy="1.2em" class="st3">all people doing the </tspan><tspan x="10.72" dy="1.2em" class="st3">collection have </tspan><tspan x="5.08" dy="1.2em" class="st3">been added to the </tspan><tspan x="7.37" dy="1.2em" class="st3">Published Layers </tspan><tspan x="25.34" dy="1.2em" class="st3">group.</tspan></text>		</g>
-		<g id="shape1041-215" transform="translate(594,-480.6)">
+		<g id="shape1041-214" transform="translate(594,-480.6)">
 			<title>Dynamic connector.1041</title>
 			<path d="M9 612 L9 545.14" class="st4"/>
 		</g>

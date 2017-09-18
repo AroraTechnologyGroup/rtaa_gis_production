@@ -63,6 +63,8 @@ CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gi
                         'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
 CORS_ORIGIN_ALLOW_ALL = False
@@ -83,13 +85,13 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_EXPOSE_HEADERS = (
-    'x-requested-with',
-    'content-type',
-    'content-range',
-    'accept',
-    'origin',
-    'authorization',
-    'x-csrftoken',
+    # 'x-requested-with',
+    # 'content-type',
+    # 'content-range',
+    # 'accept',
+    # 'origin',
+    # 'authorization',
+    # 'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -98,7 +100,8 @@ ALLOWED_HOSTS = [
     'gis.renoairport.net',
     'localhost',
     '127.0.0.1',
-    '172.72.118.217'
+    '172.72.118.217',
+    # '13.90.210.35'
 ]
 
 if not DEBUG:
@@ -235,7 +238,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        #'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PARSER_CLASSES': (
