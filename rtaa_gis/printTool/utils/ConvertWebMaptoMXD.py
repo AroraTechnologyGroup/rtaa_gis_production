@@ -5,12 +5,6 @@ import os
 import sys
 import argparse
 
-#Test values
-# mapfile = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)), "fixtures/webmap.json")
-# template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates/RTAA.mxd")
-# file = open(mapfile, 'r')
-# webmap = file.read()
-
 
 class MXDConvert:
     def __init__(self, media_dir, username, layout, format):
@@ -18,7 +12,7 @@ class MXDConvert:
         self.username = username
         self.layout = layout
         self.format = format
-        self.webmap = os.path.join(os.path.join(media_dir, username), "prints/webmap.json")
+        self.webmap = os.path.join(os.path.join(media_dir, r"users\{}".format(username)), "prints/webmap.json")
         self.template = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates/RTAA.mxd")
         pass
 
@@ -28,7 +22,7 @@ class MXDConvert:
             result = mapping.ConvertWebMapToMapDocument(wm, self.template)
             mxd = result.mapDocument
 
-            outfile = os.path.join(os.path.join(self.media_dir, self.username), "prints/GISViewer.pdf")
+            outfile = os.path.join(os.path.join(self.media_dir, r"users\{}".format(self.username)), "prints/GISViewer.pdf")
             if os.path.exists(outfile):
                 os.remove(outfile)
             mapping.ExportToPDF(mxd, outfile)
@@ -56,4 +50,4 @@ if __name__ == "__main__":
         format = args.format
 
     conv = MXDConvert(media_dir, username, layout, format)
-    print(conv.process_template())
+    conv.process_template()
