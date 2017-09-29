@@ -9,8 +9,8 @@
     {% block icon %}{% endblock %}
 
     {% block stylesheets %}
-        <link rel="stylesheet" type="text/css" href="{%  static "home/app/resources/app.css" %}"/>
         <link rel="stylesheet" type="text/css" href="{%  static "home/resources/home_main.css" %}"/>
+        <link rel="stylesheet" type="text/css" href="{%  static "home/app/resources/app.css" %}"/>
     {% endblock %}
 
     {% block title %}{% endblock %}
@@ -18,10 +18,11 @@
 </head>
 
 <body>
-        {% block header_nav %}{% endblock %}
+        {% block mobile_header_nav %}{% endblock %}
     <div class="wrapper">
-        {% block busy_indicator %}{% endblock %}
+        {% block header_nav %}{% endblock %}
         {% block content %}{% endblock %}
+        {% block busy_indicator %}{% endblock %}
     </div>
     <div id="footer-container" class="animate-in-up tablet-hide">
         {% block footer %}{% endblock %}
