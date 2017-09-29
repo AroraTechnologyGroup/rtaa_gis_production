@@ -22,7 +22,7 @@
                   </button>
                 <nav class="dropdown-menu modifier-class" role="menu">
                     <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>
-                    <a href="{% url 'home:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>
+                    <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>
                     <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>
                     <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
                     <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>
@@ -47,7 +47,7 @@
 {#                      </button>#}
 {#                    <nav class="dropdown-menu modifier-class" role="menu">#}
 {#                        <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>#}
-{#                        <a href="{% url 'home:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>#}
+{#                        <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>#}
 {#                        <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>#}
 {#                        <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>#}
 {#                        <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>#}
@@ -108,5 +108,5 @@
 
 {% block footer %}{% endblock %}
 {% block scripts %}
-    {% include 'home/iframeLoader_scripts.html' %}
+    {% include 'home/AppLoader_scripts.html' %}
 {% endblock %}

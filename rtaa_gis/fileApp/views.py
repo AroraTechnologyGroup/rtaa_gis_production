@@ -4,11 +4,14 @@ import logging
 import traceback
 from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
 from .utils import buildDocStore
+from home.utils.ldap_tool import LDAPQuery
+
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
@@ -16,14 +19,17 @@ from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from .utils import WatchDogTrainer
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.models import User, Group
 
 from PIL import Image
 import platform
@@ -380,3 +386,74 @@ class EngIOViewSet(viewsets.ViewSet):
             return
         else:
             return redirect(reverse('home:login'))
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class UserViewer(APIView):
+    """View that renders the main homepage or an app depending on the template"""
+    renderer_classes = (TemplateHTMLRenderer,)
+    permission_classes = (AllowAny,)
+    template = ""
+    app_name = ""
+
+    def get(self, request, format=None):
+
+        if not request.user.is_authenticated():
+            return redirect(reverse('home:login'))
+        try:
+            name = request.META['REMOTE_USER']
+        except KeyError:
+            name = request.user.username
+
+        resp = Response(template_name=self.template)
+        resp['Cache-Control'] = 'no-cache'
+
+        # Perform inheritance from AD
+        local_name = name.split("\\")[-1]
+        query = LDAPQuery(local_name, settings.LDAP_URL)
+        ldap_groups = query.get_groups()
+        logger.info("ldap_groups = {}".format(ldap_groups))
+        logger.info("username = {}".format(name))
+
+        user_obj = User.objects.get(username=name)
+        users_groups = user_obj.groups.all()
+        # remove groups from user if not in LDAP group list
+        for x in users_groups:
+            if x.name not in ldap_groups:
+                try:
+                    # g = Group.objects.get(name=x)
+                    user_obj.groups.remove(x)
+                    # user_obj.save()
+                except Exception as e:
+                    print(e)
+        # add user to group if group exists in ldap and local group table
+        for x in ldap_groups:
+            if x not in [g.name for g in users_groups]:
+                try:
+                    g = Group.objects.get(name=x)
+                    # g = Group.objects.get(name="tester")
+                    user_obj.groups.add(g)
+                    # user_obj.save()
+                except Exception as e:
+                    print(e)
+
+        # Create user's folder in the media root
+        users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
+        if not os.path.exists(users_dir):
+            os.mkdir(users_dir)
+        user_dir = os.path.join(users_dir, local_name)
+        if not os.path.exists(user_dir):
+            os.mkdir(user_dir)
+        # make the print directory for the user
+        print_dir = os.path.join(user_dir, "prints")
+        if not os.path.exists(print_dir):
+            os.mkdir(print_dir)
+
+        # return the list of groups that the user belongs to
+        final_groups = user_obj.groups.all()
+        final_groups = [x.name for x in final_groups]
+
+        server_url = settings.LDAP_URL
+        app_name = self.app_name.strip('/')
+        resp.data = {"server_url": server_url, "groups": final_groups, "app_name": app_name}
+        return resp

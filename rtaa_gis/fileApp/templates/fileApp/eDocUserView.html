@@ -1,10 +1,14 @@
 {% extends "home/AppLoader.html" %}
 {% load static %}
 
-{% block content %}{% endblock %}
+{% block content %}
+    <div id="_borderContainer"></div>
+{% endblock %}
+
 {% block footer %}
     {{ block.super }}
 {% endblock %}
+
 {% block scripts %}
-    {{  block.super }}
+    {% include 'fileApp/eDocUserView_scripts.html' %}
 {% endblock %}

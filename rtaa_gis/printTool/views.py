@@ -23,17 +23,19 @@ import shlex
 import threading
 from django.conf import settings
 
-environ = "production"
+environ = "work"
 username = "gissetup"
 
 
 def system_paths(environ):
     arcmap_path = {
+        "work": r"C:\Python27\ArcGIS10.4\python.exe",
         "staging": r"C:\Python27\ArcGIS10.5\python.exe"
     }
     arcmap_path = arcmap_path[environ]
     mxd_script = {
-        "staging": r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
+        "work": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py",
+        "staging": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
     }
     mxd_script = mxd_script[environ]
     media_dir = {
@@ -132,6 +134,7 @@ def name_file(out_folder, file):
         logger.error("printed map unable to be saved with correct filename")
 
     return full_name
+
 
 logger = logging.getLogger(__package__)
 

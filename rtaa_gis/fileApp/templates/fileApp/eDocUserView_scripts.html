@@ -1,0 +1,47 @@
+{% load static %}
+<!-- The built dojo path -->
+<script src="{% static "fileApp/dojo/dojo.js" %}"></script>
+<script>
+    require(["dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "app/main", "dojo/hash", "dojo/query", "dojo/dom-class", "dojo/dom-construct", "dojo/dom", "dojo/on", 'dojo/domReady!'],
+        function (Array, registry, baseUnload, app, hash, query, domClass, domConstruct, dom, on) {
+            var myApp = new app();
+            var unLoad = function() {
+                Array.forEach(registry.toArray(), function(item) {
+                    item.destroyRecursive();
+                });
+            };
+            baseUnload.addOnUnload(unLoad);
+            myApp.startup().then(function(e) {
+                var request_hash = hash();
+                if (request_hash) {
+                    hash(request_hash);
+                } else {
+                    hash("home");
+                }
+                // disable the loader gif
+                var node = query(".loader")[0];
+                domClass.remove(node, 'is-active');
+
+                var footer_links = query("footer li");
+                Array.forEach(footer_links, function (e) {
+                    domClass.add(e, "font-size--3");
+                });
+
+{#                var footer = query("#footer-container");#}
+{#                var top_nav_title = query(".top-nav-title");#}
+{#                Array.forEach(top_nav_title, function (e) {#}
+{#                    on(e, 'click', function (evt) {#}
+{#                        domClass.remove(footer[0], 'hide');#}
+{#                        domClass.add(footer[0], 'show');#}
+{#                    });#}
+{#                });#}
+{#                var top_nav_link = query(".top-nav-link");#}
+{#                Array.forEach(top_nav_link, function (e) {#}
+{#                    on(e, 'click', function (evt) {#}
+{#                        domClass.remove(footer[0], 'show');#}
+{#                        domClass.add(footer[0], 'hide');#}
+{#                    });#}
+{#                });#}
+            });
+        });
+

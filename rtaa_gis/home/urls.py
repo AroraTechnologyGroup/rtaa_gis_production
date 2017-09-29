@@ -10,10 +10,6 @@ urlpatterns = [
     url(r'^logout/$', logout, {'next_page': 'home:login'}, name='logout'),
     url(r'^clear/$', clear_users),
 
-    # These urls for web pages with jsapi maps created within the static files of the django app and not
-    # by loading an iframe
-
-    url(r'^eDoc/$', HomePage.as_view(template='home/eDocUserView.html'), name='eDoc'),
     # These urls for web mapping applications are also specified in the application_cards.json file, loaded
     # with the static files for the home app, as the value for the 'path' key.
     # The app_name corresponds to the application on IIS that gets loaded in the iframe

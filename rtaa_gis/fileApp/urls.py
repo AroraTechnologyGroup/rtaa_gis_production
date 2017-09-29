@@ -1,5 +1,6 @@
 from rest_framework import routers
 from . import views
+from .views import UserViewer
 from django.conf.urls import url
 
 router = routers.DefaultRouter()
@@ -9,9 +10,10 @@ router.register(r'eng-all-files', views.EngViewSet)
 router.register(r'eng-io', views.EngIOViewSet)
 router.register(r'eng-files', views.PagedEngViewSet)
 
-
+app_name = 'fileApp'
 urlpatterns = [
     url(r'swag/', views.schema_view),
+    url(r'^eDocViewer/$', UserViewer.as_view(template='fileApp/eDocUserView.html', app_name='eDoc Viewer'), name='eDoc'),
 ]
 
 urlpatterns += router.urls
