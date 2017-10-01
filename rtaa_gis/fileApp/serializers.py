@@ -99,7 +99,7 @@ class GridSerializer(serializers.ModelSerializer):
 
 class EngFileHyperLinkedRelatedField(serializers.HyperlinkedRelatedField):
     queryset = EngineeringFileModel.objects.all()
-    view_name = 'engineeringfilemodel-detail'
+    view_name = 'fileApp:engineeringfilemodel-detail'
     lookup_field = 'pk'
     many = True
 
@@ -137,6 +137,7 @@ class EngAssignmentSerializer(serializers.ModelSerializer):
         fields = ('pk', 'grid_cell', 'file', 'base_name', 'comment', 'date_assigned')
         depth = 1
         read_only_fields = ('base_name', 'date_assigned')
+        lookup_field = 'pk'
 
     def create(self, validated_data):
         base_name = validated_data['file'].base_name
