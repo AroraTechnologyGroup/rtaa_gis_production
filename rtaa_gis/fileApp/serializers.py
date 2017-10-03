@@ -11,7 +11,7 @@ engineering_discipline_choices = [
                 ('ARCH', 'Architectural'),
                 ('STRUCTURAL', 'Structural'),
                 ('LANDSCAPING', 'Landscaping'),
-                ('MECHANICAL(HVAC)', 'Mechanical (HVAC)'),
+                ('MECHANICAL-HVAC', 'Mechanical-HVAC'),
                 ('PLUMBING', 'Plumbing'),
                 ('ELECTRICAL', 'Electrical')
             ]
@@ -32,42 +32,42 @@ class FileTypes:
     """the type of files that we are interested in are defined here"""
 
     def __init__(self):
-        PDF = {"pdf": "application/pdf"}
-        ODT = {"odt": "application/vnd.oasis.opendocument.text"}
-        ODS = {"ods": "application/vnd.oasis.opendocument.spreadsheet"}
-        ODP = {"odp": "application/vnd.oasis.opendocument.presentation"}
-        MSDOC = {"doc": "application/msword"}
-        MSDOCX = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
-        EXCEL1 = {"xls": "application/vnd.ms-excel"}
-        EXCEL2 = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-        TEXT = {"txt": "text/plain"}
-        CSV = {"csv": "text/csv"}
-        PNG = {"png": "image/png"}
-        JPEG = {"jpg": "image/jpeg"}
-        TIFF = {"tiff": "image/tiff"}
-        DWG = {"dwg": "image/vnd.dwg"}
-        LYR = {"lyr": "application/octet-stream"}
-        MPK = {"mpk": "application/octet-stream"}
-        MXD = {"mxd": "application/octet-stream"}
+        pdf = {"pdf": "application/pdf"}
+        odt = {"odt": "application/vnd.oasis.opendocument.text"}
+        ods = {"ods": "application/vnd.oasis.opendocument.spreadsheet"}
+        odp = {"odp": "application/vnd.oasis.opendocument.presentation"}
+        msdoc = {"doc": "application/msword"}
+        msdocx = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+        excel1 = {"xls": "application/vnd.ms-excel"}
+        excel2 = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+        text = {"txt": "text/plain"}
+        csv = {"csv": "text/csv"}
+        png = {"png": "image/png"}
+        jpeg = {"jpg": "image/jpeg"}
+        tiff = {"tiff": "image/tiff"}
+        dwg = {"dwg": "image/vnd.dwg"}
+        lyr = {"lyr": "application/octet-stream"}
+        mpk = {"mpk": "application/octet-stream"}
+        mxd = {"mxd": "application/octet-stream"}
 
         self.FILE_TYPE_CHOICES = {
-            "PDF": PDF,
-            "OPEN OFFICE DOC": ODT,
-            "OPEN OFFICE SHEET": ODS,
-            "OPEN OFFICE PRESENTATION": ODP,
-            "MS Word doc": MSDOC,
-            "MS Word docx": MSDOCX,
-            "TEXT": TEXT,
-            "MS Excel xls": EXCEL1,
-            "MS Excel xlsx": EXCEL2,
-            "CSV Spreadsheet": CSV,
-            "PNG Image": PNG,
-            "JPEG Image": JPEG,
-            "TIFF Image": TIFF,
-            "AutoCad dwg": DWG,
-            "ESRI Layer File": LYR,
-            "ESRI Map Package": MPK,
-            "ESRI Map Document": MXD
+            "PDF": pdf,
+            "OPEN OFFICE DOC": odt,
+            "OPEN OFFICE SHEET": ods,
+            "OPEN OFFICE PRESENTATION": odp,
+            "MS Word doc": msdoc,
+            "MS Word docx": msdocx,
+            "TEXT": text,
+            "MS Excel xls": excel1,
+            "MS Excel xlsx": excel2,
+            "CSV Spreadsheet": csv,
+            "PNG Image": png,
+            "JPEG Image": jpeg,
+            "TIFF Image": tiff,
+            "AutoCad dwg": dwg,
+            "ESRI Layer File": lyr,
+            "ESRI Map Package": mpk,
+            "ESRI Map Document": mxd
         }
 
         self.DOC_VIEWER_TYPES = ['docx', 'doc', 'txt']
