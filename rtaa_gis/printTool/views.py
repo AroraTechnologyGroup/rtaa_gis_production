@@ -9,7 +9,7 @@ from subprocess import PIPE
 from subprocess import TimeoutExpired
 import arcgis
 from arcgis import mapping
-from rtaa_gis.settings import MEDIA_ROOT
+
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from io import BytesIO
@@ -22,51 +22,54 @@ import json
 import shlex
 import threading
 from django.conf import settings
+MEDIA_ROOT = settings.MEDIA_ROOT
 
-environ = "work"
+environ = "rtaa_testing"
 username = "gissetup"
 
 
 def system_paths(environ):
     arcmap_path = {
         "work": r"C:\Python27\ArcGIS10.4\python.exe",
-        "staging": r"C:\Python27\ArcGIS10.5\python.exe"
+        "rtaa_testing": r"C:\Python27\ArcGIS10.5\python.exe"
     }
     arcmap_path = arcmap_path[environ]
+
     mxd_script = {
         "work": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py",
-        "staging": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
+        "rtaa_testing": r"C:\inetpub\rtaa_gis_django_testing\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
     }
     mxd_script = mxd_script[environ]
+
     media_dir = {
-        "home": "C:/Users/rich/PycharmProjects/rtaa_gis/rtaa_gis/media",
         "work": "C:/GitHub/rtaa_gis/rtaa_gis/media",
         "staging": "C:/inetpub/django_staging/rtaa_gis/rtaa_gis/media",
         "production": "C:/inetpub/django_prod/rtaa_gis/rtaa_gis/media",
+        "rtaa_testing": r"C:\inetpub\rtaa_gis_django_testing\rtaa_gis\media"
     }
     media_dir = media_dir[environ]
 
     gdb_path = {
-        "home": r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
         "work": r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
         "staging": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
-        "production": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+        "production": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
+        "rtaa_testing": r"D:\ConnectionFiles\OSAuth@RTAA_MasterGDB.sde"
     }
     gdb_path = gdb_path[environ]
 
     default_project = {
-        "home": r"G:\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
         "work": r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
         "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
-        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx"
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
+        "rtaa_testing": r"D:\ArcPro\RTAA_Publishing\RTAA_Publishing.aprx"
     }
     default_project = default_project[environ]
 
     layer_dir = {
-        "home": r"G:\GIS Data\Arora\rtaa\layers",
         "work": r"C:\ESRI_WORK_FOLDER\rtaa\layers",
         "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers",
-        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers"
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers",
+        "rtaa_testing": r"D:\ArcPro\RTAA_Publishing\FeatureLayers"
     }
     layer_dir = layer_dir[environ]
 
