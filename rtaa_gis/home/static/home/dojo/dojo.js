@@ -24207,6 +24207,10 @@ define([
 	'app/Analytics',
 	'app/PublishingTools',
 	'app/IFrameLoader',
+	'app/ResourcePage',
+	'app/AboutSite',
+	'app/RequestHelp',
+	'app/TechnicalDetails',
 	'esri/IdentityManager',
 	'esri/arcgis/OAuthInfo',
 	'dijit/layout/ContentPane',
@@ -24240,6 +24244,10 @@ define([
 		Analytics,
 		PublishingTools,
 		IFrameLoader,
+		ResourcePage,
+		AboutSite,
+		RequestHelp,
+		TechnicalDetails,
 		esriId,
 		OAuthInfo,
 		ContentPane,
@@ -24263,19 +24271,6 @@ define([
 				}
 			],
 
-			webResourceRoutes: [
-				{
-					title: 'State Level GIS Data',
-					href: 'web-resources/state-level'
-				}, {
-					title: 'County Level GIS Data',
-					href: 'web-resources/county-level'
-				}, {
-					title: 'ESRI Online Resources',
-					href: 'web-resources/esri-resources'
-				}
-			],
-
 			helpRoutes: [
 				{
 					title: 'Technical Details',
@@ -24286,9 +24281,6 @@ define([
 				}, {
 					title: 'Request Help Ticket',
 					href: 'help/request-ticket'
-				}, {
-					title: 'Tutorials',
-					href: 'help/tutorials'
 				}
 			],
 
@@ -24580,21 +24572,45 @@ define([
 					} catch(err) {
 						console.log(err);
 					}
-					var routes = self.webResourceRoutes;
 
 					self.header = new PageBanner({
 						id: 'web-resources-banner',
 						class: 'text-white font-size-4 page-banner',
 						title: 'Online Resource Library',
-						routes: routes
+						routes: {}
 					});
 
 					var pane = registry.byId('header-pane');
 					pane.set('content', self.header);
 					pane.resize();
-
-					deferred.resolve(pane);
+					self.buildResourcePage(evt, groups).then(function(resp) {
+						deferred.resolve(resp);
+					}, function(err) {
+						console.log(err);
+					});
+				}, function(err) {
+					deferred.cancel(err);
 				});
+				return deferred.promise;
+			},
+
+			buildResourcePage: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('resourcePage');
+				if (!widget) {
+					widget = new ResourcePage({
+						id: "resourcePage"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
@@ -24622,8 +24638,80 @@ define([
 					pane.set('content', self.header);
 					pane.resize();
 
-					deferred.resolve(pane);
+					self.buildTechnicalDetails(evt, groups).then(function(resp) {
+						self.buildAboutSite(evt, groups).then(function(resp) {
+							self.buildRequestHelp(evt, groups).then(function(resp) {
+								deferred.resolve(resp);
+							}, function(err) {
+								console.log(err);
+							});
+						}, function(err) {
+							console.log(err);
+						});
+					}, function(err) {
+						console.log(err);
+					});
 				});
+				return deferred.promise;
+			},
+
+			buildTechnicalDetails: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('technicalDetails');
+				if (!widget) {
+					widget = new TechnicalDetails({
+						id: "technicalDetails"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
+				return deferred.promise;
+			},
+
+			buildAboutSite: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('aboutSite');
+				if (!widget) {
+					widget = new AboutSite({
+						id: "aboutSite"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
+				return deferred.promise;
+			},
+
+			buildRequestHelp: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('requestHelp');
+				if (!widget) {
+					widget = new RequestHelp({
+						id: "requestHelp"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
@@ -24892,7 +24980,7 @@ define([
 				console.log("analytics::postCreate()");
 				var cp = new ContentPane({
 					class: 'admin-panel',
-					style: "height: 100%; width: 100%;"
+					style: "height: 100vh; width: 100%; background-color: white"
 				});
 				cp.set('content', domConstruct.toDom("<h1>Site Analytics</h1>"));
 				
@@ -25065,7 +25153,7 @@ define([
 				var self = this;
 				var cp = new ContentPane({
 					class: 'admin-panel',
-					style: "height: 100vh; width: 100%;"
+					style: "height: 100vh; width: 100%; background-color: white"
 				});
 				cp.set('content', domConstruct.toDom("<h1>Publishing Tools</h1>"));
 				cp.placeAt(this.content);
@@ -25179,6 +25267,242 @@ define([
 				} else {
 					deferred.resolve("iframe-pane not found");
 				}
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/ResourcePage':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/ResourcePage_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_resourcePage',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_resourcePage::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_resourcePage::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'activated');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_resourcePage::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/AboutSite':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/AboutSite_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_aboutSite',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_aboutSite::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_aboutSite::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'off');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_aboutSite::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/RequestHelp':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/RequestHelp_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_requestHelp',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_requestHelp::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_requestHelp::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'off');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_requestHelp::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/TechnicalDetails':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/TechnicalDetails_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_technicalDetails',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_technicalDetails::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_technicalDetails::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'activated');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_technicalDetails::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
 				return deferred.promise;
 			}
 		});
@@ -41820,12 +42144,16 @@ define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","..
 define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
 },
 'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
-'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
+'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-2\">${title}</h1>\r\n\t    <div class=\"header-1\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/analytics_config.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/analytics/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/analytics/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/analytics/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/analytics/\"\r\n}",
 'url:app/templates/Analytics_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
 'url:app/templates/PublishingTools_template.html':"<span class=\"${baseClass}\">\r\n\t<div data-dojo-attach-point='content'></div>\r\n</span>",
 'url:app/templates/IFrameLoader_template.html':"<span class=\"${baseClass}\">\r\n\t<div data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/ResourcePage_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/AboutSite_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/RequestHelp_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/TechnicalDetails_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",

@@ -176,8 +176,7 @@ class FileStoreBuilder:
                                     # The File Exists in the Database and will be updated
                                     _object = filtered[0]
                                     serializer = EngSerializer(_object, data={
-                                        "file_path": file_path,
-                                        "project_title": ""
+                                        "file_path": file_path
                                     }, partial=True)
                                     if serializer.is_valid():
                                         serializer.save()
