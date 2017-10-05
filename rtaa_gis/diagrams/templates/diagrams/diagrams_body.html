@@ -21,7 +21,11 @@
 {% block busy_indicator %}{% endblock %}
 
 {% block content %}
-    <a href="{% url 'diagrams:collector' %}">Collector Project Guide</a>
+    <div style="background-color: white; position: absolute; left: 0; right: 0; bottom: 0; top: 75px">
+        <ul>
+            <li><a href="{% url 'diagrams:collector' %}">Collector Project Guide</a></li>
+        </ul>
+    </div>
 {% endblock %}
 
 {% block scripts %}{% endblock %}

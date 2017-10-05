@@ -35,10 +35,7 @@ html, body {
     border: none;
 }
 
-#footer-container {
-    height: 0px;
-}
-
-.footer-tall {
-    height: 10px;
+.footer {
+    background-color: #FFFFFF;
+    padding-bottom: 3px;
 }
