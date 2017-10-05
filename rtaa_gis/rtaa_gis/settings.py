@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
-
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 # This setting gets used in templates to build correct hyperlinks
 if DEBUG:
     FORCE_SCRIPT_NAME = '/'

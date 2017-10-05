@@ -42,7 +42,18 @@ class FileStoreBuilder:
         self.FileTypes = FileTypes()
         pass
 
+    @staticmethod
+    def format_text(input):
+        string = input.strip().upper()
+        return string
+
     def load_accdb(self):
+        # write file paths from Tiffany that cannot be found
+        no_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "no_match.txt")
+        yes_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yes_match.txt")
+        noFile = open(no_file, 'w')
+        yesFile = open(yes_file, 'w')
+
         try:
             conn_str = (
                 r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};'
@@ -68,20 +79,38 @@ class FileStoreBuilder:
                     filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                     if not vendor:
                         vendor = ""
+                    else:
+                        vendor = self.format_text(vendor)
+
                     if project_date:
                         project_date = datetime.date(int(project_date), 1, 1)
-                    if not project_date:
+                    else:
                         project_date = datetime.date(9999, 1, 1)
+
                     if not sheet_title:
                         sheet_title = ""
+                    else:
+                        sheet_title = self.format_text(sheet_title)
+
                     if not sheet_type:
                         sheet_type = ""
+                    else:
+                        sheet_type = self.format_text(sheet_type)
+
                     if not discipline:
                         discipline = ""
+                    else:
+                        discipline = self.format_text(discipline)
+
                     if not project_title:
                         project_title = ""
+                    else:
+                        project_title = self.format_text(project_title)
+
                     if not sheet_description:
                         sheet_description = ""
+                    else:
+                        sheet_description = self.format_text(sheet_description)
 
                     if len(filtered) == 0:
                         # The file object was not located in the fileStore using the file_path
@@ -104,7 +133,12 @@ class FileStoreBuilder:
                         try:
                             ser_obj = EngSerializer(data=new_obj)
                             if ser_obj.is_valid():
-                                ser_obj.save()
+                                noFile.write("path: {}\n".format(file_path))
+                                noFile.write("discipline: {}\n".format(discipline))
+                                noFile.write("project_title: {}\n".format(project_title))
+                                noFile.write("sheet_type: {}\n".format(sheet_type))
+                                noFile.write("sheet_title: {}\n\n".format(sheet_title))
+                                pass
                             else:
                                 print(ser_obj.errors)
                         except:
@@ -116,6 +150,7 @@ class FileStoreBuilder:
                         update_data = {
                             "file_path": file_path,
                             "sheet_type": sheet_type,
+                            "discipline": discipline,
                             "project_title": project_title,
                             "sheet_description": sheet_description,
                             "sheet_title": sheet_title,
@@ -131,16 +166,24 @@ class FileStoreBuilder:
                         try:
                             new_s = EngSerializer(_object, data=update_data, partial=True)
                             if new_s.is_valid():
+                                yesFile.write("path: {}\n".format(file_path))
+                                yesFile.write("discipline: {}\n".format(discipline))
+                                yesFile.write("project_title: {}\n".format(project_title))
+                                yesFile.write("sheet_type: {}\n".format(sheet_type))
+                                yesFile.write("sheet_title: {}\n\n".format(sheet_title))
                                 new_s.save()
                             else:
                                 print(new_s.errors)
-                        except:
+                        except Exception as e:
                             exc_type, exc_value, exc_traceback = sys.exc_info()
                             traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+                            print(e)
 
         except Exception as e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+        noFile.close()
+        yesFile.close()
 
     def build_store(self):
         try:
@@ -318,8 +361,8 @@ if __name__ == '__main__':
     x.build_store()
     if os.path.exists(acc_db_path):
         x.load_accdb()
-    cell = GridCellBuilder()
-    cell.build_store()
+    # cell = GridCellBuilder()
+    # cell.build_store()
     ass = AssignmentManager()
     ass.create_test_assignments()
 

@@ -44,7 +44,7 @@ class FileTypes:
         csv = {"csv": "text/csv"}
         png = {"png": "image/png"}
         jpeg = {"jpg": "image/jpeg"}
-        tiff = {"tiff": "image/tiff"}
+        tiff = {"tif": "image/tiff"}
         dwg = {"dwg": "image/vnd.dwg"}
         lyr = {"lyr": "application/octet-stream"}
         mpk = {"mpk": "application/octet-stream"}
@@ -189,8 +189,8 @@ class EngSerializer(serializers.ModelSerializer):
         try:
             file_types = FileTypes()
             file_path = validated_data['file_path']
+            extension = file_path.split(".")[-1].lower()
             if os.path.exists(file_path):
-                extension = file_path.split(".")[-1].lower()
                 base_name = os.path.basename(file_path)
                 file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
                 size = function_definitions.convert_size(os.path.getsize(file_path))
@@ -201,10 +201,11 @@ class EngSerializer(serializers.ModelSerializer):
                     for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
                         if extension in mapping:
                             mime = file_types.FILE_TYPE_CHOICES[file_type][extension]
+                            break
 
             else:
                 base_name = file_path.split("\\")[-1]
-                file_type = base_name.split(".")[-1]
+                file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
                 size = ''
                 mime = ''
                 validated_data["comment"] = 'eDoc system unable to locate file using the file_path'
@@ -223,29 +224,38 @@ class EngSerializer(serializers.ModelSerializer):
             print(e)
 
     def update(self, instance, validated_data):
-        instance.file_path = validated_data.get('file_path', instance.file_path)
-        if os.path.exists(instance.file_path):
-            # These attributes are calculated from the actual file object
-            # TODO - utilize the same functions from the buildDocStore here
-            base_name = os.path.basename(instance.file_path)
-            instance.base_name = base_name
-            instance.file_type = base_name.split(".")[-1]
-            instance.size = function_definitions.convert_size(os.path.getsize(instance.file_path))
-            instance.mime = mimetypes.guess_type(instance.file_path)[0]
+        try:
+            file_types = FileTypes()
+            instance.file_path = validated_data.get('file_path', instance.file_path)
+            if os.path.exists(instance.file_path):
+                # These attributes are calculated from the actual file object
+                extension = instance.file_path.split(".")[-1].lower()
+                base_name = os.path.basename(instance.file_path)
+                instance.base_name = base_name
+                instance.file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+                instance.size = function_definitions.convert_size(os.path.getsize(instance.file_path))
+                instance.mime = mimetypes.guess_type(instance.file_path)[0]
+                if instance.mime is None:
+                    # solves bug where file extensions are uppercase
+                    for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
+                        if extension in mapping:
+                            instance.mime = file_types.FILE_TYPE_CHOICES[instance.file_type][extension]
+                            break
 
-        instance.comment = validated_data.get('comment', instance.comment)
-
-        # These variables are brought in from the Access Database of Tiffany
-        instance.sheet_type = validated_data.get("sheet_type", instance.sheet_type)
-        instance.project_title = validated_data.get("project_title", instance.project_title)
-        instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)
-        instance.sheet_title = validated_data.get("sheet_title", instance.sheet_title)
-        instance.project_date = validated_data.get("project_date", instance.project_date)
-        instance.vendor = validated_data.get("vendor", instance.vendor)
-        instance.airport = validated_data.get("airport", instance.airport)
-        instance.project_description = validated_data.get("project_description", instance.project_description)
-        instance.funding_type = validated_data.get("funding_type", instance.funding_type)
-        instance.grant_number = validated_data.get("grant_number", instance.grant_number)
-        instance.comment = validated_data.get("comment", instance.comment)
-        instance.save()
-        return instance
+            # These variables are brought in from the Access Database of Tiffany
+            instance.discipline = validated_data.get("discipline", instance.discipline)
+            instance.sheet_type = validated_data.get("sheet_type", instance.sheet_type)
+            instance.project_title = validated_data.get("project_title", instance.project_title)
+            instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)
+            instance.sheet_title = validated_data.get("sheet_title", instance.sheet_title)
+            instance.project_date = validated_data.get("project_date", instance.project_date)
+            instance.vendor = validated_data.get("vendor", instance.vendor)
+            instance.airport = validated_data.get("airport", instance.airport)
+            instance.project_description = validated_data.get("project_description", instance.project_description)
+            instance.funding_type = validated_data.get("funding_type", instance.funding_type)
+            instance.grant_number = validated_data.get("grant_number", instance.grant_number)
+            instance.comment = validated_data.get("comment", instance.comment)
+            instance.save()
+            return instance
+        except Exception as e:
+            print(e)
