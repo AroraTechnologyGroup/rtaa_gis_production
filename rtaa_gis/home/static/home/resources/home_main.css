@@ -36,9 +36,6 @@ html, body {
 }
 
 .footer {
+    background-color: #FFFFFF;
     padding-bottom: 3px;
-}
-
-.footer-tall {
-    height: 25px;
 }
