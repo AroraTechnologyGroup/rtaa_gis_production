@@ -77,6 +77,9 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
+        if settings.LDAP_URL == "renoairport.net":
+            local_name = "AroraTeam"
+
         query = LDAPQuery(local_name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))

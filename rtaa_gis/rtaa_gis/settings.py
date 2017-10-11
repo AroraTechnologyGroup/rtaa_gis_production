@@ -15,12 +15,13 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
-FORCE_SCRIPT_NAME = "/rtaa_gis/"
+FORCE_SCRIPT_NAME = "/applications_test/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
-LDAP_URL = "gisapps.aroraengineers.com"
+# PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
+PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+LDAP_URL = "renoairport.net"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
@@ -38,7 +39,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
+LOGIN_URL = r'login'
 LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
@@ -107,8 +108,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    CORS_REPLACE_HTTPS_REFERER = True
-    CORS_ORIGIN_ALLOW_ALL = False
+    CORS_REPLACE_HTTPS_REFERER = False
+    CORS_ORIGIN_ALLOW_ALL = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -266,7 +267,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "ERROR",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

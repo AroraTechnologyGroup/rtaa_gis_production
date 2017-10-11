@@ -251,7 +251,60 @@ def print_mxd(request, format=None):
     media_url = media_url.rstrip("/")
 
     url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+    logger.info(url)
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
+    return response
 
+
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_arcmap(request, format=None):
+    username = get_username(request)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+
+    v = system_paths(environ)
+    arcmap_path = v["arcmap_path"]
+    mxd_script = v["mxd_script"]
+
+    data = request.POST
+    webmap = data['Web_Map_as_JSON']
+
+    map_obj = json.loads(webmap)
+
+
+    format = data['Format']
+    layout_template = data['Layout_Template']
+
+    args = [arcmap_path, mxd_script, '-media_dir', MEDIA_ROOT, '-username', username, '-layout', layout_template,
+            '-format', format]
+    proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
+    out, err = proc.communicate()
+
+    full_name = name_file(out_folder=out_folder, file=out.decode())
+    response = Response()
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
+
+    if host == "127.0.0.1:8080":
+        protocol = "http"
+    else:
+        protocol = "https"
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
+
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+    logger.info(url)
     response.data = {
         "messages": [],
         "results": [{
@@ -271,6 +324,7 @@ def print_mxd(request, format=None):
 def getPrintList(request, format=None):
     username = get_username(request)
     print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
+    logger.info(print_dir)
 
     response = Response()
     response.data = list()

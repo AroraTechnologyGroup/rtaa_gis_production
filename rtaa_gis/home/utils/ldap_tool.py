@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 
 
@@ -37,26 +38,38 @@ class LDAPQuery:
                 Group.objects.get(name=group)
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
-        self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
-        # self.server = Server(ldap_url, get_info=ALL)
+        # self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+        self.server = Server(ldap_url, get_info=ALL)
 
     def get_groups(self):
 
         slicegroup = list()
         try:
-            conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
+            if settings.LDAP_URL == "renoairport.net":
+                conn = Connection(self.server, user="RENOAIRPORT\\AroraTeam", password="@R0r@G1$", authentication=NTLM,
+                                  auto_bind=False)
+            else:
+                conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
                               auto_bind=True)
-            # conn = Connection(self.server, auto_bind=True)
+
             conn.bind()
             # conn.start_tls()
             total_entries = 0
             try:
-                conn.search(
-                    search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
-                    search_filter="(&(objectclass=user)(sAMAccountName={}))".format(self.username),
-                    search_scope=SUBTREE,
-                    attributes=ldap3.ALL_ATTRIBUTES,
-                )
+                if settings.LDAP_URL == "renoairport.net":
+                    conn.search(
+                        search_base="dc=renoairport, dc=net",
+                        search_filter="(&(objectclass=user)(sAMAccountName={}))".format(self.username),
+                        search_scope=SUBTREE,
+                        attributes=ldap3.ALL_ATTRIBUTES,
+                    )
+                else:
+                    conn.search(
+                        search_base="dc=GISAPPS, dc=aroraengineers, dc=com",
+                        search_filter="(&(objectclass=user)(sAMAccountName={}))".format(self.username),
+                        search_scope=SUBTREE,
+                        attributes=ldap3.ALL_ATTRIBUTES,
+                    )
 
             except Exception as e:
                 print("Exception arguments: {}".format(e.args))
@@ -86,8 +99,12 @@ class LDAPQuery:
         print(slicegroup)
         return slicegroup
 
+
 if __name__ == "__main__":
-    query = LDAPQuery("GISAPPS\\GIS_QC", "gisapps.aroraengineers.com")
+    if settings.LDAP_URL == "renoairport.net":
+        query = LDAPQuery("RENOAIRPORT\\AroraTeam", "renoairport.net")
+    else:
+        query = LDAPQuery("GISAPPS\\GIS_QC", "gisapps.aroraengineers.com")
     x = query.get_groups()
     print(x)
 
