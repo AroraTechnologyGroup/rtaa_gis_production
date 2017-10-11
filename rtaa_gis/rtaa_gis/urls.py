@@ -23,6 +23,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include('home.urls')),
+    url(r'^lpm/', include('lpm.urls')),
     url(r'^diagrams/', include('diagrams.urls')),
     url(r'^analytics/', include('analytics.urls')),
     url(r'^print/', include('printTool.urls')),
