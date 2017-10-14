@@ -15,20 +15,20 @@ class TestFileModel(TestCase):
         pass
 
     def test_get(self):
-        t_path = "//renofs2/groups/Engineering/Drawings/Std/01_4SD_Cover.pdf"
+        t_path = "//renofs2/groups/engineering/drawings/std/06_4sd_alp.pdf"
         _file = EngineeringFileModel.objects.filter(file_path=t_path)
         self.assertIsInstance(_file[0], EngineeringFileModel)
         pass
 
     def test_get_assignments(self):
-        _file = EngineeringFileModel.objects.get(pk=13)
+        _file = EngineeringFileModel.objects.get(pk=51943)
         assigns = _file.engineeringassignment_set.all()
         self.assertTrue(len(assigns))
         self.assertIsInstance(assigns[0], EngineeringAssignment)
 
     def test_drop_assignment(self):
-        _file = EngineeringFileModel.objects.get(pk=13)
-        assigns = _file.engineeringassignment_set.filter(grid_cell="A37")
+        _file = EngineeringFileModel.objects.get(pk=51943)
+        assigns = _file.engineeringassignment_set.filter(grid_cell="A04")
         self.assertIsInstance(assigns[0], EngineeringAssignment)
         for x in assigns:
             x.delete()
@@ -67,7 +67,7 @@ class TestAssignment(TestCase):
         pass
 
     def test_create(self):
-        test_file = EngineeringFileModel.objects.get(pk=5)
+        test_file = EngineeringFileModel.objects.get(pk=51943)
         grid_cell = GridCell.objects.get(name="B15")
         kwargs = {
             'grid_cell': grid_cell,
@@ -80,14 +80,14 @@ class TestAssignment(TestCase):
 
         _assigns = EngineeringAssignment.objects.all()
         self.assertTrue(len(_assigns))
-        new_obj = EngineeringAssignment.objects.filter(file=5).filter(grid_cell=grid_cell)
+        new_obj = EngineeringAssignment.objects.filter(file='51943').filter(grid_cell=grid_cell)
         self.assertIsInstance(new_obj[0], EngineeringAssignment)
         pass
 
     def test_delete(self):
-        _assign = EngineeringAssignment.objects.get(pk="4")
+        _assign = EngineeringAssignment.objects.get(pk=6)
         _assign.delete()
-        _assigns = EngineeringAssignment.objects.filter(pk='4')
+        _assigns = EngineeringAssignment.objects.filter(pk=6)
         self.assertFalse(len(_assigns))
         pass
 
