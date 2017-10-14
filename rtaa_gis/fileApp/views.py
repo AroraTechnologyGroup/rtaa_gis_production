@@ -5,7 +5,7 @@ import traceback
 from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
 from .utils import buildDocStore
 from home.utils.ldap_tool import LDAPQuery
-
+from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
@@ -373,8 +373,19 @@ class EngIOViewSet(viewsets.ViewSet):
             # response is the file binary / the request is made from an dojo anchor html element with
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
-            response = HttpResponse(fp.read(), content_type=mime_type)
-            response['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+            resp = HttpResponse(fp.read(), content_type=mime_type)
+            resp['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+
+            # create entry in the analytics records table
+            data = {
+                "method": "print",
+                "app_name": __name__
+            }
+            serial = RecordSerializer(data=data)
+            if serial.is_valid():
+                serial.save()
+            else:
+                logger.error("failed to enter record entry {}".format(data))
             return response
         else:
             return redirect(reverse('home:login'))
