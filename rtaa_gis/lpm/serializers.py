@@ -8,7 +8,7 @@ class AgreementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgreementModel
-        fields = ('pk', 'title', 'id', 'type', 'description', 'annual_revenue', 'contact1_name', 'contact1_phone_number', 'contact1_address',
+        fields = ('id', 'title', 'type', 'description', 'annual_revenue', 'contact1_name', 'contact1_phone_number', 'contact1_address',
                   'contact2_name', 'contact2_phone_number', 'contact2_address', 'start_date', 'end_date')
 
     def create(self, validated_data):
