@@ -2,12 +2,11 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
+
 from .utils import buildDocStore
 from home.utils.ldap_tool import LDAPQuery
 from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
-
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from rest_framework.response import Response
@@ -38,9 +37,14 @@ if platform.system() == 'Windows':
     import pythoncom
     pass
 
+MEDIA_ROOT = settings.MEDIA_ROOT
+BASE_DIR = settings.BASE_DIR
+LOGIN_URL = settings.LOGIN_URL
+LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
+FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
+
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
-
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])

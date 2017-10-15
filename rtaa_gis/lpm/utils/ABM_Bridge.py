@@ -15,9 +15,7 @@ import pprint
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
-import lpm
-from lpm import models
-from lpm.models import AgreementModel
+
 from lpm.serializers import AgreementSerializer
 
 from django.conf import settings
@@ -103,9 +101,9 @@ def queryConnection(connection):
                     date_type = row[1]
                     date_value = row[2]
                     if date_type in ["EXEC", "START"]:
-                        data[key]["StartDate"] = date_value
+                        data[key]["StartDate"] = date_value.date()
                     if date_type in ["END", "EXPIR"]:
-                        data[key]["Expiration"] = date_value
+                        data[key]["Expiration"] = date_value.date()
                     # if the start date or the end date have not been set, make it Unknown
                     existing_fields = data[key].keys()
                     if "StartDate" not in existing_fields:
@@ -144,19 +142,24 @@ if __name__ == "__main__":
     try:
         review_notes = {}
         x = queryConnection(connPROD)
-        # check if a leasee has multiple active agreements
+
+        for id in x:
+            data = {
+                "id": id,
+                "title": x[id]["AgreementTitle"],
+                "type": x[id]["AgreementType"],
+                "status": x[id]["AgreementStatus"],
+                "start_date": x[id]["StartDate"],
+                "end_date": x[id]["Expiration"]
+            }
+            serial = AgreementSerializer(data=data)
+            if serial.is_valid():
+                serial.save()
+            else:
+                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
         lease_spaces = gis.content.get('981a15cb963d496a83efb13b62a71c39')
-        # level1_terminal = gis.content.get('2bea9f63c64a4b68b18d021d5553aabf')
-        # mini_warehouse = gis.content.get('afe5c07cc78a4d63a39472b5925fe0b2')
-        # land_leases = gis.content.get('623e53299c80400b8e560fde4e497ebf')
-        # ga_west_box_hangars = gis.content.get('324d3a463f8c434492f128b97ac2fd36')
-        # ga_west_t_hangars = gis.content.get('a9672d33b31c4b0bae29f194a84737f0')
-        # ga_east_tie_downs = gis.content.get('c966dc6809054b9b9b716cd3f6a65805')
-        # ga_east_box_hangars = gis.content.get('15acb05a8d9d4320b30cddd282064adc')
-        # ga_east_t_hangars = gis.content.get('ebefc416896a44f3be6bbc3e3c7df552')
-        # level2_terminal = gis.content.get('4b8e861cf4a7431b9117bb912156e23e')
 
         for layer in [lease_spaces]:
             for k, v in pkid_leasee.items():
@@ -192,7 +195,40 @@ if __name__ == "__main__":
                                 update_result = feature_layer.edit_features(updates=[lyr_edit])
                             except RuntimeError as Exception:
                                 loggit(Exception)
-        loggit("Review Notes: {}".format(review_notes))
+        #     for k, v in pkid_leasee.items():
+        #         # if the pkid from the excel file exists in the active agreements dict
+        #         if k in x:
+        #             feature_layer = layer.layers[0]
+        #             feature_set = feature_layer.query(where="TENANT_NAME = '{}'".format(v))
+        #             if len(feature_set.features):
+        #                 filtered = feature_set.features
+        #                 for lyr in filtered:
+        #                     pkids = []
+        #                     existing_att = lyr.attributes["AGREEMENT_ID"]
+        #                     if existing_att:
+        #                         pkids.extend(existing_att.split(","))
+        #
+        #                     pkids.append(str(k))
+        #                     pkids = list(set(pkids))
+        #                     lyr_edit = lyr
+        #                     if len(pkids) > 1:
+        #                         if v in review_notes:
+        #                             if k not in review_notes[v]:
+        #                                 review_notes[v].append(k)
+        #                         else:
+        #                             review_notes[v] = [k]
+        #
+        #                     elif len(pkids) == 1:
+        #                         lyr_edit.attributes["AGREEMENT_TYPE"] = x[k]["AgreementType"]
+        #                         lyr_edit.attributes["START_DATE"] = x[k]["StartDate"]
+        #                         lyr_edit.attributes["EXPIRATION"] = x[k]["Expiration"]
+        #
+        #                     lyr_edit.attributes["AGREEMENT_ID"] = ",".join(pkids)
+        #                     try:
+        #                         update_result = feature_layer.edit_features(updates=[lyr_edit])
+        #                     except RuntimeError as Exception:
+        #                         loggit(Exception)
+        # loggit("Review Notes: {}".format(review_notes))
     except:
         traceback.print_exc(file=sys.stdout)
 

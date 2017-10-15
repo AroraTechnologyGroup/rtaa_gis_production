@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
@@ -198,6 +199,16 @@ def print_agol(request, format=None):
             "dataType": "GPDataFile"
         }]
     }
+
+    data = {
+        "method": "print",
+        "app_name": "Print"
+    }
+    serial = RecordSerializer(data=data)
+    if serial.is_valid():
+        serial.save()
+    else:
+        logger.error("Unable to save count :: {}".format(data))
     return response
 
 

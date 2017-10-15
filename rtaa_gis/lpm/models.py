@@ -13,26 +13,26 @@ class AgreementModel(models.Model):
 
     id = models.CharField(max_length=255, primary_key=True)
 
-    title = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255, blank=True)
 
-    type = models.CharField(max_length=255)
+    type = models.CharField(max_length=255, blank=True)
 
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
 
-    annual_revenue = models.CharField(max_length=255)
+    annual_revenue = models.CharField(max_length=255, blank=True)
 
-    contact1_name = models.CharField(max_length=255)
+    contact1_name = models.CharField(max_length=255, blank=True)
 
-    contact1_phone_number = models.CharField(max_length=255)
+    contact1_phone_number = models.CharField(max_length=255, blank=True)
 
-    contact1_address = models.CharField(max_length=255)
+    contact1_address = models.CharField(max_length=255, blank=True)
 
-    contact2_name = models.CharField(max_length=255)
+    contact2_name = models.CharField(max_length=255, blank=True)
 
-    contact2_phone_number = models.CharField(max_length=255)
+    contact2_phone_number = models.CharField(max_length=255, blank=True)
 
-    contact2_address = models.CharField(max_length=255)
+    contact2_address = models.CharField(max_length=255, blank=True)
 
-    start_date = models.DateField()
+    start_date = models.DateField(null=True)
 
-    end_date = models.DateField()
+    end_date = models.DateField(null=True)
