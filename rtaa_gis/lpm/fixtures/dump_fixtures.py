@@ -29,6 +29,6 @@ def dump(model):
         new_fixt.close()
 
 
-models = ["AgreementModel"]
+models = ["Agreement"]
 for x in models:
     dump(x)
