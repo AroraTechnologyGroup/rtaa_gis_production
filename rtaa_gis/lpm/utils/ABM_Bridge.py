@@ -101,9 +101,11 @@ def queryConnection(connection):
                     date_type = row[1]
                     date_value = row[2]
                     if date_type in ["EXEC", "START"]:
-                        data[key]["StartDate"] = date_value.date()
+                        # data[key]["StartDate"] = date_value.date()
+                        data[key]["StartDate"] = date_value
                     if date_type in ["END", "EXPIR"]:
-                        data[key]["Expiration"] = date_value.date()
+                        # data[key]["Expiration"] = date_value.date()
+                        data[key]["Expiration"] = date_value
                     # if the start date or the end date have not been set, make it Unknown
                     existing_fields = data[key].keys()
                     if "StartDate" not in existing_fields:
@@ -126,7 +128,7 @@ def queryConnection(connection):
 
         ids_no_date = list(set(ids_no_date))
         if ids_no_date:
-            cursor.execute("SELECT [fkAgreementID], \
+            cursor.execute("SELECT [fkAgreementID] \
                    FROM [ABM_Reno_Prod].[dbo].[tblagAgreementDates]")
             for row in cursor:
                 if row[0] in ids_no_date:
@@ -143,20 +145,20 @@ if __name__ == "__main__":
         review_notes = {}
         x = queryConnection(connPROD)
 
-        for id in x:
-            data = {
-                "id": id,
-                "title": x[id]["AgreementTitle"],
-                "type": x[id]["AgreementType"],
-                "status": x[id]["AgreementStatus"],
-                "start_date": x[id]["StartDate"],
-                "end_date": x[id]["Expiration"]
-            }
-            serial = AgreementSerializer(data=data)
-            if serial.is_valid():
-                serial.save()
-            else:
-                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+        # for id in x:
+        #     data = {
+        #         "id": id,
+        #         "title": x[id]["AgreementTitle"],
+        #         "type": x[id]["AgreementType"],
+        #         "status": x[id]["AgreementStatus"],
+        #         "start_date": x[id]["StartDate"],
+        #         "end_date": x[id]["Expiration"]
+        #     }
+        #     serial = AgreementSerializer(data=data)
+        #     if serial.is_valid():
+        #         serial.save()
+        #     else:
+        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
         lease_spaces = gis.content.get('981a15cb963d496a83efb13b62a71c39')
@@ -193,42 +195,10 @@ if __name__ == "__main__":
                             lyr_edit.attributes["AGREEMENT_ID"] = ",".join(pkids)
                             try:
                                 update_result = feature_layer.edit_features(updates=[lyr_edit])
+                                pass
                             except RuntimeError as Exception:
                                 loggit(Exception)
-        #     for k, v in pkid_leasee.items():
-        #         # if the pkid from the excel file exists in the active agreements dict
-        #         if k in x:
-        #             feature_layer = layer.layers[0]
-        #             feature_set = feature_layer.query(where="TENANT_NAME = '{}'".format(v))
-        #             if len(feature_set.features):
-        #                 filtered = feature_set.features
-        #                 for lyr in filtered:
-        #                     pkids = []
-        #                     existing_att = lyr.attributes["AGREEMENT_ID"]
-        #                     if existing_att:
-        #                         pkids.extend(existing_att.split(","))
-        #
-        #                     pkids.append(str(k))
-        #                     pkids = list(set(pkids))
-        #                     lyr_edit = lyr
-        #                     if len(pkids) > 1:
-        #                         if v in review_notes:
-        #                             if k not in review_notes[v]:
-        #                                 review_notes[v].append(k)
-        #                         else:
-        #                             review_notes[v] = [k]
-        #
-        #                     elif len(pkids) == 1:
-        #                         lyr_edit.attributes["AGREEMENT_TYPE"] = x[k]["AgreementType"]
-        #                         lyr_edit.attributes["START_DATE"] = x[k]["StartDate"]
-        #                         lyr_edit.attributes["EXPIRATION"] = x[k]["Expiration"]
-        #
-        #                     lyr_edit.attributes["AGREEMENT_ID"] = ",".join(pkids)
-        #                     try:
-        #                         update_result = feature_layer.edit_features(updates=[lyr_edit])
-        #                     except RuntimeError as Exception:
-        #                         loggit(Exception)
-        # loggit("Review Notes: {}".format(review_notes))
+        loggit("Review Notes: {}".format(review_notes))
     except:
         traceback.print_exc(file=sys.stdout)
 
