@@ -1,19 +1,19 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import AgreementModel
+from .models import Agreement
 import os
 
 
 class AgreementSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AgreementModel
+        model = Agreement
         fields = ('id', 'title', 'type', 'description', 'annual_revenue', 'contact1_name', 'contact1_phone_number', 'contact1_address',
                   'contact2_name', 'contact2_phone_number', 'contact2_address', 'start_date', 'end_date')
 
     def create(self, validated_data):
         try:
 
-            _agg = AgreementModel.objects.create(**validated_data)
+            _agg = Agreement.objects.create(**validated_data)
             _agg.save()
             return _agg
         except Exception as e:

@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import AgreementModel
+from .models import Agreement, Space
 
 # Register your models here.
-admin.site.register(AgreementModel)
+admin.site.register(Agreement)
+admin.site.register(Space)

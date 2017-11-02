@@ -12,7 +12,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .serializers import AgreementSerializer
-from .models import AgreementModel
+from .models import Agreement
 MEDIA_ROOT = settings.MEDIA_ROOT
 BASE_DIR = settings.BASE_DIR
 LOGIN_URL = settings.LOGIN_URL
@@ -37,6 +37,6 @@ def log_traceback():
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class AgreementViewSet(viewsets.ModelViewSet):
     """Grid Cells within the ArcGIS Online Map Grid"""
-    queryset = AgreementModel.objects.all()
+    queryset = Agreement.objects.all()
     serializer_class = AgreementSerializer
 

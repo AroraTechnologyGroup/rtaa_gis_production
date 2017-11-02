@@ -30,3 +30,37 @@ Installation
 - Run check, test, and runserver to verify that the django site is running correctly.
 
 - After building the document store, run the dump_fixtures.py script to create the test fixtures
+
+- If launching on IIS configure the web.config as follows 
+        ```
+        <rewrite>
+            <rules>
+                <clear />
+                <rule name="Redirect to HTTPS" enabled="true" patternSyntax="ECMAScript" stopProcessing="true">
+                    <match url="(.*)" />
+                    <conditions logicalGrouping="MatchAny" trackAllCaptures="false">
+                        <add input="{HTTPS}" pattern="^OFF$" />
+                    </conditions>
+                    <action type="Redirect" url="https://{HTTP_HOST}/applications/{R:1}" />
+                </rule>
+                <rule name="setRootSlash" stopProcessing="true">
+                    <match url="(.*)" />
+                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
+                        <add input="{PATH_INFO}" pattern="/applications$" />
+                    </conditions>
+                    <action type="Redirect" url="https://{HTTP_HOST}/applications/" />
+                </rule>
+                <rule name="setHeaderValues" enabled="true" stopProcessing="false">
+                    <match url="(.*)" />
+                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false" />
+                    <serverVariables>
+                        <set name="SCRIPT_NAME" value="{PATH_INFO}" />
+                        <set name="PATH_INFO" value="/{R:0}" />
+                        <set name="HTTP_X_ORIGINAL_ENCODING" value="{HTTP_ACCEPT_ENCODING}" />
+                        <set name="HTTP_ACCEPT_ENCODING" value="0" />
+                    </serverVariables>
+                    <action type="None" />
+                </rule>
+            </rules>
+        </rewrite>
+        ```
