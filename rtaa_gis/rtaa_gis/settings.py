@@ -20,7 +20,8 @@ DEBUG = True
 FORCE_SCRIPT_NAME = "/applications_test/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-LDAP_URL = "gisapps.aroraengineers.com"
+LDAP_URL = "gis.renoairport.net"
+# LDAP_URL = "gisapps.aroraengineers.com"
 if LDAP_URL == "gisapps.aroraengineers.com":
     PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 else:
