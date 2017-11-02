@@ -38,8 +38,10 @@ class LDAPQuery:
                 Group.objects.get(name=group)
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
-        # self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
-        self.server = Server(ldap_url, get_info=ALL)
+        if settings.LDAP_URL == "gisapps.aroraengineers.com":
+            self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+        else:
+            self.server = Server(ldap_url, get_info=ALL)
 
     def get_groups(self):
 
@@ -48,12 +50,12 @@ class LDAPQuery:
             if settings.LDAP_URL == "renoairport.net":
                 conn = Connection(self.server, user="RENOAIRPORT\\AroraTeam", password="@R0r@G1$", authentication=NTLM,
                                   auto_bind=False)
-            else:
+            elif settings.LDAP_URL == "gisapps.aroraengineers.com":
                 conn = Connection(self.server, user="GISAPPS\\gissetup", password="AroraGIS123:)", authentication=NTLM,
-                              auto_bind=True)
+                              auto_bind=False)
 
             conn.bind()
-            # conn.start_tls()
+            #conn.start_tls()
             total_entries = 0
             try:
                 if settings.LDAP_URL == "renoairport.net":
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     if settings.LDAP_URL == "renoairport.net":
         query = LDAPQuery("RENOAIRPORT\\AroraTeam", "renoairport.net")
     else:
-        query = LDAPQuery("GISAPPS\\GIS_QC", "gisapps.aroraengineers.com")
+        query = LDAPQuery("GISAPPS\\gissetup", "gisapps.aroraengineers.com")
     x = query.get_groups()
     print(x)
 

@@ -19,9 +19,13 @@ DEBUG = True
 # USE_X_FORWARDED_HOST = True
 FORCE_SCRIPT_NAME = "/applications_test/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
-PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-LDAP_URL = "renoairport.net"
+
+LDAP_URL = "gisapps.aroraengineers.com"
+if LDAP_URL == "gisapps.aroraengineers.com":
+    PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
+else:
+    PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
