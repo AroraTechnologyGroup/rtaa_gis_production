@@ -14,7 +14,7 @@ class TestAgreement(TestCase):
         self.assertTrue(_files)
         pass
 
-    def test_get(self):
+    def test_filter(self):
         id = 1129
         _agreement = Agreement.objects.filter(id=id)
         self.assertIsInstance(_agreement[0], Agreement)
@@ -26,18 +26,22 @@ class TestAgreement(TestCase):
         self.assertTrue(len(assigned_spaces))
         self.assertIsInstance(assigned_spaces[0], Space)
 
-    # def test_link_space(self):
-    #     _agreement = Agreement.objects.get(id=1129)
-    #
-    # def test_drop_assignment(self):
-    #     _agreement = Agreement.objects.get(id=1129)
-    #     assigns = _agreement.space_set.filter(="A04")
-    #     self.assertIsInstance(assigns[0], EngineeringAssignment)
-    #     for x in assigns:
-    #         x.delete()
-    #     assigns = _file.engineeringassignment_set.all()
-    #     self.assertFalse(len(assigns))
-    #     pass
+    def test_link_space(self):
+        _agreement = Agreement.objects.get(id=1129)
+        _space = Space.objects.get(id="A12").update(agreement=_agreement)
+        self.assertEqual(_space, 1)
+
+        updated = Space.objects.get(id="A12")
+        self.assertIsInstance(updated.agreement, Agreement)
+
+    def test_drop_space(self):
+        _agreement = Agreement.objects.get(id=2307)
+        spaces = _agreement.space_set.filter(id="A04")
+        for x in spaces:
+            x.agreement = None
+            x.save()
+        spaces = _agreement.space_set.all()
+        self.assertFalse(len(spaces))
 
 
 class TestSpace(TestCase):
@@ -46,11 +50,10 @@ class TestSpace(TestCase):
     def test_list(self):
         _spaces = Space.objects.all()
         self.assertTrue(_spaces)
-        self._spaces = _spaces
         pass
 
     def test_get(self):
-        _space = Space.objects.get(id="A14")
+        _space = Space.objects.get(id="A12")
         self.assertIsInstance(_space, Space)
 
     def test_create(self):
@@ -58,3 +61,18 @@ class TestSpace(TestCase):
         space.save()
         _space = Space.objects.get(id="ZZ00")
         self.assertIsInstance(_space, Space)
+
+    def test_link_agreement(self):
+        agreement = Agreement.objects.get(id=1129)
+        cnt = Space.objects.get(id="A12").update(agreement=agreement)
+        self.assertEqual(cnt, 1)
+        space = Space.objects.get(id="A12")
+        self.assertIsInstance(space.agreement, Agreement)
+        pass
+
+    def test_drop_agreement(self):
+        space = Space.objects.get(id="A12")
+        space.agreement = None
+        space.save()
+        space = Space.objects.get(id="A12")
+        self.assertIsNone(space.agreement)

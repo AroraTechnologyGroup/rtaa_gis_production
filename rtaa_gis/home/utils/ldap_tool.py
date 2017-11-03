@@ -39,7 +39,8 @@ class LDAPQuery:
             except Group.DoesNotExist:
                 Group.objects.create(name=group)
         if settings.LDAP_URL == "gisapps.aroraengineers.com":
-            self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+            # self.server = Server(ldap_url, port=636, get_info=ALL, use_ssl=True)
+            self.server = Server(ldap_url, get_info=ALL)
         else:
             self.server = Server(ldap_url, get_info=ALL)
 

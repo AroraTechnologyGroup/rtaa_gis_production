@@ -19,8 +19,10 @@ INSTALLED_APPS = [
     'fileApp.apps.FileAppConfig',
     'home.apps.HomeConfig',
     'cloudSync.apps.CloudsyncConfig',
-    'printTool.apps.PrinttoolConfig'
+    'printTool.apps.PrinttoolConfig',
+    'lpm.apps.LpmConfig'
 ]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
