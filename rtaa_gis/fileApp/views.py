@@ -46,6 +46,7 @@ FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
+
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
 def schema_view(request):

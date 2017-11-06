@@ -4,7 +4,7 @@
 {% block stylesheets %}
     {{ block.super }}
     <style>
-    html {
+    html  {
         overflow-y: hidden;
     }
     </style>
@@ -16,7 +16,7 @@
 
 {% block busy_indicator %}{% endblock %}
 {% block content %}
-    <iframe src="{% static 'diagrams/CollectorProjectBuildGuide_files/main_2.htm' %}" style="background-color: white; position: absolute; left: 0"; height="90%" width="100%" frameborder="0" allowfullscreen scrolling="auto">
+    <iframe src="{% static 'diagrams/CollectorProjectBuildGuide_files/main_2.htm' %}" style="background-color: white; position: absolute; width: 100%; height: 92%; overflow-y: hidden" frameborder="0" allowfullscreen scrolling="no">
 	</iframe>
 {% endblock %}
 

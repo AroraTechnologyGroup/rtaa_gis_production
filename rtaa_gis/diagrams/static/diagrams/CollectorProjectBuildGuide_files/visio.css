@@ -3,20 +3,20 @@ td {vertical-align: top;}
 .fillcolor
 {	vertical-align: top;
 	padding: 0pt;
-	background-color:#b70000;
-	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr='#b70000', EndColorStr='#cccccc');
+	background-color:#94D7FF;
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=1, StartColorStr='#94D7FF', EndColorStr='#CBEBFF');
 }
 
 A.blu1
 {
-	color: #a66c46;
+	color: #0073B8;
 	text-decoration: none;
 	font-size: 95%;
 }
 
 A.blu1:visited
 {
-	color: #a66c46;
+	color: #0073B8;
 	text-decoration: none
 }
 
@@ -47,12 +47,12 @@ A.blu1:hover
 {
 	color:White;
 	font-style:normal;
-	background-color:#b70000;
+	background-color:#94D7FF;
 }
 
 .visrptRowItem
 {
-	background-color:#cccccc;
+	background-color:#CBEBFF;
 }
 
 .a1

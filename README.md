@@ -31,7 +31,7 @@ Installation
 
 - After building the document store, run the dump_fixtures.py script to create the test fixtures
 
-- If launching on IIS configure the web.config as follows 
+- If launching on IIS configure the URL Rewrite Rules in the web.config as follows
         ```
         <rewrite>
             <rules>
@@ -64,3 +64,11 @@ Installation
             </rules>
         </rewrite>
         ```
+        
+        
+Testing
+
+- runtests.py loads is where each apps test suite is loaded
+- within each test suite, the os.path is changed to the fixture dir
+
+

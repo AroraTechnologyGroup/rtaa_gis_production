@@ -21,18 +21,18 @@ class TestAgreement(TestCase):
         pass
 
     def test_get_spaces(self):
-        _agreement = Agreement.objects.get(id=1129)
+        _agreement = Agreement.objects.get(id=2105)
         assigned_spaces = _agreement.space_set.all()
         self.assertTrue(len(assigned_spaces))
         self.assertIsInstance(assigned_spaces[0], Space)
 
     def test_link_space(self):
         _agreement = Agreement.objects.get(id=1129)
-        _space = Space.objects.get(id="A12").update(agreement=_agreement)
-        self.assertEqual(_space, 1)
-
-        updated = Space.objects.get(id="A12")
-        self.assertIsInstance(updated.agreement, Agreement)
+        _space = Space.objects.create(id="Test")
+        _agreement.space_set.add(_space)
+        _agreement = Agreement.objects.get(id=1129)
+        cnt = len(_agreement.space_set.all())
+        self.assertEqual(cnt, 1)
 
     def test_drop_space(self):
         _agreement = Agreement.objects.get(id=2307)
@@ -64,8 +64,9 @@ class TestSpace(TestCase):
 
     def test_link_agreement(self):
         agreement = Agreement.objects.get(id=1129)
-        cnt = Space.objects.get(id="A12").update(agreement=agreement)
-        self.assertEqual(cnt, 1)
+        sp = Space.objects.get(id="A12")
+        sp.agreement = agreement
+        sp.save()
         space = Space.objects.get(id="A12")
         self.assertIsInstance(space.agreement, Agreement)
         pass

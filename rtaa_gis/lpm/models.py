@@ -58,7 +58,7 @@ class Space(models.Model):
 
     leased_area = models.FloatField(null=True)
 
-    description = models.CharField(max_length=255, blank=True)
+    notes = models.CharField(max_length=255, blank=True)
 
     start_date = models.DateField(null=True)
 

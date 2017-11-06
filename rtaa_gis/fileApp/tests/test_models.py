@@ -7,7 +7,8 @@ os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 
 
 class TestFileModel(TestCase):
-    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment',
+                'gridcell']
 
     def test_list(self):
         _files = EngineeringFileModel.objects.all()
@@ -58,7 +59,8 @@ class TestGridCell(TestCase):
 
 
 class TestAssignment(TestCase):
-    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment',
+                'gridcell']
 
     def test_list(self):
         _assigns = EngineeringAssignment.objects.all()
