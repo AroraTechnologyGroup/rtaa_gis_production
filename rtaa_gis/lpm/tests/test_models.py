@@ -21,7 +21,7 @@ class TestAgreement(TestCase):
         pass
 
     def test_get_spaces(self):
-        _agreement = Agreement.objects.get(id=2105)
+        _agreement = Agreement.objects.get(id=2986)
         assigned_spaces = _agreement.space_set.all()
         self.assertTrue(len(assigned_spaces))
         self.assertIsInstance(assigned_spaces[0], Space)
@@ -35,8 +35,8 @@ class TestAgreement(TestCase):
         self.assertEqual(cnt, 1)
 
     def test_drop_space(self):
-        _agreement = Agreement.objects.get(id=2307)
-        spaces = _agreement.space_set.filter(id="A04")
+        _agreement = Agreement.objects.get(id=2986)
+        spaces = _agreement.space_set.filter(id="A12")
         for x in spaces:
             x.agreement = None
             x.save()

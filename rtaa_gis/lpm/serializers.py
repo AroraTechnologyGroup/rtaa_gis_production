@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from rest_framework.fields import CharField
 from .models import Agreement, Space
 import os
 
@@ -47,10 +48,10 @@ class SpaceSerializer(serializers.ModelSerializer):
         model = Space
         fields = ('id', 'agreement', 'tenant', 'type', 'gis_area', 'leased_area',
                   'notes', 'start_date', 'end_date')
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
         try:
-
             _space = Space.objects.create(**validated_data)
             _space.save()
             return _space

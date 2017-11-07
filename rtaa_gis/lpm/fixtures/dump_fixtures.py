@@ -21,6 +21,7 @@ def dump(model):
 
     spec = os.path.join(BASE_DIR, "lpm/fixtures/json/{}.json".format(model.lower()))
     if os.path.exists(spec):
+        # If the number of test feature needs to be limited slice the list
         fixt = json.loads(open(spec, 'r').read())
         output = json.dumps(fixt)
         out_file = spec
