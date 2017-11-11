@@ -1,30 +1,19 @@
 from rest_framework import serializers
-from rest_framework.reverse import reverse
-from .models import GDB, FeatureClass, FeatureDataset, PublisherLog
-import mimetypes
-import os
+from .models import GDB, FeatureClass, FeatureDataset,FieldObject,\
+    PublisherLog, FeatureLayer, WebMap
 
 
 class GDBSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GDB
-        fields = ('baseName', 'workspaceType', 'catalogPath', 'workspaceFactoryProgID', 'release', 'domains',
-                  'currentRelease', 'connectionString')
+        fields = '__all__'
 
-    def create(self, validated_data):
-        return validated_data
-
-    def update(self, instance, validated_data):
-        return instance
-
-
-class FClassSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = FeatureClass
-        fields = ('catalogPath', 'baseName', 'count', 'featureType', 'hasM', 'hasZ', 'hasSpatialIndex',
-                  'shapeFieldName', 'shapeType')
+    datasets = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name='dataset-detail',
+        read_only=True
+    )
 
     def create(self, validated_data):
         return validated_data
@@ -37,8 +26,71 @@ class FDatasetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FeatureDataset
-        fields = ('baseName', 'changeTracked', 'datasetType', 'isVersioned', 'spatialReference',
-                  'children')
+        fields = '__all__'
+
+    feature_classes = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name='fclass-detail',
+        read_only=True
+    )
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance
+
+
+class FClassSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FeatureClass
+        fields = '__all__'
+
+    fields = serializers.HyperlinkedRelatedField(
+        many=True,
+        view_name='field-detail',
+        read_only=True
+    )
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance
+
+
+class FieldSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FieldObject
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance
+
+
+class FLayerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = FeatureLayer
+        fields = '__all__'
+
+    def create(self, validated_data):
+        return validated_data
+
+    def update(self, instance, validated_data):
+        return instance
+
+
+class WebMapSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WebMap
+        fields = '__all__'
 
     def create(self, validated_data):
         return validated_data
@@ -51,7 +103,7 @@ class PLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PublisherLog
-        fields = ('serviceName', 'folder', 'timestamp', 'action')
+        fields = '__all__'
 
     def create(self, validated_data):
         return validated_data

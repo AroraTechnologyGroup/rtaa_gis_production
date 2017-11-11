@@ -2,8 +2,8 @@ from django.db import models
 
 
 class Record(models.Model):
-    def __unicode__(self):
-        return "{} :: {} :: {}".format(self.method, self.date_time, self.username)
+    def __str__(self):
+        return "{} / {} / {}".format(self.app_name, self.method, self.username)
 
     class Meta:
         ordering = ('method', 'username', 'date_time')

@@ -11,19 +11,21 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import HttpResponse
 from .utils.SearchTool import SearchTool
-from .models import GDB, FeatureClass, FeatureDataset, PublisherLog
-from .serializers import FClassSerializer, FDatasetSerializer, GDBSerializer, PLogSerializer
-from rtaa_gis.settings import BASE_DIR
+from .models import GDB, FeatureClass, FeatureDataset, PublisherLog, FeatureLayer, WebMap
+from .serializers import FClassSerializer, FDatasetSerializer, GDBSerializer,\
+    PLogSerializer, FLayerSerializer, WebMapSerializer
+from django.conf import settings
+
+BASE_DIR = settings.BASE_DIR
 
 arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
 
-gdb_build_script = r"C:\GitHub\arcpro\buildGDBStore.py"
+gdb_build_script = r"C:\GitHub\arcpro\reporting\buildGDBStore.py"
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class OnlineViewSet(viewsets.ViewSet):
     renderer_classes = (JSONRenderer,)
-    queryset = PublisherLog.objects.all()
 
     @list_route(methods=['get', 'post'])
     def feature_layers(self, request):
@@ -63,6 +65,30 @@ class OnlineViewSet(viewsets.ViewSet):
             }
             final_list.append(new_item)
         return Response(final_list)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class WebMapViewSet(viewsets.ModelViewSet):
+    queryset = WebMap.objects.all()
+    serializer_class = WebMapSerializer
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FLayerViewSet(viewsets.ModelViewSet):
+    queryset = FeatureLayer.objects.all()
+    serializer_class = FLayerSerializer
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GDBViewSet(viewsets.ModelViewSet):
+    queryset = GDB.objects.all()
+    serializer_class = GDBSerializer
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FDatasetViewSet(viewsets.ModelViewSet):
+    queryset = FeatureDataset.objects.all()
+    serializer_class = FDatasetSerializer
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
