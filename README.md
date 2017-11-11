@@ -7,13 +7,13 @@ Installation
 
 - Open the Anaconda Navigator, and create a new environment using the Python version 3.5
 
-- Use the package installer to install Django 1.10.x, pywin32, pillow, and reportlab
+- Use the package installer to install Django 1.11.x, pywin32, pillow, and reportlab
 
 - Next, from the terminal window activate the rtaa_gis conda environment.
 
-- Using conda install the arcgis package from the esri channel.
+- Using conda install the arcgis package from the esri channel. (conda install -c esri arcgis)
 
-- Next, use pip to install the packages listed in the requirements.txt file in the project root
+- Next, use pip to install the packages listed in the requirements.txt file in the project root (pip install -r requirements.txt)
 
 - In the terminal navigate to the Scripts folder and run wfastcgi-enable OR create the fastcgi program from within IIS.
 
@@ -29,7 +29,7 @@ Installation
 
 - Run check, test, and runserver to verify that the django site is running correctly.
 
-- After building the document store, run the dump_fixtures.py script to create the test fixtures
+- After building the document store and any additional tables, run the dump_fixtures.py script to create the test fixtures
 
 - If launching on IIS configure the URL Rewrite Rules in the web.config as follows
         ```
@@ -68,7 +68,7 @@ Installation
         
 Testing
 
-- runtests.py loads is where each apps test suite is loaded
-- within each test suite, the os.path is changed to the fixture dir
+- runtests.py is where each app's test suite is loaded
+- within each test suite, the os.path is changed to the fixture dir, so each apps tests 
 
 
