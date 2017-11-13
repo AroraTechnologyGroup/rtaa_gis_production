@@ -19,11 +19,30 @@ class GDB(models.Model):
 
     release = models.CharField(max_length=255)
 
-    domains = models.CharField(max_length=255)
-
-    current_release = models.CharField(max_length=255)
+    current_release = models.BooleanField()
 
     connection_string = models.CharField(max_length=255)
+
+
+class DomainValues(models.Model):
+    def __str__(self):
+        return "%s" % self.name
+
+    class Meta:
+        ordering = ('code', 'description')
+        app_label = 'cloudSync'
+
+    gdb = models.ForeignKey(
+        GDB,
+        on_delete=models.CASCADE,
+        null=True
+    )
+
+    name = models.CharField(max_length=100)
+
+    code = models.CharField(max_length=255)
+
+    description = models.CharField(max_length=255)
 
 
 class FeatureDataset(models.Model):
@@ -36,18 +55,17 @@ class FeatureDataset(models.Model):
 
     gdb = models.ForeignKey(
         GDB,
-        related_name='datasets',
         on_delete=models.CASCADE,
         null=True
     )
 
     base_name = models.CharField(max_length=50, unique=True)
 
-    change_tracked = models.CharField(max_length=2)
+    change_tracked = models.BooleanField()
 
     dataset_type = models.CharField(max_length=25)
 
-    is_versioned = models.CharField(max_length=2)
+    is_versioned = models.BooleanField()
 
     spatial_reference = models.CharField(max_length=255)
 
@@ -57,16 +75,16 @@ class FeatureDataset(models.Model):
 
     pcs_name = models.CharField(max_length=255)
 
-    pcs_code = models.CharField(max_length=100)
+    pcs_code = models.CharField(max_length=100, null=True)
 
-    gcs_code = models.CharField(max_length=100)
+    gcs_code = models.CharField(max_length=100, null=True)
 
-    gcs_name = models.CharField(max_length=255)
+    gcs_name = models.CharField(max_length=255, null=True)
 
 
 class FeatureClass(models.Model):
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.base_name
 
     class Meta:
@@ -75,7 +93,6 @@ class FeatureClass(models.Model):
 
     feature_dataset = models.ForeignKey(
         FeatureDataset,
-        related_name="feature_classes",
         on_delete=models.CASCADE,
         null=True
     )
@@ -88,11 +105,11 @@ class FeatureClass(models.Model):
 
     feature_type = models.CharField(max_length=25)
 
-    hasM = models.CharField(max_length=2)
+    hasM = models.BooleanField()
 
-    hasZ = models.CharField(max_length=2)
+    hasZ = models.BooleanField()
 
-    has_spatial_index = models.CharField(max_length=2)
+    has_spatial_index = models.BooleanField()
 
     shape_field_name = models.CharField(max_length=25)
 
@@ -109,12 +126,17 @@ class FieldObject(models.Model):
 
     feature_class = models.ForeignKey(
         FeatureClass,
-        related_name="fields",
         on_delete=models.CASCADE,
         null=True
     )
 
-    name = models.CharField(max_length=100)
+    domain = models.ForeignKey(
+        DomainValues,
+        on_delete=models.CASCADE,
+        null=True
+    )
+
+    name = models.CharField(max_length=100, unique=True)
 
     alias_name = models.CharField(max_length=100)
 
@@ -122,9 +144,7 @@ class FieldObject(models.Model):
 
     percent = models.FloatField()
 
-    default_value = models.CharField(max_length=100)
-
-    domain = models.CharField(max_length=100)
+    default_value = models.CharField(max_length=100, null=True)
 
     editable = models.BooleanField()
 

@@ -15,7 +15,6 @@ from rest_framework.decorators import detail_route, list_route, permission_class
 from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
-from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
 from rest_framework.views import APIView
@@ -45,13 +44,6 @@ FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
 
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
-
-
-@api_view()
-@renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
-def schema_view(request):
-    generator = schemas.SchemaGenerator(title='eDoc API')
-    return response.Response(generator.get_schema(request=request))
 
 
 def log_traceback():

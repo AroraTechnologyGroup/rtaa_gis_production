@@ -30,13 +30,6 @@ FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
 logger = logging.getLogger(__name__)
 
 
-@api_view()
-@renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
-def schema_view(request):
-    generator = schemas.SchemaGenerator(title='lpm')
-    return response.Response(generator.get_schema(request=request))
-
-
 def log_traceback():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))

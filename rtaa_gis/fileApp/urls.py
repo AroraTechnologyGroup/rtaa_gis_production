@@ -12,7 +12,6 @@ router.register(r'eng-files', views.PagedEngViewSet)
 
 app_name = 'fileApp'
 urlpatterns = [
-    url(r'swag/', views.schema_view),
     url(r'^eDocViewer/$', UserViewer.as_view(template='fileApp/eDocUserView.html', app_name='eDoc Viewer'), name='eDoc'),
 ]
 

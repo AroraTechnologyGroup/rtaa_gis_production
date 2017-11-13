@@ -1,26 +1,167 @@
 import os
 import json
 import subprocess
+import logging
+from json.decoder import JSONDecodeError
 from subprocess import PIPE
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework.decorators import list_route
+from rest_framework.decorators import list_route, api_view, renderer_classes
 from rest_framework import viewsets
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import HttpResponse
 from .utils.SearchTool import SearchTool
-from .models import GDB, FeatureClass, FeatureDataset, PublisherLog, FeatureLayer, WebMap
+from .models import GDB, FeatureClass, FeatureDataset, FieldObject, PublisherLog,\
+    FeatureLayer, WebMap, DomainValues
 from .serializers import FClassSerializer, FDatasetSerializer, GDBSerializer,\
-    PLogSerializer, FLayerSerializer, WebMapSerializer
+    PLogSerializer, FLayerSerializer, WebMapSerializer, FieldSerializer,\
+    BuilderSerializer, DomainSerializer
 from django.conf import settings
 
+
 BASE_DIR = settings.BASE_DIR
+arcpy_path = settings.ARCPY_PATH
+builder_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils/buildGDBStore.py')
 
-arcpro_path = r"C:\Program Files\ArcGIS\Pro\bin\Python\envs\arcgispro-py3\python.exe"
+logger = logging.getLogger(__name__)
 
-gdb_build_script = r"C:\GitHub\arcpro\reporting\buildGDBStore.py"
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class Builder(GenericAPIView):
+    serializer_class = BuilderSerializer
+    queryset = GDB.objects.all()
+
+    def post(self, request, format=None):
+        serializer = BuilderSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.data
+            gdb = data["gdb"]
+
+            args = [arcpy_path, builder_script, '-gdb', gdb]
+            dataset = data["dataset"]
+            if dataset:
+                args.extend(['-dataset', dataset])
+            feature_class = data["featureClass"]
+            if feature_class:
+                args.extend(['-featureClass', feature_class])
+            field = data["field"]
+            if field:
+                args.extend(['-field', field])
+
+            out_data = []
+            proc = subprocess.Popen(args, executable=arcpy_path, stderr=PIPE, stdout=PIPE)
+            while proc.poll() is None:
+                l = proc.stdout.readline()
+                if l:
+                    try:
+                        out_data.append(json.loads(l.decode('utf8').replace("'", '"')))
+                    except JSONDecodeError as e:
+                        logger.error(e, l)
+                        raise Exception(e, 1)
+
+            # loop through all the json objects and build the store
+            for data in out_data:
+                if "workspace_type" in data:
+                    # this is a geodatabase object
+                    # check to see if it exists
+                    existing = GDB.objects.filter(catalog_path=data["catalog_path"])
+                    if existing:
+                        serializer = GDBSerializer(existing[0], data=data)
+                    else:
+                        serializer = GDBSerializer(data=data)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        logger.error(serializer.errors)
+
+                elif "code" in data:
+                    # this is a domain code and description
+                    # get the gdb object to relate these to
+                    gdb = GDB.objects.get(base_name=data['gdb_name'])
+                    if gdb:
+                        data['gdb'] = gdb.pk
+                    try:
+                        existing = DomainValues.objects.filter(name=data["name"]).get(code=data["code"])
+                        serializer = DomainSerializer(existing, data=data)
+                    except DomainValues.DoesNotExist:
+                        serializer = DomainSerializer(data=data)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        logger.error(serializer.errors)
+
+                elif "children" in data:
+                    # this is a feature dataset object
+                    # check to see if it exists
+                    existing = FeatureDataset.objects.filter(base_name=data["base_name"])
+                    if existing:
+                        serializer = FDatasetSerializer(existing[0], data=data)
+                    else:
+                        serializer = FDatasetSerializer(data=data)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        logger.error(serializer.errors)
+
+                elif "field_list" in data:
+                    # this is a feature class object
+                    # check to see if it exists
+                    existing = FeatureClass.objects.filter(catalog_path=data["catalog_path"])
+                    if existing:
+                        serializer = FClassSerializer(existing[0], data=data)
+                    else:
+                        serializer = FClassSerializer(data=data)
+
+                    if serializer.is_valid():
+                        serializer.save()
+                    else:
+                        logger.error(serializer.errors)
+
+                elif "percent" in data:
+                    # this is a Field Object
+                    # check to see if the field object exists
+                    existing = FieldObject.objects.filter(name=data["name"])
+                    if existing:
+                        serializer = FieldSerializer(existing[0], data=data)
+                    else:
+                        serializer = FieldSerializer(data=data)
+
+                    if serializer.is_valid():
+                        field = serializer.save()
+                        domain_rows = DomainValues.objects.filter(name=data["domain_name"])
+                        if domain_rows:
+                            for x in domain_rows:
+                                x.fieldobject_set.add(field)
+                    else:
+                        logger.error(serializer.errors)
+
+            return Response(data=out_data)
+
+        else:
+
+            return Response(data=serializer.errors)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GDBSummaryPage(APIView):
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = 'GDB_Summary.html'
+
+    @list_route(methods=['get',])
+    def get(self, request, format=None):
+        gdb = GDB.objects.all()
+        dsets = FeatureDataset.objects.all()
+        fcs = FeatureClass.objects.all()
+        fields = FieldObject.objects.all()
+
+        data = {'gdb': gdb, 'dsets': dsets, 'fcs': fcs, 'fields': fields}
+        return Response(data=data)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -96,84 +237,11 @@ class FClassViewSet(viewsets.ModelViewSet):
     queryset = FeatureClass.objects.all()
     serializer_class = FClassSerializer
 
-    # @list_route(methods=['get', 'post'])
-    def get(self, request, format=None):
-        serializer = FClassSerializer(self.queryset.data, many=True, context={'request': request})
-        return Response(serializer.data)
 
-    @list_route(methods=['get', 'post'])
-    def _build(self, request):
-        build_script = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    gdb_build_script)
-        proc = subprocess.Popen(["{}".format(arcpro_path), build_script], stdout=PIPE)
-        out, err = proc.communicate()
-        if out:
-            conv = out.decode()
-            conv2 = conv.replace("'", '"')
-            item = json.loads(conv2)
-
-            kwargs = {
-                "baseName": item["baseName"],
-                "workspaceType": item["workspaceType"],
-                "catalogPath": item["catalogPath"],
-                "workspaceFactoryProgID": item["workspaceFactoryProgID"],
-                "release": item["release"],
-                "domains": item["domains"],
-                "currentRelease": item["currentRelease"],
-                "connectionString": item["connectionString"]
-            }
-
-            try:
-                existing_gdb = GDB.objects.get(catalogPath=kwargs["catalogPath"])
-                for x in kwargs:
-                    existing_gdb.x = kwargs[x]
-                existing_gdb.save()
-            except GDB.DoesNotExist:
-                entry = GDB.objects.create(**kwargs)
-                entry.save()
-
-            datasets = item["datasets"]
-            for dset in datasets:
-                kwargs = {
-                    "baseName": dset["baseName"],
-                    "changeTracked": dset["changeTracked"],
-                    "datasetType": dset["datasetType"],
-                    "isVersioned": dset["isVersioned"],
-                    "spatialReference": dset["spatialReference.name"],
-                    "children": dset["children"]
-                }
-
-                try:
-                    fd = FeatureDataset.objects.get(baseName = kwargs["baseName"])
-                    for x in kwargs:
-                        fd.x = kwargs[x]
-                    fd.save()
-                except fd.DoesNotExist:
-                    entry = FeatureDataset.objects.create(**kwargs)
-                    entry.save()
-
-                for fc in dset["feature_classes"]:
-                    kwargs = {
-                        "catalogPath": fc["catalogPath"],
-                        "baseName": fc["baseName"],
-                        "count": fc["count"],
-                        "featureType": fc["featureType"],
-                        "hasM": fc["hasM"],
-                        "hasZ": fc["hasZ"],
-                        "hasSpatialIndex": fc['hasSpatialIndex'],
-                        "shapeFieldName": fc["shapeFieldName"],
-                        "shapeType": fc["shapeType"]
-                    }
-                    try:
-                        fc = FeatureClass.objects.get(catalogPath=kwargs['catalogPath'])
-                        for x in kwargs:
-                            fc.x = kwargs[x]
-                        fc.save()
-                    except fc.DoesNotExist:
-                        entry = FeatureClass.objects.create(**kwargs)
-                        entry.save()
-
-            return Response(item)
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FieldViewSet(viewsets.ModelViewSet):
+    queryset = FieldObject.objects.all()
+    serializer_class = FieldSerializer
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -181,9 +249,6 @@ class PLogViewSet(viewsets.ModelViewSet):
     queryset = PublisherLog.objects.all()
     serializer_class = PLogSerializer
 
-    def get(self, request, format=None):
-        serializer = PLogSerializer(self.queryset.data, many=True, context={'request': request})
-        return Response(serializer.data)
 
 
 
