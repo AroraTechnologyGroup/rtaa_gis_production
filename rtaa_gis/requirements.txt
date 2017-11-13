@@ -4,6 +4,7 @@ django-braces
 django-cors-middleware
 django-crispy-forms
 django-extensions
+django-pyodbc-azure
 django-rest-swagger
 djangorestframework
 djangorestframework-jsonp
