@@ -15,6 +15,8 @@ class Agreement(models.Model):
 
     title = models.CharField(max_length=255, blank=True)
 
+    status = models.CharField(max_length=255, blank=True)
+
     type = models.CharField(max_length=255, blank=True)
 
     description = models.CharField(max_length=255, blank=True)
@@ -50,16 +52,3 @@ class Space(models.Model):
 
     agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE, null=True)
 
-    tenant = models.CharField(max_length=255, blank=True)
-
-    type = models.CharField(max_length=255, blank=True)
-
-    gis_area = models.FloatField(null=True)
-
-    leased_area = models.FloatField(null=True)
-
-    notes = models.CharField(max_length=255, blank=True)
-
-    start_date = models.DateField(null=True)
-
-    end_date = models.DateField(null=True)

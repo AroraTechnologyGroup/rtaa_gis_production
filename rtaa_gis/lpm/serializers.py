@@ -8,12 +8,16 @@ import os
 class AgreementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agreement
-        fields = ('id', 'title', 'type', 'description', 'annual_revenue', 'contact1_name', 'contact1_phone_number', 'contact1_address',
-                  'contact2_name', 'contact2_phone_number', 'contact2_address', 'start_date', 'end_date')
+        fields = '__all__'
+
+    spaces = serializers.HyperlinkedRelatedField(
+        many=True,
+        read_only=True,
+        view_name='space-detail'
+    )
 
     def create(self, validated_data):
         try:
-
             _agg = Agreement.objects.create(**validated_data)
             _agg.save()
             return _agg
@@ -22,11 +26,11 @@ class AgreementSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         try:
-
             # These variables are brought in from the Access Database of Tiffany
             instance.title = validated_data.get("title", instance.title)
             instance.id = validated_data.get("id", instance.id)
             instance.type = validated_data.get("type", instance.type)
+            instance.status = validated_data.get("status", instance.status)
             instance.description = validated_data.get("description", instance.description)
             instance.annual_revenue = validated_data.get("annual_revenue", instance.annual_revenue)
             instance.contact1_name = validated_data.get("contact1_name", instance.contact1_name)
@@ -46,8 +50,7 @@ class AgreementSerializer(serializers.ModelSerializer):
 class SpaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Space
-        fields = ('id', 'agreement', 'tenant', 'type', 'gis_area', 'leased_area',
-                  'notes', 'start_date', 'end_date')
+        fields = '__all__'
         read_only_fields = ('id',)
 
     def create(self, validated_data):
@@ -64,13 +67,6 @@ class SpaceSerializer(serializers.ModelSerializer):
             # These variables are brought in from the Access Database of Tiffany
             instance.id = validated_data.get("id", instance.id)
             instance.agreement = validated_data.get("agreement", instance.agreement)
-            instance.tenant = validated_data.get("tenant", instance.tenant)
-            instance.type = validated_data.get("type", instance.type)
-            instance.gis_area = validated_data.get("gis_area", instance.gis_area)
-            instance.leased_area = validated_data.get("leased_area", instance.leased_area)
-            instance.notes = validated_data.get("notes", instance.notes)
-            instance.start_date = validated_data.get("start_date", instance.start_date)
-            instance.end_date = validated_data.get("end_date", instance.end_date)
             instance.save()
             return instance
         except Exception as e:
