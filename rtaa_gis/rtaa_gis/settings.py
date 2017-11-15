@@ -20,18 +20,21 @@ DEBUG = True
 FORCE_SCRIPT_NAME = "/applications_test/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+
 # LDAP_URL = "gis.renoairport.net"
 LDAP_URL = "gisapps.aroraengineers.com"
 if LDAP_URL == "gisapps.aroraengineers.com":
     PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
 else:
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
+
 # This setting gets used in templates to build correct hyperlinks
 if DEBUG:
     FORCE_SCRIPT_NAME = '/'
@@ -45,6 +48,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
 LOGIN_URL = r'login'
+
+SWAGGER_SETTINGS = {
+    'JSON_EDITOR': True,
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL':  'rest_framework:logout'
+}
+
 LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
@@ -281,6 +291,26 @@ LOGGING = {
         }
     },
     'loggers': {
+        'analytics': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'diagrams': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'cloudSync': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'lpm': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
         'fileApp': {
             'handlers': ['console', 'file'],
             'level': "DEBUG",

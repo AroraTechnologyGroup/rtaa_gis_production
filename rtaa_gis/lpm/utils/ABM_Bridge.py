@@ -17,6 +17,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 
 from lpm.serializers import AgreementSerializer
+from lpm.models import Agreement as AgreementModel
 
 from django.conf import settings
 
@@ -53,6 +54,8 @@ connGIS = pyodbc.connect(**kwargs)
 kwargs['database'] = 'ABM_Reno_Prod'
 connPROD = pyodbc.connect(**kwargs)
 
+# TODO - do not include the Baggage Service Fees of type Security Service
+# TODO - do not include the Stead Ground Leases
 
 def queryConnection(connection):
     """take in the _mssql connection and write out geometries"""
@@ -101,11 +104,11 @@ def queryConnection(connection):
                     date_type = row[1]
                     date_value = row[2]
                     if date_type in ["EXEC", "START"]:
-                        # data[key]["StartDate"] = date_value.date()
-                        data[key]["StartDate"] = date_value
+                        data[key]["StartDate"] = date_value.date()
+                        # data[key]["StartDate"] = date_value
                     if date_type in ["END", "EXPIR"]:
-                        # data[key]["Expiration"] = date_value.date()
-                        data[key]["Expiration"] = date_value
+                        data[key]["Expiration"] = date_value.date()
+                        # data[key]["Expiration"] = date_value
                     # if the start date or the end date have not been set, make it Unknown
                     existing_fields = data[key].keys()
                     if "StartDate" not in existing_fields:
@@ -145,59 +148,49 @@ if __name__ == "__main__":
         review_notes = {}
         x = queryConnection(connPROD)
 
-        # for id in x:
-        #     data = {
-        #         "id": id,
-        #         "title": x[id]["AgreementTitle"],
-        #         "type": x[id]["AgreementType"],
-        #         "status": x[id]["AgreementStatus"],
-        #         "start_date": x[id]["StartDate"],
-        #         "end_date": x[id]["Expiration"]
-        #     }
-        #     serial = AgreementSerializer(data=data)
-        #     if serial.is_valid():
-        #         serial.save()
-        #     else:
-        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+        for id in x:
+            data = {
+                "id": id,
+                "title": x[id]["AgreementTitle"],
+                "type": x[id]["AgreementType"],
+                "status": x[id]["AgreementStatus"],
+                "start_date": x[id]["StartDate"],
+                "end_date": x[id]["Expiration"]
+            }
+
+            try:
+                existing = AgreementModel.objects.get(id=id)
+                serial = AgreementSerializer(existing, data=data)
+            except AgreementModel.DoesNotExist:
+                serial = AgreementSerializer(data=data)
+
+            if serial.is_valid():
+                serial.save()
+            else:
+                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+
+        # Query the tables and update the data in AGOL
 
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        lease_spaces = gis.content.get('981a15cb963d496a83efb13b62a71c39')
+        layer = gis.content.get('67fd9e1515a94b66b57a2b0e8cbecc58')
 
-        for layer in [lease_spaces]:
-            for k, v in pkid_leasee.items():
-                # if the pkid from the excel file exists in the active agreements dict
-                if k in x:
-                    feature_layer = layer.layers[0]
-                    feature_set = feature_layer.query(where="TENANT_NAME = '{}'".format(v))
-                    if len(feature_set.features):
-                        filtered = feature_set.features
-                        for lyr in filtered:
-                            pkids = []
-                            existing_att = lyr.attributes["AGREEMENT_ID"]
-                            if existing_att:
-                                pkids.extend(existing_att.split(","))
+        feature_layer = layer.layers[0]
 
-                            pkids.append(str(k))
-                            pkids = list(set(pkids))
-                            lyr_edit = lyr
-                            if len(pkids) > 1:
-                                if v in review_notes:
-                                    if k not in review_notes[v]:
-                                        review_notes[v].append(k)
-                                else:
-                                    review_notes[v] = [k]
+        for agg in AgreementModel.objects.all():
+            feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
+            if len(feature_set.features):
+                filtered = feature_set.features
+                for lyr in filtered:
+                    lyr.attributes["AGREEMENT_TYPE"] = agg.type
+                    lyr.attributes["START_DATE"] = str(agg.start_date)
+                    lyr.attributes["END_DATE"] = str(agg.end_date)
+                    lyr.attributes["TENANT_NAME"] = agg.title
+                    lyr.attributes["LEASE_STATUS"] = agg.status
 
-                            elif len(pkids) == 1:
-                                lyr_edit.attributes["AGREEMENT_TYPE"] = x[k]["AgreementType"]
-                                lyr_edit.attributes["START_DATE"] = x[k]["StartDate"]
-                                lyr_edit.attributes["EXPIRATION"] = x[k]["Expiration"]
-
-                            lyr_edit.attributes["AGREEMENT_ID"] = ",".join(pkids)
-                            try:
-                                update_result = feature_layer.edit_features(updates=[lyr_edit])
-                                pass
-                            except RuntimeError as Exception:
-                                loggit(Exception)
+                    try:
+                        update_result = feature_layer.edit_features(updates=[lyr])
+                    except RuntimeError as e:
+                        loggit(e)
         loggit("Review Notes: {}".format(review_notes))
     except:
         traceback.print_exc(file=sys.stdout)

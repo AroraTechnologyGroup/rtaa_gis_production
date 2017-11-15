@@ -8,8 +8,7 @@ router.register(r'spaces', views.SpaceViewSet)
 
 app_name = 'lpm'
 urlpatterns = [
-    url(r'space-editor/(.*)', views.SpaceEditor.as_view(), name='space-editor'),
-    url(r'swag/', views.schema_view),
+    url(r'space-editor/(.*)', views.SpaceEditor.as_view(), name='space-editor')
 ]
 
 urlpatterns += router.urls
