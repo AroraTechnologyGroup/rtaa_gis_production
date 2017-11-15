@@ -1,0 +1,21 @@
+.wrapper {
+        background-image: none
+    }
+
+#_filterForm {
+    width: 25%;
+    overflow-y: scroll;
+    font-size: 0.75em;
+    padding-right: 15px;
+    padding-left: 15px;
+    padding-bottom: 15px;
+    position: absolute;
+    bottom: 10px;
+    top: 75px;
+}
+
+
+
+label {
+    margin: auto
+}

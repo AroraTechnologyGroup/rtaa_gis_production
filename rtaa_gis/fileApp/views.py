@@ -9,6 +9,7 @@ from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
+from .forms import FilterForm
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
@@ -463,5 +464,26 @@ class UserViewer(APIView):
 
         server_url = settings.LDAP_URL
         app_name = self.app_name.strip('/')
-        resp.data = {"server_url": server_url, "groups": final_groups, "app_name": app_name}
+        # add the engineering file objects to the context
+        efiles = EngineeringFileModel.objects.all()
+        assignments = EngineeringAssignment.objects.all()
+
+        f_types = FileTypes()
+        sheet_types = f_types.engineering_sheet_types
+        vendors = f_types.vendor_choices
+        disciplines = f_types.engineering_discipline_choices
+        airports = f_types.airport_choices
+        funding_types = f_types.funding_choices
+
+        form = FilterForm(sheet_types=sheet_types, vendors=vendors,
+                          disciplines=disciplines, airports=airports,
+                          funding_types=funding_types)
+
+        resp.data = {"efiles": efiles,
+                     "assigns": assignments,
+                     "server_url": server_url,
+                     "groups": final_groups,
+                     "app_name": app_name,
+                     "form": form
+                     }
         return resp

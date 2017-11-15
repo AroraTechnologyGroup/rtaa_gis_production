@@ -5,7 +5,17 @@ from .utils import function_definitions
 import mimetypes
 import os
 
+vendor_choices = []
+
+airport_choices = [
+    ('RNO', 'Reno-Tahoe International Airport'),
+    ('RTS', 'Reno-Stead Airport')
+]
+
+funding_choices = []
+
 engineering_discipline_choices = [
+                (None, '--'),
                 ('MISC', 'Miscellaneous'),
                 ('CIVIL', 'Civil'),
                 ('ARCH', 'Architectural'),
@@ -16,6 +26,7 @@ engineering_discipline_choices = [
                 ('ELECTRICAL', 'Electrical')
             ]
 engineering_sheet_types = [
+                (None, '--'),
                 ('DETAILS', 'Details'),
                 ('PLAN', 'Plan'),
                 ('TITLE', 'Title'),
@@ -79,6 +90,12 @@ class FileTypes:
         self.engineering_discipline_choices = engineering_discipline_choices
 
         self.engineering_sheet_types = engineering_sheet_types
+
+        self.vendor_choices = vendor_choices
+
+        self.airport_choices = airport_choices
+
+        self.funding_choices = funding_choices
 
         return
 

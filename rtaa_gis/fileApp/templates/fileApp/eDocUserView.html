@@ -1,8 +1,24 @@
 {% extends "home/AppLoader.html" %}
 {% load static %}
 
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{%  static 'fileApp/viewer.css' %}"/>
+{% endblock %}
+
 {% block content %}
-    <div id="_borderContainer"></div>
+    <div id="_filterForm">
+        <form action="{% url 'fileApp:eDoc' %}" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Submit" />
+        </form>
+    </div>
+    <div id="_resultBox">
+        {% for x in eFiles %}
+            <div class="fileIcon">x.name</div>
+        {% endfor %}
+    </div>
 {% endblock %}
 
 {% block footer %}
