@@ -7,13 +7,68 @@
 {% endblock %}
 
 {% block content %}
-    <div id="_filterForm">
-        <form action="{% url 'fileApp:eDoc' %}" method="post">
+    <form action="{% url 'fileApp:eDoc' %}" method="post">
+        <div id="_filter_group">
             {% csrf_token %}
-            {{ form }}
+            {% for field in form %}
+                {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' %}
+                     <div class="fieldWrapper">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                        {% if field.help_text %}
+                        <p class="help">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
             <input type="submit" value="Submit" />
-        </form>
-    </div>
+        </div>
+        <div id="_type_group">
+            <div class="_file_types">
+                {% for field in form %}
+                    {% if field.name == 'file_type' or field.name == 'document_type' %}
+                        <div class="fieldWrapper">
+                            {{ field.errors }}
+                            {{ field.label_tag }} {{ field }}
+                            {% if field.help_text %}
+                            <p class="help">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="_file_types">
+                {% for field in form %}
+                    {% if field.name == 'image_type' or field.name == 'table_type' %}
+                        <div class="fieldWrapper">
+                            {{ field.errors }}
+                            {{ field.label_tag }} {{ field }}
+                            {% if field.help_text %}
+                            <p class="help">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div id="_grid_group">
+            <div class="_file_types">
+                {% for field in form %}
+                    {% if field.name == 'grid_cells' %}
+                        <div class="fieldWrapper">
+                            {{ field.errors }}
+                            {{ field.label_tag }} {{ field }}
+                            {% if field.help_text %}
+                            <p class="help">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <input id="_type_submit" type="submit" value="Submit" />
+        </div>
+    </form>
+    <div id="_mapDiv"></div>
     <div id="_resultBox">
         {% for x in eFiles %}
             <div class="fileIcon">x.name</div>

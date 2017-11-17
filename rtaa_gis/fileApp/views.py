@@ -469,13 +469,19 @@ class UserViewer(APIView):
         assignments = EngineeringAssignment.objects.all()
 
         f_types = FileTypes()
+        file_types = f_types.FILE_VIEWER_TYPES
+        image_types = f_types.IMAGE_VIEWER_TYPES
+        table_types = f_types.TABLE_VIEWER_TYPES
+        document_types = f_types.DOC_VIEWER_TYPES
+
         sheet_types = f_types.engineering_sheet_types
         vendors = f_types.vendor_choices
         disciplines = f_types.engineering_discipline_choices
         airports = f_types.airport_choices
         funding_types = f_types.funding_choices
 
-        form = FilterForm(sheet_types=sheet_types, vendors=vendors,
+        form = FilterForm(file_types=file_types, image_types=image_types, table_types=table_types,
+                          document_types=document_types, sheet_types=sheet_types, vendors=vendors,
                           disciplines=disciplines, airports=airports,
                           funding_types=funding_types)
 
