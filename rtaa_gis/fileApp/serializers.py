@@ -1,11 +1,45 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from .models import GridCell, EngineeringAssignment, EngineeringFileModel
-from .utils import function_definitions
+from fileApp.models import GridCell, EngineeringAssignment, EngineeringFileModel
+from fileApp.utils import function_definitions
 import mimetypes
 import os
 
+vendor_choices = []
+
+airport_choices = [
+    ('RNO', 'Reno-Tahoe International Airport'),
+    ('RTS', 'Reno-Stead Airport')
+]
+
+file_types = [
+    ('docx', 'Word File'),
+    ('txt', 'Text File'),
+    ('pdf', 'PDF File'),
+]
+
+
+table_types = [
+    ('xlsx', 'Excel Table'),
+    ('odt', 'Open Office Table')
+]
+
+image_types = [
+    ('img', 'Image File'),
+    ('png', 'PNG File'),
+    ('tif', 'TIF File'),
+    ('jpg', 'JPG File')
+]
+
+funding_choices = []
+
+document_types = [
+    ('email', 'Email'),
+    ('notes', 'Notes')
+]
+
 engineering_discipline_choices = [
+                (None, '--'),
                 ('MISC', 'Miscellaneous'),
                 ('CIVIL', 'Civil'),
                 ('ARCH', 'Architectural'),
@@ -16,6 +50,7 @@ engineering_discipline_choices = [
                 ('ELECTRICAL', 'Electrical')
             ]
 engineering_sheet_types = [
+                (None, '--'),
                 ('DETAILS', 'Details'),
                 ('PLAN', 'Plan'),
                 ('TITLE', 'Title'),
@@ -70,15 +105,23 @@ class FileTypes:
             "ESRI Map Document": mxd
         }
 
-        self.DOC_VIEWER_TYPES = ['docx', 'doc', 'txt']
+        self.FILE_VIEWER_TYPES = file_types
 
-        self.TABLE_VIEWER_TYPES = ['xls', 'xlsx', 'ods']
+        self.TABLE_VIEWER_TYPES = table_types
 
-        self.IMAGE_VIEWER_TYPES = ['tiff', 'jpg', 'png']
+        self.IMAGE_VIEWER_TYPES = image_types
+
+        self.DOC_VIEWER_TYPES = document_types
 
         self.engineering_discipline_choices = engineering_discipline_choices
 
         self.engineering_sheet_types = engineering_sheet_types
+
+        self.vendor_choices = vendor_choices
+
+        self.airport_choices = airport_choices
+
+        self.funding_choices = funding_choices
 
         return
 

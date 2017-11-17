@@ -38,13 +38,13 @@ def system_paths(environ):
 
     mxd_script = {
         "work": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py",
-        "rtaa_testing": r"C:\inetpub\rtaa_gis_django_testing\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
+        "rtaa_testing": r"C:\GitHub\rtaa_gis_django\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
     }
     mxd_script = mxd_script[environ]
 
     media_dir = {
         "work": "C:/GitHub/rtaa_gis/rtaa_gis/media",
-        "staging": "C:/inetpub/django_staging/rtaa_gis/rtaa_gis/media",
+        "staging": r"C:/GitHub/rtaa_gis_django/rtaa_gis/rtaa_gis/media",
         "production": "C:/inetpub/django_prod/rtaa_gis/rtaa_gis/media",
         "rtaa_testing": r"C:\inetpub\rtaa_gis_django_testing\rtaa_gis\media"
     }
