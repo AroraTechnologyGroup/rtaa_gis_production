@@ -70,8 +70,8 @@
     </form>
     <div id="_mapDiv"></div>
     <div id="_resultBox">
-        {% for x in eFiles %}
-            <div class="fileIcon">x.name</div>
+        {% for x in efiles %}
+            <div class="fileIcon">{{ x.base_name }}</div>
         {% endfor %}
     </div>
 {% endblock %}

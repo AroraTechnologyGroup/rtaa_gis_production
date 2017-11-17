@@ -51,6 +51,7 @@
     top: 2px;
     border: 1px solid darkslateblue;
     background-color: white;
+    overflow-y: scroll;
 }
 
 #_type_submit {
