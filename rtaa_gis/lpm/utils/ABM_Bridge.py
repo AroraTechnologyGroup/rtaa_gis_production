@@ -142,11 +142,12 @@ def queryConnection(connection):
 if __name__ == "__main__":
     try:
         x = queryConnection(connPROD)
-
+        agg_domain = []
         for id in x:
+            title = x[id]["AgreementTitle"]
+            agg_domain.append({'code': id, 'name': title})
             data = {
                 "id": id,
-                "title": x[id]["AgreementTitle"],
                 "type": x[id]["AgreementType"],
                 "description": x[id]["AgreementDescription"],
                 "status": x[id]["AgreementStatus"],
@@ -166,11 +167,18 @@ if __name__ == "__main__":
                 loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         # Query the tables and update the data in AGOL
-
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
         layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
 
         feature_layer = layer.layers[0]
+
+        # Update the domains for the feature service
+        existing_fields = feature_layer.properties["fields"]
+        for obj in existing_fields:
+            if obj["name"] == "Agreement":
+                obj["domain"] = {"codedValues": agg_domain}
+        domain_update = feature_layer.update_definition({"fields": existing_fields})
+        print(domain_update)
 
         for agg in AgreementModel.objects.all():
             feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
@@ -180,7 +188,6 @@ if __name__ == "__main__":
                     lyr.attributes["AGREEMENT_TYPE"] = agg.type
                     lyr.attributes["START_DATE"] = str(agg.start_date)
                     lyr.attributes["END_DATE"] = str(agg.end_date)
-                    lyr.attributes["TENANT_NAME"] = agg.title
                     lyr.attributes["LEASE_STATUS"] = agg.status
 
                     try:
