@@ -9,6 +9,7 @@ from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
+from .forms import FilterForm
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
@@ -463,5 +464,32 @@ class UserViewer(APIView):
 
         server_url = settings.LDAP_URL
         app_name = self.app_name.strip('/')
-        resp.data = {"server_url": server_url, "groups": final_groups, "app_name": app_name}
+        # add the engineering file objects to the context
+        efiles = EngineeringFileModel.objects.all()
+        assignments = EngineeringAssignment.objects.all()
+
+        f_types = FileTypes()
+        file_types = f_types.FILE_VIEWER_TYPES
+        image_types = f_types.IMAGE_VIEWER_TYPES
+        table_types = f_types.TABLE_VIEWER_TYPES
+        document_types = f_types.DOC_VIEWER_TYPES
+
+        sheet_types = f_types.engineering_sheet_types
+        vendors = f_types.vendor_choices
+        disciplines = f_types.engineering_discipline_choices
+        airports = f_types.airport_choices
+        funding_types = f_types.funding_choices
+
+        form = FilterForm(file_types=file_types, image_types=image_types, table_types=table_types,
+                          document_types=document_types, sheet_types=sheet_types, vendors=vendors,
+                          disciplines=disciplines, airports=airports,
+                          funding_types=funding_types)
+
+        resp.data = {"efiles": efiles,
+                     "assigns": assignments,
+                     "server_url": server_url,
+                     "groups": final_groups,
+                     "app_name": app_name,
+                     "form": form
+                     }
         return resp

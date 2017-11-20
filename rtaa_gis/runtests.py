@@ -11,5 +11,5 @@ if __name__ == '__main__':
     test_runner = TestRunner()
     test1 = test_runner.run_tests(["fileApp.tests"])
     test2 = test_runner.run_tests(["lpm.tests"])
-    result = list(set([test1, test2]))
+    result = list({test1, test2})
     sys.exit(sum(result))
