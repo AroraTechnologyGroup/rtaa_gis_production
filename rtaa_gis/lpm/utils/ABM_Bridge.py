@@ -45,9 +45,6 @@ connGIS = pyodbc.connect(**kwargs)
 kwargs['database'] = 'ABM_Reno_Prod'
 connPROD = pyodbc.connect(**kwargs)
 
-# TODO - do not include the Baggage Service Fees of type Security Service
-# TODO - do not include the Stead Ground Leases
-
 
 def queryConnection(connection):
     """take in the _mssql connection and write out geometries"""
