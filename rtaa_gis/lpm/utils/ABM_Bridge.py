@@ -33,17 +33,8 @@ def loggit(text):
     pprint.pprint("{}\n".format(text))
     file.close()
 
+
 ###############################################
-pkid_leasee = {}
-
-wb = xlrd.open_workbook("PKID_Table.xls")
-
-sheet = wb.sheet_by_index(0)
-for rx in range(sheet.nrows):
-    _row = sheet.row(rx)
-    if _row[2].value != 'pkAgreementID':
-        pkid_leasee[int(_row[2].value)] = _row[1].value
-
 kwargs = dict()
 kwargs['driver'] = '{SQL Server}'
 kwargs['server'] = 'Reno-fis-sql2'
@@ -56,6 +47,7 @@ connPROD = pyodbc.connect(**kwargs)
 
 # TODO - do not include the Baggage Service Fees of type Security Service
 # TODO - do not include the Stead Ground Leases
+
 
 def queryConnection(connection):
     """take in the _mssql connection and write out geometries"""
@@ -75,21 +67,25 @@ def queryConnection(connection):
     for row in cursor:
         agreement_types[row[0]] = row[1]
 
+    # get the NON-STEAD Agreements
     cursor.execute("SELECT [pkAgreementID],\
     [AgreementNumber],[AgreementTitle],\
-    [fkAgreementStatusID], [fkAgreementTypeID]\
+    [fkAgreementStatusID], [AgreementDescription],\
+    [fkAgreementTypeID]\
      FROM [ABM_Reno_Prod].[dbo].[tblagAgreements]\
-    WHERE [fkAgreementStatusID] = 'ACTV'")
+        WHERE [fkAgreementTypeID] <> 'STEADGRND'")
     for row in cursor:
-
+        # keep the object if an active/or pending type
         if row[3].upper() in status_types.keys():
-
-            data[row[0]] = {
-                "AgreementNumber": row[1],
-                "AgreementTitle": row[2],
-                "AgreementType": agreement_types[row[4]],
-                "AgreementStatus": status_types[row[3]]
-            }
+            # Ignore the Badging Service Fee Agreements
+            if "BADGING" not in row[2].upper():
+                data[row[0]] = {
+                    "AgreementNumber": row[1],
+                    "AgreementTitle": row[2],
+                    "AgreementStatus": status_types[row[3]],
+                    "AgreementDescription": row[4],
+                    "AgreementType": agreement_types[row[5]]
+                }
 
     ids = data.keys()
     for key in ids:
@@ -145,7 +141,6 @@ def queryConnection(connection):
 
 if __name__ == "__main__":
     try:
-        review_notes = {}
         x = queryConnection(connPROD)
 
         for id in x:
@@ -153,6 +148,7 @@ if __name__ == "__main__":
                 "id": id,
                 "title": x[id]["AgreementTitle"],
                 "type": x[id]["AgreementType"],
+                "description": x[id]["AgreementDescription"],
                 "status": x[id]["AgreementStatus"],
                 "start_date": x[id]["StartDate"],
                 "end_date": x[id]["Expiration"]
@@ -172,7 +168,7 @@ if __name__ == "__main__":
         # Query the tables and update the data in AGOL
 
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('67fd9e1515a94b66b57a2b0e8cbecc58')
+        layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
 
         feature_layer = layer.layers[0]
 
@@ -191,7 +187,7 @@ if __name__ == "__main__":
                         update_result = feature_layer.edit_features(updates=[lyr])
                     except RuntimeError as e:
                         loggit(e)
-        loggit("Review Notes: {}".format(review_notes))
-    except:
+    except Exception as e:
         traceback.print_exc(file=sys.stdout)
+        loggit(e)
 
