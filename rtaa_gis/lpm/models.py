@@ -19,7 +19,7 @@ class Agreement(models.Model):
 
     type = models.CharField(max_length=255, blank=True)
 
-    description = models.CharField(max_length=255, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
 
     annual_revenue = models.CharField(max_length=255, blank=True)
 
