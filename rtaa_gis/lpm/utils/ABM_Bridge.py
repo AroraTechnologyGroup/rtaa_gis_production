@@ -10,7 +10,10 @@ import pyodbc
 import datetime
 import xlrd
 from arcgis.gis import GIS
+from arcgis.features import FeatureLayerCollection
 import pprint
+import urllib.request
+import urllib.parse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
@@ -76,6 +79,13 @@ def queryConnection(connection):
         if row[3].upper() in status_types.keys():
             # Ignore the Badging Service Fee Agreements
             if "BADGING" not in row[2].upper():
+                cleaned_row = []
+                for x in row:
+                    if type(x) is str:
+                        cleaned_row.append(x.strip())
+                    else:
+                        cleaned_row.append(x)
+
                 data[row[0]] = {
                     "AgreementNumber": row[1],
                     "AgreementTitle": row[2],
@@ -140,6 +150,7 @@ if __name__ == "__main__":
     try:
         x = queryConnection(connPROD)
         agg_domain = []
+        agg_domain.append({'code': 123467, 'name': 'Test Domain'})
         for id in x:
             title = x[id]["AgreementTitle"]
             agg_domain.append({'code': id, 'name': title})
@@ -168,14 +179,51 @@ if __name__ == "__main__":
         layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
 
         feature_layer = layer.layers[0]
-
         # Update the domains for the feature service
+
         existing_fields = feature_layer.properties["fields"]
         for obj in existing_fields:
             if obj["name"] == "Agreement":
                 obj["domain"] = {"codedValues": agg_domain}
-        domain_update = feature_layer.update_definition({"fields": existing_fields})
-        print(domain_update)
+
+        pprint.pprint(existing_fields)
+
+        # send post request to update the domains in AGOL
+        token_url = r"https://www.arcgis.com/sharing/rest/generateToken"
+        params = {
+            'f': 'pjson',
+            'username': 'data_owner',
+            'password': 'GIS@RTAA123!',
+            'referer': 'http://www.arcgis.com'
+        }
+        data = urllib.parse.urlencode(params)
+        data = data.encode('ascii')
+
+        req = urllib.request.Request(token_url, data)
+        response = urllib.request.urlopen(req)
+        data = response.read().decode("utf-8")
+        # Convert string to dictionary
+        json_acceptable_string = data.replace("'", "\"")
+        d = json.loads(json_acceptable_string)
+        token = d['token']
+
+        post_data = {
+            "token": token,
+            "f": "pjson",
+            "updateDefinition": {
+                "fields": json.dumps(existing_fields)
+            }
+        }
+        post_data = urllib.parse.urlencode(post_data)
+        post_data = post_data.encode('ascii')
+        service_url = r"https://services6.arcgis.com/GC5xdlDk2dEYWofH/arcgis/rest/admin/services/Space/FeatureServer/0/updateDefinition"
+        req = urllib.request.Request(service_url, post_data)
+        response = urllib.request.urlopen(req)
+        data = response.read().decode("utf-8")
+        # Convert string to dictionary
+        json_acceptable_string = data.replace("'", "\"")
+        d = json.loads(json_acceptable_string)
+        pprint.pprint(d)
 
         for agg in AgreementModel.objects.all():
             feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
