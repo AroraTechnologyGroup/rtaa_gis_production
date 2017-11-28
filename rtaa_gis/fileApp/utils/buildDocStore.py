@@ -283,7 +283,7 @@ class GridCellBuilder:
                               params=login_params)
         access_token = token.json()['access_token']
 
-        query_url = r'https://services1.arcgis.com/Apy6bpbM5OoW9DX4/arcgis/rest/services/MapGrid_StatePlane/FeatureServer/0/query'
+        query_url = r'https://services6.arcgis.com/GC5xdlDk2dEYWofH/arcgis/rest/services/Airfield_Grid/FeatureServer/1/query'
         query_params = {
             'f': 'json',
             'token': access_token,
@@ -304,7 +304,7 @@ class GridCellBuilder:
             name = '{}'.format(grid)
             try:
                 filtered = GridCell.objects.filter(name=name)
-                # Only create a document if one with that name does not exist
+                # Only create a grid cell if one with that name does not exist
                 if len(filtered) == 0:
                     x = GridCell.objects.create(name=name)
                     x.save()
@@ -361,8 +361,8 @@ if __name__ == '__main__':
     x.build_store()
     if os.path.exists(acc_db_path):
         x.load_accdb()
-    # cell = GridCellBuilder()
-    # cell.build_store()
-    ass = AssignmentManager()
-    ass.create_test_assignments()
+    cell = GridCellBuilder()
+    cell.build_store()
+    # ass = AssignmentManager()
+    # ass.create_test_assignments()
 

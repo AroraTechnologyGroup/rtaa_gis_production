@@ -150,10 +150,9 @@ if __name__ == "__main__":
     try:
         x = queryConnection(connPROD)
         agg_domain = []
-        agg_domain.append({'code': 123467, 'name': 'Test Domain'})
         for id in x:
             title = x[id]["AgreementTitle"]
-            agg_domain.append({'code': id, 'name': title})
+            agg_domain.append({'code': id, 'name': "{} ({})".format(title, id)})
             data = {
                 "id": id,
                 "type": x[id]["AgreementType"],
@@ -182,11 +181,12 @@ if __name__ == "__main__":
         # Update the domains for the feature service
 
         existing_fields = feature_layer.properties["fields"]
-        for obj in existing_fields:
+        new_fields = existing_fields[:]
+        for obj in new_fields:
             if obj["name"] == "Agreement":
                 obj["domain"] = {"codedValues": agg_domain}
 
-        pprint.pprint(existing_fields)
+        pprint.pprint(new_fields)
 
         # send post request to update the domains in AGOL
         token_url = r"https://www.arcgis.com/sharing/rest/generateToken"
@@ -211,7 +211,7 @@ if __name__ == "__main__":
             "token": token,
             "f": "pjson",
             "updateDefinition": {
-                "fields": json.dumps(existing_fields)
+                "fields": json.dumps(new_fields)
             }
         }
         post_data = urllib.parse.urlencode(post_data)
@@ -225,20 +225,20 @@ if __name__ == "__main__":
         d = json.loads(json_acceptable_string)
         pprint.pprint(d)
 
-        for agg in AgreementModel.objects.all():
-            feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
-            if len(feature_set.features):
-                filtered = feature_set.features
-                for lyr in filtered:
-                    lyr.attributes["AGREEMENT_TYPE"] = agg.type
-                    lyr.attributes["START_DATE"] = str(agg.start_date)
-                    lyr.attributes["END_DATE"] = str(agg.end_date)
-                    lyr.attributes["LEASE_STATUS"] = agg.status
-
-                    try:
-                        update_result = feature_layer.edit_features(updates=[lyr])
-                    except RuntimeError as e:
-                        loggit(e)
+        # for agg in AgreementModel.objects.all():
+        #     feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
+        #     if len(feature_set.features):
+        #         filtered = feature_set.features
+        #         for lyr in filtered:
+        #             lyr.attributes["AGREEMENT_TYPE"] = agg.type
+        #             lyr.attributes["START_DATE"] = str(agg.start_date)
+        #             lyr.attributes["END_DATE"] = str(agg.end_date)
+        #             lyr.attributes["LEASE_STATUS"] = agg.status
+        #
+        #             try:
+        #                 update_result = feature_layer.edit_features(updates=[lyr])
+        #             except RuntimeError as e:
+        #                 loggit(e)
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
         loggit(e)
