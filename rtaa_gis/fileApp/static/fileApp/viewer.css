@@ -54,6 +54,10 @@ html, body, .viewport {
     flex-grow: 2;
 }
 
+.fieldWrapper > select {
+    width: 100%;
+}
+
 #_flex_container {
     position: absolute;
     display: flex;
@@ -62,13 +66,13 @@ html, body, .viewport {
     flex-direction: row;
     margin: 1px;
     height: 99%;
-    font-size: 0.75rem;
+    font-size: 0.5rem;
     align-items: flex-start;
     z-index: 10;
 }
 
 #_flex_container label {
-    font-size: 0.75rem;
+    font-size: 0.5rem;
 }
 
 #_slider_panel {

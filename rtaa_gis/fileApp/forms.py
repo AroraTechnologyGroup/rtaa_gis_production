@@ -83,7 +83,7 @@ class FilterForm(forms.Form):
 
     sheet_description = forms.CharField(label="Sheet Description", required=False)
 
-    vendor = forms.MultipleChoiceField(choices=(), label="Vendors", required=False)
+    vendor = forms.CharField(label="Vendor", required=False)
 
     discipline = forms.MultipleChoiceField(choices=(), label="Discipline", required=False)
 

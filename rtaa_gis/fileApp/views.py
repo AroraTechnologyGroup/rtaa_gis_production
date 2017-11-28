@@ -190,11 +190,6 @@ def authorize_user(request, template):
     return [x.name for x in user_obj.groups.all()]
 
 
-class FileResultSetPagination(PageNumberPagination):
-    page_size = 100
-    page_size_query_param = 'page_size'
-    max_page_size = 10000
-
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class PagedFileViewSet(viewsets.ModelViewSet):
@@ -463,7 +458,7 @@ class UserViewer(GenericAPIView):
     """View that renders the main homepage or an app depending on the template"""
     renderer_classes = (TemplateHTMLRenderer,)
     permission_classes = (AllowAny,)
-    pagination_class = FileResultSetPagination
+    pagination_class = LargeResultsSetPagination
     template = ""
     app_name = ""
 
@@ -514,7 +509,7 @@ class UserViewer(GenericAPIView):
 
         form = FilterForm(init_base_name="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
                           init_project_desc="", init_after_date="", init_before_date="",
-                          init_sheet_description="", init_vendors=['all'], init_disciplines=['all'],
+                          init_sheet_description="", init_vendors="", init_disciplines=['all'],
                           init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",
                           chkd_f_types=chkd_f_types, chkd_i_types=chkd_i_types,
                           chkd_t_types=chkd_t_types, chkd_d_types=chkd_d_types, chkd_gis_types=chkd_gis_types,
@@ -611,7 +606,7 @@ class UserViewer(GenericAPIView):
 
         # Look up dict to use until bug is fixed with variable names/keys
         # lookup = {}
-        # for x in choices:
+        # for x in [self.file_types, image_types, table_types, gis_types]:
         #     lookup[]
         # Pre file type filters
         base_types = file_types[:]
