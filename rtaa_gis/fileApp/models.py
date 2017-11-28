@@ -31,6 +31,8 @@ class FileModel(models.Model):
 
     file_type = models.CharField(max_length=25)
 
+    document_type = models.CharField(max_length=50, blank=True)
+
     mime = models.CharField(max_length=255)
 
     size = models.CharField(max_length=25)

@@ -20,11 +20,14 @@
                      <span>
                         <button id="_map_handle" class="btn btn-clear">Map</button>
                     </span>
+                    <span>
+                        <button id="_reset_handle" formmethod="get" href="{% url 'fileApp:eDoc' %}" class="btn btn-clear">Reset</button>
+                    </span>
                 </div>
                 <div id="_filter_group">
                     {% csrf_token %}
                     {% for field in form %}
-                        {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' %}
+                        {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
                              <div class="fieldWrapper">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
@@ -41,7 +44,7 @@
                 <div id="_slider_panel">
                     <div id="_file_type_group" class="panel_slide">
                         {% for field in form %}
-                            {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type'%}
+                            {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
                                 <div class="fieldWrapper">
                                     {{ field.errors }}
                                     {{ field.label_tag }} {{ field }}

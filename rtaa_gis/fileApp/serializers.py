@@ -5,33 +5,18 @@ from fileApp.utils import function_definitions
 import mimetypes
 import os
 
-vendor_choices = []
+vendor_choices = [
+    ('all', 'All')
+]
 
 airport_choices = [
-    ('RNO', 'Reno-Tahoe International Airport'),
-    ('RTS', 'Reno-Stead Airport')
+    ('rno', 'Reno-Tahoe International Airport'),
+    ('rts', 'Reno-Stead Airport')
 ]
 
-file_types = [
-    ('docx', 'Word File'),
-    ('txt', 'Text File'),
-    ('pdf', 'PDF File'),
+funding_choices = [
+    ('all', 'All')
 ]
-
-
-table_types = [
-    ('xlsx', 'Excel Table'),
-    ('odt', 'Open Office Table')
-]
-
-image_types = [
-    ('img', 'Image File'),
-    ('png', 'PNG File'),
-    ('tif', 'TIF File'),
-    ('jpg', 'JPG File')
-]
-
-funding_choices = []
 
 document_types = [
     ('email', 'Email'),
@@ -39,27 +24,27 @@ document_types = [
 ]
 
 engineering_discipline_choices = [
-                (None, '--'),
-                ('MISC', 'Miscellaneous'),
-                ('CIVIL', 'Civil'),
-                ('ARCH', 'Architectural'),
-                ('STRUCTURAL', 'Structural'),
-                ('LANDSCAPING', 'Landscaping'),
-                ('MECHANICAL-HVAC', 'Mechanical-HVAC'),
-                ('PLUMBING', 'Plumbing'),
-                ('ELECTRICAL', 'Electrical')
+                ('all', 'All'),
+                ('misc', 'Miscellaneous'),
+                ('civil', 'Civil'),
+                ('arch', 'Architectural'),
+                ('structural', 'Structural'),
+                ('landscaping', 'Landscaping'),
+                ('mechanical-hvac', 'Mechanical-HVAC'),
+                ('plumbing', 'Plumbing'),
+                ('electrical', 'Electrical')
             ]
 engineering_sheet_types = [
-                (None, '--'),
-                ('DETAILS', 'Details'),
-                ('PLAN', 'Plan'),
-                ('TITLE', 'Title'),
-                ('KEY', 'Key'),
-                ('INDEX', 'Index'),
-                ('ELEVATIONS', 'Elevations'),
-                ('NOTES', 'Notes'),
-                ('SECTIONS', 'Sections'),
-                ('SYMBOLS', 'Symbols')
+                ('all', 'All'),
+                ('details', 'Details'),
+                ('plan', 'Plan'),
+                ('title', 'Title'),
+                ('key', 'Key'),
+                ('index', 'Index'),
+                ('elevations', 'Elevations'),
+                ('notes', 'Notes'),
+                ('sections', 'Sections'),
+                ('symbols', 'Symbols')
             ]
 
 
@@ -84,6 +69,7 @@ class FileTypes:
         lyr = {"lyr": "application/octet-stream"}
         mpk = {"mpk": "application/octet-stream"}
         mxd = {"mxd": "application/octet-stream"}
+        img = {"img": "image/img"}
 
         self.FILE_TYPE_CHOICES = {
             "PDF": pdf,
@@ -98,6 +84,7 @@ class FileTypes:
             "CSV Spreadsheet": csv,
             "PNG Image": png,
             "JPEG Image": jpeg,
+            "IMG Image": img,
             "TIFF Image": tiff,
             "AutoCad dwg": dwg,
             "ESRI Layer File": lyr,
@@ -105,11 +92,21 @@ class FileTypes:
             "ESRI Map Document": mxd
         }
 
-        self.FILE_VIEWER_TYPES = file_types
+        self.FILE_VIEWER_TYPES = []
+        for f in ["PDF", "OPEN OFFICE DOC", "MS Word doc", "MS Word doc", "MS Word docx", "TEXT"]:
+            self.FILE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
 
-        self.TABLE_VIEWER_TYPES = table_types
+        self.TABLE_VIEWER_TYPES = []
+        for f in ["OPEN OFFICE SHEET", "MS Excel xls", "MS Excel xlsx", "CSV Spreadsheet"]:
+            self.TABLE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
 
-        self.IMAGE_VIEWER_TYPES = image_types
+        self.IMAGE_VIEWER_TYPES = []
+        for f in ["PNG Image", "JPEG Image", "IMG Image", "TIFF Image"]:
+            self.IMAGE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
+
+        self.GIS_VIEWER_TYPES = []
+        for f in ["AutoCad dwg", "ESRI Layer File", "ESRI Map Package", "ESRI Map Document"]:
+            self.GIS_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
 
         self.DOC_VIEWER_TYPES = document_types
 

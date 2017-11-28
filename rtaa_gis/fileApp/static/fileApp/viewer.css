@@ -101,6 +101,28 @@ html, body, .viewport {
     }
 }
 
+#_slider_panel.close {
+    display: flex;
+    animation-duration: 0.5s;
+    animation-name: slideout;
+    z-index: -1;
+    margin: 2px;
+    width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+@keyframes slideout {
+    from {
+        width: 250px;
+    }
+
+    to {
+        width: 2px;
+    }
+}
+
 .panel_slide {
     display: none;
 }
