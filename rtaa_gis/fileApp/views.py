@@ -31,6 +31,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.models import User, Group
 from django.forms import modelformset_factory
+from django.forms import modelform_factory
 
 from PIL import Image
 import platform
@@ -482,7 +483,7 @@ class UserViewer(GenericAPIView):
 
     FileFormSet = modelformset_factory(EngineeringFileModel,
                                        exclude=('file_path', 'base_name', 'file_type', 'mime', 'size'),
-                                       max_num=1, extra=1)
+                                       max_num=25, extra=1)
 
     def get(self, request, format=None):
 
@@ -514,7 +515,7 @@ class UserViewer(GenericAPIView):
         chkd_d_types = [x[0] for x in self.document_types]
         chkd_gis_types = [x[0] for x in self.gis_types]
 
-        form = FilterForm(init_base_name="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
+        filter_form = FilterForm(init_base_name="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
                           init_project_desc="", init_after_date="", init_before_date="",
                           init_sheet_description="", init_vendor="", init_disciplines=['all'],
                           init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",
@@ -525,7 +526,9 @@ class UserViewer(GenericAPIView):
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = self.FileFormSet(queryset=EngineeringFileModel.objects.none())
+        edit_form = EngSerializer
+
+        batch_formset = self.FileFormSet()
 
         resp.data = {
                      "base_names": base_names,
@@ -540,8 +543,9 @@ class UserViewer(GenericAPIView):
                      "server_url": self.server_url,
                      "groups": final_groups,
                      "app_name": app_name,
-                     "form": form,
-                     "edit_form": edit_form
+                     "filter_form": filter_form,
+                     "edit_form": edit_form,
+                     "batch_formset": batch_formset
                      }
         return resp
 
@@ -646,7 +650,7 @@ class UserViewer(GenericAPIView):
         file_paths = [x.file_path for x in efiles]
         grant_numbers = set([x.grant_number for x in efiles])
 
-        form = FilterForm(init_base_name=base_name, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
+        filter_form = FilterForm(init_base_name=base_name, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
                           init_project_title=project_title, init_project_desc=project_description,
                           init_after_date=after_date, init_before_date=before_date,
                           init_sheet_description=sheet_description, init_vendor=vendor, init_disciplines=disciplines,
@@ -659,7 +663,9 @@ class UserViewer(GenericAPIView):
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = self.FileFormSet(queryset=EngineeringFileModel.objects.none())
+        edit_form = EngSerializer
+
+        batch_formset = self.FileFormSet()
 
         resp.data = {
             "base_names": base_names,
@@ -674,21 +680,8 @@ class UserViewer(GenericAPIView):
             "server_url": self.server_url,
             "groups": final_groups,
             "app_name": app_name,
-            "form": form,
-            "edit_form": edit_form
+            "filter_form": filter_form,
+            "edit_form": edit_form,
+            "batch_formset": batch_formset
         }
-        return resp
-
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class FileUpdater(GenericAPIView):
-    """View that accepts updates to the edoc files"""
-
-    def post(self, request, format=None):
-        FileFormSet = modelformset_factory(EngineeringFileModel)
-        formset = FileFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-
-        resp = Response()
         return resp

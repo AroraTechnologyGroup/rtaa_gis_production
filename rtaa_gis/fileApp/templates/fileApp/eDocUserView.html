@@ -1,5 +1,6 @@
 {% extends "home/AppLoader.html" %}
 {% load static %}
+{% load rest_framework %}
 
 {% block stylesheets %}
     {{ block.super }}
@@ -9,6 +10,7 @@
 {% block content %}
     <div id="_outer_div">
         <form action="{% url 'fileApp:eDoc' %}" method="post">
+        {% csrf_token %}
             <div id="_placed_panel">
                 <div id="_buttons">
                     <span>
@@ -33,9 +35,8 @@
 {#                    {% endif %}#}
                 </div>
                 <div id="_filter_group">
-                    {% csrf_token %}
                     <input class="btn btn-fill" type="submit" value="Submit" />
-                    {% for field in form %}
+                    {% for field in filter_form %}
                         {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
                              <div class="fieldWrapper">
                                 {{ field.errors }}
@@ -54,7 +55,7 @@
                 <div id="_slider_panel">
                     <div id="_slider_flex_container">
                         <div id="_file_type_group" class="panel_slide">
-                            {% for field in form %}
+                            {% for field in filter_form %}
                                 {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
                                     <div class="fieldWrapper">
                                         {{ field.errors }}
@@ -69,7 +70,7 @@
                         </div>
 
                         <div id="_doc_type_group" class="panel_slide">
-                            {% for field in form %}
+                            {% for field in filter_form %}
                                 {% if field.name == 'document_type' %}
                                     <div class="fieldWrapper">
                                         {{ field.errors }}
@@ -86,7 +87,7 @@
                         <div id="_grid_group" class="panel_slide">
                             <div id="_mapDiv"></div>
                             <div class="_file_types">
-                                {% for field in form %}
+                                {% for field in filter_form %}
                                     {% if field.name == 'grid_cells' %}
                                         <div class="fieldWrapper">
                                             {{ field.errors }}
@@ -103,29 +104,17 @@
                     </div>
                 </div>
                 <div id="_resultBox">
-                    {% for x in efiles %}
-                        <div class="fileIcon">{{ x.base_name }}</div>
+                    {% for file in efiles %}
+                        <div class="fileIcon {{ file.file_type }}">{{ file.base_name }}</div>
                     {% endfor %}
                 </div>
             </div>
         </form>
-        <form action="{% url 'fileApp:edoc-edit' %}" method="post">
+        <form action='/fileApp/eng-files/' method="post">
+            {% csrf_token %}
             <div id="_update_panel">
                 <input class="btn btn-fill" type="submit" value="Save" />
-                {% for form in edit_form %}
-                    {% for hidden in form.hidden_fields %}
-                        {{ hidden }}
-                    {% endfor %}
-                    {% for field in form.visible_fields %}
-                        <div class="fieldWrapper">
-                            {{ field.errors }}
-                            {{ field.label_tag }} {{ field }}
-                            {% if field.help_text %}
-                            <p class="help">{{ field.help_text|safe }}</p>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                {% endfor %}
+                    {% render_form edit_form template_pack='rest_framework/vertical' %}
                 <input class="btn btn-fill" type="submit" value="Save" />
             </div>
         </form>

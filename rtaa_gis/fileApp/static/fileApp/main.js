@@ -38,6 +38,17 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             var _container = dom.byId('_container');
             var update_panel = dom.byId('_update_panel');
 
+            // add the DRF class names to the django fieldWrapper to get the calendar
+            var fields = query('.fieldWrapper');
+            Array.forEach(fields, function(e) {
+                domClass.add(e, 'form-group');
+            });
+
+            var controls = query('.fieldWrapper input');
+            Array.forEach(controls, function(e) {
+                domClass.add(e, 'form-control');
+            });
+
             var check_panel = function(event) {
 
                 var deferred = new Deferred();

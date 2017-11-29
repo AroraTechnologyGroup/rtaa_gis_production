@@ -7,6 +7,7 @@ date_format = [
 
 
 class FilterForm(forms.Form):
+
     def __init__(self, init_base_name, init_sheet_title, sheet_types, init_sheet_types, init_project_title, init_project_desc, init_after_date,
                  init_before_date, init_sheet_description, init_vendor, disciplines, init_disciplines,
                  airports, init_airports, funding_types, init_funding_types, init_file_path, init_grant_number,
@@ -74,11 +75,9 @@ class FilterForm(forms.Form):
 
     project_description = forms.CharField(label='Project Description', required=False)
 
-    after_date = forms.DateField(required=False, widget=forms.DateInput(format=date_format,
-                                                                        attrs={'placeholder': 'Month / Year'}))
+    after_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
 
-    before_date = forms.DateField(required=False, widget=forms.DateInput(format=date_format,
-                                                                         attrs={'placeholder': 'Month / Year'}))
+    before_date = forms.DateField(required=False,  widget=forms.DateInput(attrs={'type': 'date'}))
 
     sheet_description = forms.CharField(label="Sheet Description", required=False)
 
