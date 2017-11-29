@@ -30,6 +30,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.models import User, Group
+from django.forms import modelformset_factory
 
 from PIL import Image
 import platform
@@ -138,7 +139,7 @@ def create_response_object(in_path, extension):
 
 def authorize_user(request, template):
     if not request.user.is_authenticated():
-        return redirect(reverse('home:login'))
+        return False
     try:
         name = request.META['REMOTE_USER']
     except KeyError:
@@ -188,7 +189,6 @@ def authorize_user(request, template):
         os.mkdir(print_dir)
 
     return [x.name for x in user_obj.groups.all()]
-
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -455,10 +455,11 @@ class EngIOViewSet(viewsets.ViewSet):
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class UserViewer(GenericAPIView):
-    """View that renders the main homepage or an app depending on the template"""
+    """View that renders the edoc viewer app"""
     renderer_classes = (TemplateHTMLRenderer,)
     permission_classes = (AllowAny,)
     pagination_class = LargeResultsSetPagination
+
     template = ""
     app_name = ""
 
@@ -475,14 +476,20 @@ class UserViewer(GenericAPIView):
     document_types = f_types.DOC_VIEWER_TYPES
 
     sheet_types = f_types.engineering_sheet_types
-    vendors = f_types.vendor_choices
     disciplines = f_types.engineering_discipline_choices
     airports = f_types.airport_choices
     funding_types = f_types.funding_choices
 
+    FileFormSet = modelformset_factory(EngineeringFileModel,
+                                       exclude=('file_path', 'base_name', 'file_type', 'mime', 'size'),
+                                       max_num=1, extra=1)
+
     def get(self, request, format=None):
 
         final_groups = authorize_user(request, self.template)
+
+        if not final_groups:
+            redirect(reverse('home:login'))
 
         app_name = self.app_name.strip('/')
 
@@ -509,16 +516,19 @@ class UserViewer(GenericAPIView):
 
         form = FilterForm(init_base_name="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
                           init_project_desc="", init_after_date="", init_before_date="",
-                          init_sheet_description="", init_vendors="", init_disciplines=['all'],
+                          init_sheet_description="", init_vendor="", init_disciplines=['all'],
                           init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",
                           chkd_f_types=chkd_f_types, chkd_i_types=chkd_i_types,
                           chkd_t_types=chkd_t_types, chkd_d_types=chkd_d_types, chkd_gis_types=chkd_gis_types,
                           init_grid_cells="", file_types=self.file_types, image_types=self.image_types, table_types=self.table_types,
                           document_types=self.document_types, gis_types=self.gis_types, sheet_types=self.sheet_types,
-                          vendors=self.vendors, disciplines=self.disciplines, airports=self.airports,
+                          disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
+        edit_form = self.FileFormSet(queryset=EngineeringFileModel.objects.none())
+
         resp.data = {
+                     "base_names": base_names,
                      "sheet_titles": sheet_titles,
                      "project_titles": project_titles,
                      "project_descriptions": project_descriptions,
@@ -530,7 +540,8 @@ class UserViewer(GenericAPIView):
                      "server_url": self.server_url,
                      "groups": final_groups,
                      "app_name": app_name,
-                     "form": form
+                     "form": form,
+                     "edit_form": edit_form
                      }
         return resp
 
@@ -553,12 +564,12 @@ class UserViewer(GenericAPIView):
         airport = data["airport"]
         file_path = data["file_path"]
         grant_number = data["grant_number"]
+        vendor = data["vendor"]
         # grid cells are in a comma delimated string
         grid_cells = data["grid_cells"]
 
         funding_types = data.getlist('funding_type')
         sheet_types = data.getlist('sheet_type')
-        vendors = data.getlist('vendor')
         disciplines = data.getlist("discipline")
         file_types = data.getlist('file_type')
         image_types = data.getlist('image_type')
@@ -584,6 +595,8 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(before_date__lte=before_date)
         if sheet_description:
             efiles = efiles.filter(sheet_description__icontains=sheet_description)
+        if vendor:
+            efiles = efiles.filter(vendor__icontains=vendor)
         # not all files are attributed yet so only filter for rst if requested
         if airport != 'rno':
             efiles = efiles.filter(airport=airport)
@@ -599,15 +612,15 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(funding_type__in=funding_types)
         if sheet_types and sheet_types != ['all']:
             efiles = efiles.filter(sheet_type__in=sheet_types)
-        if vendors and vendors != ['all']:
-            efiles = efiles.filter(vendor__in=vendors)
         if disciplines and disciplines != ['all']:
             efiles = efiles.filter(discipline__in=disciplines)
 
         # Look up dict to use until bug is fixed with variable names/keys
-        # lookup = {}
-        # for x in [self.file_types, image_types, table_types, gis_types]:
-        #     lookup[]
+        lookup = {}
+        for x in [self.file_types, image_types, table_types, gis_types]:
+            for t in x:
+                lookup[t[0]] = t[1]
+
         # Pre file type filters
         base_types = file_types[:]
         base_types.extend(image_types)
@@ -616,7 +629,8 @@ class UserViewer(GenericAPIView):
 
         if len(base_types) != len(self.choices):
             # efiles = efiles.filter(file_type__in=base_types)
-            efiles = efiles.filter(file_type__in=base_types)
+            base_desc = [lookup[x] for x in base_types]
+            efiles = efiles.filter(file_type__in=base_desc)
         # only filter by doc type if they are not all selected
         if len(document_types) != len(self.document_types):
             efiles = efiles.filter(document_type__in=document_types)
@@ -635,15 +649,17 @@ class UserViewer(GenericAPIView):
         form = FilterForm(init_base_name=base_name, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
                           init_project_title=project_title, init_project_desc=project_description,
                           init_after_date=after_date, init_before_date=before_date,
-                          init_sheet_description=sheet_description, init_vendors=vendors, init_disciplines=disciplines,
+                          init_sheet_description=sheet_description, init_vendor=vendor, init_disciplines=disciplines,
                           init_airports=airport, init_funding_types=funding_types, init_file_path=file_path,
                           init_grant_number=grant_number, chkd_f_types=file_types, chkd_i_types=image_types,
                           chkd_t_types=table_types, chkd_d_types=document_types, chkd_gis_types=gis_types,
                           init_grid_cells=grid_cells, file_types=self.file_types, image_types=self.image_types,
                           table_types=self.table_types, document_types=self.document_types,
-                          sheet_types=self.sheet_types, gis_types=self.gis_types, vendors=self.vendors,
+                          sheet_types=self.sheet_types, gis_types=self.gis_types,
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
+
+        edit_form = self.FileFormSet(queryset=EngineeringFileModel.objects.none())
 
         resp.data = {
             "base_names": base_names,
@@ -658,6 +674,21 @@ class UserViewer(GenericAPIView):
             "server_url": self.server_url,
             "groups": final_groups,
             "app_name": app_name,
-            "form": form
+            "form": form,
+            "edit_form": edit_form
         }
+        return resp
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FileUpdater(GenericAPIView):
+    """View that accepts updates to the edoc files"""
+
+    def post(self, request, format=None):
+        FileFormSet = modelformset_factory(EngineeringFileModel)
+        formset = FileFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+
+        resp = Response()
         return resp

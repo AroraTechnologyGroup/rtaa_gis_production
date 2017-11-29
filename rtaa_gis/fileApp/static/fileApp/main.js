@@ -26,12 +26,17 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             var panel_btn = dom.byId('_file_type_handle');
             var panel_btn2 = dom.byId('_doc_type_handle');
             var panel_btn3 = dom.byId('_map_handle');
+            var panel_btn4 = dom.byId('_reset_handle');
+            var panel_btn5 = dom.byId('_edit_handle');
 
             var slider_panel = dom.byId('_slider_panel');
 
             var file_type_html = dom.byId('_file_type_group');
             var doc_type_html = dom.byId('_doc_type_group');
             var grid_cell_html = dom.byId('_grid_group');
+
+            var _container = dom.byId('_container');
+            var update_panel = dom.byId('_update_panel');
 
             var check_panel = function(event) {
 
@@ -88,5 +93,19 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                     domClass.remove(file_type_html, "visible");
                     domClass.toggle(grid_cell_html, "visible");
                 });
+            });
+
+            on(panel_btn5, 'click', function(event) {
+                event.preventDefault();
+                if (domClass.contains(update_panel, 'close')) {
+                    domClass.replace(update_panel, 'open', 'close');
+                    domClass.replace(_container, 'ropen', 'rclose');
+                } else if (domClass.contains(update_panel, 'open')) {
+                    domClass.replace(update_panel, 'close', 'open');
+                    domClass.replace(_container, 'rclose', 'ropen');
+                } else {
+                    domClass.add(update_panel, 'open');
+                    domClass.add(_container, 'ropen');
+                }
             });
         });

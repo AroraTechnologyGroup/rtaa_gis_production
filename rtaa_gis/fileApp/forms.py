@@ -8,14 +8,13 @@ date_format = [
 
 class FilterForm(forms.Form):
     def __init__(self, init_base_name, init_sheet_title, sheet_types, init_sheet_types, init_project_title, init_project_desc, init_after_date,
-                 init_before_date, init_sheet_description, vendors, init_vendors, disciplines, init_disciplines,
+                 init_before_date, init_sheet_description, init_vendor, disciplines, init_disciplines,
                  airports, init_airports, funding_types, init_funding_types, init_file_path, init_grant_number,
                  file_types, chkd_f_types, image_types, chkd_i_types, table_types, chkd_t_types, document_types,
                  chkd_d_types, chkd_gis_types, gis_types, init_grid_cells, *args, **kwargs):
         super(FilterForm, self).__init__(*args, **kwargs)
         self.fields['gis_type'].choices = gis_types
         self.fields['sheet_type'].choices = sheet_types
-        self.fields['vendor'].choices = vendors
         self.fields['discipline'].choices = disciplines
         self.fields['airport'].choices = airports
         self.fields['funding_type'].choices = funding_types
@@ -40,8 +39,8 @@ class FilterForm(forms.Form):
             self.fields['before_date'].initial = init_before_date
         if init_sheet_description:
             self.fields['sheet_description'].initial = init_sheet_description
-        if init_vendors:
-            self.fields['vendor'].initial = init_vendors
+        if init_vendor:
+            self.fields['vendor'].initial = init_vendor
         if init_disciplines:
             self.fields['discipline'].initial = init_disciplines
         if init_airports:
@@ -111,3 +110,5 @@ class FilterForm(forms.Form):
                                          widget=forms.CheckboxSelectMultiple())
 
     grid_cells = forms.CharField(label='Grid Cells', required=False, widget=forms.TextInput())
+
+

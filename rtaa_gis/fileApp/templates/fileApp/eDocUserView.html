@@ -23,9 +23,18 @@
                     <span>
                         <button id="_reset_handle" formmethod="get" href="{% url 'fileApp:eDoc' %}" class="btn btn-clear">Reset</button>
                     </span>
+{#                    {% if 'Arora' in groups or '_RTAA_GIS' in groups %}#}
+                    <span>
+                        <button id="_edit_handle" class="btn btn-clear">Update</button>
+                    </span>
+                    <span>
+                        <button id="_batch_edit_handle" class="btn btn-clear">Batch Update</button>
+                    </span>
+{#                    {% endif %}#}
                 </div>
                 <div id="_filter_group">
                     {% csrf_token %}
+                    <input class="btn btn-fill" type="submit" value="Submit" />
                     {% for field in form %}
                         {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
                              <div class="fieldWrapper">
@@ -40,43 +49,13 @@
                     <input class="btn btn-fill" type="submit" value="Submit" />
                 </div>
             </div>
-            <div id="_flex_container">
+
+            <div id="_container">
                 <div id="_slider_panel">
-                    <div id="_file_type_group" class="panel_slide">
-                        {% for field in form %}
-                            {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
-                                <div class="fieldWrapper">
-                                    {{ field.errors }}
-                                    {{ field.label_tag }} {{ field }}
-                                    {% if field.help_text %}
-                                    <p class="help">{{ field.help_text|safe }}</p>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                        <input class="btn btn-fill" id="_type_submit" type="submit" value="Submit" />
-                    </div>
-
-                    <div id="_doc_type_group" class="panel_slide">
-                        {% for field in form %}
-                            {% if field.name == 'document_type' %}
-                                <div class="fieldWrapper">
-                                    {{ field.errors }}
-                                    {{ field.label_tag }} {{ field }}
-                                    {% if field.help_text %}
-                                    <p class="help">{{ field.help_text|safe }}</p>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
-                        {% endfor %}
-                        <input class="btn btn-fill" id="_type_submit" type="submit" value="Submit" />
-                    </div>
-
-                    <div id="_grid_group" class="panel_slide">
-                        <div id="_mapDiv"></div>
-                        <div class="_file_types">
+                    <div id="_slider_flex_container">
+                        <div id="_file_type_group" class="panel_slide">
                             {% for field in form %}
-                                {% if field.name == 'grid_cells' %}
+                                {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
                                     <div class="fieldWrapper">
                                         {{ field.errors }}
                                         {{ field.label_tag }} {{ field }}
@@ -86,16 +65,68 @@
                                     </div>
                                 {% endif %}
                             {% endfor %}
+                            <input class="btn btn-fill" type="submit" value="Submit" />
                         </div>
-                        <input class="btn btn-fill" id="_type_submit" type="submit" value="Submit" />
+
+                        <div id="_doc_type_group" class="panel_slide">
+                            {% for field in form %}
+                                {% if field.name == 'document_type' %}
+                                    <div class="fieldWrapper">
+                                        {{ field.errors }}
+                                        {{ field.label_tag }} {{ field }}
+                                        {% if field.help_text %}
+                                        <p class="help">{{ field.help_text|safe }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <input class="btn btn-fill" type="submit" value="Submit" />
+                        </div>
+
+                        <div id="_grid_group" class="panel_slide">
+                            <div id="_mapDiv"></div>
+                            <div class="_file_types">
+                                {% for field in form %}
+                                    {% if field.name == 'grid_cells' %}
+                                        <div class="fieldWrapper">
+                                            {{ field.errors }}
+                                            {{ field.label_tag }} {{ field }}
+                                            {% if field.help_text %}
+                                            <p class="help">{{ field.help_text|safe }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <input class="btn btn-fill" type="submit" value="Submit" />
+                        </div>
                     </div>
                 </div>
-
                 <div id="_resultBox">
                     {% for x in efiles %}
                         <div class="fileIcon">{{ x.base_name }}</div>
                     {% endfor %}
                 </div>
+            </div>
+        </form>
+        <form action="{% url 'fileApp:edoc-edit' %}" method="post">
+            <div id="_update_panel">
+                <input class="btn btn-fill" type="submit" value="Save" />
+                {% for form in edit_form %}
+                    {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+                    {% for field in form.visible_fields %}
+                        <div class="fieldWrapper">
+                            {{ field.errors }}
+                            {{ field.label_tag }} {{ field }}
+                            {% if field.help_text %}
+                            <p class="help">{{ field.help_text|safe }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                <input class="btn btn-fill" type="submit" value="Save" />
             </div>
         </form>
     </div>
