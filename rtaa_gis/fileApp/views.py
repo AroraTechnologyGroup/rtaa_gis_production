@@ -468,7 +468,7 @@ class UserViewer(GenericAPIView):
     server_url = settings.LDAP_URL
 
     f_types = FileTypes()
-    choices = f_types.ALL_FILE_TYPES
+    choices = f_types.ALL_FILE_DOMAINS
 
     file_types = f_types.FILE_VIEWER_TYPES
     image_types = f_types.IMAGE_VIEWER_TYPES
@@ -532,6 +532,7 @@ class UserViewer(GenericAPIView):
 
         resp.data = {
                      "base_names": base_names,
+                     "file_types": self.choices,
                      "sheet_titles": sheet_titles,
                      "project_titles": project_titles,
                      "project_descriptions": project_descriptions,
@@ -666,6 +667,7 @@ class UserViewer(GenericAPIView):
 
         resp.data = {
             "base_names": base_names,
+            "file_types": self.choices,
             "sheet_titles": sheet_titles,
             "project_titles": project_titles,
             "project_descriptions": project_descriptions,

@@ -105,7 +105,40 @@
                 </div>
                 <div id="_resultBox">
                     {% for file in efiles %}
-                        <div class="fileIcon {{ file.file_type }}">{{ file.base_name }}</div>
+                        <div class="fileIcon">
+                            {% if file.file_type == 'pdf' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/pdf_96.png' %}"/>
+                            {% elif file.file_type == 'mxd' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mxd_96.png' %}"/>
+                            {% elif file.file_type == 'mpk' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mpk_96.png' %}"/>
+                            {% elif file.file_type == 'lyr' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lyr_96.png' %}"/>
+                            {% elif file.file_type == 'lpk' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lpk_96.png' %}"/>
+                            {% elif file.file_type == 'dwg' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/dwg_96.png' %}"/>
+                            {% elif file.file_type == 'docx' %}
+                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/docx_96.png' %}"/>
+                            {% elif file.file_type == 'jpeg' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/jpeg_96.png' %}"/>
+                            {% elif file.file_type == 'png' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/png_96.png' %}"/>
+                            {% elif file.file_type == 'pptx' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/pptx_96.png' %}"/>
+                            {% elif file.file_type == 'txt' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/txt_96.png' %}"/>
+                            {% elif file.file_type == 'tiff' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/tiff_96.png' %}"/>
+                            {% elif file.file_type == 'zip' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/zip_96.png' %}"/>
+                            {% elif file.file_type == 'xls' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xls_96.png' %}"/>
+                            {% elif file.file_type == 'xlsx' %}
+                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xlsx_96.png' %}"/>
+                            {% endif %}
+                             <div title="{{ file.base_name }}">{{ file.base_name|truncatechars:18 }}</div>
+                        </div>
                     {% endfor %}
                 </div>
             </div>

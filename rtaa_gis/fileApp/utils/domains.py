@@ -58,7 +58,7 @@ class FileTypes:
         csv = {"csv": "text/csv"}
         png = {"png": "image/png"}
         jpeg = {"jpg": "image/jpeg"}
-        tiff = {"tif": "image/tiff"}
+        tiff = {"tiff": "image/tiff"}
         dwg = {"dwg": "image/vnd.dwg"}
         lyr = {"lyr": "application/octet-stream"}
         mpk = {"mpk": "application/octet-stream"}
