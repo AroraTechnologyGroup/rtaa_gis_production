@@ -152,6 +152,43 @@ html, body, .viewport {
     }
 }
 
+#_slider_panel.open_map {
+    width: 100%;
+    animation-duration: 1.5s;
+    animation-name: map-slidein;
+    height: 100%;
+    display: inline-block;
+}
+
+@keyframes map-slidein {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+#_slider_panel.open_from_trans {
+    display: inline-block;
+    width: 100%;
+    animation-duration: 1s;
+    animation-name: map-trans-slidein;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+@keyframes map-trans-slidein {
+    from {
+        width: 225px;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
 #_slider_panel.close {
     display: inline-block;
     animation-duration: 0.5s;
@@ -168,12 +205,46 @@ html, body, .viewport {
     }
 
     to {
-        width: 2px;
+        width: 0;
     }
 }
 
+#_slider_panel.close_to_trans {
+    display: inline-block;
+    animation-name: map-trans-slideout;
+    animation-duration: 0.5s;
+    height: 100%;
+    width: 225px;
+}
+
+@keyframes map-trans-slideout {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 225px;
+    }
+}
+
+#_slider_panel.close_map {
+    animation-name: map-slideout;
+    animation-duration: 1s;
+    display: inline-block;
+    height: 100%;
+}
+
+@keyframes map-slideout {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0;
+    }
+}
 #_slider_flex_container {
-    display: flex;
+    /*display: flex;*/
 }
 
 .panel_slide {
@@ -194,6 +265,7 @@ html, body, .viewport {
     height: 100%;
     overflow-y: scroll;
     position: absolute;
+    width: 100%;
 }
 
 #_type_submit {

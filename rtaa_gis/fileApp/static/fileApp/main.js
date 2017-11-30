@@ -55,9 +55,17 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             var check_panel = function(event) {
 
                 var deferred = new Deferred();
+                var target = event.target;
                 // if the slider panel is not open, open it.
-                 if (!domClass.contains(slider_panel, "open")) {
+                 if (!domClass.contains(slider_panel, "open") && !domClass.contains(slider_panel, "open_from_trans")
+                 && !domClass.contains(slider_panel, "close_to_trans")) {
                     domClass.replace(slider_panel, "open", "close");
+
+                    // if the target button is for map, add then set the map class
+                     if (target === panel_btn3) {
+                         domClass.replace(slider_panel, "open_from_trans", "close_map");
+                     }
+                     domClass.remove(slider_panel, "close_map");
                     domClass.remove(event.target, 'btn-clear');
                     deferred.resolve(slider_panel);
                 } else {
@@ -65,15 +73,40 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                      console.log(event.target);
                      if (!domClass.contains(event.target, 'btn-clear')) {
                          domClass.replace(slider_panel, "close", "open");
+                         domClass.replace(slider_panel, "close", "close_to_trans");
+                         // if the target button is for map, add the close map class
+                         if (event.target === panel_btn3) {
+                             domClass.replace(slider_panel, "close_map", "open_map");
+                             domClass.replace(slider_panel, "close_map", "open_from_trans");
+                         }
                          domClass.add(event.target, 'btn-clear');
                      } else {
                          // the panel is open and the button is clear, keep the panel open, make other buttons clear
                          // make this button blue
                          Array.forEach([panel_btn, panel_btn2, panel_btn3], function(btn) {
-                             if (btn !== event.target) {
+                             if (btn !== target) {
                                  domClass.add(btn, 'btn-clear');
                              }
                          });
+
+                         if (panel_btn === target || panel_btn2 === target) {
+                             // one of the file type buttons was clicked and the slider panel needs to move to this location
+                             // from either the closed position or the open_map position.
+                            if (domClass.contains(slider_panel, 'open_map')) {
+                                // the map is open to 100%
+                                // move it to the width of the file type panels
+                                domClass.replace(slider_panel, 'close_to_trans', 'open_map');
+
+                            } else if (domClass.contains(slider_panel, 'open_from_trans')) {
+                                domClass.replace(slider_panel, 'close_to_trans', 'open_from_trans')
+                            }
+                         } else if (panel_btn3 === target) {
+                             // open the slider panel to the full extent from the file_type width
+                             if (domClass.contains(slider_panel, 'open') || domClass.contains(slider_panel, 'close_to_trans')) {
+                                 domClass.replace(slider_panel, 'open_from_trans', 'open');
+                                 domClass.replace(slider_panel, 'open_from_trans', 'close_to_trans');
+                             }
+                         }
                          domClass.remove(event.target, 'btn-clear');
                      }
                      deferred.resolve(slider_panel);
@@ -86,6 +119,7 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
                 check_panel(event).then(function(e) {
                     domClass.remove(doc_type_html, "visible");
+                    domClass.remove(map_html, "visible");
                     domClass.toggle(file_type_html, "visible");
                 });
             });
@@ -94,6 +128,7 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
                 check_panel(event).then(function(e) {
                     domClass.remove(file_type_html, "visible");
+                    domClass.remove(map_html, "visible");
                     domClass.toggle(doc_type_html, "visible");
                 });
             });
@@ -103,8 +138,6 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 check_panel(event).then(function(e) {
                     domClass.remove(doc_type_html, "visible");
                     domClass.remove(file_type_html, "visible");
-                    // set the slider panel width to the full width of the flex container
-                    domStyle.set(slider_panel, "width", "100%");
                     domClass.add(map_html, "visible");
 
                 });
