@@ -18,6 +18,10 @@ html, body, .viewport {
     margin: 3px;
 }
 
+.pdf {
+    background-image: url('/media/fileApp/if_pdf_65920.png');
+}
+
 #_buttons span {
     display: flex;
     flex-direction: column;

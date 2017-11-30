@@ -14,8 +14,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from fileApp import models
 from fileApp.models import EngineeringFileModel, EngineeringAssignment, GridCell
-from fileApp.serializers import EngSerializer, EngAssignmentSerializer, engineering_sheet_types, engineering_discipline_choices, FileTypes
-
+from fileApp.serializers import EngSerializer, EngAssignmentSerializer
+from fileApp.utils.domains import engineering_sheet_types, engineering_discipline_choices, FileTypes
 from fileApp.utils import function_definitions
 from django.conf import settings
 
@@ -193,12 +193,12 @@ class FileStoreBuilder:
                 for root, dirs, files in os.walk(top_dir):
                     for _file in files:
 
-                        for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
+                        for mapping in iter(file_types.ALL_FILE_TYPES.keys()):
                             # there is only one key for each mapping dict so testing
                             # if the extension is IN the dict as a key is good enough
                             # This basically limits the types of files we are including
                             extension = _file.split(".")[-1].lower()
-                            if extension in mapping:
+                            if extension == mapping:
                                 file_path = os.path.join(root, _file)
                                 file_path = file_path.replace("\\", "/")
                                 # all file_paths in the system are lower case
@@ -359,10 +359,10 @@ class AssignmentManager:
 if __name__ == '__main__':
     x = FileStoreBuilder()
     x.build_store()
-    if os.path.exists(acc_db_path):
-        x.load_accdb()
-    cell = GridCellBuilder()
-    cell.build_store()
+    # if os.path.exists(acc_db_path):
+    #     x.load_accdb()
+    # cell = GridCellBuilder()
+    # cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 

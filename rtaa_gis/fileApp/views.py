@@ -4,9 +4,10 @@ import logging
 import traceback
 
 from .utils import buildDocStore
+from .utils.domains import FileTypes
 from home.utils.ldap_tool import LDAPQuery
 from analytics.serializers import RecordSerializer
-from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
 from .forms import FilterForm
@@ -467,7 +468,7 @@ class UserViewer(GenericAPIView):
     server_url = settings.LDAP_URL
 
     f_types = FileTypes()
-    choices = f_types.FILE_TYPE_CHOICES
+    choices = f_types.ALL_FILE_TYPES
 
     file_types = f_types.FILE_VIEWER_TYPES
     image_types = f_types.IMAGE_VIEWER_TYPES
@@ -486,11 +487,10 @@ class UserViewer(GenericAPIView):
                                        max_num=25, extra=1)
 
     def get(self, request, format=None):
+        if not request.user.is_authenticated():
+            return redirect(reverse('home:login'))
 
         final_groups = authorize_user(request, self.template)
-
-        if not final_groups:
-            redirect(reverse('home:login'))
 
         app_name = self.app_name.strip('/')
 
@@ -550,7 +550,10 @@ class UserViewer(GenericAPIView):
         return resp
 
     def post(self, request, format=None):
+        if not request.user.is_authenticated():
+            return redirect(reverse('home:login'))
         final_groups = authorize_user(request, self.template)
+
         app_name = self.app_name.strip('/')
 
         data = request.data
@@ -619,12 +622,6 @@ class UserViewer(GenericAPIView):
         if disciplines and disciplines != ['all']:
             efiles = efiles.filter(discipline__in=disciplines)
 
-        # Look up dict to use until bug is fixed with variable names/keys
-        lookup = {}
-        for x in [self.file_types, image_types, table_types, gis_types]:
-            for t in x:
-                lookup[t[0]] = t[1]
-
         # Pre file type filters
         base_types = file_types[:]
         base_types.extend(image_types)
@@ -632,9 +629,9 @@ class UserViewer(GenericAPIView):
         base_types.extend(gis_types)
 
         if len(base_types) != len(self.choices):
-            # efiles = efiles.filter(file_type__in=base_types)
-            base_desc = [lookup[x] for x in base_types]
-            efiles = efiles.filter(file_type__in=base_desc)
+            efiles = efiles.filter(file_type__in=base_types)
+            # base_desc = [lookup[x] for x in base_types]
+            # efiles = efiles.filter(file_type__in=base_desc)
         # only filter by doc type if they are not all selected
         if len(document_types) != len(self.document_types):
             efiles = efiles.filter(document_type__in=document_types)

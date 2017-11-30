@@ -1,4 +1,5 @@
 from django.db import models
+from .utils.domains import FileTypes
 
 
 class GridCell(models.Model):
@@ -29,7 +30,7 @@ class FileModel(models.Model):
 
     base_name = models.CharField(max_length=255)
 
-    file_type = models.CharField(max_length=25)
+    file_type = models.CharField(max_length=25, choices=FileTypes().ALL_FILE_DOMAINS)
 
     document_type = models.CharField(max_length=50, blank=True)
 

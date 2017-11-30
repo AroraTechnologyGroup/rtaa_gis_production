@@ -1,126 +1,11 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from fileApp.models import GridCell, EngineeringAssignment, EngineeringFileModel
-from fileApp.utils import function_definitions
+from fileApp.utils import function_definitions, domains
 import mimetypes
 import os
 
-vendor_choices = [
-    ('all', 'All')
-]
-
-airport_choices = [
-    ('rno', 'Reno-Tahoe International Airport'),
-    ('rts', 'Reno-Stead Airport')
-]
-
-funding_choices = [
-    ('all', 'All')
-]
-
-document_types = [
-    ('email', 'Email'),
-    ('notes', 'Notes')
-]
-
-engineering_discipline_choices = [
-                ('all', 'All'),
-                ('misc', 'Miscellaneous'),
-                ('civil', 'Civil'),
-                ('arch', 'Architectural'),
-                ('structural', 'Structural'),
-                ('landscaping', 'Landscaping'),
-                ('mechanical-hvac', 'Mechanical-HVAC'),
-                ('plumbing', 'Plumbing'),
-                ('electrical', 'Electrical')
-            ]
-engineering_sheet_types = [
-                ('all', 'All'),
-                ('details', 'Details'),
-                ('plan', 'Plan'),
-                ('title', 'Title'),
-                ('key', 'Key'),
-                ('index', 'Index'),
-                ('elevations', 'Elevations'),
-                ('notes', 'Notes'),
-                ('sections', 'Sections'),
-                ('symbols', 'Symbols')
-            ]
-
-
-class FileTypes:
-    """the type of files that we are interested in are defined here"""
-
-    def __init__(self):
-        pdf = {"pdf": "application/pdf"}
-        odt = {"odt": "application/vnd.oasis.opendocument.text"}
-        ods = {"ods": "application/vnd.oasis.opendocument.spreadsheet"}
-        odp = {"odp": "application/vnd.oasis.opendocument.presentation"}
-        msdoc = {"doc": "application/msword"}
-        msdocx = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
-        excel1 = {"xls": "application/vnd.ms-excel"}
-        excel2 = {"xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
-        text = {"txt": "text/plain"}
-        csv = {"csv": "text/csv"}
-        png = {"png": "image/png"}
-        jpeg = {"jpg": "image/jpeg"}
-        tiff = {"tif": "image/tiff"}
-        dwg = {"dwg": "image/vnd.dwg"}
-        lyr = {"lyr": "application/octet-stream"}
-        mpk = {"mpk": "application/octet-stream"}
-        mxd = {"mxd": "application/octet-stream"}
-        img = {"img": "image/img"}
-
-        self.FILE_TYPE_CHOICES = {
-            "PDF": pdf,
-            "OPEN OFFICE DOC": odt,
-            "OPEN OFFICE SHEET": ods,
-            "OPEN OFFICE PRESENTATION": odp,
-            "MS Word doc": msdoc,
-            "MS Word docx": msdocx,
-            "TEXT": text,
-            "MS Excel xls": excel1,
-            "MS Excel xlsx": excel2,
-            "CSV Spreadsheet": csv,
-            "PNG Image": png,
-            "JPEG Image": jpeg,
-            "IMG Image": img,
-            "TIFF Image": tiff,
-            "AutoCad dwg": dwg,
-            "ESRI Layer File": lyr,
-            "ESRI Map Package": mpk,
-            "ESRI Map Document": mxd
-        }
-
-        self.FILE_VIEWER_TYPES = []
-        for f in ["PDF", "OPEN OFFICE DOC", "MS Word doc", "MS Word doc", "MS Word docx", "TEXT"]:
-            self.FILE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
-
-        self.TABLE_VIEWER_TYPES = []
-        for f in ["OPEN OFFICE SHEET", "MS Excel xls", "MS Excel xlsx", "CSV Spreadsheet"]:
-            self.TABLE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
-
-        self.IMAGE_VIEWER_TYPES = []
-        for f in ["PNG Image", "JPEG Image", "IMG Image", "TIFF Image"]:
-            self.IMAGE_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
-
-        self.GIS_VIEWER_TYPES = []
-        for f in ["AutoCad dwg", "ESRI Layer File", "ESRI Map Package", "ESRI Map Document"]:
-            self.GIS_VIEWER_TYPES.append((list(self.FILE_TYPE_CHOICES[f].keys())[0], f))
-
-        self.DOC_VIEWER_TYPES = document_types
-
-        self.engineering_discipline_choices = engineering_discipline_choices
-
-        self.engineering_sheet_types = engineering_sheet_types
-
-        self.vendor_choices = vendor_choices
-
-        self.airport_choices = airport_choices
-
-        self.funding_choices = funding_choices
-
-        return
+type_domains = domains.FileTypes()
 
 
 class GridSerializer(serializers.ModelSerializer):
@@ -157,12 +42,12 @@ class GridPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class EngineeringDisciplinesField(serializers.MultipleChoiceField):
-    choices = engineering_discipline_choices
+    choices = type_domains.engineering_discipline_choices
     allow_blank = True
 
 
 class EngineeringSheetTypesField(serializers.MultipleChoiceField):
-    choices = engineering_sheet_types
+    choices = type_domains.engineering_sheet_types
     allow_blank = True
 
 
@@ -227,25 +112,25 @@ class EngSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            file_types = FileTypes()
+            file_types = type_domains
             file_path = validated_data['file_path']
             extension = file_path.split(".")[-1].lower()
             if os.path.exists(file_path):
                 base_name = os.path.basename(file_path)
-                file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+                file_type = function_definitions.check_file_type(file_types.ALL_FILE_TYPES, extension)
                 size = function_definitions.convert_size(os.path.getsize(file_path))
                 mime = mimetypes.guess_type(file_path)[0]
 
                 if mime is None:
                     # solves bug where file extensions are uppercase
-                    for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
-                        if extension in mapping:
-                            mime = file_types.FILE_TYPE_CHOICES[file_type][extension]
+                    for k, v in iter(file_types.ALL_FILE_TYPES.items()):
+                        if extension == k:
+                            mime = file_types.file_type_choices[v][k]
                             break
 
             else:
                 base_name = file_path.split("\\")[-1]
-                file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+                file_type = function_definitions.check_file_type(file_types.ALL_FILE_TYPES, extension)
                 size = ''
                 mime = ''
                 validated_data["comment"] = 'eDoc system unable to locate file using the file_path'
@@ -265,21 +150,21 @@ class EngSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         try:
-            file_types = FileTypes()
+            file_types = type_domains
             instance.file_path = validated_data.get('file_path', instance.file_path)
             if os.path.exists(instance.file_path):
                 # These attributes are calculated from the actual file object
                 extension = instance.file_path.split(".")[-1].lower()
                 base_name = os.path.basename(instance.file_path)
                 instance.base_name = base_name
-                instance.file_type = function_definitions.check_file_type(file_types.FILE_TYPE_CHOICES, extension)
+                instance.file_type = function_definitions.check_file_type(file_types.ALL_FILE_TYPES, extension)
                 instance.size = function_definitions.convert_size(os.path.getsize(instance.file_path))
                 instance.mime = mimetypes.guess_type(instance.file_path)[0]
                 if instance.mime is None:
                     # solves bug where file extensions are uppercase
-                    for mapping in iter(file_types.FILE_TYPE_CHOICES.values()):
-                        if extension in mapping:
-                            instance.mime = file_types.FILE_TYPE_CHOICES[instance.file_type][extension]
+                    for k, v in iter(file_types.ALL_FILE_TYPES.items()):
+                        if extension in k:
+                            instance.mime = file_types.file_type_choices[v][k]
                             break
 
             # These variables are brought in from the Access Database of Tiffany
