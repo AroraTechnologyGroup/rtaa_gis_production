@@ -37,7 +37,7 @@
                 <div id="_filter_group">
                     <input class="btn btn-fill" type="submit" value="Submit" />
                     {% for field in filter_form %}
-                        {% if field.name != 'grid_cells' and field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
+                        {% if field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
                              <div class="fieldWrapper">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
@@ -84,22 +84,8 @@
                             <input class="btn btn-fill" type="submit" value="Submit" />
                         </div>
 
-                        <div id="_grid_group" class="panel_slide">
-                            <div id="_mapDiv"></div>
-                            <div class="_file_types">
-                                {% for field in filter_form %}
-                                    {% if field.name == 'grid_cells' %}
-                                        <div class="fieldWrapper">
-                                            {{ field.errors }}
-                                            {{ field.label_tag }} {{ field }}
-                                            {% if field.help_text %}
-                                            <p class="help">{{ field.help_text|safe }}</p>
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                            <input class="btn btn-fill" type="submit" value="Submit" />
+                        <div id="_map_group" class="panel_slide">
+                            <div id="mapDiv"></div>
                         </div>
                     </div>
                 </div>

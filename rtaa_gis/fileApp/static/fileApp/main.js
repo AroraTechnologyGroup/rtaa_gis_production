@@ -1,5 +1,8 @@
-require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query", "dojo/dom-class", "dojo/dom-construct", "dojo/dom", "dojo/on", 'dojo/domReady!'],
-        function (Deferred, Array, registry, baseUnload, hash, query, domClass, domConstruct, dom, on) {
+require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
+        "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
+        'dojo/domReady!'],
+        function (Deferred, Array, registry, baseUnload, hash, query, domClass, domStyle,
+                  domAttr, domConstruct, dom, on) {
 
             var unLoad = function() {
                 Array.forEach(registry.toArray(), function(item) {
@@ -26,14 +29,14 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             var panel_btn = dom.byId('_file_type_handle');
             var panel_btn2 = dom.byId('_doc_type_handle');
             var panel_btn3 = dom.byId('_map_handle');
-            var panel_btn4 = dom.byId('_reset_handle');
-            var panel_btn5 = dom.byId('_edit_handle');
+            var panel_btn4 = dom.byId('_edit_handle');
+            var panel_btn5 = dom.byId('_batch_edit_handle');
 
             var slider_panel = dom.byId('_slider_panel');
 
             var file_type_html = dom.byId('_file_type_group');
             var doc_type_html = dom.byId('_doc_type_group');
-            var grid_cell_html = dom.byId('_grid_group');
+            var map_html = dom.byId('_map_group');
 
             var _container = dom.byId('_container');
             var update_panel = dom.byId('_update_panel');
@@ -83,7 +86,6 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
                 check_panel(event).then(function(e) {
                     domClass.remove(doc_type_html, "visible");
-                    domClass.remove(grid_cell_html, "visible");
                     domClass.toggle(file_type_html, "visible");
                 });
             });
@@ -92,7 +94,6 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
                 check_panel(event).then(function(e) {
                     domClass.remove(file_type_html, "visible");
-                    domClass.remove(grid_cell_html, "visible");
                     domClass.toggle(doc_type_html, "visible");
                 });
             });
@@ -102,11 +103,14 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 check_panel(event).then(function(e) {
                     domClass.remove(doc_type_html, "visible");
                     domClass.remove(file_type_html, "visible");
-                    domClass.toggle(grid_cell_html, "visible");
+                    // set the slider panel width to the full width of the flex container
+                    domStyle.set(slider_panel, "width", "100%");
+                    domClass.add(map_html, "visible");
+
                 });
             });
 
-            on(panel_btn5, 'click', function(event) {
+            on(panel_btn4, 'click', function(event) {
                 event.preventDefault();
                 if (domClass.contains(update_panel, 'close')) {
                     domClass.replace(update_panel, 'open', 'close');
@@ -118,5 +122,9 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                     domClass.add(update_panel, 'open');
                     domClass.add(_container, 'ropen');
                 }
+            });
+
+            on(panel_btn5, 'click', function(event) {
+                event.preventDefault();
             });
         });
