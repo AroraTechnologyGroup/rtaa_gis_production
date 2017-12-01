@@ -10,7 +10,7 @@ from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
-from .forms import FilterForm
+from .forms import FilterForm, AssignmentForm
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
@@ -33,6 +33,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.models import User, Group
 from django.forms import modelformset_factory
 from django.forms import modelform_factory
+import datetime
+from datetime import date, timedelta
 
 from PIL import Image
 import platform
@@ -515,18 +517,20 @@ class UserViewer(GenericAPIView):
         chkd_d_types = [x[0] for x in self.document_types]
         chkd_gis_types = [x[0] for x in self.gis_types]
 
-        filter_form = FilterForm(init_base_name="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
+        filter_form = FilterForm(init_base_name="", init_date_added=None, init_grid_cells="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
                           init_project_desc="", init_after_date="", init_before_date="",
                           init_sheet_description="", init_vendor="", init_disciplines=['all'],
                           init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",
                           chkd_f_types=chkd_f_types, chkd_i_types=chkd_i_types,
                           chkd_t_types=chkd_t_types, chkd_d_types=chkd_d_types, chkd_gis_types=chkd_gis_types,
-                          init_grid_cells="", file_types=self.file_types, image_types=self.image_types, table_types=self.table_types,
+                          file_types=self.file_types, image_types=self.image_types, table_types=self.table_types,
                           document_types=self.document_types, gis_types=self.gis_types, sheet_types=self.sheet_types,
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = EngSerializer
+        edit_form = EngSerializer(context={'request': request})
+
+        grid_form = AssignmentForm()
 
         batch_formset = self.FileFormSet()
 
@@ -546,6 +550,7 @@ class UserViewer(GenericAPIView):
                      "app_name": app_name,
                      "filter_form": filter_form,
                      "edit_form": edit_form,
+                     "grid_form": grid_form,
                      "batch_formset": batch_formset
                      }
         return resp
@@ -563,6 +568,9 @@ class UserViewer(GenericAPIView):
         resp['Cache-Control'] = 'no-cache'
 
         base_name = data["base_name"]
+        date_added = data["date_added"]
+        # grid cells are in a comma delimated string
+        grid_cells = data["grid_cells"]
         sheet_title = data["sheet_title"]
         project_title = data["project_title"]
         project_description = data["project_description"]
@@ -573,8 +581,6 @@ class UserViewer(GenericAPIView):
         file_path = data["file_path"]
         grant_number = data["grant_number"]
         vendor = data["vendor"]
-        # grid cells are in a comma delimated string
-        grid_cells = data["grid_cells"]
 
         funding_types = data.getlist('funding_type')
         sheet_types = data.getlist('sheet_type')
@@ -591,6 +597,18 @@ class UserViewer(GenericAPIView):
         else:
             efiles = EngineeringFileModel.objects.all()
 
+        if date_added:
+            delta = timedelta(days=7)
+            target_date = datetime.datetime.strptime(date_added, '%Y-%m-%d')
+            start_date = target_date - delta
+            end_date = target_date + delta
+            efiles = EngineeringFileModel.objects.filter(date_added__range=(start_date, end_date))
+
+        if grid_cells:
+            gcells = [x.strip() for x in grid_cells.split()]
+            for gcell in gcells:
+                efiles = efiles.filter(engineeringassignment__grid_cell__name__icontains=gcell)
+
         if sheet_title:
             efiles = EngineeringFileModel.objects.filter(sheet_title__icontains=sheet_title)
         if project_title:
@@ -598,9 +616,9 @@ class UserViewer(GenericAPIView):
         if project_description:
             efiles = efiles.filter(project_description__icontains=project_description)
         if after_date:
-            efiles = efiles.filter(after_date__gte=after_date)
+            efiles = efiles.filter(project_date__gte=after_date)
         if before_date:
-            efiles = efiles.filter(before_date__lte=before_date)
+            efiles = efiles.filter(project_date__lte=before_date)
         if sheet_description:
             efiles = efiles.filter(sheet_description__icontains=sheet_description)
         if vendor:
@@ -612,10 +630,9 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
             gnums = [x.strip() for x in grant_number.split()]
-            efiles = efiles.filter(grant_number__in=gnums)
-        if grid_cells:
-            gcells = [x.strip() for x in grid_cells]
-            efiles = efiles.filter(engineeringassignment__grid_cell_id__in=gcells)
+            for gnum in gnums:
+                efiles = efiles.filter(grant_number__icontains=gnum)
+
         if funding_types and funding_types != ['all']:
             efiles = efiles.filter(funding_type__in=funding_types)
         if sheet_types and sheet_types != ['all']:
@@ -648,20 +665,22 @@ class UserViewer(GenericAPIView):
         file_paths = [x.file_path for x in efiles]
         grant_numbers = set([x.grant_number for x in efiles])
 
-        filter_form = FilterForm(init_base_name=base_name, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
+        filter_form = FilterForm(init_base_name=base_name, init_date_added=date_added, init_grid_cells=grid_cells, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
                           init_project_title=project_title, init_project_desc=project_description,
                           init_after_date=after_date, init_before_date=before_date,
                           init_sheet_description=sheet_description, init_vendor=vendor, init_disciplines=disciplines,
                           init_airports=airport, init_funding_types=funding_types, init_file_path=file_path,
                           init_grant_number=grant_number, chkd_f_types=file_types, chkd_i_types=image_types,
                           chkd_t_types=table_types, chkd_d_types=document_types, chkd_gis_types=gis_types,
-                          init_grid_cells=grid_cells, file_types=self.file_types, image_types=self.image_types,
+                          file_types=self.file_types, image_types=self.image_types,
                           table_types=self.table_types, document_types=self.document_types,
                           sheet_types=self.sheet_types, gis_types=self.gis_types,
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = EngSerializer
+        edit_form = EngSerializer(context={'request': request})
+
+        grid_form = AssignmentForm()
 
         batch_formset = self.FileFormSet()
 
@@ -681,6 +700,7 @@ class UserViewer(GenericAPIView):
             "app_name": app_name,
             "filter_form": filter_form,
             "edit_form": edit_form,
+            "grid_form": grid_form,
             "batch_formset": batch_formset
         }
         return resp

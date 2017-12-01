@@ -35,7 +35,7 @@
 {#                    {% endif %}#}
                 </div>
                 <div id="_filter_group">
-                    <input class="btn btn-fill" type="submit" value="Submit" />
+                    <input class="btn btn-fill" type="submit" value="Search" />
                     {% for field in filter_form %}
                         {% if field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
                              <div class="fieldWrapper">
@@ -47,7 +47,7 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    <input class="btn btn-fill" type="submit" value="Submit" />
+                    <input class="btn btn-fill" type="submit" value="Search" />
                 </div>
             </div>
 
@@ -55,6 +55,11 @@
                 <div id="_slider_panel">
                     <div id="_slider_flex_container">
                         <div id="_file_type_group" class="panel_slide">
+                        <input class="btn btn-fill" type="submit" value="Search" />
+                            <div>
+                                <input title='select all' id='_file_type_select_all' class="_inline" type="checkbox">
+                                <div class="_inline">- Select All</div>
+                            </div>
                             {% for field in filter_form %}
                                 {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
                                     <div class="fieldWrapper">
@@ -66,10 +71,15 @@
                                     </div>
                                 {% endif %}
                             {% endfor %}
-                            <input class="btn btn-fill" type="submit" value="Submit" />
+                            <input class="btn btn-fill" type="submit" value="Search" />
                         </div>
 
                         <div id="_doc_type_group" class="panel_slide">
+                            <input class="btn btn-fill" type="submit" value="Search" />
+                            <div>
+                                <input title='select all' id='_doc_type_select_all' class="_inline" type="checkbox">
+                                <div class="_inline">- Select All</div>
+                            </div>
                             {% for field in filter_form %}
                                 {% if field.name == 'document_type' %}
                                     <div class="fieldWrapper">
@@ -81,7 +91,7 @@
                                     </div>
                                 {% endif %}
                             {% endfor %}
-                            <input class="btn btn-fill" type="submit" value="Submit" />
+                            <input class="btn btn-fill" type="submit" value="Search" />
                         </div>
 
                         <div id="_map_group" class="panel_slide">
@@ -90,49 +100,71 @@
                     </div>
                 </div>
                 <div id="_resultBox">
-                    {% for file in efiles %}
-                        <div class="fileIcon">
-                            {% if file.file_type == 'pdf' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/pdf_96.png' %}"/>
-                            {% elif file.file_type == 'mxd' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mxd_96.png' %}"/>
-                            {% elif file.file_type == 'mpk' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mpk_96.png' %}"/>
-                            {% elif file.file_type == 'lyr' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lyr_96.png' %}"/>
-                            {% elif file.file_type == 'lpk' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lpk_96.png' %}"/>
-                            {% elif file.file_type == 'dwg' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/dwg_96.png' %}"/>
-                            {% elif file.file_type == 'docx' %}
-                                <img title="{{ file.base_name }}" src="{% static 'fileApp/images/docx_96.png' %}"/>
-                            {% elif file.file_type == 'jpeg' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/jpeg_96.png' %}"/>
-                            {% elif file.file_type == 'png' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/png_96.png' %}"/>
-                            {% elif file.file_type == 'pptx' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/pptx_96.png' %}"/>
-                            {% elif file.file_type == 'txt' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/txt_96.png' %}"/>
-                            {% elif file.file_type == 'tiff' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/tiff_96.png' %}"/>
-                            {% elif file.file_type == 'zip' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/zip_96.png' %}"/>
-                            {% elif file.file_type == 'xls' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xls_96.png' %}"/>
-                            {% elif file.file_type == 'xlsx' %}
-                                <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xlsx_96.png' %}"/>
-                            {% endif %}
-                             <div title="{{ file.base_name }}">{{ file.base_name|truncatechars:18 }}</div>
-                        </div>
-                    {% endfor %}
+                    {% if not efiles|length %}
+                        <div>No results returned</div>
+                    {% else %}
+                        {% for file in efiles %}
+                            <div class="fileIcon"
+                                 data-file-id="{{ file.id }}"
+                                 data-file-date-added="{{ file.date_added }}"
+                                 data-file-base-name="{{ file.base_name }}"
+                                 data-file-grid-cells="{{ file.grid_cells }}"
+                                 data-file-project-title="{{ file.project_title }}"
+                                 data-file-project-desc="{{ file.project_description }}"
+                                 data-file-project-date="{{ file.project_date }}"
+                                 data-file-sheet-title="{{ file.sheet_title }}"
+                                 data-file-sheet-type="{{ file.sheet_type }}"
+                                 data-file-sheet-desc="{{ file.sheet_description }}"
+                                 data-file-vendor="{{ file.vendor }}"
+                                 data-file-disciplines="{{ file.discipline }}"
+                                 data-file-airport="{{ file.airport }}"
+                                 data-file-funding-type="{{ file.funding_type }}"
+                                 data-file-grant-number="{{ file.grant_number }}">
+
+                                {% if file.file_type == 'pdf' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/pdf_96.png' %}"/>
+                                {% elif file.file_type == 'mxd' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mxd_96.png' %}"/>
+                                {% elif file.file_type == 'mpk' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mpk_96.png' %}"/>
+                                {% elif file.file_type == 'lyr' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lyr_96.png' %}"/>
+                                {% elif file.file_type == 'lpk' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lpk_96.png' %}"/>
+                                {% elif file.file_type == 'dwg' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/dwg_96.png' %}"/>
+                                {% elif file.file_type == 'docx' %}
+                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/docx_96.png' %}"/>
+                                {% elif file.file_type == 'jpeg' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/jpeg_96.png' %}"/>
+                                {% elif file.file_type == 'png' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/png_96.png' %}"/>
+                                {% elif file.file_type == 'pptx' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/pptx_96.png' %}"/>
+                                {% elif file.file_type == 'txt' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/txt_96.png' %}"/>
+                                {% elif file.file_type == 'tiff' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/tiff_96.png' %}"/>
+                                {% elif file.file_type == 'zip' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/zip_96.png' %}"/>
+                                {% elif file.file_type == 'xls' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xls_96.png' %}"/>
+                                {% elif file.file_type == 'xlsx' %}
+                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xlsx_96.png' %}"/>
+                                {% endif %}
+                                 <div title="{{ file.base_name }}">{{ file.base_name|truncatechars:18 }}</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </form>
         <form action='/fileApp/eng-files/' method="post">
             {% csrf_token %}
             <div id="_update_panel">
-                <input class="btn btn-fill" type="submit" value="Save" />
+                <input class="btn-green btn-fill" type="submit" value="Save" />
+                    <div id="_edit_file_name"></div>
+                    {{ grid_form }}
                     {% render_form edit_form template_pack='rest_framework/vertical' %}
                 <input class="btn btn-fill" type="submit" value="Save" />
             </div>

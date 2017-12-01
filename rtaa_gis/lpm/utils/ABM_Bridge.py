@@ -43,10 +43,10 @@ kwargs['driver'] = '{SQL Server}'
 kwargs['server'] = 'Reno-fis-sql2'
 kwargs['database'] = 'ABM_Reno_GIS'
 
-connGIS = pyodbc.connect(**kwargs)
-
-kwargs['database'] = 'ABM_Reno_Prod'
-connPROD = pyodbc.connect(**kwargs)
+# connGIS = pyodbc.connect(**kwargs)
+#
+# kwargs['database'] = 'ABM_Reno_Prod'
+# connPROD = pyodbc.connect(**kwargs)
 
 
 def queryConnection(connection):
@@ -148,30 +148,30 @@ def queryConnection(connection):
 
 if __name__ == "__main__":
     try:
-        x = queryConnection(connPROD)
-        agg_domain = []
-        for id in x:
-            title = x[id]["AgreementTitle"]
-            agg_domain.append({'code': id, 'name': "{} ({})".format(title, id)})
-            data = {
-                "id": id,
-                "type": x[id]["AgreementType"],
-                "description": x[id]["AgreementDescription"],
-                "status": x[id]["AgreementStatus"],
-                "start_date": x[id]["StartDate"],
-                "end_date": x[id]["Expiration"]
-            }
-
-            try:
-                existing = AgreementModel.objects.get(id=id)
-                serial = AgreementSerializer(existing, data=data)
-            except AgreementModel.DoesNotExist:
-                serial = AgreementSerializer(data=data)
-
-            if serial.is_valid():
-                serial.save()
-            else:
-                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+        # x = queryConnection(connPROD)
+        # agg_domain = []
+        # for id in x:
+        #     title = x[id]["AgreementTitle"]
+        #     agg_domain.append({'code': id, 'name': "{} ({})".format(title, id)})
+        #     data = {
+        #         "id": id,
+        #         "type": x[id]["AgreementType"],
+        #         "description": x[id]["AgreementDescription"],
+        #         "status": x[id]["AgreementStatus"],
+        #         "start_date": x[id]["StartDate"],
+        #         "end_date": x[id]["Expiration"]
+        #     }
+        #
+        #     try:
+        #         existing = AgreementModel.objects.get(id=id)
+        #         serial = AgreementSerializer(existing, data=data)
+        #     except AgreementModel.DoesNotExist:
+        #         serial = AgreementSerializer(data=data)
+        #
+        #     if serial.is_valid():
+        #         serial.save()
+        #     else:
+        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
@@ -211,7 +211,8 @@ if __name__ == "__main__":
             "token": token,
             "f": "pjson",
             "updateDefinition": {
-                "fields": json.dumps(new_fields)
+                "fields": json.dumps(new_fields),
+                "last_edited_date": ""
             }
         }
         post_data = urllib.parse.urlencode(post_data)

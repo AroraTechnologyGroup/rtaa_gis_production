@@ -12,6 +12,7 @@ funding_choices = [
 ]
 
 document_types = [
+    ('all', 'All'),
     ('email', 'Email'),
     ('notes', 'Notes')
 ]

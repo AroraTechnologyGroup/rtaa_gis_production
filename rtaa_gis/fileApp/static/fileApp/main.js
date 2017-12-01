@@ -160,4 +160,35 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             on(panel_btn5, 'click', function(event) {
                 event.preventDefault();
             });
+
+            var icons = query('.fileIcon');
+            Array.forEach(icons, function(div) {
+                on(div, 'click', function(evt) {
+                    console.log(evt);
+                    // get all data-atts on the icon and place data in the update form
+                    var file_id = domAttr.get(div, 'data-file-id');
+                    var date_added = domAttr.get(div, 'data-file-date-added');
+                    var base_name = domAttr.get(div, 'data-file-base-name');
+                    var grid_cells = domAttr.get(div, 'data-file-grid-cells');
+                    var project_title = domAttr.get(div, 'data-file-project-title');
+                    var project_desc = domAttr.get(div, 'data-file-project-desc');
+                    var project_date = domAttr.get(div, 'data-file-project-date');
+                    var sheet_title = domAttr.get(div, 'data-file-sheet-title');
+                    var sheet_type = domAttr.get(div, 'data-file-sheet-type');
+                    var sheet_desc = domAttr.get(div, 'data-file-sheet-desc');
+                    var vendor = domAttr.get(div, 'data-file-vendor');
+                    var discipline = domAttr.get(div, 'data-file-disciplines');
+                    var airport = domAttr.get(div, 'data-file-airport');
+                    var funding_type = domAttr.get(div, 'data-file-funding-type');
+                    var grant_number = domAttr.get(div, 'data-file-grant-number');
+
+                    // populate the edit form with these values
+                    if (!domClass.contains(update_panel, 'open')) {
+                        on.emit(panel_btn4, "click", {
+                            bubbles: true,
+                            cancelable: true
+                        });
+                    }
+                });
+            });
         });

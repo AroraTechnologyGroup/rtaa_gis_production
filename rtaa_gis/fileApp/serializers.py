@@ -41,16 +41,6 @@ class GridPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return '%s' % instance.name
 
 
-class EngineeringDisciplinesField(serializers.MultipleChoiceField):
-    choices = type_domains.engineering_discipline_choices
-    allow_blank = True
-
-
-class EngineeringSheetTypesField(serializers.MultipleChoiceField):
-    choices = type_domains.engineering_sheet_types
-    allow_blank = True
-
-
 class EngAssignmentSerializer(serializers.ModelSerializer):
 
     grid_cell = GridPrimaryKeyRelatedField()
@@ -81,17 +71,20 @@ class EngSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EngineeringFileModel
-        fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'sheet_title', 'sheet_type',
-                  'project_title', 'project_description', 'project_date', 'sheet_description', 'vendor', 'discipline',
-                  'airport', 'funding_type', 'grant_number', 'file_path')
-        depth = 1
-        read_only_fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'mime')
+        fields = '__all__'
+        # fields = ('pk', 'base_name', 'grid_cells', 'file_type', 'size', 'date_added', 'sheet_title', 'sheet_type',
+        #           'project_title', 'project_description', 'project_date', 'sheet_description', 'vendor', 'discipline',
+        #           'airport', 'funding_type', 'grant_number', 'file_path')
+        depth = 2
+        read_only_fields = ('base_name', 'file_path', 'file_type', 'size', 'date_added', 'mime')
 
     grid_cells = serializers.SerializerMethodField()
 
-    sheet_type = EngineeringSheetTypesField
+    sheet_type = serializers.MultipleChoiceField(choices=type_domains.engineering_sheet_types)
 
-    discipline = EngineeringDisciplinesField
+    discipline = serializers.MultipleChoiceField(choices=type_domains.engineering_discipline_choices)
+
+    document_type = serializers.MultipleChoiceField(choices=type_domains.DOC_VIEWER_TYPES)
 
     @staticmethod
     def get_grid_cells(self):
@@ -142,9 +135,13 @@ class EngSerializer(serializers.ModelSerializer):
             validated_data["size"] = size
             validated_data["mime"] = mime
 
-            _file = EngineeringFileModel.objects.create(**validated_data)
-            _file.save()
-            return _file
+            # remove the assignments from the validated data
+            assigns = validated_data.pop('assignments')
+            file = EngineeringFileModel.objects.create(**validated_data)
+            for assign in assigns:
+                EngineeringAssignment.objects.create(**assign)
+            return file
+
         except Exception as e:
             print(e)
 
@@ -169,6 +166,7 @@ class EngSerializer(serializers.ModelSerializer):
 
             # These variables are brought in from the Access Database of Tiffany
             instance.discipline = validated_data.get("discipline", instance.discipline)
+            instance.document_type = validated_data.get("document_type", instance.document_type)
             instance.sheet_type = validated_data.get("sheet_type", instance.sheet_type)
             instance.project_title = validated_data.get("project_title", instance.project_title)
             instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)

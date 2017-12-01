@@ -8,11 +8,11 @@ date_format = [
 
 class FilterForm(forms.Form):
 
-    def __init__(self, init_base_name, init_sheet_title, sheet_types, init_sheet_types, init_project_title, init_project_desc, init_after_date,
+    def __init__(self, init_base_name, init_date_added, init_grid_cells, init_sheet_title, sheet_types, init_sheet_types, init_project_title, init_project_desc, init_after_date,
                  init_before_date, init_sheet_description, init_vendor, disciplines, init_disciplines,
                  airports, init_airports, funding_types, init_funding_types, init_file_path, init_grant_number,
                  file_types, chkd_f_types, image_types, chkd_i_types, table_types, chkd_t_types, document_types,
-                 chkd_d_types, chkd_gis_types, gis_types, init_grid_cells, *args, **kwargs):
+                 chkd_d_types, chkd_gis_types, gis_types, *args, **kwargs):
         super(FilterForm, self).__init__(*args, **kwargs)
         self.fields['gis_type'].choices = gis_types
         self.fields['sheet_type'].choices = sheet_types
@@ -26,6 +26,10 @@ class FilterForm(forms.Form):
 
         if init_base_name:
             self.fields['base_name'].initial = init_base_name
+        if init_date_added:
+            self.fields['date_added'].initial = init_date_added
+        if init_grid_cells:
+            self.fields['grid_cells'].initial = init_grid_cells
         if init_sheet_title:
             self.fields['sheet_title'].initial = init_sheet_title
         if init_sheet_types:
@@ -62,28 +66,30 @@ class FilterForm(forms.Form):
             self.fields['table_type'].initial = chkd_t_types
         if chkd_d_types:
             self.fields['document_type'].initial = chkd_d_types
-        if init_grid_cells:
-            self.fields['grid_cells'].initial = init_grid_cells
 
     base_name = forms.CharField(label="File Name", required=False)
+
+    date_added = forms.DateField(label="Date Added", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    grid_cells = forms.CharField(label='Grid Cells', required=False, widget=forms.TextInput())
 
     sheet_title = forms.CharField(label='Sheet Title', required=False)
 
     sheet_type = forms.MultipleChoiceField(choices=(), label="Sheet Type", required=False)
 
+    discipline = forms.MultipleChoiceField(choices=(), label="Discipline", required=False)
+
     project_title = forms.CharField(label="Project Title", required=False)
 
     project_description = forms.CharField(label='Project Description', required=False)
 
-    after_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    after_date = forms.DateField(label='Project After Date', required=False, widget=forms.DateInput(attrs={'type': 'date'}))
 
-    before_date = forms.DateField(required=False,  widget=forms.DateInput(attrs={'type': 'date'}))
+    before_date = forms.DateField(label='Project Before Date', required=False,  widget=forms.DateInput(attrs={'type': 'date'}))
 
     sheet_description = forms.CharField(label="Sheet Description", required=False)
 
     vendor = forms.CharField(label="Vendor", required=False)
-
-    discipline = forms.MultipleChoiceField(choices=(), label="Discipline", required=False)
 
     airport = forms.ChoiceField(choices=(), label='Airport', widget=forms.RadioSelect(), initial="rno")
 
@@ -108,6 +114,8 @@ class FilterForm(forms.Form):
     gis_type = forms.MultipleChoiceField(choices=(), label='GIS Types', required=False,
                                          widget=forms.CheckboxSelectMultiple())
 
-    grid_cells = forms.CharField(label='Grid Cells', required=False, widget=forms.TextInput())
 
+class AssignmentForm(forms.Form):
+
+    grid_cells = forms.CharField(strip=True, max_length=255, widget=forms.Textarea)
 
