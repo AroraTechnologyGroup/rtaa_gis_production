@@ -1,5 +1,6 @@
 vendor_choices = [
-    ('all', 'All')
+    ('all', 'All'),
+    ('unk', 'Unknown'),
 ]
 
 airport_choices = [
@@ -8,17 +9,20 @@ airport_choices = [
 ]
 
 funding_choices = [
-    ('all', 'All')
+    ('all', 'All'),
+    ('unk', 'Unknown'),
 ]
 
 document_types = [
     ('all', 'All'),
+    ('unk', 'Unknown'),
     ('email', 'Email'),
     ('notes', 'Notes')
 ]
 
 engineering_discipline_choices = [
                 ('all', 'All'),
+                ('unk', 'Unknown'),
                 ('misc', 'Miscellaneous'),
                 ('civil', 'Civil'),
                 ('arch', 'Architectural'),
@@ -31,6 +35,7 @@ engineering_discipline_choices = [
 
 engineering_sheet_types = [
                 ('all', 'All'),
+                ('unk', 'Unknown'),
                 ('details', 'Details'),
                 ('plan', 'Plan'),
                 ('title', 'Title'),
