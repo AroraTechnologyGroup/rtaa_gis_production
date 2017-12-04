@@ -43,10 +43,10 @@ kwargs['driver'] = '{SQL Server}'
 kwargs['server'] = 'Reno-fis-sql2'
 kwargs['database'] = 'ABM_Reno_GIS'
 
-# connGIS = pyodbc.connect(**kwargs)
-#
-# kwargs['database'] = 'ABM_Reno_Prod'
-# connPROD = pyodbc.connect(**kwargs)
+connGIS = pyodbc.connect(**kwargs)
+
+kwargs['database'] = 'ABM_Reno_Prod'
+connPROD = pyodbc.connect(**kwargs)
 
 
 def queryConnection(connection):
@@ -82,15 +82,19 @@ def queryConnection(connection):
                 cleaned_row = []
                 for x in row:
                     if type(x) is str:
-                        cleaned_row.append(x.strip())
+                        # These string values need to be cleaned for JSON
+                        cleaned_row.append(x.strip().replace("'", "").replace("\\", "").replace('"', ''))
+                    # None is not supported in the service definition
+                    elif x is None:
+                        cleaned_row.append('null')
                     else:
                         cleaned_row.append(x)
 
                 data[row[0]] = {
-                    "AgreementNumber": row[1],
-                    "AgreementTitle": row[2],
+                    "AgreementNumber": cleaned_row[1],
+                    "AgreementTitle": cleaned_row[2],
                     "AgreementStatus": status_types[row[3]],
-                    "AgreementDescription": row[4],
+                    "AgreementDescription": cleaned_row[4],
                     "AgreementType": agreement_types[row[5]]
                 }
 
@@ -148,30 +152,30 @@ def queryConnection(connection):
 
 if __name__ == "__main__":
     try:
-        # x = queryConnection(connPROD)
-        # agg_domain = []
-        # for id in x:
-        #     title = x[id]["AgreementTitle"]
-        #     agg_domain.append({'code': id, 'name': "{} ({})".format(title, id)})
-        #     data = {
-        #         "id": id,
-        #         "type": x[id]["AgreementType"],
-        #         "description": x[id]["AgreementDescription"],
-        #         "status": x[id]["AgreementStatus"],
-        #         "start_date": x[id]["StartDate"],
-        #         "end_date": x[id]["Expiration"]
-        #     }
-        #
-        #     try:
-        #         existing = AgreementModel.objects.get(id=id)
-        #         serial = AgreementSerializer(existing, data=data)
-        #     except AgreementModel.DoesNotExist:
-        #         serial = AgreementSerializer(data=data)
-        #
-        #     if serial.is_valid():
-        #         serial.save()
-        #     else:
-        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+        x = queryConnection(connPROD)
+        agg_domain = []
+        for id in x:
+            title = x[id]["AgreementTitle"]
+            agg_domain.append({"code": id, "name": "{} ID#{})".format(title, id)})
+            data = {
+                "id": id,
+                "type": x[id]["AgreementType"],
+                "description": x[id]["AgreementDescription"],
+                "status": x[id]["AgreementStatus"],
+                "start_date": x[id]["StartDate"],
+                "end_date": x[id]["Expiration"]
+            }
+
+            try:
+                existing = AgreementModel.objects.get(id=id)
+                serial = AgreementSerializer(existing, data=data)
+            except AgreementModel.DoesNotExist:
+                serial = AgreementSerializer(data=data)
+
+            if serial.is_valid():
+                serial.save()
+            else:
+                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
@@ -184,7 +188,13 @@ if __name__ == "__main__":
         new_fields = existing_fields[:]
         for obj in new_fields:
             if obj["name"] == "Agreement":
-                obj["domain"] = {"codedValues": agg_domain}
+                domain_type = obj["domain"]["type"]
+                domain_name = obj["domain"]["name"]
+                obj["domain"] = {
+                    "type": domain_type,
+                    "name": domain_name,
+                    "codedValues": agg_domain
+                }
 
         pprint.pprint(new_fields)
 
@@ -211,17 +221,18 @@ if __name__ == "__main__":
             "token": token,
             "f": "pjson",
             "updateDefinition": {
-                "fields": json.dumps(new_fields),
-                "last_edited_date": ""
+                "fields": new_fields
             }
         }
-        post_data = urllib.parse.urlencode(post_data)
-        post_data = post_data.encode('ascii')
+
+        # the constant types in python must be converted to null and true or false
+        d = urllib.parse.urlencode(post_data).replace('None', 'null').replace('False', 'false').replace('True', 'true')
+        post_data = d.encode('ascii')
+        # the admin service url must be used
         service_url = r"https://services6.arcgis.com/GC5xdlDk2dEYWofH/arcgis/rest/admin/services/Space/FeatureServer/0/updateDefinition"
-        req = urllib.request.Request(service_url, post_data)
+        req = urllib.request.Request(service_url, data=post_data, method="POST")
         response = urllib.request.urlopen(req)
         data = response.read().decode("utf-8")
-        # Convert string to dictionary
         json_acceptable_string = data.replace("'", "\"")
         d = json.loads(json_acceptable_string)
         pprint.pprint(d)
