@@ -1,6 +1,6 @@
 from rest_framework import routers
 from . import views
-from .views import UserViewer
+from .views import UserViewer, FileUpdater
 from django.conf.urls import url
 
 app_name = 'fileApp'
@@ -15,6 +15,7 @@ router.register(r'eng-files', views.PagedEngViewSet)
 
 urlpatterns = [
     url(r'^eDocViewer/$', UserViewer.as_view(template='fileApp/eDocUserView.html', app_name='eDoc Viewer'), name='eDoc'),
+    url(r'^file-update/$', FileUpdater.as_view(), name='file-updater')
 ]
 
 urlpatterns += router.urls

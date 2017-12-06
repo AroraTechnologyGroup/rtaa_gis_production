@@ -1,4 +1,7 @@
 from django import forms
+from .utils.domains import FileTypes
+
+ftypes = FileTypes()
 
 date_format = [
         '%Y-%m', '%m-%Y', '%Y/%m', '%m/%Y',
@@ -13,12 +16,25 @@ class FilterForm(forms.Form):
                  airports, init_airports, funding_types, init_funding_types, init_file_path, init_grant_number,
                  file_types, chkd_f_types, image_types, chkd_i_types, table_types, chkd_t_types, document_types,
                  chkd_d_types, chkd_gis_types, gis_types, *args, **kwargs):
+
         super(FilterForm, self).__init__(*args, **kwargs)
+        # get the length of the sheet_type / discipline multiselect
+        if len(sheet_types) >= len(disciplines):
+            d = len(sheet_types)
+        else:
+            d = len(disciplines)
+
         self.fields['gis_type'].choices = gis_types
         self.fields['sheet_type'].choices = sheet_types
+        self.fields['sheet_type'].widget.attrs = {"size": d}
+
         self.fields['discipline'].choices = disciplines
+        self.fields['discipline'].widget.attrs = {"size": d}
+
         self.fields['airport'].choices = airports
         self.fields['funding_type'].choices = funding_types
+        self.fields['funding_type'].widget.attrs = {"size": len(funding_types)}
+
         self.fields['file_type'].choices = file_types
         self.fields['image_type'].choices = image_types
         self.fields['table_type'].choices = table_types
@@ -75,9 +91,9 @@ class FilterForm(forms.Form):
 
     sheet_title = forms.CharField(label='Sheet Title', required=False)
 
-    sheet_type = forms.MultipleChoiceField(choices=(), label="Sheet Type", required=False)
+    sheet_type = forms.MultipleChoiceField(choices=(), label="Sheet Type", required=False, widget=forms.SelectMultiple())
 
-    discipline = forms.MultipleChoiceField(choices=(), label="Discipline", required=False)
+    discipline = forms.MultipleChoiceField(choices=(), label="Discipline", required=False, widget=forms.SelectMultiple())
 
     project_title = forms.CharField(label="Project Title", required=False)
 
@@ -115,7 +131,45 @@ class FilterForm(forms.Form):
                                          widget=forms.CheckboxSelectMultiple())
 
 
-class AssignmentForm(forms.Form):
+class UpdateForm(forms.Form):
 
-    grid_cells = forms.CharField(strip=True, max_length=255, widget=forms.Textarea)
+    edit_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
+
+    edit_base_name = forms.CharField(label="Filename", max_length=255, disabled=True)
+
+    edit_grid_cells = forms.CharField(label="Grid Cells", strip=True, max_length=255, widget=forms.Textarea(),
+                                      required=False)
+
+    edit_sheet_title = forms.CharField(label="Sheet Title", strip=True, max_length=255, required=False)
+
+    edit_discipline = forms.MultipleChoiceField(label="Disciplines", choices=ftypes.engineering_discipline_choices,
+                                           widget=forms.CheckboxSelectMultiple)
+
+    edit_sheet_type = forms.MultipleChoiceField(label="Sheet Types", choices=ftypes.engineering_sheet_types,
+                                           widget=forms.CheckboxSelectMultiple, required=False)
+
+    edit_doc_type = forms.MultipleChoiceField(label="Document Types", choices=ftypes.DOC_VIEWER_TYPES,
+                                              widget=forms.CheckboxSelectMultiple, required=False)
+
+    edit_project_title = forms.CharField(label="Project Title", strip=True, max_length=255, required=False)
+
+    edit_project_desc = forms.CharField(label="Project Description", strip=True, max_length=255, required=False)
+
+    edit_project_date = forms.DateField(label="Project Date", required=False,
+                                        widget=forms.DateInput(attrs={'type': 'date'}))
+
+    edit_sheet_desc = forms.CharField(label="Sheet Description", strip=True, max_length=255, required=False)
+
+    edit_vendor = forms.CharField(label="Vendor", required=False, max_length=255)
+
+    edit_funding_type = forms.CharField(label="Funding Type", required=False, max_length=255)
+
+    edit_airport = forms.ChoiceField(choices=ftypes.airport_choices, label='Airport', widget=forms.RadioSelect(),
+                                     required=True)
+
+    edit_grant_number = forms.CharField(label="Grant Number", required=False, max_length=255)
+
+    edit_date_added = forms.DateField(label="Date Added", required=True, disabled=True)
+
+    edit_file_path = forms.CharField(label="File Path", widget=forms.HiddenInput(), required=True)
 

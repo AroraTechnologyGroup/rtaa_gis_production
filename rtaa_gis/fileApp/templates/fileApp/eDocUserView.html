@@ -106,17 +106,19 @@
                         {% for file in efiles %}
                             <div class="fileIcon"
                                  data-file-id="{{ file.id }}"
-                                 data-file-date-added="{{ file.date_added }}"
+                                 data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
+                                 data-file-path="{{ file.file_path }}"
                                  data-file-base-name="{{ file.base_name }}"
-                                 data-file-grid-cells="{{ file.grid_cells }}"
+                                 data-file-grid-cells="{{ file.grid_cells.all|join:"," }}"
                                  data-file-project-title="{{ file.project_title }}"
                                  data-file-project-desc="{{ file.project_description }}"
-                                 data-file-project-date="{{ file.project_date }}"
+                                 data-file-project-date="{{ file.project_date|date:"Y-m-d" }}"
                                  data-file-sheet-title="{{ file.sheet_title }}"
-                                 data-file-sheet-type="{{ file.sheet_type }}"
+                                 data-file-sheet-type="{{ file.sheet_type.all|join:"," }}"
+                                 data-file-doc-type="{{ file.document_type.all|join:"," }}"
                                  data-file-sheet-desc="{{ file.sheet_description }}"
                                  data-file-vendor="{{ file.vendor }}"
-                                 data-file-disciplines="{{ file.discipline }}"
+                                 data-file-discipline="{{ file.discipline.all|join:"," }}"
                                  data-file-airport="{{ file.airport }}"
                                  data-file-funding-type="{{ file.funding_type }}"
                                  data-file-grant-number="{{ file.grant_number }}">
@@ -159,13 +161,41 @@
                 </div>
             </div>
         </form>
-        <form action='/fileApp/eng-files/' method="post">
+        <form action='{% url 'fileApp:file-updater' %}' method="post">
             {% csrf_token %}
             <div id="_update_panel">
                 <input class="btn-green btn-fill" type="submit" value="Save" />
                     <div id="_edit_file_name"></div>
-                    {{ grid_form }}
-                    {% render_form edit_form template_pack='rest_framework/vertical' %}
+                    {% for field in edit_form.hidden_fields %}
+                        <div style="display: none;">
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                    {% for field in edit_form.visible_fields %}
+                        {% if field.name == "edit_sheet_type" or field.name == "edit_discipline" or field.name == "edit_doc_type" %}
+                             <div class="fieldWrapper form-group">
+                                <button class="accordion">{{ field.label_tag }}</button>
+                                <div class="panel">
+                                    {{ field.errors }}
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                    <p class="help">{{ field.help_text|safe }}</p>
+                                    {% endif %}
+                                </div>
+                             </div>
+
+                        {% else %}
+                            <div class="fieldWrapper">
+                                {{ field.errors }}
+                                {{ field.label_tag }} {{ field }}
+                                {% if field.help_text %}
+                                <p class="help">{{ field.help_text|safe }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                    {% endfor %}
                 <input class="btn btn-fill" type="submit" value="Save" />
             </div>
         </form>

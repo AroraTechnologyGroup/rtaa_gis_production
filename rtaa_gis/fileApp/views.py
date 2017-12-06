@@ -10,7 +10,7 @@ from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
-from .forms import FilterForm, AssignmentForm
+from .forms import FilterForm, UpdateForm
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
@@ -21,6 +21,7 @@ from rest_framework import response, schemas
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
 from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from .utils import WatchDogTrainer
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
@@ -32,6 +33,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.models import User, Group
 from django.forms import modelformset_factory
+from django.core.exceptions import ObjectDoesNotExist
 from django.forms import modelform_factory
 import datetime
 from datetime import date, timedelta
@@ -528,9 +530,7 @@ class UserViewer(GenericAPIView):
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = EngSerializer(context={'request': request})
-
-        grid_form = AssignmentForm()
+        edit_form = UpdateForm()
 
         batch_formset = self.FileFormSet()
 
@@ -550,7 +550,6 @@ class UserViewer(GenericAPIView):
                      "app_name": app_name,
                      "filter_form": filter_form,
                      "edit_form": edit_form,
-                     "grid_form": grid_form,
                      "batch_formset": batch_formset
                      }
         return resp
@@ -678,9 +677,7 @@ class UserViewer(GenericAPIView):
                           disciplines=self.disciplines, airports=self.airports,
                           funding_types=self.funding_types)
 
-        edit_form = EngSerializer(context={'request': request})
-
-        grid_form = AssignmentForm()
+        edit_form = UpdateForm()
 
         batch_formset = self.FileFormSet()
 
@@ -700,7 +697,68 @@ class UserViewer(GenericAPIView):
             "app_name": app_name,
             "filter_form": filter_form,
             "edit_form": edit_form,
-            "grid_form": grid_form,
             "batch_formset": batch_formset
         }
         return resp
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FileUpdater(APIView):
+    """view that takes in edit_fields from the update form and updates the file objects"""
+    serializer_class = EngSerializer
+    renderer_classes = (JSONRenderer,)
+    queryset = EngineeringFileModel.objects.all()
+
+    def post(self, request, format=None):
+        data = request.POST
+        id = data.get('edit_id')
+        try:
+            user = request.META['REMOTE_USER']
+        except KeyError:
+            user = request.user.username
+
+        file_path = data.get('edit_file_path')
+        grid_cells = data.getlist('edit_grid_cells')
+        sheet_title = data.get('edit_sheet_title')
+        discipline = data.getlist('edit_discipline')
+        sheet_type = data.getlist('edit_sheet_type')
+        doc_type = data.getlist('edit_doc_type')
+        project_title = data.get('edit_project_title')
+        project_desc = data.get('edit_project_desc')
+        project_date = data.get('edit_project_date')
+        sheet_desc = data.get('edit_sheet_desc')
+        vendor = data.get('edit_vendor')
+        funding_type = data.get('edit_funding_type')
+        airport = data.get('edit_airport')
+        grant_number = data.get('edit_grant_number')
+
+        update_data = {
+            "grid_cells": grid_cells,
+            "sheet_type": sheet_type,
+            "discipline": discipline,
+            "document_type": doc_type,
+            "file_path": file_path,
+            "user": user,
+            "project_title": project_title,
+            "sheet_description": sheet_desc,
+            "sheet_title": sheet_title,
+            "project_date": project_date,
+            "vendor": vendor,
+            "airport": airport,
+            "project_description": project_desc,
+            "funding_type": funding_type,
+            "grant_number": grant_number
+        }
+
+        try:
+            existing = EngineeringFileModel.objects.get(id=id)
+            ser = EngSerializer(existing, data=update_data)
+            if ser.is_valid():
+                ser.save()
+            else:
+                logger.error(ser.errors)
+
+        except ObjectDoesNotExist as e:
+            logger.error(e)
+
+        return redirect('fileApp:eDoc')

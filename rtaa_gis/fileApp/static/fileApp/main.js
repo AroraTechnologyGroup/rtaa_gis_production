@@ -1,6 +1,6 @@
 require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
         "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
-        'dojo/domReady!'],
+        "dojo/NodeList-traverse", 'dojo/domReady!'],
         function (Deferred, Array, registry, baseUnload, hash, query, domClass, domStyle,
                   domAttr, domConstruct, dom, on) {
 
@@ -42,14 +42,36 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
             var update_panel = dom.byId('_update_panel');
 
             // add the DRF class names to the django fieldWrapper to get the calendar
-            var fields = query('.fieldWrapper');
-            Array.forEach(fields, function(e) {
+            Array.forEach(query('.fieldWrapper'), function(e) {
                 domClass.add(e, 'form-group');
             });
 
-            var controls = query('.fieldWrapper input');
-            Array.forEach(controls, function(e) {
+            Array.forEach(query('.fieldWrapper input'), function(e) {
                 domClass.add(e, 'form-control');
+            });
+
+            // make the multi-select boxes side by side
+            Array.forEach(query('.fieldWrapper > select').parent(), function(e) {
+                domClass.add(e, 'inline');
+            });
+
+            Array.forEach(query('.fieldWrapper > ul').parent(), function(e) {
+                domClass.add(e, 'inline-list');
+            });
+
+
+            // disable the click event for the dropdown buttons in the update panel
+            Array.forEach(query('button.accordion'), function(e) {
+                on(e, 'click', function(evt) {
+                    evt.preventDefault();
+                    domClass.toggle(e, "active");
+                    var panel = e.nextElementSibling;
+                    if (domClass.contains(panel, "active")) {
+                        domClass.replace(panel, "off", "active")
+                    } else {
+                        domClass.replace(panel, "active", "off");
+                    }
+                });
             });
 
             var check_panel = function(event) {
@@ -161,6 +183,7 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
             });
 
+
             var icons = query('.fileIcon');
             Array.forEach(icons, function(div) {
                 on(div, 'click', function(evt) {
@@ -168,6 +191,7 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                     // get all data-atts on the icon and place data in the update form
                     var file_id = domAttr.get(div, 'data-file-id');
                     var date_added = domAttr.get(div, 'data-file-date-added');
+                    var file_path = domAttr.get(div, 'data-file-path');
                     var base_name = domAttr.get(div, 'data-file-base-name');
                     var grid_cells = domAttr.get(div, 'data-file-grid-cells');
                     var project_title = domAttr.get(div, 'data-file-project-title');
@@ -175,9 +199,10 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                     var project_date = domAttr.get(div, 'data-file-project-date');
                     var sheet_title = domAttr.get(div, 'data-file-sheet-title');
                     var sheet_type = domAttr.get(div, 'data-file-sheet-type');
+                    var doc_type = domAttr.get(div, 'data-file-doc-type');
                     var sheet_desc = domAttr.get(div, 'data-file-sheet-desc');
                     var vendor = domAttr.get(div, 'data-file-vendor');
-                    var discipline = domAttr.get(div, 'data-file-disciplines');
+                    var discipline = domAttr.get(div, 'data-file-discipline');
                     var airport = domAttr.get(div, 'data-file-airport');
                     var funding_type = domAttr.get(div, 'data-file-funding-type');
                     var grant_number = domAttr.get(div, 'data-file-grant-number');
@@ -189,6 +214,102 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                             cancelable: true
                         });
                     }
+
+                    dom.byId('id_edit_id').value = file_id;
+
+                    dom.byId('id_edit_base_name').value = base_name;
+
+                    dom.byId('id_edit_grid_cells').value = grid_cells;
+
+                    if (sheet_title === "None") {
+                        sheet_title = ""
+                    }
+
+                    dom.byId('id_edit_sheet_title').value = sheet_title;
+
+                    Array.forEach(query("#id_edit_discipline input"), function(box) {
+                        box.checked = false;
+                    });
+                    Array.forEach(discipline.split(","), function(e) {
+                        Array.some(query("#id_edit_discipline input"), function(input) {
+                            if (input.value === e) {
+                                input.checked = true;
+                            }
+                        });
+                    });
+                    Array.forEach(query("#id_edit_sheet_type input"), function(box) {
+                        box.checked = false;
+                    });
+                    Array.forEach(sheet_type.split(","), function(e) {
+                        Array.some(query("#id_edit_sheet_type input"), function(input) {
+                            if (input.value === e) {
+                                input.checked = true;
+                            }
+                        });
+                    });
+                     Array.forEach(query("#id_edit_doc_type input"), function(box) {
+                        box.checked = false;
+                    });
+                    Array.forEach(doc_type.split(","), function(e) {
+                        Array.some(query("#id_edit_doc_type input"), function (input) {
+                            if (input.value === e) {
+                                input.checked = true;
+                            }
+                        });
+                    });
+
+                    if (project_title === "None") {
+                        project_title = ""
+                    }
+
+                    dom.byId('id_edit_project_title').value = project_title;
+
+                    if (project_desc === "None") {
+                        project_desc = "";
+                    }
+
+                    dom.byId('id_edit_project_desc').value = project_desc;
+
+                    if (project_date === "None") {
+                        project_date = null;
+                    }
+
+                    dom.byId('id_edit_project_date').value = project_date;
+
+                    if (sheet_desc === "None") {
+                        sheet_desc = "";
+                    }
+
+                    dom.byId('id_edit_sheet_desc').value = sheet_desc;
+
+                    if (vendor === "None") {
+                        vendor = "";
+                    }
+
+                    dom.byId('id_edit_vendor').value = vendor;
+
+                    if (funding_type === "None") {
+                        funding_type = "";
+                    }
+
+                    dom.byId('id_edit_funding_type').value = funding_type;
+
+                    Array.forEach(query("#id_edit_airport input"), function(e) {
+                        if (e.value === airport) {
+                            e.checked = true;
+                        }
+                    });
+
+                    dom.byId('id_edit_date_added').value = date_added;
+
+                    dom.byId('id_edit_file_path').value = file_path;
+
+                    if (grant_number === "None") {
+                        grant_number = "";
+                    }
+
+                    dom.byId('id_edit_grant_number').value = grant_number;
+
                 });
             });
         });

@@ -1,11 +1,17 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from fileApp.models import GridCell, EngineeringAssignment, EngineeringFileModel
+from fileApp.models import GridCell, EngineeringAssignment, EngineeringFileModel, DisciplineModel, SheetTypeModel,\
+    DocumentTypeModel
 from fileApp.utils import function_definitions, domains
 import mimetypes
 import os
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
+import logging
 
 type_domains = domains.FileTypes()
+
+logger = logging.getLogger(__name__)
 
 
 class GridSerializer(serializers.ModelSerializer):
@@ -76,15 +82,15 @@ class EngSerializer(serializers.ModelSerializer):
         #           'project_title', 'project_description', 'project_date', 'sheet_description', 'vendor', 'discipline',
         #           'airport', 'funding_type', 'grant_number', 'file_path')
         depth = 2
-        read_only_fields = ('base_name', 'file_path', 'file_type', 'size', 'date_added', 'mime')
+        read_only_fields = ('last_edited_date', 'base_name', 'file_type', 'size', 'date_added', 'mime')
 
     grid_cells = serializers.SerializerMethodField()
 
-    sheet_type = serializers.MultipleChoiceField(choices=type_domains.engineering_sheet_types)
+    sheet_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=SheetTypeModel.objects.all())
 
-    discipline = serializers.MultipleChoiceField(choices=type_domains.engineering_discipline_choices)
+    discipline = serializers.SlugRelatedField(many=True, slug_field='name', queryset=DisciplineModel.objects.all())
 
-    document_type = serializers.MultipleChoiceField(choices=type_domains.DOC_VIEWER_TYPES)
+    document_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=DocumentTypeModel.objects.all())
 
     @staticmethod
     def get_grid_cells(self):
@@ -135,11 +141,7 @@ class EngSerializer(serializers.ModelSerializer):
             validated_data["size"] = size
             validated_data["mime"] = mime
 
-            # remove the assignments from the validated data
-            assigns = validated_data.pop('assignments')
             file = EngineeringFileModel.objects.create(**validated_data)
-            for assign in assigns:
-                EngineeringAssignment.objects.create(**assign)
             return file
 
         except Exception as e:
@@ -163,11 +165,35 @@ class EngSerializer(serializers.ModelSerializer):
                         if extension in k:
                             instance.mime = file_types.file_type_choices[v][k]
                             break
-
+            # These are editor tracking fields
+            instance.last_edited_date = datetime.today()
+            instance.last_edited_user = validated_data.get("user", instance.last_edited_user)
             # These variables are brought in from the Access Database of Tiffany
-            instance.discipline = validated_data.get("discipline", instance.discipline)
-            instance.document_type = validated_data.get("document_type", instance.document_type)
-            instance.sheet_type = validated_data.get("sheet_type", instance.sheet_type)
+            disc = validated_data.get('discipline')
+            if disc:
+                for x in disc:
+                    try:
+                        d = DisciplineModel.objects.get(name=x)
+                        instance.discipline.add(d)
+                    except ObjectDoesNotExist as e:
+                        logging.error(e)
+            doc_type = validated_data.get("document_type")
+            if doc_type:
+                for x in doc_type:
+                    try:
+                        d = DocumentTypeModel.objects.get(name=x)
+                        instance.document_type.add(d)
+                    except ObjectDoesNotExist as e:
+                        logging.error(e)
+            s_type = validated_data.get("sheet_type")
+            if s_type:
+                for x in s_type:
+                    try:
+                        d = SheetTypeModel.objects.get(name=x)
+                        instance.sheet_type.add(d)
+                    except ObjectDoesNotExist as e:
+                        logging.error(e)
+
             instance.project_title = validated_data.get("project_title", instance.project_title)
             instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)
             instance.sheet_title = validated_data.get("sheet_title", instance.sheet_title)

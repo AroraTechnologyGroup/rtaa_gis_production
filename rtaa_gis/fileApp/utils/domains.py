@@ -30,7 +30,9 @@ engineering_discipline_choices = [
                 ('landscaping', 'Landscaping'),
                 ('mechanical-hvac', 'Mechanical-HVAC'),
                 ('plumbing', 'Plumbing'),
-                ('electrical', 'Electrical')
+                ('electrical', 'Electrical'),
+                ('mechanical', 'Mechanical'),
+                ('fire protection', 'Fire Protection')
             ]
 
 engineering_sheet_types = [
@@ -44,7 +46,11 @@ engineering_sheet_types = [
                 ('elevations', 'Elevations'),
                 ('notes', 'Notes'),
                 ('sections', 'Sections'),
-                ('symbols', 'Symbols')
+                ('symbols', 'Symbols'),
+                ('quantity', 'Quantity'),
+                ('specifications', 'Specifications'),
+                ('schedule', 'Schedule'),
+                ('diagram', 'Diagram')
             ]
 
 

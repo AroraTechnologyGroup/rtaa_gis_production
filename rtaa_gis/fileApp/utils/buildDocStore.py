@@ -8,14 +8,17 @@ import json
 import traceback
 import pyodbc
 import datetime
+from django.core.exceptions import ObjectDoesNotExist
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
-from fileApp import models
-from fileApp.models import EngineeringFileModel, EngineeringAssignment, GridCell
+
+from fileApp.models import EngineeringFileModel, EngineeringAssignment, GridCell,\
+    DisciplineModel, SheetTypeModel, DocumentTypeModel
+
 from fileApp.serializers import EngSerializer, EngAssignmentSerializer
-from fileApp.utils.domains import engineering_sheet_types, engineering_discipline_choices, FileTypes
+from fileApp.utils.domains import FileTypes
 from fileApp.utils import function_definitions
 from django.conf import settings
 
@@ -44,8 +47,36 @@ class FileStoreBuilder:
 
     @staticmethod
     def format_text(input):
-        string = input.strip().upper()
+        string = input.strip().capitalize()
         return string
+
+    def build_rel_stores(self):
+        for x in self.FileTypes.DOC_VIEWER_TYPES:
+            try:
+                DocumentTypeModel.objects.get(name=x[0])
+            except ObjectDoesNotExist:
+                name = x[0]
+                label = x[1]
+                obj = DocumentTypeModel.objects.create(name=name, label=label)
+                obj.save()
+
+        for x in self.FileTypes.engineering_sheet_types:
+            try:
+                SheetTypeModel.objects.get(name=x[0])
+            except ObjectDoesNotExist:
+                name = x[0]
+                label = x[1]
+                obj = SheetTypeModel.objects.create(name=name, label=label)
+                obj.save()
+
+        for x in self.FileTypes.engineering_discipline_choices:
+            try:
+                DisciplineModel.objects.get(name=x[0])
+            except ObjectDoesNotExist:
+                name = x[0]
+                label = x[1]
+                obj = DisciplineModel.objects.create(name=name, label=label)
+                obj.save()
 
     def load_accdb(self):
         # write file paths from Tiffany that cannot be found
@@ -75,8 +106,7 @@ class FileStoreBuilder:
 
                     if not file_path:
                         file_path = ""
-                    # All File Paths in the system are in lower case
-                    filtered = EngineeringFileModel.objects.filter(file_path=file_path)
+
                     if not vendor:
                         vendor = ""
                     else:
@@ -93,14 +123,61 @@ class FileStoreBuilder:
                         sheet_title = self.format_text(sheet_title)
 
                     if not sheet_type:
-                        sheet_type = ""
+                        sheet_type = ["unk"]
                     else:
-                        sheet_type = self.format_text(sheet_type)
+                        sheet_types = sheet_type.strip().lower().split()
+                        sheet_types = [x.strip() for x in sheet_types]
+
+                        sheet_type_lookup = {
+                            "quantity": ["quantity"],
+                            "title": ["title"],
+                            "key": ["key"],
+                            "index": ["index"],
+                            "details": ["detail"],
+                            "symbols": ["symbol"],
+                            "specifications": ["specification"],
+                            "schedule": ["schedule"],
+                            "sections": ["section"],
+                            "plan": ["plan"],
+                            "notes": ["note"],
+                            "elevations": ["elevation"],
+                            "diagram": ["diagram"],
+                        }
+
+                        new_list = []
+                        for s_type in sheet_types:
+                            # the accdb has types combined without spaces and with slashes.
+                            # this should find each type by checking whether it is in the string
+                            for k, v in iter(sheet_type_lookup.items()):
+                                if v[0] in s_type:
+                                    new_list.append(k)
+                        sheet_type = new_list
 
                     if not discipline:
-                        discipline = ""
+                        discipline = ["unk"]
                     else:
-                        discipline = self.format_text(discipline)
+                        disciplines = discipline.strip().lower().split()
+                        disciplines = [x.strip() for x in disciplines]
+
+                        discipline_lookup = {
+                            "misc": ["miscellaneous", "misc"],
+                            "civil": ["civil"],
+                            "arch": ["architectural", "arch"],
+                            "structural": ["structural"],
+                            "landscaping": ["landscaping", "landscape"],
+                            "mechanical-hvac": ["mechanical(hvac)"],
+                            "plumbing": ["plumbing"],
+                            "electrical": ["electrical", "electricals", "electric"],
+                            "mechanical": ["mechanical"],
+                            "fire protection": ["fire protection"]
+                        }
+                        new_list = []
+                        for disc in disciplines:
+                            for k, v in iter(discipline_lookup.items()):
+                                if disc in v:
+                                    new_list.append(k)
+
+                        discipline = new_list
 
                     if not project_title:
                         project_title = ""
@@ -112,6 +189,8 @@ class FileStoreBuilder:
                     else:
                         sheet_description = self.format_text(sheet_description)
 
+                    # All File Paths in the system are in lower case
+                    filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                     if len(filtered) == 0:
                         # The file object was not located in the fileStore using the file_path
 
@@ -123,6 +202,7 @@ class FileStoreBuilder:
                             'sheet_description': sheet_description,
                             'sheet_title': sheet_title,
                             'project_date': project_date,
+                            'document_type': ['unk'],
                             'vendor': vendor,
                             'airport': '',
                             'project_description': '',
@@ -133,11 +213,11 @@ class FileStoreBuilder:
                         try:
                             ser_obj = EngSerializer(data=new_obj)
                             if ser_obj.is_valid():
-                                noFile.write("path: {}\n".format(file_path))
-                                noFile.write("discipline: {}\n".format(discipline))
-                                noFile.write("project_title: {}\n".format(project_title))
-                                noFile.write("sheet_type: {}\n".format(sheet_type))
-                                noFile.write("sheet_title: {}\n\n".format(sheet_title))
+                                noFile.write("path: {}\n".format(ser_obj.validated_data["file_path"]))
+                                noFile.write("discipline: {}\n".format(ser_obj.validated_data["discipline"]))
+                                noFile.write("project_title: {}\n".format(ser_obj.validated_data["project_title"]))
+                                noFile.write("sheet_type: {}\n".format(ser_obj.validated_data["sheet_type"]))
+                                noFile.write("sheet_title: {}\n\n".format(ser_obj.validated_data["sheet_title"]))
                                 pass
                             else:
                                 print(ser_obj.errors)
@@ -147,6 +227,7 @@ class FileStoreBuilder:
 
                     elif len(filtered) == 1:
                         _object = filtered[0]
+                        doc_types = _object.document_type
                         update_data = {
                             "file_path": file_path,
                             "sheet_type": sheet_type,
@@ -155,6 +236,7 @@ class FileStoreBuilder:
                             "sheet_description": sheet_description,
                             "sheet_title": sheet_title,
                             "project_date": project_date,
+                            "document_type": doc_types,
                             "vendor": vendor,
                             "airport": "",
                             "project_description": "",
@@ -166,11 +248,11 @@ class FileStoreBuilder:
                         try:
                             new_s = EngSerializer(_object, data=update_data, partial=True)
                             if new_s.is_valid():
-                                yesFile.write("path: {}\n".format(file_path))
-                                yesFile.write("discipline: {}\n".format(discipline))
-                                yesFile.write("project_title: {}\n".format(project_title))
-                                yesFile.write("sheet_type: {}\n".format(sheet_type))
-                                yesFile.write("sheet_title: {}\n\n".format(sheet_title))
+                                yesFile.write("path: {}\n".format(new_s.validated_data["file_path"]))
+                                yesFile.write("discipline: {}\n".format(new_s.validated_data["discipline"]))
+                                yesFile.write("project_title: {}\n".format(new_s.validated_data["project_title"]))
+                                yesFile.write("sheet_type: {}\n".format(new_s.validated_data["sheet_type"]))
+                                yesFile.write("sheet_title: {}\n\n".format(new_s.validated_data["sheet_title"]))
                                 new_s.save()
                             else:
                                 print(new_s.errors)
@@ -358,11 +440,12 @@ class AssignmentManager:
 
 if __name__ == '__main__':
     x = FileStoreBuilder()
+    x.build_rel_stores()
     x.build_store()
-    # if os.path.exists(acc_db_path):
-    #     x.load_accdb()
-    # cell = GridCellBuilder()
-    # cell.build_store()
+    if os.path.exists(acc_db_path):
+        x.load_accdb()
+    cell = GridCellBuilder()
+    cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 
