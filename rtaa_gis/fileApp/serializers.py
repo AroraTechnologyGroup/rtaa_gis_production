@@ -88,6 +88,10 @@ class EngSerializer(serializers.ModelSerializer):
         child=serializers.CharField()
     )
 
+    new_grid_cells = serializers.ListField(
+        child=serializers.CharField()
+    )
+
     sheet_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=SheetTypeModel.objects.all())
 
     discipline = serializers.SlugRelatedField(many=True, slug_field='name', queryset=DisciplineModel.objects.all())
@@ -226,7 +230,14 @@ class EngSerializer(serializers.ModelSerializer):
                                 target.delete()
                             except ObjectDoesNotExist:
                                 pass
-                for x in m_grids:
+            else:
+                # remove all assignments if they exist
+                target = EngineeringAssignment.objects.filter(file=instance)
+                target.delete()
+
+            new_grids = validated_data.get("new_grid_cells")
+            if new_grids:
+                for x in new_grids:
                     g_cell = GridCell.objects.get(name=x)
                     try:
                         EngineeringAssignment.objects.get(file=instance, grid_cell=g_cell)

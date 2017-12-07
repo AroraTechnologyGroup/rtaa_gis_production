@@ -718,7 +718,8 @@ class FileUpdater(APIView):
             user = request.user.username
 
         file_path = data.get('edit_file_path')
-        grid_cells = data.get('edit_grid_cells').split(",")
+        grid_cells = data.getlist('edit_grid_cells')
+        new_grid_cells = data.getlist('edit_new_grid_cells')
         sheet_title = data.get('edit_sheet_title')
         discipline = data.getlist('edit_discipline')
         sheet_type = data.getlist('edit_sheet_type')
@@ -736,6 +737,7 @@ class FileUpdater(APIView):
 
         update_data = {
             "grid_cells": grid_cells,
+            "new_grid_cells": new_grid_cells,
             "sheet_type": sheet_type,
             "discipline": discipline,
             "document_type": doc_type,

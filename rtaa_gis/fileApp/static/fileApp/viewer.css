@@ -453,3 +453,7 @@ input {
 #map.hide {
     display: none
 }
+
+.dijitCheckBoxInput {
+    opacity: 1;
+}

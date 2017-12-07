@@ -330,7 +330,27 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
 
                         dom.byId('id_edit_base_name').value = base_name;
 
-                        dom.byId('id_edit_grid_cells').value = grid_cells;
+                        // empty the div of grid cells
+                        var edit_grid_list = dom.byId("id_edit_grid_cells");
+                        domConstruct.empty(edit_grid_list);
+                        // add checkbox and label for each grid cell
+                        if (grid_cells) {
+                            Array.forEach(grid_cells.split(","), function (e) {
+
+                                var li = domConstruct.create("li");
+                                var label = domConstruct.create("label", {"for": e + "_id", innerHTML: e});
+                                var input = domConstruct.create("input", {
+                                    "type": "checkbox", "name": "edit_grid_cells", "value": e,
+                                    "id": e + "_id", "checked": true, "class": "form-control"
+                                });
+
+                                domConstruct.place(label, li);
+                                domConstruct.place(input, label);
+                                domConstruct.place(li, dom.byId("id_edit_grid_cells"));
+                            });
+                        } else {
+                            domConstruct.place("<p>No Cells Assigned</p>", dom.byId("id_edit_grid_cells"));
+                        }
 
                         if (sheet_title === "None") {
                             sheet_title = ""

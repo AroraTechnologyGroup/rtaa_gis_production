@@ -133,9 +133,11 @@ define([
                         grid.refresh();
 
                         var grid_search_list = dom.byId('id_grid_cells');
-                        var grid_update_list = dom.byId('id_edit_grid_cells');
+                        var grid_update_list = dom.byId('id_edit_new_grid_cells');
+
                         grid_search_list.value = "";
-                        grid_update_list.value = "";
+                        // remove all of the html from the UpdateList
+                        domConstruct.empty(grid_update_list);
 
                         var tool = this.label.toUpperCase().replace(/ /g, "_");
                         self.map.hideZoomSlider();
@@ -202,10 +204,7 @@ define([
             layer.queryFeatures(query, function(featureSet) {
                 console.log(featureSet);
                 var grid_search_list = dom.byId('id_grid_cells');
-                var grid_update_list = dom.byId('id_edit_grid_cells');
-                // var grid_list = registry.byId("_gridList");
-                // clear all html from the grid list content node
-                // grid_list.clearSelection();
+                var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
                 var grid_cells = Array.map(featureSet.features, function(feature) {
                     var deferred = new Deferred();
@@ -224,8 +223,22 @@ define([
                     layer.setSelectionSymbol(selectionSymbol);
                     // sort the array in alpha numerical order
                     array.sort();
+
+                    // update the Search Text box with grid values
                     grid_search_list.value = array;
-                    grid_update_list.value = array;
+                    // add the New Grid Cells to the update box as checkboxes
+                    Array.forEach(array, function(e) {
+
+                        var li = domConstruct.create("li");
+                        var label = domConstruct.create("label", {"for" : e+"_id", innerHTML: e});
+                        var input = domConstruct.create("input", {"type": "checkbox", "name": "edit_new_grid_cells", "value": e,
+                            "id": e+"_id", "checked": true, "class": "form-control"});
+
+                        domConstruct.place(label, li);
+                        domConstruct.place(input, label);
+                        domConstruct.place(li, grid_update_list);
+
+                    });
 
                     // grid_list.on('dgrid-select', function(event) {
                     //     var rows = event.rows;
