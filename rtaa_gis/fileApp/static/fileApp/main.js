@@ -1,15 +1,69 @@
-require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
+require(["dojo/Deferred", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
         "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
-        "dojo/NodeList-traverse", 'dojo/domReady!'],
-        function (Deferred, Array, registry, baseUnload, hash, query, domClass, domStyle,
-                  domAttr, domConstruct, dom, on) {
+        "esri/arcgis/utils", "dijit/Menu", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
+        function (Deferred, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
+                  domAttr, domConstruct, dom, on, arcgisUtils, Menu, MenuItem, esriId) {
+            parser.parse();
+            var map, cred = "esri_jsapi_id_manager_data";
+            function loadCredentials(){
+                var idJson, idObject;
+
+                if (supports_local_storage()) {
+                    // read from local storage
+                    idJson = window.localStorage.getItem(cred);
+                }
+                else {
+                    // read from a cookie
+                    idJson = cookie(cred);
+                }
+
+                if (idJson && idJson != "null" && idJson.length > 4) {
+                    idObject = JSON.parse(idJson);
+                    esriId.initialize(idObject);
+                }
+                else {
+                    // console.log("didn't find anything to load :(");
+                }
+            }
+
+            function storeCredentials(){
+                // make sure there are some credentials to persist
+                if (esriId.credentials.length === 0) {
+                    return;
+                }
+
+                // serialize the ID manager state to a string
+                var idString = JSON.stringify(esriId.toJson());
+                // store it client side
+                if (supports_local_storage()) {
+                    // use local storage
+                    window.localStorage.setItem(cred, idString);
+                    // console.log("wrote to local storage");
+                }
+                else {
+                    // use a cookie
+                    cookie(cred, idString, {expires: 1});
+                    // console.log("wrote a cookie :-/");
+                }
+            }
+
+            function supports_local_storage(){
+                try {
+                    return "localStorage" in window && window["localStorage"] !== null;
+                } catch (e) {
+                    return false;
+                }
+            }
 
             var unLoad = function() {
                 Array.forEach(registry.toArray(), function(item) {
                     item.destroyRecursive();
+                    storeCredentials();
                 });
             };
             baseUnload.addOnUnload(unLoad);
+
+            loadCredentials();
 
             var request_hash = hash();
             if (request_hash) {
@@ -160,8 +214,8 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 check_panel(event).then(function(e) {
                     domClass.remove(doc_type_html, "visible");
                     domClass.remove(file_type_html, "visible");
-                    domClass.add(map_html, "visible");
-
+                    domClass.toggle(map_html, "visible");
+                    map.resize();
                 });
             });
 
@@ -183,7 +237,28 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                 event.preventDefault();
             });
 
+            var menu = new Menu({
+                targetNodeIds: ["_resultBox"],
+                selector: ".fileIcon"
+            });
 
+            menu.addChild(new MenuItem({
+                label: "Download",
+                onClick: function(evt) {
+                    var node = this.getParent().currentTarget;
+                    var _id = domAttr.get(node, "data-file-id");
+                    console.log(_id);
+                }
+            }));
+
+            menu.addChild(new MenuItem({
+                label: "View as pdf",
+                onClick: function(evt) {
+                    var node = this.getParent().currentTarget;
+                    console.log(node);
+                }
+            }));
+            menu.startup();
             var icons = query('.fileIcon');
             Array.forEach(icons, function(div) {
                 on(div, 'click', function(evt) {
@@ -207,109 +282,137 @@ require(["dojo/Deferred", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unlo
                     var funding_type = domAttr.get(div, 'data-file-funding-type');
                     var grant_number = domAttr.get(div, 'data-file-grant-number');
 
-                    // populate the edit form with these values
-                    if (!domClass.contains(update_panel, 'open')) {
-                        on.emit(panel_btn4, "click", {
-                            bubbles: true,
-                            cancelable: true
-                        });
-                    }
-
-                    dom.byId('id_edit_id').value = file_id;
-
-                    dom.byId('id_edit_base_name').value = base_name;
-
-                    dom.byId('id_edit_grid_cells').value = grid_cells;
-
-                    if (sheet_title === "None") {
-                        sheet_title = ""
-                    }
-
-                    dom.byId('id_edit_sheet_title').value = sheet_title;
-
-                    Array.forEach(query("#id_edit_discipline input"), function(box) {
-                        box.checked = false;
-                    });
-                    Array.forEach(discipline.split(","), function(e) {
-                        Array.some(query("#id_edit_discipline input"), function(input) {
-                            if (input.value === e) {
-                                input.checked = true;
-                            }
-                        });
-                    });
-                    Array.forEach(query("#id_edit_sheet_type input"), function(box) {
-                        box.checked = false;
-                    });
-                    Array.forEach(sheet_type.split(","), function(e) {
-                        Array.some(query("#id_edit_sheet_type input"), function(input) {
-                            if (input.value === e) {
-                                input.checked = true;
-                            }
-                        });
-                    });
-                     Array.forEach(query("#id_edit_doc_type input"), function(box) {
-                        box.checked = false;
-                    });
-                    Array.forEach(doc_type.split(","), function(e) {
-                        Array.some(query("#id_edit_doc_type input"), function (input) {
-                            if (input.value === e) {
-                                input.checked = true;
-                            }
-                        });
-                    });
-
-                    if (project_title === "None") {
-                        project_title = ""
-                    }
-
-                    dom.byId('id_edit_project_title').value = project_title;
-
-                    if (project_desc === "None") {
-                        project_desc = "";
-                    }
-
-                    dom.byId('id_edit_project_desc').value = project_desc;
-
-                    if (project_date === "None") {
-                        project_date = null;
-                    }
-
-                    dom.byId('id_edit_project_date').value = project_date;
-
-                    if (sheet_desc === "None") {
-                        sheet_desc = "";
-                    }
-
-                    dom.byId('id_edit_sheet_desc').value = sheet_desc;
-
-                    if (vendor === "None") {
-                        vendor = "";
-                    }
-
-                    dom.byId('id_edit_vendor').value = vendor;
-
-                    if (funding_type === "None") {
-                        funding_type = "";
-                    }
-
-                    dom.byId('id_edit_funding_type').value = funding_type;
-
-                    Array.forEach(query("#id_edit_airport input"), function(e) {
-                        if (e.value === airport) {
-                            e.checked = true;
+                    if (mouse.isLeft(evt)) {
+                        // populate the edit form with these values
+                        if (!domClass.contains(update_panel, 'open')) {
+                            on.emit(panel_btn4, "click", {
+                                bubbles: true,
+                                cancelable: true
+                            });
                         }
-                    });
 
-                    dom.byId('id_edit_date_added').value = date_added;
+                        dom.byId('id_edit_id').value = file_id;
 
-                    dom.byId('id_edit_file_path').value = file_path;
+                        dom.byId('id_edit_base_name').value = base_name;
 
-                    if (grant_number === "None") {
-                        grant_number = "";
+                        dom.byId('id_edit_grid_cells').value = grid_cells;
+
+                        if (sheet_title === "None") {
+                            sheet_title = ""
+                        }
+
+                        dom.byId('id_edit_sheet_title').value = sheet_title;
+
+                        Array.forEach(query("#id_edit_discipline input"), function (box) {
+                            box.checked = false;
+                        });
+                        Array.forEach(discipline.split(","), function (e) {
+                            Array.some(query("#id_edit_discipline input"), function (input) {
+                                if (input.value === e) {
+                                    input.checked = true;
+                                }
+                            });
+                        });
+                        Array.forEach(query("#id_edit_sheet_type input"), function (box) {
+                            box.checked = false;
+                        });
+                        Array.forEach(sheet_type.split(","), function (e) {
+                            Array.some(query("#id_edit_sheet_type input"), function (input) {
+                                if (input.value === e) {
+                                    input.checked = true;
+                                }
+                            });
+                        });
+                        Array.forEach(query("#id_edit_doc_type input"), function (box) {
+                            box.checked = false;
+                        });
+                        Array.forEach(doc_type.split(","), function (e) {
+                            Array.some(query("#id_edit_doc_type input"), function (input) {
+                                if (input.value === e) {
+                                    input.checked = true;
+                                }
+                            });
+                        });
+
+                        if (project_title === "None") {
+                            project_title = ""
+                        }
+
+                        dom.byId('id_edit_project_title').value = project_title;
+
+                        if (project_desc === "None") {
+                            project_desc = "";
+                        }
+
+                        dom.byId('id_edit_project_desc').value = project_desc;
+
+                        if (project_date === "None") {
+                            project_date = null;
+                        }
+
+                        dom.byId('id_edit_project_date').value = project_date;
+
+                        if (sheet_desc === "None") {
+                            sheet_desc = "";
+                        }
+
+                        dom.byId('id_edit_sheet_desc').value = sheet_desc;
+
+                        if (vendor === "None") {
+                            vendor = "";
+                        }
+
+                        dom.byId('id_edit_vendor').value = vendor;
+
+                        if (funding_type === "None") {
+                            funding_type = "";
+                        }
+
+                        dom.byId('id_edit_funding_type').value = funding_type;
+
+                        Array.forEach(query("#id_edit_airport input"), function (e) {
+                            if (e.value === airport) {
+                                e.checked = true;
+                            }
+                        });
+
+                        dom.byId('id_edit_date_added').value = date_added;
+
+                        dom.byId('id_edit_file_path').value = file_path;
+
+                        if (grant_number === "None") {
+                            grant_number = "";
+                        }
+
+                        dom.byId('id_edit_grant_number').value = grant_number;
+                    } else if (mouse.isRight(event)) {
+
                     }
-
-                    dom.byId('id_edit_grant_number').value = grant_number;
 
                 });
+
+                on(div, 'r')
+            });
+
+            var createMapOptions = {
+                mapOptions: {
+                    slider: false
+                },
+                usePopupManager: true,
+
+                geometryServiceURL: "http://tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer"
+            };
+
+            var webMapItemID = "d634955e19bf419a9308050d0b546e4d";
+            deferred = arcgisUtils.createMap(webMapItemID, 'map', createMapOptions);
+            deferred.then(function(e) {
+                map = e.map;
+                var widget = new drawToolbar({
+                    map: map,
+                    id: "_draw_bar",
+                    baseClass: "_draw-bar"
+                }, "widgetNode");
+                // widget.startup();
+
             });
         });

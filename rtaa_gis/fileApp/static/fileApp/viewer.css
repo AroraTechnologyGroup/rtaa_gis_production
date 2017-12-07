@@ -19,7 +19,16 @@ html, body, .viewport {
 
 label {
     margin: auto;
-    font-size: 0.75rem;
+    font-size: 0.75em;
+}
+
+input {
+    font-size: 0.75em;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
 }
 
 .fileIcon {
@@ -65,7 +74,7 @@ label {
     z-index: 10;
     display: flex;
     flex-direction: row;
-    width: 400px;
+    width: 425px;
     padding: 2px;
 }
 
@@ -119,12 +128,12 @@ label {
 
 #_container {
     position: absolute;
-    left: calc(0% + 450px);
+    left: calc(0% + 425px);
     right: 0;
     top: 0;
     margin: 1px;
     height: 99%;
-    font-size: 0.75rem;
+    /*font-size: 0.75rem;*/
     z-index: 10;
 }
 
@@ -286,6 +295,10 @@ label {
 }
 #_slider_flex_container {
     /*display: flex;*/
+    /*position: absolute;*/
+    height: 100%;
+    width: 100%;
+
 }
 
 .panel_slide {
@@ -296,8 +309,15 @@ label {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+#_map_group.panel_slide.visible {
     height: 100%;
 }
+
+/*#_map_group {*/
+    /*display: block;*/
+/*}*/
 
 #_resultBox {
     display: inline-block;
@@ -306,6 +326,11 @@ label {
     overflow-y: scroll;
     position: absolute;
     width: 100%;
+    font-size: 0.75em;
+}
+
+#_resultBox > div:hover {
+    cursor: pointer
 }
 
 #_type_submit {
@@ -318,7 +343,7 @@ label {
     order: 5;
     overflow-y: scroll;
     margin: 3px;
-    padding: 3px;
+    padding: 10px;
     top: 0;
     left: 100%;
     right: 0;
@@ -331,7 +356,7 @@ label {
 #_update_panel.open {
     animation-name: openpanel;
     animation-duration: 1s;
-    left: calc(100% - 250px);
+    left: calc(100% - 300px);
 }
 
 #_update_panel textarea {
@@ -344,7 +369,7 @@ label {
     }
 
     to {
-        left: calc(100% - 250px);
+        left: calc(100% - 300px);
     }
 }
 
@@ -375,7 +400,7 @@ label {
 }
 
 #_update_panel .panel.active {
-    display: inline-block;
+    display: block;
 }
 
 #_update_panel .panel.off {
@@ -391,15 +416,38 @@ label {
     transition: 0.4s;
     outline: none;
     cursor: pointer;
-    margin: auto;
-    letter-spacing: 0em;
-    font-family: "Avenir Next W01","Avenir Next W00","Avenir Next","Avenir","Helvetica Neue","Helvetica","Arial",sans-serif;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
-#_update_panel button.accordion.active #_update_panel button.accordion.hover {
-    background-color: blue;
+#_update_panel button.accordion > label {
+    letter-spacing: 0em;
+    font-size: 1em;
+    font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    color: #4c4c4c;
+}
+
+#_update_panel button.accordion.active {
+    background-color: lightblue;
+}
+
+#_update_panel button.accordion > label:hover {
+    cursor: pointer;
 }
 
 #_update_panel .panel {
     display: none;
+}
+
+#widgetContainer {
+    z-index: 10;
+    display: inline;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+
+
+#map.hide {
+    display: none
 }

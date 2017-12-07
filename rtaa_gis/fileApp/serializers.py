@@ -84,7 +84,9 @@ class EngSerializer(serializers.ModelSerializer):
         depth = 2
         read_only_fields = ('last_edited_date', 'base_name', 'file_type', 'size', 'date_added', 'mime')
 
-    grid_cells = serializers.SerializerMethodField()
+    grid_cells = serializers.ListField(
+        child=serializers.CharField()
+    )
 
     sheet_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=SheetTypeModel.objects.all())
 
@@ -167,32 +169,69 @@ class EngSerializer(serializers.ModelSerializer):
                             break
             # These are editor tracking fields
             instance.last_edited_date = datetime.today()
+
             instance.last_edited_user = validated_data.get("user", instance.last_edited_user)
-            # These variables are brought in from the Access Database of Tiffany
+            # These variables are lists from validated data
             disc = validated_data.get('discipline')
             if disc:
+                rels = instance.discipline.all()
+                if rels:
+                    for t in rels:
+                        if t not in disc:
+                            instance.discipline.remove(t)
                 for x in disc:
                     try:
                         d = DisciplineModel.objects.get(name=x)
                         instance.discipline.add(d)
                     except ObjectDoesNotExist as e:
                         logging.error(e)
+
             doc_type = validated_data.get("document_type")
             if doc_type:
+                d = instance.document_type.all()
+                if d:
+                    for t in d:
+                        if t not in doc_type:
+                            instance.document_type.remove(t)
                 for x in doc_type:
                     try:
                         d = DocumentTypeModel.objects.get(name=x)
                         instance.document_type.add(d)
                     except ObjectDoesNotExist as e:
                         logging.error(e)
+
             s_type = validated_data.get("sheet_type")
             if s_type:
+                t = instance.sheet_type.all()
+                if t:
+                    for m in t:
+                        if m not in s_type:
+                            instance.sheet_type.remove(m)
+
                 for x in s_type:
                     try:
                         d = SheetTypeModel.objects.get(name=x)
                         instance.sheet_type.add(d)
                     except ObjectDoesNotExist as e:
                         logging.error(e)
+
+            m_grids = validated_data.get("grid_cells")
+            if m_grids:
+                g = instance.grid_cells.all()
+                if g:
+                    for m in g:
+                        if m.name not in m_grids:
+                            try:
+                                target = EngineeringAssignment.objects.get(file=instance, grid_cell=m)
+                                target.delete()
+                            except ObjectDoesNotExist:
+                                pass
+                for x in m_grids:
+                    g_cell = GridCell.objects.get(name=x)
+                    try:
+                        EngineeringAssignment.objects.get(file=instance, grid_cell=g_cell)
+                    except ObjectDoesNotExist:
+                        EngineeringAssignment.objects.create(file=instance, grid_cell=g_cell)
 
             instance.project_title = validated_data.get("project_title", instance.project_title)
             instance.sheet_description = validated_data.get("sheet_description", instance.sheet_description)

@@ -150,7 +150,7 @@ class EngineeringFileModel(FileModel):
 
     project_description = models.CharField(max_length=255, null=True, blank=True)
 
-    project_date = models.DateField(null=True, blank=True)
+    project_date = models.DateField(null=True)
 
     sheet_title = models.CharField(max_length=255, null=True, blank=True)
 

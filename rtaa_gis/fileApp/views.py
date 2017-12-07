@@ -604,9 +604,8 @@ class UserViewer(GenericAPIView):
             efiles = EngineeringFileModel.objects.filter(date_added__range=(start_date, end_date))
 
         if grid_cells:
-            gcells = [x.strip() for x in grid_cells.split()]
-            for gcell in gcells:
-                efiles = efiles.filter(engineeringassignment__grid_cell__name__icontains=gcell)
+            gcells = [x.strip() for x in grid_cells.split(",")]
+            efiles = efiles.filter(engineeringassignment__grid_cell__name__in=gcells).distinct()
 
         if sheet_title:
             efiles = EngineeringFileModel.objects.filter(sheet_title__icontains=sheet_title)
@@ -629,15 +628,14 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
             gnums = [x.strip() for x in grant_number.split()]
-            for gnum in gnums:
-                efiles = efiles.filter(grant_number__icontains=gnum)
+            efiles = efiles.filter(grant_number__in=gnums)
 
         if funding_types and funding_types != ['all']:
-            efiles = efiles.filter(funding_type__in=funding_types)
+            efiles = efiles.filter(funding_type__in=funding_types).distinct()
         if sheet_types and sheet_types != ['all']:
-            efiles = efiles.filter(sheet_type__in=sheet_types)
+            efiles = efiles.filter(sheet_type__in=sheet_types).distinct()
         if disciplines and disciplines != ['all']:
-            efiles = efiles.filter(discipline__in=disciplines)
+            efiles = efiles.filter(discipline__in=disciplines).distinct()
 
         # Pre file type filters
         base_types = file_types[:]
@@ -646,12 +644,12 @@ class UserViewer(GenericAPIView):
         base_types.extend(gis_types)
 
         if len(base_types) != len(self.choices):
-            efiles = efiles.filter(file_type__in=base_types)
+            efiles = efiles.filter(file_type__in=base_types).distinct()
             # base_desc = [lookup[x] for x in base_types]
             # efiles = efiles.filter(file_type__in=base_desc)
         # only filter by doc type if they are not all selected
         if len(document_types) != len(self.document_types):
-            efiles = efiles.filter(document_type__in=document_types)
+            efiles = efiles.filter(document_type__in=document_types).distinct()
 
         # after all of the files have been filtered from the input, query the assignments
         assignments = EngineeringAssignment.objects.filter(file__in=efiles)
@@ -718,7 +716,7 @@ class FileUpdater(APIView):
             user = request.user.username
 
         file_path = data.get('edit_file_path')
-        grid_cells = data.getlist('edit_grid_cells')
+        grid_cells = data.get('edit_grid_cells').split(",")
         sheet_title = data.get('edit_sheet_title')
         discipline = data.getlist('edit_discipline')
         sheet_type = data.getlist('edit_sheet_type')
@@ -726,6 +724,8 @@ class FileUpdater(APIView):
         project_title = data.get('edit_project_title')
         project_desc = data.get('edit_project_desc')
         project_date = data.get('edit_project_date')
+        if not project_date:
+            project_date = None
         sheet_desc = data.get('edit_sheet_desc')
         vendor = data.get('edit_vendor')
         funding_type = data.get('edit_funding_type')

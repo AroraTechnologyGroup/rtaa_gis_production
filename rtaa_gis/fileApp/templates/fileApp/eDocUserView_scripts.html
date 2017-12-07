@@ -2,10 +2,28 @@
 
 <!-- The dojo cdn -->
 <script>
-    dojoConfig = {
+    var dojoConfig = {
+        baseUrl: './',
+        async: true,
+        debug: true,
+        tlmSiblingofDojo: false,
+        selectorEngine: 'lite',
         parseOnLoad: true,
-        async: true
-    }
+
+        packages: [
+            {name: "widgets", location: "{% static 'fileApp/widgets' %}"},
+            {name: "dojo", location: "//js.arcgis.com/3.22/dojo"},
+            {name: "dijit", location: "//js.arcgis.com/3.22/dijit"},
+            {name: "dstore", location: "//js.arcgis.com/3.22/dstore"},
+            {name: "dgrid", location: "//js.arcgis.com/3.22/dgrid"},
+            {name: "put-selector", location: "//js.arcgis.com/3.22/put-selector"},
+            {name: "esri", location: "//js.arcgis.com/3.22/esri"},
+            {name: "dojox", location: "//js.arcgis.com/3.22/dojox"},
+            {name: "xstyle", location: "//js.arcgis.com/3.22/xstyle"},
+            {name: "moment", location: "//js.arcgis.com/3.22/moment"},
+            {name: "util", location: "//js.arcgis.com/3.22/util"}
+            ]
+    };
 </script>
-<script src="https://js.arcgis.com/4.3/"></script>
+<script src="https://js.arcgis.com/3.22/"></script>
 <script src="{% static  'fileApp/main.js'%}"></script>
