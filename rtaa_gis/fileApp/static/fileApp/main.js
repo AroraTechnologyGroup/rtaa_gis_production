@@ -1,8 +1,8 @@
-require(["dojo/Deferred", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
+require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
         "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
-        "esri/arcgis/utils", "dijit/Menu", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
-        function (Deferred, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
-                  domAttr, domConstruct, dom, on, arcgisUtils, Menu, MenuItem, esriId) {
+        "esri/arcgis/utils", "dijit/Menu", "dijit/popup", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
+        function (Deferred, lang, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
+                  domAttr, domConstruct, dom, on, arcgisUtils, Menu, popup, MenuItem, esriId) {
             parser.parse();
             var map, cred = "esri_jsapi_id_manager_data";
             function loadCredentials(){
@@ -237,32 +237,67 @@ require(["dojo/Deferred", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "d
                 event.preventDefault();
             });
 
-            var menu = new Menu({
+            var view_menu = new Menu({
                 targetNodeIds: ["_resultBox"],
-                selector: ".fileIcon"
+                selector: ".fileIcon.viewable"
             });
 
-            menu.addChild(new MenuItem({
+            var non_view_menu = new Menu({
+                targetNodeIds: ["_resultBox"],
+                selector: ".fileIcon.non-viewable"
+            });
+
+            var download_menu_item = new MenuItem({
                 label: "Download",
+                iconClass: "taskIcon",
                 onClick: function(evt) {
                     var node = this.getParent().currentTarget;
                     var _id = domAttr.get(node, "data-file-id");
+                    var url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+                    var a = domConstruct.create("a", {
+                                                href: url,
+                                                download: true,
+                                                withCredentials: true
+                                            });
+                    a.click();
+                    domConstruct.destroy(a);
                     console.log(_id);
                 }
-            }));
+            });
 
-            menu.addChild(new MenuItem({
-                label: "View as pdf",
+            var view_menu_item = new MenuItem({
+                label: "View File",
                 onClick: function(evt) {
                     var node = this.getParent().currentTarget;
-                    console.log(node);
+                    var _id = domAttr.get(node, "data-file-id");
+                    var url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view/";
+                    var a = domConstruct.create("a", {
+                                                href: url,
+                                                target: "_blank",
+                                                withCredentials: true
+                                            });
+                    a.click();
+                    domConstruct.destroy(a);
                 }
-            }));
-            menu.startup();
+            });
+
+            view_menu.addChild(download_menu_item);
+            view_menu.addChild(view_menu_item);
+
+            // cloning the Menu Item allows it to be reused
+            non_view_menu.addChild(lang.clone(download_menu_item));
+
+            view_menu.startup();
+            non_view_menu.startup();
+
             var icons = query('.fileIcon');
             Array.forEach(icons, function(div) {
                 on(div, 'click', function(evt) {
                     console.log(evt);
+                    // close the context menu
+                    Array.forEach([view_menu, non_view_menu], function(e) {
+                        popup.close(e);
+                    });
                     // get all data-atts on the icon and place data in the update form
                     var file_id = domAttr.get(div, 'data-file-id');
                     var date_added = domAttr.get(div, 'data-file-date-added');
@@ -385,13 +420,8 @@ require(["dojo/Deferred", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "d
                         }
 
                         dom.byId('id_edit_grant_number').value = grant_number;
-                    } else if (mouse.isRight(event)) {
-
                     }
-
                 });
-
-                on(div, 'r')
             });
 
             var createMapOptions = {

@@ -109,7 +109,11 @@
                         <div>No results returned</div>
                     {% else %}
                         {% for file in efiles %}
-                            <div class="fileIcon"
+                            {% if file.file_type in viewable_types %}
+                            <div class="fileIcon viewable"
+                            {% else %}
+                            <div class="fileIcon non-viewable"
+                            {% endif %}
                                  data-file-id="{{ file.id }}"
                                  data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
                                  data-file-path="{{ file.file_path }}"

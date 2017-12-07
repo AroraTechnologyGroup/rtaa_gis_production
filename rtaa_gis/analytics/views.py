@@ -13,3 +13,4 @@ logger = logging.getLogger(__package__)
 class RecordViewSet(viewsets.ModelViewSet):
     serializer_class = RecordSerializer
     queryset = Record.objects.all()
+

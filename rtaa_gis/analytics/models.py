@@ -10,7 +10,7 @@ class Record(models.Model):
         app_label = 'analytics'
 
     app_choices = (
-        ('eDoc', 'eDoc'),
+        ('fileApp', 'fileApp'),
         ('Print', 'Print'),
     )
 

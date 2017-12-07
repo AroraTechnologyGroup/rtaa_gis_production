@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import traceback
+from openpyxl import load_workbook
 
 from .utils import buildDocStore
 from .utils.domains import FileTypes
@@ -54,13 +55,18 @@ FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
+ftypes = FileTypes()
+table_types = ftypes.TABLE_VIEWER_TYPES
+image_types = ftypes.IMAGE_VIEWER_TYPES
+text_types = ftypes.FILE_VIEWER_TYPES
+
 
 def log_traceback():
     exc_type, exc_value, exc_traceback = sys.exc_info()
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
 
 
-def create_response_object(in_path, extension):
+def create_response_object(in_path, file_type):
     """generates a pdf file like object and writes to an http response"""
 
     def create_image_object(file_path):
@@ -72,73 +78,46 @@ def create_response_object(in_path, extension):
         fil.close()
         return resp
 
-    pythoncom.CoInitialize()
+    # ensure that the app's media folder exists in the MEDIA ROOT
+    if 'fileApp' not in os.listdir(MEDIA_ROOT):
+        os.mkdir(os.path.join(MEDIA_ROOT, 'fileApp'))
+
     response = HttpResponse(content_type='application/pdf')
-    if extension == 'pdf':
+
+    if file_type == 'pdf':
         """These files are already in an acceptable format"""
         fp = File(open(in_path, 'rb'))
         response.write(fp.read())
         fp.close()
 
-    elif extension in FileTypes.DOC_VIEWER_TYPES:
-        # TODO MSWORD Documents should not be written to the hard drive
+    elif file_type in dict(text_types):
+        """Create the Open Office Conversion class that calls the
+                  conversion scripts that exist in the Open Office program directory"""
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
-            basename = os.path.basename(in_path).replace(extension, "pdf")
+            temp_location = "{}\\{}".format(MEDIA_ROOT, "fileApp")
+            basename = os.path.basename(in_path).replace(file_type, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
-            word = win32com.client.DispatchEx("Word.Application")
-
-            doc = word.Documents.Open(in_path)
-            # 17 is pdf
-            doc.SaveAs2(format(temp_path), FileFormat=17)
-            doc.Close()
-            word.Quit()
-            del word
-            del doc
-
-            f = File(open(temp_path, 'rb'))
-            response.write(f.read())
-            f.close()
-            os.remove(temp_path)
-
-        except Exception as e:
-            """Create the Open Office Conversion class that calls the
-            conversion scripts that exist in the Open Office program directory"""
             o_doc = OpenOfficeConverter(in_path)
             response = o_doc.convert()
+        except Exception as e:
+            logger.error(e)
 
-    elif extension in FileTypes.TABLE_VIEWER_TYPES:
+    elif file_type in dict(table_types):
         # TODO MSEXCEL File should not be written to the hard drive
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
-            basename = os.path.basename(in_path).replace(extension, "pdf")
+            temp_location = "{}\\{}".format(MEDIA_ROOT, "fileApp")
+            basename = os.path.basename(in_path).replace(file_type, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
-
-            xl = win32com.client.DispatchEx("Excel.Application")
-            xl.Application.AskToUpdateLinks = 0
-            wb = xl.Workbooks.Open(in_path)
-            # 17 is pdf
-            wb.SaveAs2(temp_path, FileFormat=17)
-            wb.Close()
-            xl.Quit()
-            del xl
-            del wb
-
-            f = File(open(temp_path, 'rb'))
-            response.write(f.read())
-            f.close()
-            os.remove(temp_path)
-
-        except:
             o_doc = OpenOfficeConverter(in_path)
             response = o_doc.convert()
+
+        except Exception as e:
+            print(e)
             pass
 
-    elif extension in FileTypes.IMAGE_VIEWER_TYPES:
+    elif file_type in dict(image_types):
         """This response changes the content_type to image/png"""
         response = create_image_object(in_path)
-
-    pythoncom.CoUninitialize()
 
     return response
 
@@ -438,15 +417,15 @@ class EngIOViewSet(viewsets.ViewSet):
 
             # create entry in the analytics records table
             data = {
-                "method": "print",
-                "app_name": __name__
+                "method": "download",
+                "app_name": __package__
             }
-            serial = RecordSerializer(data=data)
+            serial = RecordSerializer(context={"request": request}, data=data)
             if serial.is_valid():
                 serial.save()
             else:
                 logger.error("failed to enter record entry {}".format(data))
-            return response
+            return resp
         else:
             return redirect(reverse('home:login'))
 
@@ -457,6 +436,16 @@ class EngIOViewSet(viewsets.ViewSet):
             return
         else:
             return redirect(reverse('home:login'))
+
+    @detail_route()
+    def _view(self, request, pk=None):
+        """convert the file to pdf and render in pdfjs"""
+        if request.user.is_authenticated():
+            file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
+            file_path = file_obj[0].file_path
+            file_type = file_obj[0].file_type
+            resp = create_response_object(in_path=file_path, file_type=file_type)
+            return resp
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -534,9 +523,15 @@ class UserViewer(GenericAPIView):
 
         batch_formset = self.FileFormSet()
 
+        viewable_types = []
+        viewable_types.extend(ftypes.TABLE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.FILE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.IMAGE_VIEWER_TYPES)
+        viewable_types = list(dict(viewable_types).keys())
         resp.data = {
                      "base_names": base_names,
                      "file_types": self.choices,
+                     "viewable_types": viewable_types,
                      "sheet_titles": sheet_titles,
                      "project_titles": project_titles,
                      "project_descriptions": project_descriptions,
@@ -679,9 +674,16 @@ class UserViewer(GenericAPIView):
 
         batch_formset = self.FileFormSet()
 
+        viewable_types = []
+        viewable_types.extend(ftypes.TABLE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.FILE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.IMAGE_VIEWER_TYPES)
+        viewable_types = list(dict(viewable_types).keys())
+
         resp.data = {
             "base_names": base_names,
             "file_types": self.choices,
+            "viewable_types": viewable_types,
             "sheet_titles": sheet_titles,
             "project_titles": project_titles,
             "project_descriptions": project_descriptions,
