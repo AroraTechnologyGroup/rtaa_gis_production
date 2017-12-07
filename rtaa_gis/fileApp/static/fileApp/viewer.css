@@ -141,7 +141,7 @@ input {
 #_container.ropen {
     animation-name: editropen;
     animation-duration: 1s;
-    right: 250px;
+    right: 300px;
 }
 
 @keyframes editropen {
@@ -150,7 +150,7 @@ input {
     }
 
     to {
-        right: 250px;
+        right: 300px;
     }
 }
 
@@ -163,7 +163,7 @@ input {
 
 @keyframes editrclose {
     from {
-        right: 250px;
+        right: 300px;
     }
 
     to {
@@ -342,7 +342,6 @@ input {
 #_update_panel {
     order: 5;
     overflow-y: scroll;
-    margin: 3px;
     padding: 10px;
     top: 0;
     left: 100%;
@@ -381,7 +380,7 @@ input {
 
 @keyframes closepanel {
     from {
-        left: calc(100% - 250px);
+        left: calc(100% - 300px);
     }
 
     to {
