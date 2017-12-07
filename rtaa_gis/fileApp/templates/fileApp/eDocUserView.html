@@ -98,7 +98,7 @@
 
                         <div id="_map_group" class="panel_slide">
                             <div id="map"></div>
-                            <div id="widgetContainer">
+                            <div class="widgetContainer">
                                 <div id="widgetNode"></div>
                             </div>
                         </div>
@@ -182,7 +182,7 @@
                         </div>
                     {% endfor %}
                     {% for field in edit_form.visible_fields %}
-                        {% if field.name == "edit_sheet_type" or field.name == "edit_discipline" or field.name == "edit_doc_type" %}
+                        {% if field.name == "edit_sheet_type" or field.name == "edit_discipline" or field.name == "edit_doc_type" or field.name == "edit_grid_cells" or field.name == "edit_new_grid_cells" %}
                              <div class="fieldWrapper form-group">
                                 <button class="accordion">{{ field.label_tag }}</button>
                                 <div class="panel">

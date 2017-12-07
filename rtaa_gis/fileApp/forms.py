@@ -137,8 +137,9 @@ class UpdateForm(forms.Form):
 
     edit_base_name = forms.CharField(label="Filename", max_length=255, disabled=True)
 
-    edit_grid_cells = forms.CharField(label="Grid Cells", strip=True, max_length=255, widget=forms.Textarea(),
-                                      required=False)
+    edit_grid_cells = forms.MultipleChoiceField(label="Currently Assigned Grid Cells", choices=(), widget=forms.CheckboxSelectMultiple)
+
+    edit_new_grid_cells = forms.MultipleChoiceField(label="New Grid Cells", choices=(), widget=forms.CheckboxSelectMultiple)
 
     edit_sheet_title = forms.CharField(label="Sheet Title", strip=True, max_length=255, required=False)
 

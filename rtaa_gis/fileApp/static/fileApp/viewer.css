@@ -1,3 +1,5 @@
+@import url("./widgets/resources/drawToolbar.css");
+
 .wrapper {
         background-image: none
     }
@@ -438,12 +440,13 @@ input {
     display: none;
 }
 
-#widgetContainer {
+.widgetContainer {
     z-index: 10;
     display: inline;
     position: absolute;
     top: 5px;
     left: 5px;
+    right: 5px;
 }
 
 

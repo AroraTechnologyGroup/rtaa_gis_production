@@ -439,8 +439,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                 map = e.map;
                 var widget = new drawToolbar({
                     map: map,
-                    id: "_draw_bar",
-                    baseClass: "_draw-bar"
+                    id: "_draw_bar"
                 }, "widgetNode");
                 // widget.startup();
 

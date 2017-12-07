@@ -78,7 +78,7 @@ define([
 ) {
     return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
         map: null,
-        baseClass: null,
+        baseClass: "_draw-bar",
         templateString: template,
         constructor: function(config) {
             console.log("widgets._eDock.drawToolbar::constructor", arguments);
@@ -120,7 +120,7 @@ define([
             draw_bar.on("draw-complete", addToMap);
 
             // Add the control buttons to the template
-            Array.forEach(["Point", "Multi Point", "Polygon", "Freehand Polygon", "Ellipse"], function(e) {
+            Array.forEach(["Point", "Multi Point", "Polygon", "Freehand Polygon", "Ellipse", "Circle"], function(e) {
                 var btn = new Button({
                     label: e,
                     // TODO-bind this function to the widget scope
@@ -144,6 +144,21 @@ define([
                     }
                 }, self[e]);
             });
+            // Add a clear all button to the template
+            var clear_btn = new Button({
+                label: "Clear All",
+                onClick: function(evt) {
+                    var lyr = self.grid_layer;
+                    var layer = self.map.getLayer(lyr);
+                    self.map.graphics.clear();
+                    if (layer.getDefinitionExpression()) {
+                        layer.clearSelection();
+                        layer.setDefinitionExpression("");
+                        layer.refresh();
+                        layer.hide();
+                    }
+                }
+            }, self.ClearAll);
 
             function addToMap(evt) {
                 var symbol;
