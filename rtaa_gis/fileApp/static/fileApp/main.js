@@ -5,6 +5,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                   domAttr, domConstruct, dom, on, arcgisUtils, Menu, popup, MenuItem, esriId) {
             parser.parse();
             var map, cred = "esri_jsapi_id_manager_data";
+            var deferred;
             function loadCredentials(){
                 var idJson, idObject;
 
