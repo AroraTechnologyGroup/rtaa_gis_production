@@ -31,6 +31,8 @@ Installation
 
 - After building the document store and any additional tables, run the dump_fixtures.py script to create the test fixtures
 
+- To support file conversion, install Open Office.  Copy the edoc_conversion.py and startOO.py files into the program directory
+
 - If launching on IIS configure the Handler Mapping for the fast-cgi script
     ```
     <?xml version="1.0" encoding="UTF-8"?>

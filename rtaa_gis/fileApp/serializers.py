@@ -85,18 +85,20 @@ class EngSerializer(serializers.ModelSerializer):
         read_only_fields = ('last_edited_date', 'base_name', 'file_type', 'size', 'date_added', 'mime')
 
     grid_cells = serializers.ListField(
-        child=serializers.CharField()
+        child=serializers.CharField(),
+        required=False
     )
 
     new_grid_cells = serializers.ListField(
-        child=serializers.CharField()
+        child=serializers.CharField(),
+        required=False
     )
 
-    sheet_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=SheetTypeModel.objects.all())
+    sheet_type = serializers.SlugRelatedField(many=True, required=False, slug_field='name', queryset=SheetTypeModel.objects.all())
 
-    discipline = serializers.SlugRelatedField(many=True, slug_field='name', queryset=DisciplineModel.objects.all())
+    discipline = serializers.SlugRelatedField(many=True, required=False, slug_field='name', queryset=DisciplineModel.objects.all())
 
-    document_type = serializers.SlugRelatedField(many=True, slug_field='name', queryset=DocumentTypeModel.objects.all())
+    document_type = serializers.SlugRelatedField(many=True, required=False, slug_field='name', queryset=DocumentTypeModel.objects.all())
 
     @staticmethod
     def get_grid_cells(self):

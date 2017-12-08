@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 FORCE_SCRIPT_NAME = "/rtaa_prod/"
 # FORCE_SCRIPT_NAME = "/applications/"
@@ -33,7 +33,7 @@ else:
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
-FILE_APP_TOP_DIRS = [r"C:\ESRI_WORK_FOLDER\rtaa"]
+FILE_APP_TOP_DIRS = [r"C:\\"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 

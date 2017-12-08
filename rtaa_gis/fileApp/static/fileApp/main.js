@@ -253,7 +253,15 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                 onClick: function(evt) {
                     var node = this.getParent().currentTarget;
                     var _id = domAttr.get(node, "data-file-id");
-                    var url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+
+                    // if not on the local server get the SCRIPT NAME
+                    var url;
+                    if (window.location.hostname !== '127.0.0.1') {
+                        var script_name = window.location.pathname.split("/")[0];
+                        url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_download/";
+                    } else {
+                        url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+                    }
                     var a = domConstruct.create("a", {
                                                 href: url,
                                                 download: true,
@@ -270,7 +278,15 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                 onClick: function(evt) {
                     var node = this.getParent().currentTarget;
                     var _id = domAttr.get(node, "data-file-id");
-                    var url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view/";
+                     // if not on the local server get the SCRIPT NAME
+                    var url;
+                    if (window.location.hostname !== '127.0.0.1') {
+                        var script_name = window.location.pathname.split("/")[0];
+                        url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
+                    } else {
+                        url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
+                    }
+
                     var a = domConstruct.create("a", {
                                                 href: url,
                                                 target: "_blank",

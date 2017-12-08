@@ -36,6 +36,7 @@ from django.contrib.auth.models import User, Group
 from django.forms import modelformset_factory
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms import modelform_factory
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import datetime
 from datetime import date, timedelta
 
@@ -426,7 +427,10 @@ class EngIOViewSet(viewsets.ViewSet):
             }
             serial = RecordSerializer(context={"request": request}, data=data)
             if serial.is_valid():
-                serial.save()
+                try:
+                    serial.save()
+                except Exception as e:
+                    logger.error(e)
             else:
                 logger.error("failed to enter record entry {}".format(data))
             return resp
@@ -495,7 +499,17 @@ class UserViewer(GenericAPIView):
         resp['Cache-Control'] = 'no-cache'
 
         # add the engineering file objects to the context
-        efiles = EngineeringFileModel.objects.all()
+        efile_list = EngineeringFileModel.objects.all()
+        paginator = Paginator(efile_list, 25)
+
+        page = request.GET.get('page')
+        try:
+            efiles = paginator.page(page)
+        except PageNotAnInteger:
+            efiles = paginator.page(1)
+        except EmptyPage:
+            efiles = paginator.page(paginator.num_pages)
+
         assignments = EngineeringAssignment.objects.all()
 
         base_names = set([x.base_name for x in efiles])
@@ -512,7 +526,8 @@ class UserViewer(GenericAPIView):
         chkd_d_types = [x[0] for x in self.document_types]
         chkd_gis_types = [x[0] for x in self.gis_types]
 
-        filter_form = FilterForm(init_base_name="", init_date_added=None, init_grid_cells="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
+        filter_form = FilterForm(init_base_name="", init_date_added=None, init_grid_cells="", init_sheet_title="",
+                                 init_sheet_types=["all"], init_project_title="",
                           init_project_desc="", init_after_date="", init_before_date="",
                           init_sheet_description="", init_vendor="", init_disciplines=['all'],
                           init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",

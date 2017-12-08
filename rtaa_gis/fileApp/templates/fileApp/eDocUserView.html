@@ -168,6 +168,19 @@
                             </div>
                         {% endfor %}
                     {% endif %}
+                    <div class="pagination">
+                        <span class="step-links">
+                            {% if efiles.has_previous %}
+                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.previous_page_number }}">previous</a>
+                            {% endif %}
+                            <span class="current">
+                                Page {{ efiles.number }} of {{ efiles.paginator.num_pages }}.
+                            </span>
+                            {% if efiles.has_next %}
+                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.next_page_number }}">next</a>
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
         </form>

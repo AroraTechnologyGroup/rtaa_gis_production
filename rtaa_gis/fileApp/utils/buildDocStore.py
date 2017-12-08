@@ -439,11 +439,11 @@ class AssignmentManager:
 
 
 if __name__ == '__main__':
-    # x = FileStoreBuilder()
-    # x.build_rel_stores()
-    # x.build_store()
-    # if os.path.exists(acc_db_path):
-    #     x.load_accdb()
+    x = FileStoreBuilder()
+    x.build_rel_stores()
+    x.build_store()
+    if os.path.exists(acc_db_path):
+        x.load_accdb()
     cell = GridCellBuilder()
     cell.build_store()
     # ass = AssignmentManager()
