@@ -227,7 +227,13 @@ class FileStoreBuilder:
 
                     elif len(filtered) == 1:
                         _object = filtered[0]
-                        doc_types = _object.document_type
+                        doc_types = _object.document_type.all()
+                        airport = _object.airport
+                        project_description = _object.project_description
+                        funding_type = _object.funding_type
+                        grant_number = _object.grant_number
+                        comment = _object.comment
+
                         update_data = {
                             "file_path": file_path,
                             "sheet_type": sheet_type,
@@ -238,11 +244,11 @@ class FileStoreBuilder:
                             "project_date": project_date,
                             "document_type": doc_types,
                             "vendor": vendor,
-                            "airport": "",
-                            "project_description": "",
-                            "funding_type": "",
-                            "grant_number": "",
-                            "comment": ""
+                            "airport": airport,
+                            "project_description": project_description,
+                            "funding_type": funding_type,
+                            "grant_number": grant_number,
+                            "comment": comment
                         }
 
                         try:

@@ -499,7 +499,7 @@ class UserViewer(GenericAPIView):
         resp['Cache-Control'] = 'no-cache'
 
         # add the engineering file objects to the context
-        efile_list = EngineeringFileModel.objects.all()
+        efile_list = EngineeringFileModel.objects.all().order_by('base_name')
         paginator = Paginator(efile_list, 25)
 
         page = request.GET.get('page')
@@ -650,6 +650,18 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(sheet_type__in=sheet_types).distinct()
         if disciplines and disciplines != ['all']:
             efiles = efiles.filter(discipline__in=disciplines).distinct()
+
+        # ordering the files is essential for pagination
+        efiles = efiles.order_by('base_name')
+        paginator = Paginator(efiles, 25)
+
+        page = request.POST.get('page')
+        try:
+            efiles = paginator.page(page)
+        except PageNotAnInteger:
+            efiles = paginator.page(1)
+        except EmptyPage:
+            efiles = paginator.page(paginator.num_pages)
 
         # Pre file type filters
         base_types = file_types[:]
