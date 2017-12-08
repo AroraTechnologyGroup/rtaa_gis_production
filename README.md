@@ -31,41 +31,93 @@ Installation
 
 - After building the document store and any additional tables, run the dump_fixtures.py script to create the test fixtures
 
+- If launching on IIS configure the Handler Mapping for the fast-cgi script
+    ```
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+	<appSettings>
+	    <!-- Required settings -->
+	    <add key="PYTHONPATH" value="C:\inetpub\rtaa_gis_django\rtaa_gis" />
+	    <add key="WSGI_HANDLER" value="django.core.wsgi.get_wsgi_application()" />
+
+
+	    <!-- Optional settings -->
+	    <add key="WSGI_LOG" value="C:\inetpub\rtaa_gis_django\rtaa_gis\logs\wsgi.log" />
+	    <add key="WSGI_RESTART_FILE_REGEX" value=".*((\.py)|(\.config))$" />
+	    <add key="DJANGO_SETTINGS_MODULE" value="rtaa_gis.settings" />
+	</appSettings>
+    <system.webServer>
+        <handlers accessPolicy="Read, Execute, Script">
+        	<clear />
+            <add name="Python FastCGI" path="*" verb="*" type="" modules="FastCgiModule" scriptProcessor="C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe|C:\inetpub\Anaconda3\envs\rtaa_gis\Lib\site-packages\wfastcgi.py" resourceType="Unspecified" requireAccess="Script" />
+        </handlers>
+        <httpProtocol>
+            <customHeaders>
+                <remove name="Access-Control-Allow-Headers" />
+                <remove name="Access-Control-Allow-Origin" />
+                <remove name="Access-Control-Allow-Methods" />
+                <add name="Access-Control-Allow-Headers" value="Content-Type, Content-Range, Content-Length, X-Requested-With, X-CSRFToken, Authorization" />
+                <add name="Access-Control-Allow-Credentials" value="true" />
+                <add name="Access-Control-Allow-Methods" value="OPTIONS, GET, POST, DELETE" />
+                <add name="Access-Control-Allow-Origin" value="https://gis.renoairport.net" />
+            </customHeaders>
+        </httpProtocol>
+
+    ```
 - If launching on IIS configure the URL Rewrite Rules in the web.config as follows
-        ```
-        <rewrite>
-            <rules>
+    ```
+    <rewrite>
+        <rules>
+            <clear />
+            <rule name="Redirect to HTTPS" enabled="true" patternSyntax="ECMAScript" stopProcessing="true">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAny" trackAllCaptures="false">
+                    <add input="{HTTPS}" pattern="^OFF$" />
+                </conditions>
+                <action type="Redirect" url="https://{HTTP_HOST}/applications/{R:1}" />
+            </rule>
+            <rule name="setRootSlash" stopProcessing="true">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
+                    <add input="{PATH_INFO}" pattern="/applications$" />
+                </conditions>
+                <action type="Redirect" url="https://{HTTP_HOST}/applications/" />
+            </rule>
+            <rule name="setHeaderValues" enabled="true" stopProcessing="false">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAll" trackAllCaptures="false" />
+                <serverVariables>
+                    <set name="SCRIPT_NAME" value="{PATH_INFO}" />
+                    <set name="PATH_INFO" value="/{R:0}" />
+                    <set name="HTTP_X_ORIGINAL_ENCODING" value="{HTTP_ACCEPT_ENCODING}" />
+                    <set name="HTTP_ACCEPT_ENCODING" value="0" />
+                </serverVariables>
+                <action type="None" />
+            </rule>
+        </rules>
+    </rewrite>
+    ```
+
+- The server variables set in the URL Rewrite Rules need to be exposed through the Server Variables on the app in IIS
+
+- In the static and the media folders for the project the web.config should set the static file handler
+    ```
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+        <system.webServer>
+            <handlers>
                 <clear />
-                <rule name="Redirect to HTTPS" enabled="true" patternSyntax="ECMAScript" stopProcessing="true">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAny" trackAllCaptures="false">
-                        <add input="{HTTPS}" pattern="^OFF$" />
-                    </conditions>
-                    <action type="Redirect" url="https://{HTTP_HOST}/applications/{R:1}" />
-                </rule>
-                <rule name="setRootSlash" stopProcessing="true">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
-                        <add input="{PATH_INFO}" pattern="/applications$" />
-                    </conditions>
-                    <action type="Redirect" url="https://{HTTP_HOST}/applications/" />
-                </rule>
-                <rule name="setHeaderValues" enabled="true" stopProcessing="false">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false" />
-                    <serverVariables>
-                        <set name="SCRIPT_NAME" value="{PATH_INFO}" />
-                        <set name="PATH_INFO" value="/{R:0}" />
-                        <set name="HTTP_X_ORIGINAL_ENCODING" value="{HTTP_ACCEPT_ENCODING}" />
-                        <set name="HTTP_ACCEPT_ENCODING" value="0" />
-                    </serverVariables>
-                    <action type="None" />
-                </rule>
-            </rules>
-        </rewrite>
-        ```
-        
-        
+                <add name="StaticFile" path="*" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+            </handlers>
+        </system.webServer>
+    </configuration>
+    ```         
+
+- Create a logs folder in the project root.  In File Explorer set the security on this folder to allow the IIS_IUSRS 
+service account with read/write
+
+- On the static folder and the media folder set the permissions to allow IIS_IUSRS read access
+
 Testing
 
 - runtests.py is where each app's test suite is loaded
