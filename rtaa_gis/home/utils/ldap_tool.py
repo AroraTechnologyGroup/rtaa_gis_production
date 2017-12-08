@@ -86,6 +86,7 @@ class LDAPQuery:
         print(slicegroup)
         return slicegroup
 
+
 if __name__ == "__main__":
     query = LDAPQuery("RENOAIRPORT\\AroraTeam", "renoairport.net")
     x = query.get_groups()
