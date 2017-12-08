@@ -1,0 +1,163 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5"/>
+<link rel="stylesheet" type="text/css" href="visio.css"/>
+<title>Collector Project Build Guide</title>
+<script type="text/javascript" language="javascript">
+function UpdateTooltip(){};
+function OnShapeClick(){};
+</script>
+
+<script src="svg_1.js" type="text/javascript" language="javascript"></script>
+<script src="png_1.js" type="text/javascript" language="javascript"></script>
+
+<script type="text/javascript" language="javascript">
+
+var pageID = 0;
+var viewMgr = null;
+var OnShapeClick = null;
+if (!parent.isMac)
+{
+	OnShapeClick = parent.OnShapeClick;
+}
+
+var g_svgOrigScale = 1;
+var g_svgOrigTranslateX = 0;
+var g_svgOrigTranslateY = 0;
+
+if (parent.g_FirstPageToLoad != null && parent.g_FirstPageToLoad.length > 0)
+{
+	if (parent.g_FileList[parent.g_CurPageIndex].PageID != pageID)
+	{
+		location.replace(parent.g_FileList[parent.g_CurPageIndex].PriImage);
+	}
+
+	parent.g_FirstPageToLoad = null;
+}
+
+function GetSVGDOM ()
+{
+	g_svgDoc = document.SVGViewer1.getSVGDocument ().rootElement;
+	if (g_svgDoc != null)
+	{
+		g_svgOrigScale = g_svgDoc.currentScale;
+		g_svgOrigTranslateX = g_svgDoc.currentTranslate.x;
+		g_svgOrigTranslateY = g_svgDoc.currentTranslate.y;
+	}
+}
+
+function load()
+{
+	viewMgr = new parent.CViewMgr("", "arrowDiv");
+	var bSVG = (document.all ("RasterImage") == null);
+
+	viewMgr.visBBoxLeft = 0.243056;
+	viewMgr.visBBoxRight = 10.641363;
+	viewMgr.visBBoxBottom = 8.276736;
+	viewMgr.visBBoxTop = 0.322743;
+
+	if (bSVG)
+	{
+		viewMgr.put_Location = ViewMgrSetSVGLocation;
+
+		if (parent.isUpLevel)
+		{
+			eval ("try { GetSVGDOM() } catch (e) {}");
+		}
+	}
+	else
+	{
+		viewMgr.put_Location = ViewMgrSetRasterLocation;
+		var tempBottom = viewMgr.visBBoxBottom;
+		viewMgr.visBBoxBottom = viewMgr.visBBoxTop;
+		viewMgr.visBBoxTop = tempBottom;
+		
+		arrowdiv.innerHTML = '<img id="arrowgif" alt="Shows the location of the selected shape" src="arrow.gif"/>';
+	}
+
+	viewMgr.Zoom = null;
+	viewMgr.setView = null;
+	viewMgr.PostZoomProcessing = null;
+	viewMgr.getPNZ = null;
+
+	viewMgr.SupportsDetails = !bSVG;
+	viewMgr.SupportsSearch = true;
+
+	parent.viewMgr = viewMgr;
+
+	var pageIndex = parent.PageIndexFromID (pageID);
+	parent.CurPageUpdate (pageIndex);
+}
+
+function unload()
+{
+	viewMgr = null;
+	parent.viewMgr = null;
+}
+
+var g_svgDoc = null;
+
+var isUpLevel = parent.isUpLevel;
+var OnShapeKey = parent.OnShapeKey;
+var UpdateTooltip = parent.UpdateTooltip;
+var clickMenu = parent.clickMenu;
+var toggleMenuDiv = parent.toggleMenuDiv;
+var toggleMenuLink = parent.toggleMenuLink;
+var GoToPage = parent.GoToPage;
+window.onload = load;
+window.onunload = unload;
+document.onclick = clickMenu;
+
+</script>
+
+</head>
+
+<body style="margin:10;">
+
+<div id=arrowdiv style="position:absolute;top:0;left:0;visibility:hidden;z-index:5">
+</div>
+
+<div id="menu1" onclick="clickMenu()" class="hlMenu">
+</div>
+
+<object width="100%" height="100%" id="SVGViewer1" data="svg_2.svg" type="image/svg+xml" VIEWASTEXT>
+	<DIV id=RasterDiv>
+<center>
+  <IMG id="ConvertedImage" SRC="png_2.png" ALT="Acquire Feature Class Schema" name=RasterImage BORDER="0" USEMAP="#visImageMap">
+</center>
+
+<MAP NAME="visImageMap">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create a new feature class in the Project’s default geodatabase..." origTitle="Create a new feature class in the Project’s default geodatabase..." TITLE="Create a new feature class in the Project’s default geodatabase..."  target="_top" COORDS="616,663,616,654,364,654,364,774,616,774,616,690,618,690,618,663,616,663" onmouseover="UpdateTooltip(this,0,1077,event)" onfocus="UpdateTooltip(this,0,1077,event)" onclick="return OnShapeClick(0,1077,event);" onkeyup="OnShapeKey(0,1077,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Delete All Rows from the Feature Class" origTitle="Delete All Rows from the Feature Class" TITLE="Delete All Rows from the Feature Class"  target="_top" COORDS="706,746,826,746,826,626,706,626,706,746" onmouseover="UpdateTooltip(this,0,1071,event)" onfocus="UpdateTooltip(this,0,1071,event)" onclick="return OnShapeClick(0,1071,event);" onkeyup="OnShapeKey(0,1071,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Copy the target feature class from the MasterGDB and Paste it..." origTitle="Copy the target feature class from the MasterGDB and Paste it..." TITLE="Copy the target feature class from the MasterGDB and Paste it..."  target="_top" COORDS="638,588,796,588,796,408,638,408,638,588" onmouseover="UpdateTooltip(this,0,1070,event)" onfocus="UpdateTooltip(this,0,1070,event)" onclick="return OnShapeClick(0,1070,event);" onkeyup="OnShapeKey(0,1070,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Does the target feature class exist in the Master Geodatabase?" origTitle="Does the target feature class exist in the Master Geodatabase?" TITLE="Does the target feature class exist in the Master Geodatabase?"  target="_top" COORDS="511,540,553,498,531,476,531,471,526,471,519,465,519,447,502,447,449,395,397,447,384,447,384,460,346,498,388,540,388,546,394,546,449,602,505,546,511,546,511,540" onmouseover="UpdateTooltip(this,0,1068,event)" onfocus="UpdateTooltip(this,0,1068,event)" onclick="return OnShapeClick(0,1068,event);" onkeyup="OnShapeKey(0,1068,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add a text field named assetID.  Accept the default max length" origTitle="Add a text field named assetID.  Accept the default max length" TITLE="Add a text field named assetID.  Accept the default max length"  target="_top" COORDS="992,318,1175,318,1175,198,992,198,992,318" onmouseover="UpdateTooltip(this,0,1057,event)" onfocus="UpdateTooltip(this,0,1057,event)" onclick="return OnShapeClick(0,1057,event);" onkeyup="OnShapeKey(0,1057,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Copy the target feature class from the MasterGDB and Paste it..." origTitle="Copy the target feature class from the MasterGDB and Paste it..." TITLE="Copy the target feature class from the MasterGDB and Paste it..."  target="_top" COORDS="980,169,1187,169,1187,19,980,19,980,169" onmouseover="UpdateTooltip(this,0,1055,event)" onfocus="UpdateTooltip(this,0,1055,event)" onclick="return OnShapeClick(0,1055,event);" onkeyup="OnShapeKey(0,1055,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Enable the ‘Maintain Global IDs’ environment setting in ArcPro" origTitle="Enable the ‘Maintain Global IDs’ environment setting in ArcPro" TITLE="Enable the ‘Maintain Global IDs’ environment setting in ArcPro"  target="_top" COORDS="788,154,946,154,946,34,788,34,788,154" onmouseover="UpdateTooltip(this,0,1053,event)" onfocus="UpdateTooltip(this,0,1053,event)" onclick="return OnShapeClick(0,1053,event);" onkeyup="OnShapeKey(0,1053,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add the target feature class from the MasterGDB to the map" origTitle="Add the target feature class from the MasterGDB to the map" TITLE="Add the target feature class from the MasterGDB to the map"  target="_top" COORDS="597,169,755,169,755,19,597,19,597,169" onmouseover="UpdateTooltip(this,0,1051,event)" onfocus="UpdateTooltip(this,0,1051,event)" onclick="return OnShapeClick(0,1051,event);" onkeyup="OnShapeKey(0,1051,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="END" origTitle="END" TITLE="END" HREF="svg_1.htm" target="frmDrawing" COORDS="39,753,114,753,121,752,127,749,132,744,136,738,137,731,136,724,132,718,127,713,121,709,114,708,39,708,32,709,26,713,21,718,18,724,17,731,18,738,21,744,26,749,32,752,39,753" onmouseover="UpdateTooltip(this,0,1039,event)" onfocus="UpdateTooltip(this,0,1039,event)" onclick="return OnShapeClick(0,1039,event);" onkeyup="OnShapeKey(0,1039,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add a field named ‘Verified’ and calculate all Values to be No,..." origTitle="Add a field named ‘Verified’ and calculate all Values to be No,..." TITLE="Add a field named ‘Verified’ and calculate all Values to be No,..."  target="_top" COORDS="488,383,695,383,695,233,488,233,488,383" onmouseover="UpdateTooltip(this,0,1037,event)" onfocus="UpdateTooltip(this,0,1037,event)" onclick="return OnShapeClick(0,1037,event);" onkeyup="OnShapeKey(0,1037,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Of the remaining Domains, remove values that won’t be used in..." origTitle="Of the remaining Domains, remove values that won’t be used in..." TITLE="Of the remaining Domains, remove values that won’t be used in..."  target="_top" COORDS="364,954,552,954,552,804,364,804,364,954" onmouseover="UpdateTooltip(this,0,1035,event)" onfocus="UpdateTooltip(this,0,1035,event)" onclick="return OnShapeClick(0,1035,event);" onkeyup="OnShapeKey(0,1035,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Remove Domains from the Geodatabase that are not needed" origTitle="Remove Domains from the Geodatabase that are not needed" TITLE="Remove Domains from the Geodatabase that are not needed"  target="_top" COORDS="755,816,755,804,597,804,597,954,755,954,755,843,755,843,755,816,755,816" onmouseover="UpdateTooltip(this,0,1033,event)" onfocus="UpdateTooltip(this,0,1033,event)" onclick="return OnShapeClick(0,1033,event);" onkeyup="OnShapeKey(0,1033,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Remove fields that don’t provide use for the Collector" origTitle="Remove fields that don’t provide use for the Collector" TITLE="Remove fields that don’t provide use for the Collector"  target="_top" COORDS="791,939,931,939,931,819,791,819,791,939" onmouseover="UpdateTooltip(this,0,1031,event)" onfocus="UpdateTooltip(this,0,1031,event)" onclick="return OnShapeClick(0,1031,event);" onkeyup="OnShapeKey(0,1031,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add Coded Value Domains for the New Fields" origTitle="Add Coded Value Domains for the New Fields" TITLE="Add Coded Value Domains for the New Fields"  target="_top" COORDS="7,939,146,939,146,819,7,819,7,939" onmouseover="UpdateTooltip(this,0,1029,event)" onfocus="UpdateTooltip(this,0,1029,event)" onclick="return OnShapeClick(0,1029,event);" onkeyup="OnShapeKey(0,1029,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add the new Fields for the Collection" origTitle="Add the new Fields for the Collection" TITLE="Add the new Fields for the Collection"  target="_top" COORDS="334,864,334,834,214,834,214,924,334,924,334,891,334,891,334,864,334,864" onmouseover="UpdateTooltip(this,0,1026,event)" onfocus="UpdateTooltip(this,0,1026,event)" onclick="return OnShapeClick(0,1026,event);" onkeyup="OnShapeKey(0,1026,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Are there features that don’t need verification in the feature..." origTitle="Are there features that don’t need verification in the feature..." TITLE="Are there features that don’t need verification in the feature..."  target="_top" COORDS="1075,399,991,318,908,399,896,399,896,411,867,438,991,558,1116,438,1092,415,1092,399,1075,399" onmouseover="UpdateTooltip(this,0,1022,event)" onfocus="UpdateTooltip(this,0,1022,event)" onclick="return OnShapeClick(0,1022,event);" onkeyup="OnShapeKey(0,1022,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Calculate the GlobalIDs into the AssetID field" origTitle="Calculate the GlobalIDs into the AssetID field" TITLE="Calculate the GlobalIDs into the AssetID field"  target="_top" COORDS="927,207,927,198,807,198,807,318,927,318,927,234,928,234,928,207,927,207" onmouseover="UpdateTooltip(this,0,1020,event)" onfocus="UpdateTooltip(this,0,1020,event)" onclick="return OnShapeClick(0,1020,event);" onkeyup="OnShapeKey(0,1020,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Remove any features that do not need verification" origTitle="Remove any features that do not need verification" TITLE="Remove any features that do not need verification"  target="_top" COORDS="1119,618,1239,618,1239,498,1119,498,1119,618" onmouseover="UpdateTooltip(this,0,1017,event)" onfocus="UpdateTooltip(this,0,1017,event)" onclick="return OnShapeClick(0,1017,event);" onkeyup="OnShapeKey(0,1017,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Choose the target feature class, preferably from the MasterGDB" origTitle="Choose the target feature class, preferably from the MasterGDB" TITLE="Choose the target feature class, preferably from the MasterGDB"  target="_top" COORDS="106,498,226,498,226,318,106,318,106,498" onmouseover="UpdateTooltip(this,0,1011,event)" onfocus="UpdateTooltip(this,0,1011,event)" onclick="return OnShapeClick(0,1011,event);" onkeyup="OnShapeKey(0,1011,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Copy the Source Feature Class from its source location to the..." origTitle="Copy the Source Feature Class from its source location to the..." TITLE="Copy the Source Feature Class from its source location to the..."  target="_top" COORDS="263,383,451,383,451,233,263,233,263,383" onmouseover="UpdateTooltip(this,0,1006,event)" onfocus="UpdateTooltip(this,0,1006,event)" onclick="return OnShapeClick(0,1006,event);" onkeyup="OnShapeKey(0,1006,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Do the features needing verification exist in the MasterGDB?" origTitle="Do the features needing verification exist in the MasterGDB?" TITLE="Do the features needing verification exist in the MasterGDB?"  target="_top" COORDS="458,43,401,1,345,43,336,43,336,50,277,94,401,188,526,94,472,54,472,43,458,43" onmouseover="UpdateTooltip(this,0,1004,event)" onfocus="UpdateTooltip(this,0,1004,event)" onclick="return OnShapeClick(0,1004,event);" onkeyup="OnShapeKey(0,1004,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Are there new features that need to be collected?" origTitle="Are there new features that need to be collected?" TITLE="Are there new features that need to be collected?"  target="_top" COORDS="261,584,166,519,71,584,70,584,70,584,31,611,166,702,301,611,267,588,267,584,261,584" onmouseover="UpdateTooltip(this,0,1002,event)" onfocus="UpdateTooltip(this,0,1002,event)" onclick="return OnShapeClick(0,1002,event);" onkeyup="OnShapeKey(0,1002,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Are there existing features that need verification?" origTitle="Are there existing features that need verification?" TITLE="Are there existing features that need verification?"  target="_top" COORDS="184,159,117,107,50,159,44,159,44,164,1,198,117,290,233,198,195,168,195,159,184,159" onmouseover="UpdateTooltip(this,0,41,event)" onfocus="UpdateTooltip(this,0,41,event)" onclick="return OnShapeClick(0,41,event);" onkeyup="OnShapeKey(0,41,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="START" origTitle="START" TITLE="START"  target="_top" COORDS="80,78,155,78,162,77,168,74,173,69,176,63,177,56,176,49,173,42,168,38,162,34,155,33,80,33,73,34,66,38,61,42,58,49,57,56,58,63,61,69,66,74,73,77,80,78" onmouseover="UpdateTooltip(this,0,40,event)" onfocus="UpdateTooltip(this,0,40,event)" onclick="return OnShapeClick(0,40,event);" onkeyup="OnShapeKey(0,40,event);">
+</MAP>
+
+	</div>
+</object>
+
+
+</body>
+</html>
+

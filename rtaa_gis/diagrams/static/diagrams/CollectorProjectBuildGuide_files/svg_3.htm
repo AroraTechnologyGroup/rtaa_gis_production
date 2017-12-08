@@ -1,0 +1,148 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="vs_targetSchema" content="http://schemas.microsoft.com/intellisense/ie5"/>
+<link rel="stylesheet" type="text/css" href="visio.css"/>
+<title>Collector Project Build Guide</title>
+<script type="text/javascript" language="javascript">
+function UpdateTooltip(){};
+function OnShapeClick(){};
+</script>
+
+<script src="svg_1.js" type="text/javascript" language="javascript"></script>
+<script src="png_1.js" type="text/javascript" language="javascript"></script>
+
+<script type="text/javascript" language="javascript">
+
+var pageID = 8;
+var viewMgr = null;
+var OnShapeClick = null;
+if (!parent.isMac)
+{
+	OnShapeClick = parent.OnShapeClick;
+}
+
+var g_svgOrigScale = 1;
+var g_svgOrigTranslateX = 0;
+var g_svgOrigTranslateY = 0;
+
+if (parent.g_FirstPageToLoad != null && parent.g_FirstPageToLoad.length > 0)
+{
+	if (parent.g_FileList[parent.g_CurPageIndex].PageID != pageID)
+	{
+		location.replace(parent.g_FileList[parent.g_CurPageIndex].PriImage);
+	}
+
+	parent.g_FirstPageToLoad = null;
+}
+
+function GetSVGDOM ()
+{
+	g_svgDoc = document.SVGViewer1.getSVGDocument ().rootElement;
+	if (g_svgDoc != null)
+	{
+		g_svgOrigScale = g_svgDoc.currentScale;
+		g_svgOrigTranslateX = g_svgDoc.currentTranslate.x;
+		g_svgOrigTranslateY = g_svgDoc.currentTranslate.y;
+	}
+}
+
+function load()
+{
+	viewMgr = new parent.CViewMgr("", "arrowDiv");
+	var bSVG = (document.all ("RasterImage") == null);
+
+	viewMgr.visBBoxLeft = 0.243056;
+	viewMgr.visBBoxRight = 10.756944;
+	viewMgr.visBBoxBottom = 8.256944;
+	viewMgr.visBBoxTop = 0.243056;
+
+	if (bSVG)
+	{
+		viewMgr.put_Location = ViewMgrSetSVGLocation;
+
+		if (parent.isUpLevel)
+		{
+			eval ("try { GetSVGDOM() } catch (e) {}");
+		}
+	}
+	else
+	{
+		viewMgr.put_Location = ViewMgrSetRasterLocation;
+		var tempBottom = viewMgr.visBBoxBottom;
+		viewMgr.visBBoxBottom = viewMgr.visBBoxTop;
+		viewMgr.visBBoxTop = tempBottom;
+		
+		arrowdiv.innerHTML = '<img id="arrowgif" alt="Shows the location of the selected shape" src="arrow.gif"/>';
+	}
+
+	viewMgr.Zoom = null;
+	viewMgr.setView = null;
+	viewMgr.PostZoomProcessing = null;
+	viewMgr.getPNZ = null;
+
+	viewMgr.SupportsDetails = !bSVG;
+	viewMgr.SupportsSearch = true;
+
+	parent.viewMgr = viewMgr;
+
+	var pageIndex = parent.PageIndexFromID (pageID);
+	parent.CurPageUpdate (pageIndex);
+}
+
+function unload()
+{
+	viewMgr = null;
+	parent.viewMgr = null;
+}
+
+var g_svgDoc = null;
+
+var isUpLevel = parent.isUpLevel;
+var OnShapeKey = parent.OnShapeKey;
+var UpdateTooltip = parent.UpdateTooltip;
+var clickMenu = parent.clickMenu;
+var toggleMenuDiv = parent.toggleMenuDiv;
+var toggleMenuLink = parent.toggleMenuLink;
+var GoToPage = parent.GoToPage;
+window.onload = load;
+window.onunload = unload;
+document.onclick = clickMenu;
+
+</script>
+
+</head>
+
+<body style="margin:10;">
+
+<div id=arrowdiv style="position:absolute;top:0;left:0;visibility:hidden;z-index:5">
+</div>
+
+<div id="menu1" onclick="clickMenu()" class="hlMenu">
+</div>
+
+<object width="100%" height="100%" id="SVGViewer1" data="svg_3.svg" type="image/svg+xml" VIEWASTEXT>
+	<DIV id=RasterDiv>
+<center>
+  <IMG id="ConvertedImage" SRC="png_3.png" ALT="Symbolize and Publish the Layer" name=RasterImage BORDER="0" USEMAP="#visImageMap">
+</center>
+
+<MAP NAME="visImageMap">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create a single location symbol  Size 18" origTitle="Create a single location symbol  Size 18" TITLE="Create a single location symbol  Size 18"  target="_top" COORDS="447,961,635,961,635,871,447,871,447,961" onmouseover="UpdateTooltip(this,8,1018,event)" onfocus="UpdateTooltip(this,8,1018,event)" onclick="return OnShapeClick(8,1018,event);" onkeyup="OnShapeKey(8,1018,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create Unique Value Renderer using the domain field Size 18" origTitle="Create Unique Value Renderer using the domain field Size 18" TITLE="Create Unique Value Renderer using the domain field Size 18"  target="_top" COORDS="447,702,635,702,635,582,447,582,447,702" onmouseover="UpdateTooltip(this,8,1016,event)" onfocus="UpdateTooltip(this,8,1016,event)" onclick="return OnShapeClick(8,1016,event);" onkeyup="OnShapeKey(8,1016,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Is there a field with a domain of feature types that would be..." origTitle="Is there a field with a domain of feature types that would be..." TITLE="Is there a field with a domain of feature types that would be..."  target="_top" COORDS="276,603,158,488,41,603,36,603,36,608,1,642,158,796,316,642,286,613,286,603,276,603" onmouseover="UpdateTooltip(this,8,1014,event)" onfocus="UpdateTooltip(this,8,1014,event)" onclick="return OnShapeClick(8,1014,event);" onkeyup="OnShapeKey(8,1014,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Are existing features being verified?" origTitle="Are existing features being verified?" TITLE="Are existing features being verified?"  target="_top" COORDS="155,277,113,246,72,277,65,277,65,282,20,316,113,386,207,316,167,286,167,277,155,277" onmouseover="UpdateTooltip(this,8,1010,event)" onfocus="UpdateTooltip(this,8,1010,event)" onclick="return OnShapeClick(8,1010,event);" onkeyup="OnShapeKey(8,1010,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Share the layer as a Web Layer to ArcGIS Online" origTitle="Share the layer as a Web Layer to ArcGIS Online" TITLE="Share the layer as a Web Layer to ArcGIS Online"  target="_top" COORDS="1059,826,1261,826,1261,706,1059,706,1059,826" onmouseover="UpdateTooltip(this,8,1008,event)" onfocus="UpdateTooltip(this,8,1008,event)" onclick="return OnShapeClick(8,1008,event);" onkeyup="OnShapeKey(8,1008,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="START" origTitle="START" TITLE="START"  target="_top" COORDS="76,46,151,46,158,45,164,42,169,37,172,30,173,23,172,16,169,10,164,5,158,2,151,1,76,1,69,2,63,5,58,10,54,16,53,23,54,30,58,37,63,42,69,45,76,46" onmouseover="UpdateTooltip(this,8,1005,event)" onfocus="UpdateTooltip(this,8,1005,event)" onclick="return OnShapeClick(8,1005,event);" onkeyup="OnShapeKey(8,1005,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="END" origTitle="END" TITLE="END" HREF="svg_1.htm" target="frmDrawing" COORDS="1164,961,1239,961,1246,960,1252,957,1257,952,1260,946,1261,939,1260,932,1257,925,1252,920,1246,917,1239,916,1164,916,1157,917,1150,920,1145,925,1142,932,1141,939,1142,946,1145,952,1150,957,1157,960,1164,961" onmouseover="UpdateTooltip(this,8,1004,event)" onfocus="UpdateTooltip(this,8,1004,event)" onclick="return OnShapeClick(8,1004,event);" onkeyup="OnShapeKey(8,1004,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Create Unique Value Renderer using the verified Field..." origTitle="Create Unique Value Renderer using the verified Field..." TITLE="Create Unique Value Renderer using the verified Field..."  target="_top" COORDS="323,386,526,386,526,266,323,266,323,386" onmouseover="UpdateTooltip(this,8,1002,event)" onfocus="UpdateTooltip(this,8,1002,event)" onclick="return OnShapeClick(8,1002,event);" onkeyup="OnShapeKey(8,1002,event);">
+  <AREA shape="POLYGON" tabindex="1" ALT="Add the feature class being collected to the current map" origTitle="Add the feature class being collected to the current map" TITLE="Add the feature class being collected to the current map"  target="_top" COORDS="1,209,226,209,226,106,1,106,1,209" onmouseover="UpdateTooltip(this,8,1000,event)" onfocus="UpdateTooltip(this,8,1000,event)" onclick="return OnShapeClick(8,1000,event);" onkeyup="OnShapeKey(8,1000,event);">
+</MAP>
+
+	</div>
+</object>
+
+
+</body>
+</html>
+

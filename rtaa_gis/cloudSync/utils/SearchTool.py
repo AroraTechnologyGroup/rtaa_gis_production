@@ -14,8 +14,9 @@ class SearchTool:
 
     def search_all(self):
         gis = GIS("https://rtaa.maps.arcgis.com", user, pwd)
-        search_result = gis.content.search(query="", item_type=self.type)
+        search_result = gis.content.search(query="owner:data_owner", item_type=self.type)
         return search_result
+
 
 if __name__ == "__main__":
     x = SearchTool("Feature Layer")

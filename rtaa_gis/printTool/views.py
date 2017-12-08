@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from rest_framework_jsonp.renderers import JSONPRenderer
 import logging
@@ -9,7 +10,7 @@ from subprocess import PIPE
 from subprocess import TimeoutExpired
 import arcgis
 from arcgis import mapping
-from rtaa_gis.settings import MEDIA_ROOT
+
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
 from io import BytesIO
@@ -22,49 +23,54 @@ import json
 import shlex
 import threading
 from django.conf import settings
+MEDIA_ROOT = settings.MEDIA_ROOT
 
-environ = "production"
+environ = "rtaa_testing"
 username = "gissetup"
 
 
 def system_paths(environ):
     arcmap_path = {
-        "staging": r"C:\Python27\ArcGIS10.5\python.exe"
+        "work": r"C:\Python27\ArcGIS10.4\python.exe",
+        "rtaa_testing": r"C:\Python27\ArcGIS10.5\python.exe"
     }
     arcmap_path = arcmap_path[environ]
+
     mxd_script = {
-        "staging": r"C:\GitHub\arcmap\ConvertWebMaptoMXD.py"
+        "work": r"C:\GitHub\rtaa_gis\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py",
+        "rtaa_testing": r"C:\GitHub\rtaa_gis_django\rtaa_gis\printTool\utils\ConvertWebMaptoMXD.py"
     }
     mxd_script = mxd_script[environ]
+
     media_dir = {
-        "home": "C:/Users/rich/PycharmProjects/rtaa_gis/rtaa_gis/media",
         "work": "C:/GitHub/rtaa_gis/rtaa_gis/media",
-        "staging": "C:/inetpub/django_staging/rtaa_gis/rtaa_gis/media",
+        "staging": r"C:/GitHub/rtaa_gis_django/rtaa_gis/rtaa_gis/media",
         "production": "C:/inetpub/django_prod/rtaa_gis/rtaa_gis/media",
+        "rtaa_testing": r"C:\inetpub\rtaa_gis_django_testing\rtaa_gis\media"
     }
     media_dir = media_dir[environ]
 
     gdb_path = {
-        "home": r"G:\GIS Data\Arora\rtaa\MasterGDB_05_25_16\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
         "work": r"C:\ESRI_WORK_FOLDER\rtaa\MasterGDB\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
         "staging": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
-        "production": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb"
+        "production": r"C:\inetpub\rtaa_gis_data\MasterGDB_05_25_16\MasterGDB_05_25_16.gdb",
+        "rtaa_testing": r"D:\ConnectionFiles\OSAuth@RTAA_MasterGDB.sde"
     }
     gdb_path = gdb_path[environ]
 
     default_project = {
-        "home": r"G:\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
         "work": r"C:\Users\rhughes\Documents\ArcGIS\Projects\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
         "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
-        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx"
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\RTAA_Printing_Publishing.aprx",
+        "rtaa_testing": r"D:\ArcPro\RTAA_Publishing\RTAA_Publishing.aprx"
     }
     default_project = default_project[environ]
 
     layer_dir = {
-        "home": r"G:\GIS Data\Arora\rtaa\layers",
         "work": r"C:\ESRI_WORK_FOLDER\rtaa\layers",
         "staging": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers",
-        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers"
+        "production": r"C:\inetpub\rtaa_gis_data\RTAA_Printing_Publishing\FeatureLayers",
+        "rtaa_testing": r"D:\ArcPro\RTAA_Publishing\FeatureLayers"
     }
     layer_dir = layer_dir[environ]
 
@@ -133,6 +139,7 @@ def name_file(out_folder, file):
 
     return full_name
 
+
 logger = logging.getLogger(__package__)
 
 
@@ -192,6 +199,16 @@ def print_agol(request, format=None):
             "dataType": "GPDataFile"
         }]
     }
+
+    data = {
+        "method": "print",
+        "app_name": "Print"
+    }
+    serial = RecordSerializer(data=data)
+    if serial.is_valid():
+        serial.save()
+    else:
+        logger.error("Unable to save count :: {}".format(data))
     return response
 
 
@@ -245,7 +262,60 @@ def print_mxd(request, format=None):
     media_url = media_url.rstrip("/")
 
     url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+    logger.info(url)
+    response.data = {
+        "messages": [],
+        "results": [{
+            "value": {
+                "url": url
+            },
+            "paramName": "Output_File",
+            "dataType": "GPDataFile"
+        }]
+    }
+    return response
 
+
+@api_view(['POST'])
+# @renderer_classes((JSONPRenderer,))
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def print_arcmap(request, format=None):
+    username = get_username(request)
+    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+
+    v = system_paths(environ)
+    arcmap_path = v["arcmap_path"]
+    mxd_script = v["mxd_script"]
+
+    data = request.POST
+    webmap = data['Web_Map_as_JSON']
+
+    map_obj = json.loads(webmap)
+
+
+    format = data['Format']
+    layout_template = data['Layout_Template']
+
+    args = [arcmap_path, mxd_script, '-media_dir', MEDIA_ROOT, '-username', username, '-layout', layout_template,
+            '-format', format]
+    proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
+    out, err = proc.communicate()
+
+    full_name = name_file(out_folder=out_folder, file=out.decode())
+    response = Response()
+    # This format must be identical to the DataFile object returned by the esri print examples
+    host = request.META["HTTP_HOST"]
+
+    if host == "127.0.0.1:8080":
+        protocol = "http"
+    else:
+        protocol = "https"
+    media_url = settings.MEDIA_URL.lstrip("/")
+    media_url = media_url.rstrip("/")
+
+    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+    logger.info(url)
     response.data = {
         "messages": [],
         "results": [{
@@ -265,6 +335,7 @@ def print_mxd(request, format=None):
 def getPrintList(request, format=None):
     username = get_username(request)
     print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
+    logger.info(print_dir)
 
     response = Response()
     response.data = list()

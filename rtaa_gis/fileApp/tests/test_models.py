@@ -1,14 +1,14 @@
 from django.test import TestCase
 from fileApp.models import EngineeringAssignment, EngineeringFileModel, GridCell
 import os
-from rtaa_gis.settings import BASE_DIR
 
 # setting this environment variable allows fixtures to be loaded
 os.chdir(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'fixtures/json'))
 
 
 class TestFileModel(TestCase):
-    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment',
+                'gridcell']
 
     def test_list(self):
         _files = EngineeringFileModel.objects.all()
@@ -16,25 +16,24 @@ class TestFileModel(TestCase):
         pass
 
     def test_get(self):
-        t_path = os.path.join(BASE_DIR, "fileApp/fixtures/data/DemoDocument0.pdf")
-        t_path = t_path.replace("\\", "/")
+        t_path = "//renofs2/groups/engineering/drawings/std/06_4sd_alp.pdf"
         _file = EngineeringFileModel.objects.filter(file_path=t_path)
         self.assertIsInstance(_file[0], EngineeringFileModel)
         pass
 
     def test_get_assignments(self):
-        _file = EngineeringFileModel.objects.get(pk=13)
+        _file = EngineeringFileModel.objects.get(pk=51959)
         assigns = _file.engineeringassignment_set.all()
         self.assertTrue(len(assigns))
         self.assertIsInstance(assigns[0], EngineeringAssignment)
 
     def test_drop_assignment(self):
-        _file = EngineeringFileModel.objects.get(pk=13)
-        assigns = _file.engineeringassignment_set.filter(grid_cell="A37")
+        _file = EngineeringFileModel.objects.get(pk=51959)
+        assigns = _file.engineeringassignment_set.filter(grid_cell="L21")
         self.assertIsInstance(assigns[0], EngineeringAssignment)
         for x in assigns:
             x.delete()
-        assigns = _file.engineeringassignment_set.all()
+        assigns = _file.engineeringassignment_set.filter(grid_cell="L21")
         self.assertFalse(len(assigns))
         pass
 
@@ -60,7 +59,8 @@ class TestGridCell(TestCase):
 
 
 class TestAssignment(TestCase):
-    fixtures = ['engineeringfilemodel', 'engineeringassignment', 'gridcell']
+    fixtures = ['engineeringfilemodel', 'engineeringassignment',
+                'gridcell']
 
     def test_list(self):
         _assigns = EngineeringAssignment.objects.all()
@@ -69,8 +69,8 @@ class TestAssignment(TestCase):
         pass
 
     def test_create(self):
-        test_file = EngineeringFileModel.objects.get(pk=5)
-        grid_cell = GridCell.objects.get(name="B15")
+        test_file = EngineeringFileModel.objects.get(pk=51944)
+        grid_cell = GridCell.objects.get(name="L22")
         kwargs = {
             'grid_cell': grid_cell,
             'file': test_file,
@@ -82,14 +82,14 @@ class TestAssignment(TestCase):
 
         _assigns = EngineeringAssignment.objects.all()
         self.assertTrue(len(_assigns))
-        new_obj = EngineeringAssignment.objects.filter(file=5).filter(grid_cell=grid_cell)
+        new_obj = EngineeringAssignment.objects.filter(file='51944').filter(grid_cell=grid_cell)
         self.assertIsInstance(new_obj[0], EngineeringAssignment)
         pass
 
     def test_delete(self):
-        _assign = EngineeringAssignment.objects.get(pk="4")
+        _assign = EngineeringAssignment.objects.get(pk=1147)
         _assign.delete()
-        _assigns = EngineeringAssignment.objects.filter(pk='4')
+        _assigns = EngineeringAssignment.objects.filter(pk=1147)
         self.assertFalse(len(_assigns))
         pass
 

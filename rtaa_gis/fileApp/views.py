@@ -2,28 +2,42 @@ import os
 import sys
 import logging
 import traceback
-from rtaa_gis.settings import MEDIA_ROOT, BASE_DIR, LOGIN_URL, LOGIN_REDIRECT_URL, FILE_APP_TOP_DIRS
-from .utils import buildDocStore
-from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer, FileTypes
+from openpyxl import load_workbook
 
+from .utils import buildDocStore
+from .utils.domains import FileTypes
+from home.utils.ldap_tool import LDAPQuery
+from analytics.serializers import RecordSerializer
+from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
 from .pagination import LargeResultsSetPagination, StandardResultsSetPagination
+from .forms import FilterForm, UpdateForm
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
-from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
 from rest_framework_jsonp.renderers import JSONRenderer
 from rest_framework import viewsets
+from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from .utils import WatchDogTrainer
 from .utils.OOoConversion import OpenOfficeConverter
 from django.http import HttpResponse
 from django.core.files import File
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.models import User, Group
+from django.forms import modelformset_factory
+from django.core.exceptions import ObjectDoesNotExist
+from django.forms import modelform_factory
+import datetime
+from datetime import date, timedelta
 
 from PIL import Image
 import platform
@@ -32,15 +46,19 @@ if platform.system() == 'Windows':
     import pythoncom
     pass
 
+MEDIA_ROOT = settings.MEDIA_ROOT
+BASE_DIR = settings.BASE_DIR
+LOGIN_URL = settings.LOGIN_URL
+LOGIN_REDIRECT_URL = settings.LOGIN_REDIRECT_URL
+FILE_APP_TOP_DIRS = settings.FILE_APP_TOP_DIRS
+
 logger = logging.getLogger(__name__)
 trainer = WatchDogTrainer.Observers(FILE_APP_TOP_DIRS)
 
-
-@api_view()
-@renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
-def schema_view(request):
-    generator = schemas.SchemaGenerator(title='eDoc API')
-    return response.Response(generator.get_schema(request=request))
+ftypes = FileTypes()
+table_types = ftypes.TABLE_VIEWER_TYPES
+image_types = ftypes.IMAGE_VIEWER_TYPES
+text_types = ftypes.FILE_VIEWER_TYPES
 
 
 def log_traceback():
@@ -48,7 +66,7 @@ def log_traceback():
     return repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
 
 
-def create_response_object(in_path, extension):
+def create_response_object(in_path, file_type):
     """generates a pdf file like object and writes to an http response"""
 
     def create_image_object(file_path):
@@ -60,75 +78,102 @@ def create_response_object(in_path, extension):
         fil.close()
         return resp
 
-    pythoncom.CoInitialize()
+    # ensure that the app's media folder exists in the MEDIA ROOT
+    if 'fileApp' not in os.listdir(MEDIA_ROOT):
+        os.mkdir(os.path.join(MEDIA_ROOT, 'fileApp'))
+
     response = HttpResponse(content_type='application/pdf')
-    if extension == 'pdf':
+
+    if file_type == 'pdf':
         """These files are already in an acceptable format"""
         fp = File(open(in_path, 'rb'))
         response.write(fp.read())
         fp.close()
 
-    elif extension in FileTypes.DOC_VIEWER_TYPES:
-        # TODO MSWORD Documents should not be written to the hard drive
+    elif file_type in dict(text_types):
+        """Create the Open Office Conversion class that calls the
+                  conversion scripts that exist in the Open Office program directory"""
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
-            basename = os.path.basename(in_path).replace(extension, "pdf")
+            temp_location = "{}\\{}".format(MEDIA_ROOT, "fileApp")
+            basename = os.path.basename(in_path).replace(file_type, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
-            word = win32com.client.DispatchEx("Word.Application")
-
-            doc = word.Documents.Open(in_path)
-            # 17 is pdf
-            doc.SaveAs2(format(temp_path), FileFormat=17)
-            doc.Close()
-            word.Quit()
-            del word
-            del doc
-
-            f = File(open(temp_path, 'rb'))
-            response.write(f.read())
-            f.close()
-            os.remove(temp_path)
-
-        except Exception as e:
-            """Create the Open Office Conversion class that calls the
-            conversion scripts that exist in the Open Office program directory"""
             o_doc = OpenOfficeConverter(in_path)
             response = o_doc.convert()
+        except Exception as e:
+            logger.error(e)
 
-    elif extension in FileTypes.TABLE_VIEWER_TYPES:
+    elif file_type in dict(table_types):
         # TODO MSEXCEL File should not be written to the hard drive
         try:
-            temp_location = "{}\\{}".format(MEDIA_ROOT, "_fileApp")
-            basename = os.path.basename(in_path).replace(extension, "pdf")
+            temp_location = "{}\\{}".format(MEDIA_ROOT, "fileApp")
+            basename = os.path.basename(in_path).replace(file_type, "pdf")
             temp_path = "{}\\{}".format(temp_location, basename)
-
-            xl = win32com.client.DispatchEx("Excel.Application")
-            xl.Application.AskToUpdateLinks = 0
-            wb = xl.Workbooks.Open(in_path)
-            # 17 is pdf
-            wb.SaveAs2(temp_path, FileFormat=17)
-            wb.Close()
-            xl.Quit()
-            del xl
-            del wb
-
-            f = File(open(temp_path, 'rb'))
-            response.write(f.read())
-            f.close()
-            os.remove(temp_path)
-
-        except:
             o_doc = OpenOfficeConverter(in_path)
             response = o_doc.convert()
+
+        except Exception as e:
+            print(e)
             pass
 
-    elif extension in FileTypes.IMAGE_VIEWER_TYPES:
+    elif file_type in dict(image_types):
         """This response changes the content_type to image/png"""
         response = create_image_object(in_path)
 
-    pythoncom.CoUninitialize()
-
     return response
+
+
+def authorize_user(request, template):
+    if not request.user.is_authenticated():
+        return False
+    try:
+        name = request.META['REMOTE_USER']
+    except KeyError:
+        name = request.user.username
+
+    resp = Response(template_name=template)
+    resp['Cache-Control'] = 'no-cache'
+
+    # Perform inheritance from AD
+    local_name = name.split("\\")[-1]
+    query = LDAPQuery(local_name, settings.LDAP_URL)
+    ldap_groups = query.get_groups()
+    logger.info("ldap_groups = {}".format(ldap_groups))
+    logger.info("username = {}".format(name))
+
+    user_obj = User.objects.get(username=name)
+    users_groups = user_obj.groups.all()
+    # remove groups from user if not in LDAP group list
+    for x in users_groups:
+        if x.name not in ldap_groups:
+            try:
+                g = Group.objects.get(name=x)
+                user_obj.groups.remove(g)
+                user_obj.save()
+            except Exception as e:
+                print(e)
+    # add user to group if group exists in ldap and local group table
+    for x in ldap_groups:
+        if x not in [g.name for g in users_groups]:
+            try:
+                g = Group.objects.get(name=x)
+                user_obj.groups.add(g)
+                user_obj.save()
+            except Exception as e:
+                print(e)
+
+    # Create user's folder in the media root
+    users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
+    if not os.path.exists(users_dir):
+        os.mkdir(users_dir)
+    user_dir = os.path.join(users_dir, local_name)
+    if not os.path.exists(user_dir):
+        os.mkdir(user_dir)
+    # make the print directory for the user
+    print_dir = os.path.join(user_dir, "prints")
+    if not os.path.exists(print_dir):
+        os.mkdir(print_dir)
+
+    return [x.name for x in user_obj.groups.all()]
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -371,9 +416,20 @@ class EngIOViewSet(viewsets.ViewSet):
             # response is the file binary / the request is made from an dojo anchor html element with
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
-            response = HttpResponse(fp.read(), content_type=mime_type)
-            response['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
-            return response
+            resp = HttpResponse(fp.read(), content_type=mime_type)
+            resp['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+
+            # create entry in the analytics records table
+            data = {
+                "method": "download",
+                "app_name": __package__
+            }
+            serial = RecordSerializer(context={"request": request}, data=data)
+            if serial.is_valid():
+                serial.save()
+            else:
+                logger.error("failed to enter record entry {}".format(data))
+            return resp
         else:
             return redirect(reverse('home:login'))
 
@@ -384,3 +440,333 @@ class EngIOViewSet(viewsets.ViewSet):
             return
         else:
             return redirect(reverse('home:login'))
+
+    @detail_route()
+    def _view(self, request, pk=None):
+        """convert the file to pdf and render in pdfjs"""
+        if request.user.is_authenticated():
+            file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
+            file_path = file_obj[0].file_path
+            file_type = file_obj[0].file_type
+            resp = create_response_object(in_path=file_path, file_type=file_type)
+            return resp
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class UserViewer(GenericAPIView):
+    """View that renders the edoc viewer app"""
+    renderer_classes = (TemplateHTMLRenderer,)
+    permission_classes = (AllowAny,)
+    pagination_class = LargeResultsSetPagination
+
+    template = ""
+    app_name = ""
+
+    server_url = settings.LDAP_URL
+
+    f_types = FileTypes()
+    choices = f_types.ALL_FILE_DOMAINS
+
+    file_types = f_types.FILE_VIEWER_TYPES
+    image_types = f_types.IMAGE_VIEWER_TYPES
+    table_types = f_types.TABLE_VIEWER_TYPES
+    gis_types = f_types.GIS_VIEWER_TYPES
+
+    document_types = f_types.DOC_VIEWER_TYPES
+
+    sheet_types = f_types.engineering_sheet_types
+    disciplines = f_types.engineering_discipline_choices
+    airports = f_types.airport_choices
+    funding_types = f_types.funding_choices
+
+    FileFormSet = modelformset_factory(EngineeringFileModel,
+                                       exclude=('file_path', 'base_name', 'file_type', 'mime', 'size'),
+                                       max_num=25, extra=1)
+
+    def get(self, request, format=None):
+        if not request.user.is_authenticated():
+            return redirect(reverse('home:login'))
+
+        final_groups = authorize_user(request, self.template)
+
+        app_name = self.app_name.strip('/')
+
+        resp = Response(template_name=self.template)
+        resp['Cache-Control'] = 'no-cache'
+
+        # add the engineering file objects to the context
+        efiles = EngineeringFileModel.objects.all()
+        assignments = EngineeringAssignment.objects.all()
+
+        base_names = set([x.base_name for x in efiles])
+        sheet_titles = set([x.sheet_title for x in efiles])
+        project_titles = set([x.project_title for x in efiles])
+        project_descriptions = set([x.project_description for x in efiles])
+        sheet_descriptions = set([x.sheet_description for x in efiles])
+        file_paths = [x.file_path for x in efiles]
+        grant_numbers = set([x.grant_number for x in efiles])
+
+        chkd_f_types = [x[0] for x in self.file_types]
+        chkd_i_types = [x[0] for x in self.image_types]
+        chkd_t_types = [x[0] for x in self.table_types]
+        chkd_d_types = [x[0] for x in self.document_types]
+        chkd_gis_types = [x[0] for x in self.gis_types]
+
+        filter_form = FilterForm(init_base_name="", init_date_added=None, init_grid_cells="", init_sheet_title="", init_sheet_types=["all"], init_project_title="",
+                          init_project_desc="", init_after_date="", init_before_date="",
+                          init_sheet_description="", init_vendor="", init_disciplines=['all'],
+                          init_airports="rno", init_funding_types=['all'], init_file_path="", init_grant_number="",
+                          chkd_f_types=chkd_f_types, chkd_i_types=chkd_i_types,
+                          chkd_t_types=chkd_t_types, chkd_d_types=chkd_d_types, chkd_gis_types=chkd_gis_types,
+                          file_types=self.file_types, image_types=self.image_types, table_types=self.table_types,
+                          document_types=self.document_types, gis_types=self.gis_types, sheet_types=self.sheet_types,
+                          disciplines=self.disciplines, airports=self.airports,
+                          funding_types=self.funding_types)
+
+        edit_form = UpdateForm()
+
+        batch_formset = self.FileFormSet()
+
+        viewable_types = []
+        viewable_types.extend(ftypes.TABLE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.FILE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.IMAGE_VIEWER_TYPES)
+        viewable_types = list(dict(viewable_types).keys())
+        resp.data = {
+                     "base_names": base_names,
+                     "file_types": self.choices,
+                     "viewable_types": viewable_types,
+                     "sheet_titles": sheet_titles,
+                     "project_titles": project_titles,
+                     "project_descriptions": project_descriptions,
+                     "sheet_descriptions": sheet_descriptions,
+                     "file_paths": file_paths,
+                     "grant_numbers": grant_numbers,
+                     "efiles": efiles,
+                     "assigns": assignments,
+                     "server_url": self.server_url,
+                     "groups": final_groups,
+                     "app_name": app_name,
+                     "filter_form": filter_form,
+                     "edit_form": edit_form,
+                     "batch_formset": batch_formset
+                     }
+        return resp
+
+    def post(self, request, format=None):
+        if not request.user.is_authenticated():
+            return redirect(reverse('home:login'))
+        final_groups = authorize_user(request, self.template)
+
+        app_name = self.app_name.strip('/')
+
+        data = request.data
+        logger.info(data)
+        resp = Response(template_name=self.template)
+        resp['Cache-Control'] = 'no-cache'
+
+        base_name = data["base_name"]
+        date_added = data["date_added"]
+        # grid cells are in a comma delimated string
+        grid_cells = data["grid_cells"]
+        sheet_title = data["sheet_title"]
+        project_title = data["project_title"]
+        project_description = data["project_description"]
+        after_date = data["after_date"]
+        before_date = data["before_date"]
+        sheet_description = data["sheet_description"]
+        airport = data["airport"]
+        file_path = data["file_path"]
+        grant_number = data["grant_number"]
+        vendor = data["vendor"]
+
+        funding_types = data.getlist('funding_type')
+        sheet_types = data.getlist('sheet_type')
+        disciplines = data.getlist("discipline")
+        file_types = data.getlist('file_type')
+        image_types = data.getlist('image_type')
+        table_types = data.getlist('table_type')
+        document_types = data.getlist('document_type')
+        gis_types = data.getlist('gis_type')
+
+        # build the querysets that refine the final efile list
+        if base_name:
+            efiles = EngineeringFileModel.objects.filter(base_name__icontains=base_name)
+        else:
+            efiles = EngineeringFileModel.objects.all()
+
+        if date_added:
+            delta = timedelta(days=7)
+            target_date = datetime.datetime.strptime(date_added, '%Y-%m-%d')
+            start_date = target_date - delta
+            end_date = target_date + delta
+            efiles = EngineeringFileModel.objects.filter(date_added__range=(start_date, end_date))
+
+        if grid_cells:
+            gcells = [x.strip() for x in grid_cells.split(",")]
+            efiles = efiles.filter(engineeringassignment__grid_cell__name__in=gcells).distinct()
+
+        if sheet_title:
+            efiles = EngineeringFileModel.objects.filter(sheet_title__icontains=sheet_title)
+        if project_title:
+            efiles = efiles.filter(project_title__icontains=project_title)
+        if project_description:
+            efiles = efiles.filter(project_description__icontains=project_description)
+        if after_date:
+            efiles = efiles.filter(project_date__gte=after_date)
+        if before_date:
+            efiles = efiles.filter(project_date__lte=before_date)
+        if sheet_description:
+            efiles = efiles.filter(sheet_description__icontains=sheet_description)
+        if vendor:
+            efiles = efiles.filter(vendor__icontains=vendor)
+        # not all files are attributed yet so only filter for rst if requested
+        if airport != 'rno':
+            efiles = efiles.filter(airport=airport)
+        if file_path:
+            efiles = efiles.filter(file_path__icontains=file_path)
+        if grant_number:
+            gnums = [x.strip() for x in grant_number.split()]
+            efiles = efiles.filter(grant_number__in=gnums)
+
+        if funding_types and funding_types != ['all']:
+            efiles = efiles.filter(funding_type__in=funding_types).distinct()
+        if sheet_types and sheet_types != ['all']:
+            efiles = efiles.filter(sheet_type__in=sheet_types).distinct()
+        if disciplines and disciplines != ['all']:
+            efiles = efiles.filter(discipline__in=disciplines).distinct()
+
+        # Pre file type filters
+        base_types = file_types[:]
+        base_types.extend(image_types)
+        base_types.extend(table_types)
+        base_types.extend(gis_types)
+
+        if len(base_types) != len(self.choices):
+            efiles = efiles.filter(file_type__in=base_types).distinct()
+            # base_desc = [lookup[x] for x in base_types]
+            # efiles = efiles.filter(file_type__in=base_desc)
+        # only filter by doc type if they are not all selected
+        if len(document_types) != len(self.document_types):
+            efiles = efiles.filter(document_type__in=document_types).distinct()
+
+        # after all of the files have been filtered from the input, query the assignments
+        assignments = EngineeringAssignment.objects.filter(file__in=efiles)
+
+        base_names = set([x.base_name for x in efiles])
+        sheet_titles = set([x.sheet_title for x in efiles])
+        project_titles = set([x.project_title for x in efiles])
+        project_descriptions = set([x.project_description for x in efiles])
+        sheet_descriptions = set([x.sheet_description for x in efiles])
+        file_paths = [x.file_path for x in efiles]
+        grant_numbers = set([x.grant_number for x in efiles])
+
+        filter_form = FilterForm(init_base_name=base_name, init_date_added=date_added, init_grid_cells=grid_cells, init_sheet_title=sheet_title, init_sheet_types=sheet_types,
+                          init_project_title=project_title, init_project_desc=project_description,
+                          init_after_date=after_date, init_before_date=before_date,
+                          init_sheet_description=sheet_description, init_vendor=vendor, init_disciplines=disciplines,
+                          init_airports=airport, init_funding_types=funding_types, init_file_path=file_path,
+                          init_grant_number=grant_number, chkd_f_types=file_types, chkd_i_types=image_types,
+                          chkd_t_types=table_types, chkd_d_types=document_types, chkd_gis_types=gis_types,
+                          file_types=self.file_types, image_types=self.image_types,
+                          table_types=self.table_types, document_types=self.document_types,
+                          sheet_types=self.sheet_types, gis_types=self.gis_types,
+                          disciplines=self.disciplines, airports=self.airports,
+                          funding_types=self.funding_types)
+
+        edit_form = UpdateForm()
+
+        batch_formset = self.FileFormSet()
+
+        viewable_types = []
+        viewable_types.extend(ftypes.TABLE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.FILE_VIEWER_TYPES)
+        viewable_types.extend(ftypes.IMAGE_VIEWER_TYPES)
+        viewable_types = list(dict(viewable_types).keys())
+
+        resp.data = {
+            "base_names": base_names,
+            "file_types": self.choices,
+            "viewable_types": viewable_types,
+            "sheet_titles": sheet_titles,
+            "project_titles": project_titles,
+            "project_descriptions": project_descriptions,
+            "sheet_descriptions": sheet_descriptions,
+            "file_paths": file_paths,
+            "grant_numbers": grant_numbers,
+            "efiles": efiles,
+            "assigns": assignments,
+            "server_url": self.server_url,
+            "groups": final_groups,
+            "app_name": app_name,
+            "filter_form": filter_form,
+            "edit_form": edit_form,
+            "batch_formset": batch_formset
+        }
+        return resp
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class FileUpdater(APIView):
+    """view that takes in edit_fields from the update form and updates the file objects"""
+    serializer_class = EngSerializer
+    renderer_classes = (JSONRenderer,)
+    queryset = EngineeringFileModel.objects.all()
+
+    def post(self, request, format=None):
+        data = request.POST
+        id = data.get('edit_id')
+        try:
+            user = request.META['REMOTE_USER']
+        except KeyError:
+            user = request.user.username
+
+        file_path = data.get('edit_file_path')
+        grid_cells = data.getlist('edit_grid_cells')
+        new_grid_cells = data.getlist('edit_new_grid_cells')
+        sheet_title = data.get('edit_sheet_title')
+        discipline = data.getlist('edit_discipline')
+        sheet_type = data.getlist('edit_sheet_type')
+        doc_type = data.getlist('edit_doc_type')
+        project_title = data.get('edit_project_title')
+        project_desc = data.get('edit_project_desc')
+        project_date = data.get('edit_project_date')
+        if not project_date:
+            project_date = None
+        sheet_desc = data.get('edit_sheet_desc')
+        vendor = data.get('edit_vendor')
+        funding_type = data.get('edit_funding_type')
+        airport = data.get('edit_airport')
+        grant_number = data.get('edit_grant_number')
+
+        update_data = {
+            "grid_cells": grid_cells,
+            "new_grid_cells": new_grid_cells,
+            "sheet_type": sheet_type,
+            "discipline": discipline,
+            "document_type": doc_type,
+            "file_path": file_path,
+            "user": user,
+            "project_title": project_title,
+            "sheet_description": sheet_desc,
+            "sheet_title": sheet_title,
+            "project_date": project_date,
+            "vendor": vendor,
+            "airport": airport,
+            "project_description": project_desc,
+            "funding_type": funding_type,
+            "grant_number": grant_number
+        }
+
+        try:
+            existing = EngineeringFileModel.objects.get(id=id)
+            ser = EngSerializer(existing, data=update_data)
+            if ser.is_valid():
+                ser.save()
+            else:
+                logger.error(ser.errors)
+
+        except ObjectDoesNotExist as e:
+            logger.error(e)
+
+        return redirect('fileApp:eDoc')
