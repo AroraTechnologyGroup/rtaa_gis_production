@@ -29,6 +29,7 @@ def dump(model):
         new_fixt.close()
 
 
-models = ['EngineeringFileModel', 'GridCell', 'EngineeringAssignment']
+models = ['EngineeringFileModel', 'GridCell', 'EngineeringAssignment', 'DisciplineModel', 'DocumentTypeModel',
+          'SheetTypeModel']
 for x in models:
     dump(x)

@@ -1,0 +1,1 @@
+[{"model": "fileApp.documenttypemodel", "fields": {"label": "All"}, "pk": "all"}, {"model": "fileApp.documenttypemodel", "fields": {"label": "Email"}, "pk": "email"}, {"model": "fileApp.documenttypemodel", "fields": {"label": "Notes"}, "pk": "notes"}, {"model": "fileApp.documenttypemodel", "fields": {"label": "Unknown"}, "pk": "unk"}]
