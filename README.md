@@ -7,13 +7,13 @@ Installation
 
 - Open the Anaconda Navigator, and create a new environment using the Python version 3.5
 
-- Use the package installer to install Django 1.10.x, pywin32, pillow, and reportlab
+- Use the package installer to install Django 1.11.x, pywin32, pillow, and reportlab
 
 - Next, from the terminal window activate the rtaa_gis conda environment.
 
-- Using conda install the arcgis package from the esri channel.
+- Using conda install the arcgis package from the esri channel. (conda install -c esri arcgis)
 
-- Next, use pip to install the packages listed in the requirements.txt file in the project root
+- Next, use pip to install the packages listed in the requirements.txt file in the project root (pip install -r requirements.txt)
 
 - In the terminal navigate to the Scripts folder and run wfastcgi-enable OR create the fastcgi program from within IIS.
 
@@ -29,18 +29,21 @@ Installation
 
 - Run check, test, and runserver to verify that the django site is running correctly.
 
-- After building the document store, run the dump_fixtures.py script to create the test fixtures
+- After building the document store and any additional tables, run the dump_fixtures.py script to create the test fixtures
 
-IIS Configuration
+- To support file conversion, install Open Office.  Copy the edoc_conversion.py and startOO.py files into the program directory
 
-<?xml version="1.0" encoding="UTF-8"?>
-
-<configuration>
-
+- If launching on IIS configure the Handler Mapping for the fast-cgi script
+    ```
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
 	<appSettings>
 	    <!-- Required settings -->
 	    <add key="PYTHONPATH" value="C:\inetpub\rtaa_gis_django\rtaa_gis" />
 	    <add key="WSGI_HANDLER" value="django.core.wsgi.get_wsgi_application()" />
+
+
+	    <!-- Optional settings -->
 	    <add key="WSGI_LOG" value="C:\inetpub\rtaa_gis_django\rtaa_gis\logs\wsgi.log" />
 	    <add key="WSGI_RESTART_FILE_REGEX" value=".*((\.py)|(\.config))$" />
 	    <add key="DJANGO_SETTINGS_MODULE" value="rtaa_gis.settings" />
@@ -61,40 +64,65 @@ IIS Configuration
                 <add name="Access-Control-Allow-Origin" value="https://gis.renoairport.net" />
             </customHeaders>
         </httpProtocol>
-        <rewrite>
-            <rules>
+
+    ```
+- If launching on IIS configure the URL Rewrite Rules in the web.config as follows
+    ```
+    <rewrite>
+        <rules>
+            <clear />
+            <rule name="Redirect to HTTPS" enabled="true" patternSyntax="ECMAScript" stopProcessing="true">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAny" trackAllCaptures="false">
+                    <add input="{HTTPS}" pattern="^OFF$" />
+                </conditions>
+                <action type="Redirect" url="https://{HTTP_HOST}/applications/{R:1}" />
+            </rule>
+            <rule name="setRootSlash" stopProcessing="true">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
+                    <add input="{PATH_INFO}" pattern="/applications$" />
+                </conditions>
+                <action type="Redirect" url="https://{HTTP_HOST}/applications/" />
+            </rule>
+            <rule name="setHeaderValues" enabled="true" stopProcessing="false">
+                <match url="(.*)" />
+                <conditions logicalGrouping="MatchAll" trackAllCaptures="false" />
+                <serverVariables>
+                    <set name="SCRIPT_NAME" value="{PATH_INFO}" />
+                    <set name="PATH_INFO" value="/{R:0}" />
+                    <set name="HTTP_X_ORIGINAL_ENCODING" value="{HTTP_ACCEPT_ENCODING}" />
+                    <set name="HTTP_ACCEPT_ENCODING" value="0" />
+                </serverVariables>
+                <action type="None" />
+            </rule>
+        </rules>
+    </rewrite>
+    ```
+
+- The server variables set in the URL Rewrite Rules need to be exposed through the Server Variables on the app in IIS
+
+- In the static and the media folders for the project the web.config should set the static file handler
+    ```
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+        <system.webServer>
+            <handlers>
                 <clear />
-                <rule name="Redirect to HTTPS" enabled="true" patternSyntax="ECMAScript" stopProcessing="true">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAny" trackAllCaptures="false">
-                        <add input="{HTTPS}" pattern="^OFF$" />
-                    </conditions>
-                    <action type="Redirect" url="https://{HTTP_HOST}/applications/{R:1}" />
-                </rule>
-                <rule name="setRootSlash" stopProcessing="true">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false">
-                        <add input="{PATH_INFO}" pattern="/applications$" />
-                    </conditions>
-                    <action type="Redirect" url="https://{HTTP_HOST}/applications/" />
-                </rule>
-                <rule name="setHeaderValues" enabled="true" stopProcessing="false">
-                    <match url="(.*)" />
-                    <conditions logicalGrouping="MatchAll" trackAllCaptures="false" />
-                    <serverVariables>
-                        <set name="SCRIPT_NAME" value="{PATH_INFO}" />
-                        <set name="PATH_INFO" value="/{R:0}" />
-                        <set name="HTTP_X_ORIGINAL_ENCODING" value="{HTTP_ACCEPT_ENCODING}" />
-                        <set name="HTTP_ACCEPT_ENCODING" value="0" />
-                    </serverVariables>
-                    <action type="None" />
-                </rule>
-            </rules>
-        </rewrite>
-        <security>
-            <authorization>
-                <add accessType="Allow" users="*" roles="" />
-            </authorization>
-        </security>
-    </system.webServer>
-</configuration>
+                <add name="StaticFile" path="*" verb="*" modules="StaticFileModule" resourceType="File" requireAccess="Read" />
+            </handlers>
+        </system.webServer>
+    </configuration>
+    ```         
+
+- Create a logs folder in the project root.  In File Explorer set the security on this folder to allow the IIS_IUSRS 
+service account with read/write
+
+- On the static folder and the media folder set the permissions to allow IIS_IUSRS read access
+
+Testing
+
+- runtests.py is where each app's test suite is loaded
+- within each test suite, the os.path is changed to the fixture dir, so each apps tests 
+
+

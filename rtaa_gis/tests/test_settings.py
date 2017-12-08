@@ -1,7 +1,9 @@
 import os
 SECRET_KEY = 'fake-key'
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
+LDAP_URL = "gisapps.aroraengineers.com"
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,8 +20,10 @@ INSTALLED_APPS = [
     'fileApp.apps.FileAppConfig',
     'home.apps.HomeConfig',
     'cloudSync.apps.CloudsyncConfig',
-    'printTool.apps.PrinttoolConfig'
+    'printTool.apps.PrinttoolConfig',
+    'lpm.apps.LpmConfig'
 ]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

@@ -13,6 +13,8 @@ from django.conf import settings
 BASE_DIR = settings.BASE_DIR
 PYTHON_PATH = settings.PYTHON_PATH
 loc = r"C:\\GitHub"
+
+# Copy each of the dojo apps to their static directory in the django app
 dist = path.join(loc, "rtaa_gis_dojo\\dist")
 
 dojo = path.join(dist, "dojo\\dojo.js")

@@ -21,6 +21,9 @@ FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 LDAP_URL = "renoairport.net"
+ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
@@ -38,7 +41,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
+LOGIN_URL = r'login'
+
+SWAGGER_SETTINGS = {
+    'JSON_EDITOR': True,
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL':  'rest_framework:logout'
+}
+
 LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
@@ -66,7 +76,7 @@ CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -75,7 +85,7 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3344',
     'https://gis.renoairport.net',
     'localhost',
-    '127.0.0.1',
+    '127.0.0.1:8080',
     'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
@@ -127,7 +137,9 @@ INSTALLED_APPS = [
     'fileApp.apps.FileAppConfig',
     'cloudSync.apps.CloudsyncConfig',
     'printTool.apps.PrinttoolConfig',
-    'analytics.apps.AnalyticsConfig'
+    'analytics.apps.AnalyticsConfig',
+    'diagrams.apps.DiagramsConfig',
+    'lpm.apps.LpmConfig',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -265,7 +277,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "ERROR",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -273,6 +285,26 @@ LOGGING = {
         }
     },
     'loggers': {
+        'analytics': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'diagrams': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'cloudSync': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'lpm': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
         'fileApp': {
             'handlers': ['console', 'file'],
             'level': "DEBUG",

@@ -19,9 +19,8 @@ def check_file_type(types, ext):
     try:
         for k, v in iter(types.items()):
             # solves bug where some file extensions are uppercase
-            if ext.lower() in v:
-                d = k
-                return str(d)
+            if ext.lower() == k:
+                return k
 
     except Exception as e:
         logging.error("Unable to locate fileType from the supplied variables")

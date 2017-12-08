@@ -1,10 +1,10 @@
 from rest_framework import routers
-from .views import GISAdmin
-from django.conf.urls import url
+from .views import RecordViewSet
 
 router = routers.DefaultRouter()
+router.register(r'counts', RecordViewSet)
+
 app_name = 'analytics'
-urlpatterns = [
-    url(r'^$', GISAdmin.as_view(), name='gis-admin')
-]
+
+urlpatterns = []
 urlpatterns += router.urls

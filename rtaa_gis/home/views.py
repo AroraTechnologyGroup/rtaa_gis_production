@@ -18,8 +18,13 @@ from rest_framework_jsonp.renderers import JSONRenderer
 import os
 from django.conf import settings
 from django.views.decorators.cache import never_cache
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+
 
 logger = logging.getLogger(__package__)
+
+schema_view = get_schema_view(title='RTAA API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
 
 
 @api_view(['GET'])
@@ -33,7 +38,7 @@ def user_groups(request, format=None):
 
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
-        name = 'arorateam'
+        name = 'siteadmin'
 
     user_obj = User.objects.get(username=name)
 
@@ -56,6 +61,7 @@ def clear_users(request, format=None):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
+# @method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
     """View that renders the main homepage or an app depending on the template"""
     renderer_classes = (JSONRenderer, TemplateHTMLRenderer)
@@ -73,14 +79,17 @@ class HomePage(APIView):
             name = request.user.username
 
         resp = Response(template_name=self.template)
+        resp['Cache-Control'] = 'no-cache'
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
-        query = LDAPQuery(name, settings.LDAP_URL)
+        if settings.LDAP_URL == "renoairport.net":
+            local_name = "AroraTeam"
+
+        query = LDAPQuery(local_name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
-        logger.info("username = {}".format(local_name))
-        logger.info(datetime.now())
+        logger.info("username = {}".format(name))
 
         user_obj = User.objects.get(username=name)
         users_groups = user_obj.groups.all()

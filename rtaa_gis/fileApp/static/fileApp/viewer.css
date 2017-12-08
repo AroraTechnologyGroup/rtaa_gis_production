@@ -1,0 +1,459 @@
+@import url("./widgets/resources/drawToolbar.css");
+
+.wrapper {
+        background-image: none
+    }
+
+form {
+    display: inline;
+}
+
+select > option {
+    font-size: 0.75em;
+}
+
+html, body, .viewport {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+label {
+    margin: auto;
+    font-size: 0.75em;
+}
+
+input {
+    font-size: 0.75em;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+.fileIcon {
+    display: inline-block;
+    margin: 10px;
+    padding: 10px;
+    height: 50px;
+    position: relative;
+}
+
+.fileIcon {
+    display: inline-block;
+}
+
+#_buttons span {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-green {
+    color: white;
+}
+
+#_buttons button {
+    padding: 0.5em;
+    margin: 0.5em;
+}
+
+#_outer_div {
+    position: absolute;
+    top: 63px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px gray solid;
+}
+
+#_placed_panel {
+    position: absolute;
+    top:0;
+    left: 0;
+    bottom: 5px;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    width: 425px;
+    padding: 2px;
+}
+
+#_buttons {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex-grow: 1;
+    width: 150px;
+}
+
+#_filter_group {
+    overflow-y: scroll;
+    height: 100%;
+    flex-grow: 2;
+    max-width: 300px;
+    padding: 3px;
+}
+
+#_filter_group .form-group {
+    display: inline-block;
+    margin: 3px;
+    float: left;
+    width: 100%;
+}
+
+#_filter_group .form-group.inline {
+    display: inline-block;
+    width: auto;
+}
+
+#_filter_group .form-group.inline-list {
+    display: inline-block;
+    width: 50%;
+}
+
+#_filter_group .form-group.inline-list > ul {
+    list-style: none;
+    margin: 0;
+}
+
+#_filter_group .form-group > select {
+    width: 100%;
+    display: block;
+}
+
+.fieldWrapper > select {
+    width: 100%;
+    display: block;
+}
+
+#_container {
+    position: absolute;
+    left: calc(0% + 425px);
+    right: 0;
+    top: 0;
+    margin: 1px;
+    height: 99%;
+    /*font-size: 0.75rem;*/
+    z-index: 10;
+}
+
+
+#_container.ropen {
+    animation-name: editropen;
+    animation-duration: 1s;
+    right: 300px;
+}
+
+@keyframes editropen {
+    from {
+        right: 0;
+    }
+
+    to {
+        right: 300px;
+    }
+}
+
+
+#_container.rclose {
+    animation-name: editrclose;
+    animation-duration: 0.5s;
+    right: 0;
+}
+
+@keyframes editrclose {
+    from {
+        right: 300px;
+    }
+
+    to {
+        right: 0;
+    }
+}
+
+#_slider_panel {
+    display: none;
+    z-index:-1;
+    order: 3;
+    height: 100%;
+}
+
+
+#_slider_panel.open {
+    display: inline-block;
+    animation-duration: 1s;
+    animation-name: slidein;
+    z-index: -1;
+    margin: 2px;
+    width: 225px;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+@keyframes slidein {
+    from {
+        width: 0;
+
+    }
+
+    to {
+        width: 225px;
+    }
+}
+
+#_slider_panel.open_map {
+    width: 100%;
+    animation-duration: 1.5s;
+    animation-name: map-slidein;
+    height: 100%;
+    display: inline-block;
+}
+
+@keyframes map-slidein {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+#_slider_panel.open_from_trans {
+    display: inline-block;
+    width: 100%;
+    animation-duration: 1s;
+    animation-name: map-trans-slidein;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+@keyframes map-trans-slidein {
+    from {
+        width: 225px;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+#_slider_panel.close {
+    display: inline-block;
+    animation-duration: 0.5s;
+    animation-name: slideout;
+    z-index: -1;
+    margin: 2px;
+    width: 0;
+    height: 100%;
+}
+
+@keyframes slideout {
+    from {
+        width: 225px;
+    }
+
+    to {
+        width: 0;
+    }
+}
+
+#_slider_panel.close_to_trans {
+    display: inline-block;
+    animation-name: map-trans-slideout;
+    animation-duration: 0.5s;
+    height: 100%;
+    width: 225px;
+    overflow-y:scroll;
+}
+
+@keyframes map-trans-slideout {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 225px;
+    }
+}
+
+#_slider_panel.close_map {
+    animation-name: map-slideout;
+    animation-duration: 1s;
+    display: inline-block;
+    height: 100%;
+}
+
+@keyframes map-slideout {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0;
+    }
+}
+#_slider_flex_container {
+    /*display: flex;*/
+    /*position: absolute;*/
+    height: 100%;
+    width: 100%;
+
+}
+
+.panel_slide {
+    display: none;
+}
+
+.panel_slide.visible {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#_map_group.panel_slide.visible {
+    height: 100%;
+}
+
+/*#_map_group {*/
+    /*display: block;*/
+/*}*/
+
+#_resultBox {
+    display: inline-block;
+    background-color: white;
+    height: 100%;
+    overflow-y: scroll;
+    position: absolute;
+    width: 100%;
+    font-size: 0.75em;
+}
+
+#_resultBox > div:hover {
+    cursor: pointer
+}
+
+#_type_submit {
+    display: inline-block;
+    float: right;
+    padding-bottom: 35px;
+}
+
+#_update_panel {
+    order: 5;
+    overflow-y: scroll;
+    padding: 10px;
+    top: 0;
+    left: 100%;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    z-index: 10;
+    background-color: white;
+}
+
+#_update_panel.open {
+    animation-name: openpanel;
+    animation-duration: 1s;
+    left: calc(100% - 300px);
+}
+
+#_update_panel textarea {
+    height: 2.25rem
+}
+
+@keyframes openpanel {
+    from {
+        left: 100%;
+    }
+
+    to {
+        left: calc(100% - 300px);
+    }
+}
+
+#_update_panel.close {
+    animation-name: closepanel;
+    animation-duration: 0.5s;
+    left: 100%;
+}
+
+@keyframes closepanel {
+    from {
+        left: calc(100% - 300px);
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+#_update_panel .form-group > select {
+    width: 100%;
+}
+
+#_update_panel .form-group.inline.active {
+    display: inline-block;
+    margin: 3px;
+    float: right;
+}
+
+#_update_panel .panel.active {
+    display: block;
+}
+
+#_update_panel .panel.off {
+    display: none;
+}
+
+#_update_panel .panel > ul {
+    margin-left: 0;
+    list-style: none;
+}
+
+#_update_panel button.accordion {
+    transition: 0.4s;
+    outline: none;
+    cursor: pointer;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#_update_panel button.accordion > label {
+    letter-spacing: 0em;
+    font-size: 1em;
+    font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    color: #4c4c4c;
+}
+
+#_update_panel button.accordion.active {
+    background-color: lightblue;
+}
+
+#_update_panel button.accordion > label:hover {
+    cursor: pointer;
+}
+
+#_update_panel .panel {
+    display: none;
+}
+
+.widgetContainer {
+    z-index: 10;
+    display: inline;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+}
+
+
+#map.hide {
+    display: none
+}
+
+.dijitCheckBoxInput {
+    opacity: 1;
+}
