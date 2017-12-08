@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from django.contrib.auth.views import logout, login, password_change
-from .views import HomePage, user_groups, clear_users
+from .views import HomePage, user_groups, clear_users, schema_view
 
 app_name = 'home'
 urlpatterns = [

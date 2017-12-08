@@ -257,7 +257,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                     // if not on the local server get the SCRIPT NAME
                     var url;
                     if (window.location.hostname !== '127.0.0.1') {
-                        var script_name = window.location.pathname.split("/")[0];
+                        var script_name = window.location.pathname.split("/")[1];
                         url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_download/";
                     } else {
                         url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
@@ -281,7 +281,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                      // if not on the local server get the SCRIPT NAME
                     var url;
                     if (window.location.hostname !== '127.0.0.1') {
-                        var script_name = window.location.pathname.split("/")[0];
+                        var script_name = window.location.pathname.split("/")[1];
                         url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
                     } else {
                         url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
