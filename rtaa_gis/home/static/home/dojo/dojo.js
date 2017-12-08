@@ -2158,40 +2158,29 @@ define([
 				}, function(err) {
 					console.log(err);
 				});
-
-				router.register("gisportal/guides", function(evt) {
-					evt.preventDefault();
-					console.log('loading ' + evt.newPath);
-					// scroll to project guide div
-					win.scrollIntoView('project-guides');
-				});
 				
-				router.register("gisportal/analytics", function(evt) {
+				router.register("gisportal/site-analytics", function(evt) {
 					evt.preventDefault();
 					console.log('loading ' + evt.newPath);
-					// scroll to analytics div
-					win.scrollIntoView('analytics');
+					obj.enablePage("site-analytics");
 				});
 
-				router.register("gisportal/2dviewer", function(evt) {
+				router.register("gisportal/viewer2d", function(evt) {
 					evt.preventDefault();
 					console.log("loading "+evt.newPath);
-					// scroll to 2dviewer div
-					win.scrollIntoView('viewer2d');
+					obj.enablePage("viewer2d");
 				});
 
-				router.register("gisportal/3dviewer", function(evt) {
+				router.register("gisportal/viewer3d", function(evt) {
 					evt.preventDefault();
 					console.log("loading "+evt.newPath);
-					// scroll to 3d viewer div
-					win.scrollIntoView('viewer3d');
+					obj.enablePage("viewer3d");
 				});
 
 				router.register("gisportal/publishing-tools", function(evt) {
 					evt.preventDefault();
 					console.log("loading "+evt.newPath);
-					// scroll to publishing tool div
-					win.scrollIntoView('publishing');
+					obj.enablePage("publishing-tools");
 				});
 				/////////////////////////////////////////////////////////////////
 				
@@ -15412,27 +15401,22 @@ define([
     id: null,
     baseClass: "_Card",
     options: {
-      imgSrc: null,
       path: null,
       header: null,
       content1: null,
       content2: null,
-      isActive: null,
-      isAdmin: null
+      isActive: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
 
-      var imgSrc = options.imgSrc;
       var path = options.path;
       var port = window.location.port;
       var pathname = window.location.pathname.split("/")[1];
       var origin = window.location.origin;
       var url;
       if (Array.indexOf([8000, 8080, 3000], port) === -1) {
-        var new_imgSrc = "static/home/" + imgSrc;
         var new_path = pathname + "/" + path;
-        options.imgSrc = new_imgSrc;
         options.path = origin + "/" + new_path + "/";
       } 
       
@@ -24221,9 +24205,12 @@ define([
 	'app/HomepageBanner',
 	'app/PageBanner',
 	'app/Analytics',
-	'app/Viewer3d',
 	'app/PublishingTools',
-	'app/ProjectGuides',
+	'app/IFrameLoader',
+	'app/ResourcePage',
+	'app/AboutSite',
+	'app/RequestHelp',
+	'app/TechnicalDetails',
 	'esri/IdentityManager',
 	'esri/arcgis/OAuthInfo',
 	'dijit/layout/ContentPane',
@@ -24255,9 +24242,12 @@ define([
 		HomepageBanner,
 		PageBanner,
 		Analytics,
-		Viewer3d,
 		PublishingTools,
-		ProjectGuides,
+		IFrameLoader,
+		ResourcePage,
+		AboutSite,
+		RequestHelp,
+		TechnicalDetails,
 		esriId,
 		OAuthInfo,
 		ContentPane,
@@ -24265,7 +24255,35 @@ define([
 		) {
 
 		return declare([], {
-			
+			adminRoutes: [
+				{
+					title: 'Site Analytics',
+					href: 'gisportal/site-analytics'
+				}, {
+					title: '2D Data Viewer',
+					href: 'gisportal/viewer2d'
+				}, {
+					title: '3D Data Viewer',
+					href: 'gisportal/viewer3d'
+				}, {
+					title: 'Publishing Tools',
+					href: 'gisportal/publishing-tools'
+				}
+			],
+
+			helpRoutes: [
+				{
+					title: 'Technical Details',
+					href: 'help/tech-details'
+				}, {
+					title: 'About this Site',
+					href: 'help/about'
+				}, {
+					title: 'Request Help Ticket',
+					href: 'help/request-ticket'
+				}
+			],
+
 			unloadBanner: function() {
 				var deferred = new Deferred();
 				(function() {
@@ -24291,7 +24309,7 @@ define([
 						domClass.remove(obj.containerNode);
 						deferred.resolve(true);
 					} else {
-						deferred.resolve('no widgets were found in main-content domNode');
+						deferred.resolve('the main-content div was not replaced by the ContentPane dijit in main.js');
 					}
 				})();
 				return deferred.promise;
@@ -24325,9 +24343,7 @@ define([
 						path: e.path,
 						content1: e.content1,
 						content2: e.content2,
-						imgSrc: e.imgSrc,
 						header: e.header,
-						isAdmin: e.isAdmin,
 						isActive: e.isActive
 					}, div);
 					return deferred.resolve(new_card);
@@ -24352,7 +24368,8 @@ define([
 						handleAs: 'json',
 						headers: {
 				            "X-Requested-With": null
-				        }
+				        },
+				        withCredentials: true
 					}).then(function(data) {
 						console.log(data);
 						deferred.resolve(data);
@@ -24397,12 +24414,7 @@ define([
 					// these are loaded from dojo/text!./application_cards.json
 					var cards = JSON.parse(app_cards);
 
-					// remove cards that are not admin
-					var reg_cards = Array.filter(cards, function(e) {
-						return !e.isAdmin;
-					}); 
-
-					self.loadCards(Card, reg_cards).then(function(e) {
+					self.loadCards(Card, cards).then(function(e) {
 						console.log(e);
 						deferred.resolve(pane);
 					}, function(err) {
@@ -24429,31 +24441,12 @@ define([
 						console.log(err);
 					}
 					
-					// if the user is admin, allow for browse data and backend api
-					
-					var routes = [{
-								title: 'Site Analytics',
-								href: 'gisportal/analytics'
-							}, {
-								title: '2D Data Viewer',
-								href: 'gisportal/2dviewer'
-							}, {
-								title: 'Project Documentation',
-								href: 'gisportal/guides'
-							}, 
-							// {
-							// 	title: '3D Data Viewer',
-							// 	href: 'gisportal/3dviewer'
-							// }, 
-							{
-								title: 'Publishing Tools',
-								href: 'gisportal/publishing-tools'
-							}];
-				
+					var routes = self.adminRoutes;
+
 					self.header = new PageBanner({
 							id: 'gisportal-banner',
 							class: 'text-white font-size-4 page-banner',
-							title: 'Administrative Portal',
+							title: 'GIS Administrative Portal',
 							routes: routes
 						});
 				
@@ -24461,27 +24454,15 @@ define([
 					var pane = registry.byId('header-pane');
 					pane.set('content', self.header);
 					pane.resize();
-					
-					// // create the sticky buttons to navigate the page
-					// var nav_btns = domConstruct.create("div", {
-					// 	class: "js-sticky scroll-show is-sticky",
-					// 	"data-top": "50px",
-					// 	"innerHTML": "<a href='#'>Back to Top</a>"
-					// }, 'main-content');
 
 					self.buildAnalytics(evt, groups).then(function(resp) {
-						self.build2dViewer(evt, groups).then(function(resp2) {
-							self.buildProjectGuides(evt, groups).then(function(resp) {
-								// self.build3dViewer(evt, groups).then(function(resp3) {
-									self.buildBackEndAPIs(evt, groups).then(function(resp4) {
-										console.log("all gisportal loaded");
-										deferred.resolve(resp4);
-									}, function(err) {
-										console.log(err);
-									});
-								// }, function(err) {
-								// 	console.log(err);
-								// });
+						self.build2dViewer(evt, groups).then(function(resp) {
+							self.build3dViewer(evt, groups).then(function(resp) {
+								self.buildBackEndAPIs(evt, groups).then(function(resp) {
+									deferred.resolve(resp);
+								}, function(err) {
+									console.log(err);
+								});
 							}, function(err) {
 								console.log(err);
 							});
@@ -24498,56 +24479,85 @@ define([
 				return deferred.promise;
 			},
 
-			buildProjectGuides: function(event, gr) {
-				var self = this;
-				var deferred = new Deferred();
-				var projectGuides = new ProjectGuides();
-				projectGuides.startup().then(function(e) {
-					domConstruct.place(projectGuides.domNode, 'main-content');
-					deferred.resolve(e);
-				});
-				return deferred.promise;
-			},
-
 			buildAnalytics: function(event, gr) {
 				var self = this;
 				var deferred = new Deferred();
-				var analytics = new Analytics();
-				analytics.startup().then(function(e) {
-					domConstruct.place(analytics.domNode, 'main-content');
-					deferred.resolve(e);
-				});
+				var widget = registry.byId('site-analytics');
+				if (!widget) {
+					widget = new Analytics({
+						id: "site-analytics"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
 			build2dViewer: function(event, gr) {
 				var self = this;
 				var deferred = new Deferred();
-				self.loadIframe('viewer2d', "https://gisapps.aroraengineers.com/rtaa_admin_viewer").then(function(e) {
-					deferred.resolve();
-				});
+				var widget = registry.byId('viewer2d');
+				if (!widget) {
+					widget =  new IFrameLoader({
+						id: "viewer2d",
+						url: "https://gisapps.aroraengineers.com/rtaa_admin_viewer"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
 			build3dViewer: function(event, gr) {
 				var self = this;
 				var deferred = new Deferred();
-				var viewer3d = new Viewer3d();
-				viewer3d.startup().then(function(e) {
-					domConstruct.place(viewer3d.domNode, 'main-content', "last");
-					deferred.resolve(e);
-				});
+				var widget = registry.byId('viewer3d');
+				if (!widget) {
+					widget = new IFrameLoader({
+						id: "viewer3d",
+						url: "https://gisapps.aroraengineers.com/rtaa_airspace"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
 			buildBackEndAPIs: function(event, gr) {
 				var self = this;
 				var deferred = new Deferred();
-				var publishing = new PublishingTools();
-				publishing.startup().then(function(e) {
-					domConstruct.place(publishing.domNode, 'main-content', "last");
-					deferred.resolve(e);
-				});
+				var widget = registry.byId('publishing-tools');
+				if (!widget) {
+					widget = new PublishingTools({
+						id: "publishing-tools"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content', "last");
+						deferred.resolve(e.domNode);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
@@ -24562,26 +24572,45 @@ define([
 					} catch(err) {
 						console.log(err);
 					}
+
 					self.header = new PageBanner({
 						id: 'web-resources-banner',
 						class: 'text-white font-size-4 page-banner',
 						title: 'Online Resource Library',
-						routes: [{
-							title: 'State Level GIS Data',
-							href: 'web-resources/state-level'
-						}, {
-							title: 'County Level GIS Data',
-							href: 'web-resources/county-level'
-						}, {
-							title: 'ESRI Online Resources',
-							href: 'web-resources/esri-resources'
-						}]
+						routes: {}
 					});
 
 					var pane = registry.byId('header-pane');
 					pane.set('content', self.header);
-					deferred.resolve(pane);
+					pane.resize();
+					self.buildResourcePage(evt, groups).then(function(resp) {
+						deferred.resolve(resp);
+					}, function(err) {
+						console.log(err);
+					});
+				}, function(err) {
+					deferred.cancel(err);
 				});
+				return deferred.promise;
+			},
+
+			buildResourcePage: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('resourcePage');
+				if (!widget) {
+					widget = new ResourcePage({
+						id: "resourcePage"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
 				return deferred.promise;
 			},
 
@@ -24596,82 +24625,138 @@ define([
 					} catch(err) {
 						console.log(err);
 					}
+					var routes = self.helpRoutes;
+
 					self.header = new PageBanner({
 						id: 'help-banner',
 						class: 'text-white font-size-4 page-banner',
 						title: 'Help Documentation',
-						routes: [{
-							title: 'Technical Details',
-							href: 'help/tech-details'
-						}, {
-							title: 'About this Site',
-							href: 'help/about'
-						}, {
-							title: 'Request Help Ticket',
-							href: 'help/request-ticket'
-						}, {
-							title: 'Tutorials',
-							href: 'help/tutorials'
-						}]
+						routes: routes
 					});
 
 					var pane = registry.byId('header-pane');
 					pane.set('content', self.header);
-					deferred.resolve(pane);
-				});
-				return deferred.promise;
-			},	
-					
-			loadIframe: function(id, url) {
-				var self = this;
-				var deferred = new Deferred();
-				baseUnload.addOnUnload(function() {
-					if (registry.byId(id)) {
-						registry.byId(id).destroyRecursive();
-					}
-				});
-				self.unloadIframe().then(function(e) {
-				console.log(e);
-				var pane = new ContentPane({
-				  id: id,
-				  style: {
-				    position: "relative",
-				    width: "100%",
-				    height: "100vh",
-				    overflow: "hidden"
-				  }
-				});
-				pane.startup();
-				pane.set('content', domConstruct.create("iframe",  {
-				    src: url,
-				    margin: 0,
-				    frameborder: 0,
-				    height: '100%',
-				    width: '100%',
-				    allowfullscreen: true
-				}));
-				pane.placeAt(dom.byId('main-content'));
-				aspect.after(pane, 'resize', function(evt) {
-					domStyle.set(pane.domNode, "height", "90vh");
+					pane.resize();
+
+					self.buildTechnicalDetails(evt, groups).then(function(resp) {
+						self.buildAboutSite(evt, groups).then(function(resp) {
+							self.buildRequestHelp(evt, groups).then(function(resp) {
+								deferred.resolve(resp);
+							}, function(err) {
+								console.log(err);
+							});
+						}, function(err) {
+							console.log(err);
+						});
+					}, function(err) {
+						console.log(err);
 					});
 				});
-				
-				deferred.resolve();
 				return deferred.promise;
 			},
 
-			unloadIframe: function() {
+			buildTechnicalDetails: function(evt, groups) {
 				var self = this;
 				var deferred = new Deferred();
-				var iframe_pane = registry.byId("iframe-pane");
-				if (iframe_pane !== undefined) {
-					iframe_pane.destroy();
-					registry.remove(iframe_pane);
-					deferred.resolve("iframe-pane removed from registry");
+				var widget = registry.byId('technicalDetails');
+				if (!widget) {
+					widget = new TechnicalDetails({
+						id: "technicalDetails"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
 				} else {
-					deferred.resolve("iframe-pane not found");
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
 				}
 				return deferred.promise;
+			},
+
+			buildAboutSite: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('aboutSite');
+				if (!widget) {
+					widget = new AboutSite({
+						id: "aboutSite"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
+				return deferred.promise;
+			},
+
+			buildRequestHelp: function(evt, groups) {
+				var self = this;
+				var deferred = new Deferred();
+				var widget = registry.byId('requestHelp');
+				if (!widget) {
+					widget = new RequestHelp({
+						id: "requestHelp"
+					});
+				
+					widget.startup().then(function(e) {
+						domConstruct.place(e.domNode, 'main-content');
+						deferred.resolve(e);
+					});
+				} else {
+					domConstruct.place(widget.domNode, 'main-content');
+					deferred.resolve(widget);
+				}
+				return deferred.promise;
+			},
+
+			enablePage: function(page) {
+				var self = this;
+				var routes = self.adminRoutes;
+				var names = [];
+				Array.forEach(routes, function(e) {
+					var path = e.href;
+					var name = path.split(/\//)[1];
+					names.push(name);
+				});
+				var result = Array.every(names, function(e) {
+					var node = dom.byId(e);
+					if (!node) {
+						var widget = registry.byId(e);
+						if (!widget) {
+							return false;
+						} else {
+							node = widget.domNode;
+						}
+					}
+
+					if (node) {
+						if (e !== page) {
+							domClass.remove(node, "activated");
+							domClass.add(node, "off");
+						}
+						return true;
+					}
+					
+				});
+
+				if (result) {
+					var node = dom.byId(page);
+					if (!node) {
+						node = registry.byId(page).domNode;
+					}
+					domClass.remove(node, "off");
+					domClass.add(node, "activated");
+				} else {
+					self.buildGISPortal(null, null).then(function(e) {
+						self.enablePage(page);
+					});
+				}
 			}
 		});
 	});
@@ -24855,6 +24940,7 @@ define([
 	'dijit/registry',
 	'dojo/dom',
 	'dojo/dom-construct',
+	'dojo/dom-class',
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/Deferred',
@@ -24869,6 +24955,7 @@ define([
 		registry,
 		dom,
 		domConstruct,
+		domClass,
 		declare,
 		lang,
 		Deferred,
@@ -24881,26 +24968,31 @@ define([
 		) {
 		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
 			templateString: template,
+			id: null,
+			baseClass: '_analytics',
 			constructor: function(options, srcNodeRef) {
 				this.inherited(arguments);
 				console.log("analytics::constructor()");
 			},
 			postCreate: function() {
+				var self = this;
 				this.inherited(arguments);
 				console.log("analytics::postCreate()");
 				var cp = new ContentPane({
-					id: 'analytics',
 					class: 'admin-panel',
-					style: "height: 100vh; width: 100%"
+					style: "height: 100vh; width: 100%; background-color: white"
 				});
 				cp.set('content', domConstruct.toDom("<h1>Site Analytics</h1>"));
-				cp.placeAt(this.content);
+				
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'activated');
 			},
 			startup: function() {
 				this.inherited(arguments);
 				console.log("analytics::startup()");
+				var self = this;
 				var deferred = new Deferred();
-				deferred.resolve();
+				deferred.resolve(self);
 				return deferred.promise;
 			}
 		});
@@ -25017,68 +25109,12 @@ define([
 });
 
 },
-'app/Viewer3d':function(){
-define([
-	'dijit/registry',
-	'dojo/dom',
-	'dojo/dom-construct',
-	'dojo/_base/declare',
-	'dojo/_base/lang',
-	'dojo/Deferred',
-	'dijit/layout/ContentPane',
-	'dijit/_WidgetBase',
-	"dijit/_TemplatedMixin",
-	'dijit/_WidgetsInTemplateMixin',
-	'dojo/text!./templates/Viewer3d_template.html'
-	],
-	function(
-		registry,
-		dom,
-		domConstruct,
-		declare,
-		lang,
-		Deferred,
-		ContentPane,
-		_WidgetBase,
-		_TemplatedMixin,
-		_WidgetsInTemplateMixin,
-		template
-		) {
-		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
-			templateString: template,
-			constructor: function(options, srcNodeRef) {
-				this.inherited(arguments);
-				console.log("viewer3d::constructor()");
-			},
-			postCreate: function() {
-				this.inherited(arguments);
-				console.log("viewer3d::postCreate()");
-				var cp = new ContentPane({
-					id: 'viewer3d',
-					class: 'admin-panel',
-					style: "height: 100vh; width: 100%"
-				});
-				// request html page from server and set as content in the pane
-				
-				cp.set('content', domConstruct.toDom("<h1>3d Viewer</h1>"));
-				cp.placeAt(this.content);
-				cp.startup();
-			},
-			startup: function() {
-				this.inherited(arguments);
-				console.log("viewer3d::startup()");
-				var deferred = new Deferred();
-				deferred.resolve();
-				return deferred.promise;
-			}
-		});
-	});
-},
 'app/PublishingTools':function(){
 define([
 	'dijit/registry',
 	'dojo/dom',
 	'dojo/dom-construct',
+	'dojo/dom-class',
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/Deferred',
@@ -25092,6 +25128,7 @@ define([
 		registry,
 		dom,
 		domConstruct,
+		domClass,
 		declare,
 		lang,
 		Deferred,
@@ -25103,84 +25140,369 @@ define([
 		) {
 		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
 			templateString: template,
-			constructor: function(options, srcNodeRef) {
+			id: null,
+			baseClass: '_publishing-tools',
+			constructor: function(options) {
 				this.inherited(arguments);
+				declare.safeMixin(this, options);
 				console.log("publishingTools::constructor()");
 			},
 			postCreate: function() {
 				this.inherited(arguments);
 				console.log("publishingTools::postCreate()");
+				var self = this;
 				var cp = new ContentPane({
-					id: 'publishing',
 					class: 'admin-panel',
-					style: "height: 100vh; width: 100%"
+					style: "height: 100vh; width: 100%; background-color: white"
 				});
 				cp.set('content', domConstruct.toDom("<h1>Publishing Tools</h1>"));
 				cp.placeAt(this.content);
+				domClass.add(self.domNode, 'off');
 			},
 			startup: function() {
 				this.inherited(arguments);
 				console.log("publishingTools::startup()");
+				var self = this;
 				var deferred = new Deferred();
-				deferred.resolve();
+				deferred.resolve(self);
 				return deferred.promise;
 			}
 		});
 	});
 },
-'app/ProjectGuides':function(){
+'app/IFrameLoader':function(){
 define([
 	'dijit/registry',
 	'dojo/dom',
 	'dojo/dom-construct',
+	'dojo/dom-style',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/_base/unload',
+	'dojo/Deferred',
+	"dojo/aspect",
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/IFrameLoader_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	], function(
+		registry,
+		dom,
+		domConstruct,
+		domStyle,
+		domClass,
+		declare,
+		lang,
+		baseUnload,
+		Deferred,
+		aspect,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			baseClass: "_iframe-loader",
+			id: null,
+			url: null,
+			constructor: function(config) {
+				this.inherited(arguments);
+				declare.safeMixin(this, config);
+			},
+			
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("iframe-loader::postCreate()");
+				var pane = new ContentPane({
+				  style: {
+				  	float: "left",
+				    position: "relative",
+				    width: "100%",
+				    height: "100vh",
+				    overflow: "hidden"
+				  }
+				}, self.content);
+				pane.set('content', domConstruct.create("iframe",  {
+				    src: self.url,
+				    margin: 0,
+				    frameborder: 0,
+				    height: '100%',
+				    width: '100%',
+				    allowfullscreen: true
+				}));
+				pane.startup();
+				aspect.after(pane, 'resize', function(evt) {
+					domStyle.set(self.domNode, "height", "90vh");
+				});
+				domClass.add(self.domNode, "off");
+			},
+
+			startup: function() {
+				var self = this;
+				var deferred = new Deferred();
+				var id = self.id;
+				baseUnload.addOnUnload(function() {
+					if (registry.byId(id)) {
+						registry.byId(id).destroyRecursive();
+					}
+				});
+				deferred.resolve(self);
+				return deferred.promise;
+			},
+
+			unloadIframe: function() {
+				var self = this;
+				var deferred = new Deferred();
+				var iframe_pane = registry.byId(self.id);
+				if (iframe_pane !== undefined) {
+					iframe_pane.destroy();
+					registry.remove(iframe_pane);
+					deferred.resolve("iframe-pane removed from registry");
+				} else {
+					deferred.resolve("iframe-pane not found");
+				}
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/ResourcePage':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
 	'dojo/_base/declare',
 	'dojo/_base/lang',
 	'dojo/Deferred',
 	'dijit/layout/ContentPane',
+	'dojo/text!./templates/ResourcePage_template.html',
 	'dijit/_WidgetBase',
 	"dijit/_TemplatedMixin",
-	'dijit/_WidgetsInTemplateMixin',
-	'dojo/text!./templates/ProjectGuides_template.html'
+	'dijit/_WidgetsInTemplateMixin'
 	],
 	function(
 		registry,
 		dom,
 		domConstruct,
+		domClass,
 		declare,
 		lang,
 		Deferred,
 		ContentPane,
+		template,
 		_WidgetBase,
 		_TemplatedMixin,
-		_WidgetsInTemplateMixin,
-		template
+		_WidgetsInTemplateMixin 
 		) {
 		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
 			templateString: template,
+			id: null,
+			baseClass: '_resourcePage',
 			constructor: function(options, srcNodeRef) {
 				this.inherited(arguments);
-				console.log("project-guides::constructor()");
+				console.log("_resourcePage::constructor()");
 			},
 			postCreate: function() {
+				var self = this;
 				this.inherited(arguments);
-				console.log("project-guides::postCreate()");
+				console.log("_resourcePage::postCreate()");
 				var cp = new ContentPane({
-					id: 'project-guides',
 					class: 'admin-panel',
-					style: "height: 100vh; width: 100%",
-					href: 'app/resources/CollectorProjectBuildGuide.htm'
+					style: "height: 100vh; width: 100%; background-color: white"
 				});
-				cp.set('content', domConstruct.toDom("<h1>Project Guides</h1>"));
-				// request html page from server and set as content in the pane
-				
-				cp.placeAt(this.content);
-				cp.startup();
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'activated');
 			},
 			startup: function() {
 				this.inherited(arguments);
-				console.log("project-guides::startup()");
+				console.log("_resourcePage::startup()");
+				var self = this;
 				var deferred = new Deferred();
-				deferred.resolve();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/AboutSite':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/AboutSite_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_aboutSite',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_aboutSite::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_aboutSite::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'off');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_aboutSite::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/RequestHelp':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/RequestHelp_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_requestHelp',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_requestHelp::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_requestHelp::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'off');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_requestHelp::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
+				return deferred.promise;
+			}
+		});
+	});
+},
+'app/TechnicalDetails':function(){
+define([
+	'dijit/registry',
+	'dojo/dom',
+	'dojo/dom-construct',
+	'dojo/dom-class',
+	'dojo/_base/declare',
+	'dojo/_base/lang',
+	'dojo/Deferred',
+	'dijit/layout/ContentPane',
+	'dojo/text!./templates/TechnicalDetails_template.html',
+	'dijit/_WidgetBase',
+	"dijit/_TemplatedMixin",
+	'dijit/_WidgetsInTemplateMixin'
+	],
+	function(
+		registry,
+		dom,
+		domConstruct,
+		domClass,
+		declare,
+		lang,
+		Deferred,
+		ContentPane,
+		template,
+		_WidgetBase,
+		_TemplatedMixin,
+		_WidgetsInTemplateMixin 
+		) {
+		return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
+			templateString: template,
+			id: null,
+			baseClass: '_technicalDetails',
+			constructor: function(options, srcNodeRef) {
+				this.inherited(arguments);
+				console.log("_technicalDetails::constructor()");
+			},
+			postCreate: function() {
+				var self = this;
+				this.inherited(arguments);
+				console.log("_technicalDetails::postCreate()");
+				var cp = new ContentPane({
+					class: 'admin-panel',
+					style: "height: 100vh; width: 100%; background-color: white"
+				});
+				cp.placeAt(self.content);
+				domClass.add(self.domNode, 'activated');
+			},
+			startup: function() {
+				this.inherited(arguments);
+				console.log("_technicalDetails::startup()");
+				var self = this;
+				var deferred = new Deferred();
+				deferred.resolve(self);
 				return deferred.promise;
 			}
 		});
@@ -41822,19 +42144,22 @@ define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","..
 define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
 },
 'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
-'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-1\">${title}</h1>\r\n\t    <div class=\"text-light\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
+'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-2\">${title}</h1>\r\n\t    <div class=\"header-1\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/analytics_config.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/analytics/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/analytics/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/analytics/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/analytics/\"\r\n}",
-'url:app/templates/Analytics_template.html':"<div data-dojo-attach-point='content'></div>",
-'url:app/templates/Viewer3d_template.html':"<div data-dojo-attach-point='content'></div>",
-'url:app/templates/PublishingTools_template.html':"<div data-dojo-attach-point=\"content\"></div>",
-'url:app/templates/ProjectGuides_template.html':"<div data-dojo-attach-point='content'></div>",
+'url:app/templates/Analytics_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/PublishingTools_template.html':"<span class=\"${baseClass}\">\r\n\t<div data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/IFrameLoader_template.html':"<span class=\"${baseClass}\">\r\n\t<div data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/ResourcePage_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/AboutSite_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/RequestHelp_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
+'url:app/templates/TechnicalDetails_template.html':"<span class=\"${baseClass}\">\r\n\t<div  data-dojo-attach-point='content'></div>\r\n</span>",
 'url:dijit/templates/Dialog.html':"<div class=\"dijitDialog\" role=\"dialog\" aria-labelledby=\"${id}_title\">\n\t<div data-dojo-attach-point=\"titleBar\" class=\"dijitDialogTitleBar\">\n\t\t<span data-dojo-attach-point=\"titleNode\" class=\"dijitDialogTitle\" id=\"${id}_title\"\n\t\t\t\trole=\"heading\" level=\"1\"></span>\n\t\t<span data-dojo-attach-point=\"closeButtonNode\" class=\"dijitDialogCloseIcon\" data-dojo-attach-event=\"ondijitclick: onCancel\" title=\"${buttonCancel}\" role=\"button\" tabindex=\"-1\">\n\t\t\t<span data-dojo-attach-point=\"closeText\" class=\"closeText\" title=\"${buttonCancel}\">x</span>\n\t\t</span>\n\t</div>\n\t<div data-dojo-attach-point=\"containerNode\" class=\"dijitDialogPaneContent\"></div>\n\t${!actionBarTemplate}\n</div>\n\n",
 'url:dijit/form/templates/Button.html':"<span class=\"dijit dijitReset dijitInline\" role=\"presentation\"\n\t><span class=\"dijitReset dijitInline dijitButtonNode\"\n\t\tdata-dojo-attach-event=\"ondijitclick:__onClick\" role=\"presentation\"\n\t\t><span class=\"dijitReset dijitStretch dijitButtonContents\"\n\t\t\tdata-dojo-attach-point=\"titleNode,focusNode\"\n\t\t\trole=\"button\" aria-labelledby=\"${id}_label\"\n\t\t\t><span class=\"dijitReset dijitInline dijitIcon\" data-dojo-attach-point=\"iconNode\"></span\n\t\t\t><span class=\"dijitReset dijitToggleButtonIconChar\">&#x25CF;</span\n\t\t\t><span class=\"dijitReset dijitInline dijitButtonText\"\n\t\t\t\tid=\"${id}_label\"\n\t\t\t\tdata-dojo-attach-point=\"containerNode\"\n\t\t\t></span\n\t\t></span\n\t></span\n\t><input ${!nameAttrSetting} type=\"${type}\" value=\"${value}\" class=\"dijitOffScreen\"\n\t\tdata-dojo-attach-event=\"onclick:_onClick\"\n\t\ttabIndex=\"-1\" aria-hidden=\"true\" data-dojo-attach-point=\"valueNode\"\n/></span>\n",
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"View and Interact with layers\",\r\n\t\t\"content2\": \"\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"Admin Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": true,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/data_viewer.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"Data Viewer\",\r\n\t\t\"content1\": \"Sign into ArcGIS Online and browse the available Published Layers\",\r\n\t\t\"content2\": \"* only available to GIS_admin members\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"eDoc\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"Use this tool to assign files to grid cells\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Economic Dev.\",\r\n\t\t\"isActive\": false,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"econDev\",\r\n\t\t\"header\": \"Economic Development\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Economic Development\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection Guide\",\r\n\t\t\"isActive\": true,\r\n\t\t\"isAdmin\": false,\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ComingSoon.png\",\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Mobile app for collecting locations and attributes of features\",\r\n\t\t\"content2\": \"* Coming Soon\"\r\n\t}\r\n]\r\n\t",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"\",\r\n\t\t\"content2\": \"The main GIS Application for RTAA containing most of the published layers\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"fileApp/eDocViewer\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"The eDoc app provides an interface for retrieving documents\",\r\n\t\t\"content2\": \"Several types of searches, including by grid cell, are available\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": false,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\",\r\n\t\t\"content2\": \"Participate in the workflow for managing lease spaces\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Resources for creating, configuring, and maintaining a mobile collection\",\r\n\t\t\"content2\": \"\"\r\n\t}\r\n]\r\n\t",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,

@@ -20,10 +20,20 @@ DEBUG = True
 FORCE_SCRIPT_NAME = "/rtaa_prod/"
 # FORCE_SCRIPT_NAME = "/applications/"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-LDAP_URL = "gis.renoairport.net"
+
+
+# LDAP_URL = "gis.renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+if LDAP_URL == "gisapps.aroraengineers.com":
+    PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
+else:
+    PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+# FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+FILE_APP_TOP_DIRS = [r"C:\ESRI_WORK_FOLDER\rtaa"]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
@@ -39,7 +49,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Application definition
 ROOT_URLCONF = r'rtaa_gis.urls'
-LOGIN_URL = r'login/'
+LOGIN_URL = r'login'
+
+SWAGGER_SETTINGS = {
+    'JSON_EDITOR': True,
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL':  'rest_framework:logout'
+}
+
 LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 
 FCGI_DEBUG = True
@@ -76,7 +93,7 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:3344',
     'https://gis.renoairport.net',
     'localhost',
-    '127.0.0.1',
+    '127.0.0.1:8080',
     'localhost:3000'
 )
 CORS_ALLOW_HEADERS = (
@@ -108,8 +125,8 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
-    CORS_REPLACE_HTTPS_REFERER = True
-    CORS_ORIGIN_ALLOW_ALL = False
+    CORS_REPLACE_HTTPS_REFERER = False
+    CORS_ORIGIN_ALLOW_ALL = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -128,7 +145,9 @@ INSTALLED_APPS = [
     'fileApp.apps.FileAppConfig',
     'cloudSync.apps.CloudsyncConfig',
     'printTool.apps.PrinttoolConfig',
-    'analytics.apps.AnalyticsConfig'
+    'analytics.apps.AnalyticsConfig',
+    'diagrams.apps.DiagramsConfig',
+    'lpm.apps.LpmConfig',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -274,6 +293,26 @@ LOGGING = {
         }
     },
     'loggers': {
+        'analytics': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'diagrams': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'cloudSync': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
+        'lpm': {
+            'handlers': ['console', 'file'],
+            'level': "DEBUG",
+            'propogate': True
+        },
         'fileApp': {
             'handlers': ['console', 'file'],
             'level': "DEBUG",

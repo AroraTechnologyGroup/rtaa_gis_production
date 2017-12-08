@@ -18,8 +18,13 @@ from rest_framework_jsonp.renderers import JSONRenderer
 import os
 from django.conf import settings
 from django.views.decorators.cache import never_cache
+from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+
 
 logger = logging.getLogger(__package__)
+
+schema_view = get_schema_view(title='RTAA API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
 
 
 @api_view(['GET'])
@@ -77,6 +82,9 @@ class HomePage(APIView):
 
         # Perform inheritance from AD
         local_name = name.split("\\")[-1]
+        if settings.LDAP_URL == "renoairport.net":
+            local_name = "AroraTeam"
+
         query = LDAPQuery(local_name, settings.LDAP_URL)
         ldap_groups = query.get_groups()
         logger.info("ldap_groups = {}".format(ldap_groups))
