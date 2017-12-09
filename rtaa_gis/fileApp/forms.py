@@ -135,7 +135,7 @@ class UpdateForm(forms.Form):
 
     edit_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
 
-    edit_base_name = forms.CharField(label="Filename", max_length=255, disabled=True)
+    edit_base_name = forms.CharField(widget=forms.TextInput(attrs={"readonly": True}), label="Filename", max_length=255)
 
     edit_grid_cells = forms.MultipleChoiceField(label="Currently Assigned Grid Cells", choices=(), widget=forms.CheckboxSelectMultiple)
 
