@@ -170,7 +170,7 @@ class UpdateForm(forms.Form):
 
     edit_grant_number = forms.CharField(label="Grant Number", required=False, max_length=255)
 
-    edit_date_added = forms.DateField(label="Date Added", required=True, disabled=True)
+    edit_date_added = forms.DateField(widget=forms.TextInput(attrs={"readonly": True}), label="Date Added", required=True)
 
-    edit_file_path = forms.CharField(label="File Path", required=True, disabled=True)
+    edit_file_path = forms.CharField(widget=forms.TextInput(attrs={"readonly": True}), label="File Path", required=True)
 
