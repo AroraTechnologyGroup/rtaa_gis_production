@@ -676,7 +676,7 @@ class UserViewer(GenericAPIView):
             efiles = paginator.page(1)
         except EmptyPage:
             efiles = paginator.page(paginator.num_pages)
-            
+
         # after all of the files have been filtered from the input, query the assignments
         assignments = EngineeringAssignment.objects.filter(file__in=efiles)
 

@@ -470,7 +470,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                 geometryServiceURL: "http://tasks.arcgisonline.com/ArcGIS/rest/services/Geometry/GeometryServer"
             };
 
-            var webMapItemID = "d634955e19bf419a9308050d0b546e4d";
+            var webMapItemID = "579f89362fe244b0834cf67159b1e689";
             deferred = arcgisUtils.createMap(webMapItemID, 'map', createMapOptions);
             deferred.then(function(e) {
                 map = e.map;
