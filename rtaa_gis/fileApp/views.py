@@ -651,18 +651,6 @@ class UserViewer(GenericAPIView):
         if disciplines and disciplines != ['all']:
             efiles = efiles.filter(discipline__in=disciplines).distinct()
 
-        # ordering the files is essential for pagination
-        efiles = efiles.order_by('base_name')
-        paginator = Paginator(efiles, 25)
-
-        page = request.POST.get('page')
-        try:
-            efiles = paginator.page(page)
-        except PageNotAnInteger:
-            efiles = paginator.page(1)
-        except EmptyPage:
-            efiles = paginator.page(paginator.num_pages)
-
         # Pre file type filters
         base_types = file_types[:]
         base_types.extend(image_types)
@@ -677,6 +665,18 @@ class UserViewer(GenericAPIView):
         if len(document_types) != len(self.document_types):
             efiles = efiles.filter(document_type__in=document_types).distinct()
 
+        # ordering the files is essential for pagination
+        efiles = efiles.order_by('base_name')
+        paginator = Paginator(efiles, 25)
+
+        page = request.POST.get('page')
+        try:
+            efiles = paginator.page(page)
+        except PageNotAnInteger:
+            efiles = paginator.page(1)
+        except EmptyPage:
+            efiles = paginator.page(paginator.num_pages)
+            
         # after all of the files have been filtered from the input, query the assignments
         assignments = EngineeringAssignment.objects.filter(file__in=efiles)
 

@@ -25,6 +25,9 @@ from lpm.models import Agreement as AgreementModel
 from django.conf import settings
 
 ##############################################
+if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")):
+    os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
+
 log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs/ABM_bridge.txt")
 file = open(log_path, 'w')
 file.close()
@@ -156,7 +159,7 @@ if __name__ == "__main__":
         agg_domain = []
         for id in x:
             title = x[id]["AgreementTitle"]
-            agg_domain.append({"code": id, "name": "{} ID#{})".format(title, id)})
+            agg_domain.append({"code": id, "name": "{} ID#{}".format(title, id)})
             data = {
                 "id": id,
                 "type": x[id]["AgreementType"],
@@ -176,6 +179,9 @@ if __name__ == "__main__":
                 serial.save()
             else:
                 loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+
+        # Add the 'Unknown' Value to the Domain so space agreement assignments can be reset
+        agg_domain.append({"code": None, "name": "Unknown"})
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
