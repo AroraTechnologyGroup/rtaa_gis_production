@@ -7,7 +7,7 @@ Installation
 
 - Open the Anaconda Navigator, and create a new environment using the Python version 3.5
 
-- Use the package installer to install Django 1.11.x, pywin32, pillow, and reportlab
+- Use the package installer to install Django 1.11.x, pillow, and reportlab
 
 - Next, from the terminal window activate the rtaa_gis conda environment.
 
@@ -18,6 +18,8 @@ Installation
 - In the terminal navigate to the Scripts folder and run wfastcgi-enable OR create the fastcgi program from within IIS.
 
 - Refer to the documentation on the wfastcgi script available online.
+
+- At the project root create the logs, media, and static directories.
 
 - After all of the dependencies are installed, make sure the database configuration is correct.
 

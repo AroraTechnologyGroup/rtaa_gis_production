@@ -41,11 +41,7 @@ import datetime
 from datetime import date, timedelta
 
 from PIL import Image
-import platform
-if platform.system() == 'Windows':
-    import win32com.client
-    import pythoncom
-    pass
+
 
 MEDIA_ROOT = settings.MEDIA_ROOT
 BASE_DIR = settings.BASE_DIR
