@@ -15,10 +15,12 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 # FORCE_SCRIPT_NAME = "/applications/"
-FORCE_SCRIPT_NAME = "/rtaa_prod/"
+# FORCE_SCRIPT_NAME = "/rtaa_prod/"
+FORCE_SCRIPT_NAME = "/rtaa_gis/"
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
 PYTHON_PATH = r"C:\ProgramData\Anaconda3\envs\rtaa_gis"
