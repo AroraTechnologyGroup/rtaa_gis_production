@@ -15,7 +15,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 # FORCE_SCRIPT_NAME = "/applications/"
 FORCE_SCRIPT_NAME = "/rtaa_prod/"

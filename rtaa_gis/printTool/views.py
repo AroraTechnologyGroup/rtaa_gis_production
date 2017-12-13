@@ -204,7 +204,7 @@ def print_agol(request, format=None):
         "method": "print",
         "app_name": "Print"
     }
-    serial = RecordSerializer(data=data)
+    serial = RecordSerializer(data=data, context={'request': request})
     if serial.is_valid():
         serial.save()
     else:
