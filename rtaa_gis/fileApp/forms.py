@@ -172,5 +172,5 @@ class UpdateForm(forms.Form):
 
     edit_date_added = forms.DateField(label="Date Added", required=True, disabled=True)
 
-    edit_file_path = forms.CharField(label="File Path", widget=forms.HiddenInput(), required=True)
+    edit_file_path = forms.CharField(label="File Path", required=True, disabled=True)
 
