@@ -248,61 +248,65 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                 selector: ".fileIcon.non-viewable"
             });
 
-            var download_menu_item = new MenuItem({
-                label: "Download",
-                iconClass: "taskIcon",
-                onClick: function(evt) {
-                    var node = this.getParent().currentTarget;
-                    var _id = domAttr.get(node, "data-file-id");
+            var download_menu_item = function() {
+                return new MenuItem({
+                    label: "Download",
+                    iconClass: "taskIcon",
+                    onClick: function (evt) {
+                        var node = this.getParent().currentTarget;
+                        var _id = domAttr.get(node, "data-file-id");
 
-                    // if not on the local server get the SCRIPT NAME
-                    var url;
-                    if (window.location.hostname !== '127.0.0.1') {
-                        var script_name = window.location.pathname.split("/")[1];
-                        url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_download/";
-                    } else {
-                        url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+                        // if not on the local server get the SCRIPT NAME
+                        var url;
+                        if (window.location.hostname !== '127.0.0.1') {
+                            var script_name = window.location.pathname.split("/")[1];
+                            url = window.location.origin + "/" + script_name + "/fileApp/eng-io/" + _id + "/_download/";
+                        } else {
+                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+                        }
+                        var a = domConstruct.create("a", {
+                            href: url,
+                            download: true,
+                            withCredentials: true
+                        });
+                        a.click();
+                        domConstruct.destroy(a);
+                        console.log(_id);
                     }
-                    var a = domConstruct.create("a", {
-                                                href: url,
-                                                download: true,
-                                                withCredentials: true
-                                            });
-                    a.click();
-                    domConstruct.destroy(a);
-                    console.log(_id);
-                }
-            });
+                });
+            };
 
-            var view_menu_item = new MenuItem({
-                label: "View File",
-                onClick: function(evt) {
-                    var node = this.getParent().currentTarget;
-                    var _id = domAttr.get(node, "data-file-id");
-                     // if not on the local server get the SCRIPT NAME
-                    var url;
-                    if (window.location.hostname !== '127.0.0.1') {
-                        var script_name = window.location.pathname.split("/")[1];
-                        url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
-                    } else {
-                        url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
+            var view_menu_item = function() {
+                return new MenuItem({
+                    label: "View File",
+                    onClick: function(evt) {
+                        var node = this.getParent().currentTarget;
+                        var _id = domAttr.get(node, "data-file-id");
+                        // if not on the local server get the SCRIPT NAME
+                        var url;
+                        if (window.location.hostname !== '127.0.0.1') {
+                            var script_name = window.location.pathname.split("/")[1];
+                            url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
+                        } else {
+                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
+                        }
+
+                        var a = domConstruct.create("a", {
+                            href: url,
+                            target: "_blank",
+                            withCredentials: true
+                        });
+                        a.click();
+                        domConstruct.destroy(a);
                     }
+                });
+            };
 
-                    var a = domConstruct.create("a", {
-                                                href: url,
-                                                target: "_blank",
-                                                withCredentials: true
-                                            });
-                    a.click();
-                    domConstruct.destroy(a);
-                }
-            });
-
-            view_menu.addChild(download_menu_item);
-            view_menu.addChild(view_menu_item);
+            view_menu.addChild(download_menu_item());
+            view_menu.addChild(view_menu_item());
 
             // cloning the Menu Item allows it to be reused
-            non_view_menu.addChild(lang.clone(download_menu_item));
+            non_view_menu.addChild(download_menu_item());
 
             view_menu.startup();
             non_view_menu.startup();
