@@ -11,19 +11,24 @@ from subprocess import TimeoutExpired
 import arcgis
 from arcgis import mapping
 
+from reportlab.pdfgen import canvas
+from PyPDF2 import PdfFileWriter, PdfFileReader
 from rest_framework.permissions import AllowAny
 from django.views.decorators.csrf import ensure_csrf_cookie
+
 from io import BytesIO
 from rest_framework.response import Response
 from django.http import HttpResponse
 from django.core.files import File
-from datetime import datetime
+from django.core import mail
+from datetime import datetime, date
 import mimetypes
 import json
 import shlex
 import threading
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
+STATIC_ROOT = settings.STATIC_ROOT
 
 environ = "rtaa_testing"
 username = "gissetup"
@@ -115,6 +120,35 @@ def insert_token(webmap, token):
     return webmap
 
 
+def apply_watermark(watermark, target):
+    wmark_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media/printTool/{}'.format(watermark))
+    wmark = PdfFileReader(open(wmark_file, "rb"))
+    output_file = PdfFileWriter()
+    input_file = PdfFileReader(open(target, "rb"))
+    combo_name = os.path.join(os.path.dirname(target), "{}_temp.pdf".format(os.path.basename(target).replace(".pdf", "")))
+    new_file = canvas.Canvas(combo_name)
+    new_file.save()
+
+    page_count = input_file.getNumPages()
+
+    for page_number in range(page_count):
+        print("Watermarking page {} of {}".format(page_number, page_count))
+        input_page = input_file.getPage(page_number)
+        input_page.mergePage(wmark.getPage(0))
+        output_file.addPage(input_page)
+
+    with open(combo_name, "wb") as outputStream:
+        output_file.write(outputStream)
+
+    # closing the streams allows the files to be renamed/removed
+    wmark.stream.close()
+    input_file.stream.close()
+
+    os.remove(target)
+    os.rename(combo_name, target)
+    return target
+
+
 def name_file(out_folder, file, new_name):
     file_name = os.path.basename(file)
     logger.info("Downloaded file named {}".format(file_name))
@@ -160,23 +194,47 @@ def print_agol(request, format=None):
     token = gis._con._token
     # logger.info(token)
     data = request.POST
-
+    title = data["title"]
+    if not title:
+        title = "Map Export"
     webmap = data['Web_Map_as_JSON']
+
     map_obj = json.loads(webmap)
     map_obj = insert_token(map_obj, token)
     map_json = json.dumps(map_obj)
     # logger.info(map_json)
+    # get all of the Draw Results layer from the web map and save to the user's media dir
+    op_layers = map_obj["operationalLayers"]
+    json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
+    f = open(json_file, 'w')
+    f.write("[")
+    for x in op_layers:
+        if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
+            f.write(json.dumps(x))
+    f.write("]")
+    f.close()
 
     format = data['Format']
     layout_template = data['Layout_Template']
-    title = data["title"]
-    # layout_template = "A3 Landscape"
+    watermark = None
+    if layout_template == "Letter ANSI A Landscape":
+        watermark = "Watermark_8_5_11_landscape.pdf"
+    elif layout_template == "Letter ANSI A Portrait":
+        watermark = "Watermark_8_5_11_portrait.pdf"
+    elif layout_template == "Tabloid ANSI B Landscape":
+        watermark = "Watermark_11_17_landscape.pdf"
+    elif layout_template == "Tabloid ANSI B Portrait":
+        watermark = "Watermark_11_17_portrait.pdf"
+
     data = mapping.export_map(web_map_as_json=map_json, format=format,
                        layout_template=layout_template,
                        gis=gis)
 
     file = data.download(out_folder)
     full_name = name_file(out_folder=out_folder, file=file, new_name=title)
+
+    target = os.path.join(out_folder, full_name)
+    apply_watermark(watermark=watermark, target=target)
 
     response = Response()
 
@@ -368,6 +426,35 @@ def getPrintList(request, format=None):
 @api_view(['POST'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
+def getMarkupList(request, format=None):
+    username = get_username(request)
+    print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
+    logger.info(print_dir)
+    response = Response()
+    response.data = list()
+    if os.path.exists(print_dir):
+        files = os.listdir(print_dir)
+        selection = [x for x in files if x.endswith(".json")]
+        response['Cache-Control'] = 'no-cache'
+        host = request.META["HTTP_HOST"]
+        if host == "127.0.0.1:8080":
+            protocol = "http"
+        else:
+            protocol = "https"
+        media_url = settings.MEDIA_URL.lstrip("/")
+        media_url = media_url.rstrip("/")
+        for out_file in selection:
+            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
+            response.data.append({"url": url})
+    else:
+        response.data.append("Error, print directory not found")
+
+    return response
+
+
+@api_view(['POST'])
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
 def delete_file(request, format=None):
     username = get_username(request)
     data = request.POST
@@ -385,4 +472,31 @@ def delete_file(request, format=None):
     else:
         data = "Failed to located user's media folder"
     response.data = data
+    return response
+
+
+@api_view(['POST'])
+@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def emailExhibit(request, format=None):
+    username = get_username(request)
+    data = request.POST
+    exhibit_url = data["exhibit_url"].replace("\n", "")
+    splits = exhibit_url.split("/")
+    start = splits.index("users")
+    server_file = os.path.join(MEDIA_ROOT, "/".join(splits[start:]))
+    base_name = os.path.basename(server_file)
+    content = open(server_file, 'rb').read()
+
+    with mail.get_connection() as connection:
+        mail.EmailMessage(
+            subject="Update to Lease Space by {}".format(username),
+            body="Hi Amanda,  Attached is an exhibit that contains updates for the Space Layer",
+            from_email="rhughes@aroraengineers.com",
+            to=["richardh522@gmail.com"],
+            attachments=[(base_name, content, 'application/pdf')],
+            connection=connection
+        ).send()
+
+    response = Response("success")
     return response
