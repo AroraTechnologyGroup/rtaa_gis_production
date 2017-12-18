@@ -90,7 +90,8 @@ def get_username(request):
     except KeyError:
         username = request.user.username
     if not len(username):
-        username = "Anonymous"
+        # This value is used for testing AJAX requests to the dev runserver
+        username = "siteadmin"
     return username
 
 
@@ -114,12 +115,12 @@ def insert_token(webmap, token):
     return webmap
 
 
-def name_file(out_folder, file):
+def name_file(out_folder, file, new_name):
     file_name = os.path.basename(file)
     logger.info("Downloaded file named {}".format(file_name))
     os.chdir(out_folder)
     extension = file.split(".")[-1]
-    base_name = "GISViewer_export"
+    base_name = new_name
     full_name = "{}.{}".format(base_name, extension)
     if os.path.exists(full_name):
         v = 1
@@ -168,13 +169,14 @@ def print_agol(request, format=None):
 
     format = data['Format']
     layout_template = data['Layout_Template']
+    title = data["title"]
     # layout_template = "A3 Landscape"
     data = mapping.export_map(web_map_as_json=map_json, format=format,
                        layout_template=layout_template,
                        gis=gis)
 
     file = data.download(out_folder)
-    full_name = name_file(out_folder=out_folder, file=file)
+    full_name = name_file(out_folder=out_folder, file=file, new_name=title)
 
     response = Response()
 
