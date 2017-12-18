@@ -288,7 +288,7 @@ class FileStoreBuilder:
                             extension = _file.split(".")[-1].lower()
                             if extension == mapping:
                                 file_path = os.path.join(root, _file)
-                                file_path = file_path.replace("\\", "/")
+                                # file_path = file_path.replace("\\", "/")
                                 # all file_paths in the system are lower case
                                 file_path = file_path.lower()
                                 filtered = EngineeringFileModel.objects.filter(file_path=file_path)

@@ -5,31 +5,35 @@ Set the LDAP URL to the correct server for this environment.  Modify the remaini
 import os
 from django.urls import reverse
 import urllib
+import logging
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
+# LDAP_URL = "gisapps.aroraengineers.com"
 
-# LDAP_URL = "renoairport.net"
-LDAP_URL = "gisapps.aroraengineers.com"
+LDAP_URL = "renoairport.net"
 
+logging.error(os.path.abspath(__file__).split("\\"))
 if LDAP_URL == "gisapps.aroraengineers.com":
-    if "rtaa_gis_django" in __file__.split("/"):
+    if "rtaa_gis_django" in os.path.abspath(__file__).split("\\"):
         FORCE_SCRIPT_NAME = "/rtaa_gis/"
-    elif "rtaa_gis_production" in __file__.split("/"):
+    elif "rtaa_gis_production" in os.path.abspath(__file__).split("\\"):
         FORCE_SCRIPT_NAME = "/rtaa_prod/"
     PYTHON_PATH = r"C:\ProgramData\Anaconda3\envs\rtaa_gis"
     FILE_APP_TOP_DIRS = [r"C:\\"]
 
 elif LDAP_URL == "renoairport.net":
-    FORCE_SCRIPT_NAME = "/applications/"
+    if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
+        FORCE_SCRIPT_NAME = "/applications_test/"
+    elif "rtaa_gis_django" in os.path.abspath(__file__).split("\\"):
+        FORCE_SCRIPT_NAME = "/applications/"
+
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-    FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
