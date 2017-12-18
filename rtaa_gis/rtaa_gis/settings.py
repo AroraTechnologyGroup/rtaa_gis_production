@@ -8,11 +8,11 @@ import urllib
 import logging
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
-# LDAP_URL = "gisapps.aroraengineers.com"
 
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 logging.error(os.path.abspath(__file__).split("\\"))
 if LDAP_URL == "gisapps.aroraengineers.com":
@@ -30,7 +30,8 @@ elif LDAP_URL == "renoairport.net":
         FORCE_SCRIPT_NAME = "/applications/"
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-    FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    # FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    FILE_APP_TOP_DIRS = [r"C:\\"]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
