@@ -13,3 +13,4 @@ watchdog
 wfastcgi
 openpyxl
 xlrd
+PyPDF2
