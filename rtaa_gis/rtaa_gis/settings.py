@@ -289,7 +289,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "ERROR",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -324,7 +324,7 @@ LOGGING = {
         },
         'printTool': {
             'handlers': ['console', 'file'],
-            'level': "ERROR",
+            'level': "DEBUG",
             'propogate': True
         },
         'home': {

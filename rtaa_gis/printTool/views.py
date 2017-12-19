@@ -33,6 +33,8 @@ STATIC_ROOT = settings.STATIC_ROOT
 environ = "rtaa_testing"
 username = "gissetup"
 
+logger = logging.getLogger(__name__)
+
 
 def system_paths(environ):
     arcmap_path = {
@@ -121,37 +123,43 @@ def insert_token(webmap, token):
 
 
 def apply_watermark(watermark, target):
-    wmark_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media/printTool/{}'.format(watermark))
-    wmark = PdfFileReader(open(wmark_file, "rb"))
-    output_file = PdfFileWriter()
-    input_file = PdfFileReader(open(target, "rb"))
-    combo_name = os.path.join(os.path.dirname(target), "{}_temp.pdf".format(os.path.basename(target).replace(".pdf", "")))
-    new_file = canvas.Canvas(combo_name)
-    new_file.save()
+    try:
+        logger.info(os.path.abspath(__file__))
+        wmark_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media/printTool/{}'.format(watermark))
+        wmark = PdfFileReader(open(wmark_file, "rb"))
+        output_file = PdfFileWriter()
+        input_file = PdfFileReader(open(target, "rb"))
+        combo_name = os.path.join(os.path.dirname(target), "{}_temp.pdf".format(os.path.basename(target).replace(".pdf", "")))
+        new_file = canvas.Canvas(combo_name)
+        new_file.save()
 
-    page_count = input_file.getNumPages()
+        page_count = input_file.getNumPages()
 
-    for page_number in range(page_count):
-        print("Watermarking page {} of {}".format(page_number, page_count))
-        input_page = input_file.getPage(page_number)
-        input_page.mergePage(wmark.getPage(0))
-        output_file.addPage(input_page)
+        for page_number in range(page_count):
+            print("Watermarking page {} of {}".format(page_number, page_count))
+            input_page = input_file.getPage(page_number)
+            input_page.mergePage(wmark.getPage(0))
+            output_file.addPage(input_page)
 
-    with open(combo_name, "wb") as outputStream:
-        output_file.write(outputStream)
+        with open(combo_name, "wb") as outputStream:
+            output_file.write(outputStream)
 
-    # closing the streams allows the files to be renamed/removed
-    wmark.stream.close()
-    input_file.stream.close()
+        # closing the streams allows the files to be renamed/removed
+        wmark.stream.close()
+        input_file.stream.close()
 
-    os.remove(target)
-    os.rename(combo_name, target)
-    return target
+        os.remove(target)
+        os.rename(combo_name, target)
+        return target
+
+    except Exception as e:
+        logger.error(e)
 
 
 def name_file(out_folder, file, new_name):
     file_name = os.path.basename(file)
     logger.info("Downloaded file named {}".format(file_name))
+    old_dir = os.getcwd()
     os.chdir(out_folder)
     extension = file.split(".")[-1]
     base_name = new_name
@@ -171,7 +179,7 @@ def name_file(out_folder, file, new_name):
         os.rename(file_name, full_name)
     except OSError:
         logger.error("printed map unable to be saved with correct filename")
-
+    os.chdir(old_dir)
     return full_name
 
 
@@ -184,92 +192,100 @@ logger = logging.getLogger(__package__)
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def print_agol(request, format=None):
-    username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+    try:
+        username = get_username(request)
+        out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
 
-    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                         username="data_owner",
-                         password="GIS@RTAA123!")
+        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                             username="data_owner",
+                             password="GIS@RTAA123!")
 
-    token = gis._con._token
-    # logger.info(token)
-    data = request.POST
-    title = data["title"]
-    if not title:
-        title = "Map Export"
-    webmap = data['Web_Map_as_JSON']
+        token = gis._con._token
+        # logger.info(token)
+        data = request.POST
+        title = data["title"]
+        if not title:
+            title = "Map Export"
+        webmap = data['Web_Map_as_JSON']
 
-    map_obj = json.loads(webmap)
-    map_obj = insert_token(map_obj, token)
-    map_json = json.dumps(map_obj)
-    # logger.info(map_json)
-    # get all of the Draw Results layer from the web map and save to the user's media dir
-    op_layers = map_obj["operationalLayers"]
-    json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
-    f = open(json_file, 'w')
-    f.write("[")
-    for x in op_layers:
-        if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
-            f.write(json.dumps(x))
-    f.write("]")
-    f.close()
+        map_obj = json.loads(webmap)
+        map_obj = insert_token(map_obj, token)
+        map_json = json.dumps(map_obj)
+        # logger.info(map_json)
+        # get all of the Draw Results layer from the web map and save to the user's media dir
+        op_layers = map_obj["operationalLayers"]
+        json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
+        f = open(json_file, 'w')
+        f.write("[")
+        for x in op_layers:
+            if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
+                f.write(json.dumps(x))
+        f.write("]")
+        f.close()
 
-    format = data['Format']
-    layout_template = data['Layout_Template']
-    watermark = None
-    if layout_template == "Letter ANSI A Landscape":
-        watermark = "Watermark_8_5_11_landscape.pdf"
-    elif layout_template == "Letter ANSI A Portrait":
-        watermark = "Watermark_8_5_11_portrait.pdf"
-    elif layout_template == "Tabloid ANSI B Landscape":
-        watermark = "Watermark_11_17_landscape.pdf"
-    elif layout_template == "Tabloid ANSI B Portrait":
-        watermark = "Watermark_11_17_portrait.pdf"
+        # read json file, if it is empty delete it
+        text = open(json_file, 'r').read()
+        if text == "[]":
+            os.remove(json_file)
 
-    data = mapping.export_map(web_map_as_json=map_json, format=format,
-                       layout_template=layout_template,
-                       gis=gis)
+        format = data['Format']
+        layout_template = data['Layout_Template']
+        watermark = None
+        if layout_template == "Letter ANSI A Landscape":
+            watermark = "Watermark_8_5_11_landscape.pdf"
+        elif layout_template == "Letter ANSI A Portrait":
+            watermark = "Watermark_8_5_11_portrait.pdf"
+        elif layout_template == "Tabloid ANSI B Landscape":
+            watermark = "Watermark_11_17_landscape.pdf"
+        elif layout_template == "Tabloid ANSI B Portrait":
+            watermark = "Watermark_11_17_portrait.pdf"
 
-    file = data.download(out_folder)
-    full_name = name_file(out_folder=out_folder, file=file, new_name=title)
+        data = mapping.export_map(web_map_as_json=map_json, format=format,
+                           layout_template=layout_template,
+                           gis=gis)
 
-    target = os.path.join(out_folder, full_name)
-    apply_watermark(watermark=watermark, target=target)
+        file = data.download(out_folder)
+        full_name = name_file(out_folder=out_folder, file=file, new_name=title)
 
-    response = Response()
+        target = os.path.join(out_folder, full_name)
+        apply_watermark(watermark=watermark, target=target)
 
-    host = request.META["HTTP_HOST"]
-    media_url = settings.MEDIA_URL.lstrip("/")
-    media_url = media_url.rstrip("/")
+        response = Response()
 
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
+        host = request.META["HTTP_HOST"]
+        media_url = settings.MEDIA_URL.lstrip("/")
+        media_url = media_url.rstrip("/")
 
-    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+        if host == "127.0.0.1:8080":
+            protocol = "http"
+        else:
+            protocol = "https"
 
-    response.data = {
-        "messages": [],
-        "results": [{
-            "value": {
-                "url": url
-            },
-            "paramName": "Output_File",
-            "dataType": "GPDataFile"
-        }]
-    }
+        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
 
-    data = {
-        "method": "print",
-        "app_name": "Print"
-    }
-    serial = RecordSerializer(data=data, context={'request': request})
-    if serial.is_valid():
-        serial.save()
-    else:
-        logger.error("Unable to save count :: {}".format(data))
-    return response
+        response.data = {
+            "messages": [],
+            "results": [{
+                "value": {
+                    "url": url
+                },
+                "paramName": "Output_File",
+                "dataType": "GPDataFile"
+            }]
+        }
+
+        data = {
+            "method": "print",
+            "app_name": "Print"
+        }
+        serial = RecordSerializer(data=data, context={'request': request})
+        if serial.is_valid():
+            serial.save()
+        else:
+            logger.error("Unable to save count :: {}".format(data))
+        return response
+    except Exception as e:
+        logger.error(e)
 
 
 @api_view(['POST'])
@@ -463,12 +479,14 @@ def delete_file(request, format=None):
     response = Response()
 
     if os.path.exists(outfolder):
+        old_dir = os.getcwd()
         os.chdir(outfolder)
         if os.path.exists(file_name):
             os.remove(file_name)
             data = "Temp File {} Deleted from Server".format(file_name)
         else:
             data = "File not found in user's print folder"
+        os.chdir(old_dir)
     else:
         data = "Failed to located user's media folder"
     response.data = data
