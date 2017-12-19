@@ -181,7 +181,7 @@ if __name__ == "__main__":
                 loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         # Add the 'Unknown' Value to the Domain so space agreement assignments can be reset
-        agg_domain.append({"code": None, "name": "Unknown"})
+        agg_domain.append({"code": "", "name": "Unknown"})
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
