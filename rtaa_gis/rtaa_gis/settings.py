@@ -7,7 +7,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -334,7 +334,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': "ERROR"
+            'level': "DEBUG"
         },
         'django.security.DisallowedHost': {
             'handlers': ['file'],
