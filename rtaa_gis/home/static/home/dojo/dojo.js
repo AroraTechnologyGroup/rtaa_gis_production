@@ -15420,7 +15420,7 @@ define([
       if (Array.indexOf([3000], port) === -1) {
         // the django web server is handline routing via static files
         var new_path = pathname + "/" + path;
-        options.path = origin + "/" + new_path + "/";
+        options.path = origin + new_path;
         options.imgSrc = "static/home/"+imgSrc;
       } 
 
@@ -15437,12 +15437,7 @@ define([
             var pathname = window.location.pathname.split("/")[1];
             var port = window.location.port;
             var origin = window.location.origin;
-            var url;
-            if (pathname === "index.html" || port === "8080") {
-              url = "http://127.0.0.1:8080/" + self.path;
-            } else {
-              url = self.path;
-            }
+            var url = self.path;
             window.open(url, '_self', "", false);
             
           } else if (mouse.isRight(event)) {
@@ -24463,23 +24458,24 @@ define([
 					pane.set('content', self.header);
 					pane.resize();
 
-					self.buildAnalytics(evt, groups).then(function(resp) {
+					// self.buildAnalytics(evt, groups).then(function(resp) {
 						self.build2dViewer(evt, groups).then(function(resp) {
 							self.build3dViewer(evt, groups).then(function(resp) {
-								self.buildBackEndAPIs(evt, groups).then(function(resp) {
-									deferred.resolve(resp);
-								}, function(err) {
-									console.log(err);
-								});
+								deferred.resolve(resp);
+								// self.buildBackEndAPIs(evt, groups).then(function(resp) {
+								// 	deferred.resolve(resp);
+								// }, function(err) {
+								// 	console.log(err);
+								// });
 							}, function(err) {
 								console.log(err);
 							});
 						}, function(err) {
 							console.log(err);
 						});
-					}, function(err) {
-						console.log(err);
-					});
+					// }, function(err) {
+					// 	console.log(err);
+					// });
 				}, function(err) {
 					console.log(err);
 					deferred.cancel(err);
@@ -42151,7 +42147,7 @@ define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","..
 
 define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
 },
-'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<img src=${imgSrc}>\r\n\t</div>\r\n</div>\r\n",
+'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<a href=\"${path}\">\r\n\t    \t\t<img src=${imgSrc}>\r\n\t    \t</a>\r\n\t</div>\r\n</div>\r\n",
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-2\">${title}</h1>\r\n\t    <div class=\"header-1\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/analytics_config.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/analytics/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/analytics/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/analytics/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/analytics/\"\r\n}",

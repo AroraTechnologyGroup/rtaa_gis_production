@@ -14,10 +14,10 @@ urlpatterns = [
     # These urls for web mapping applications are also specified in the application_cards.json file, loaded
     # with the static files for the home app, as the value for the 'path' key.
     # The app_name corresponds to the application on IIS that gets loaded in the iframe
-    url(r'^viewer/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_viewer'), name='viewer'),
+    url(r'^viewer/$', HomePage.as_view(template='home/AppLoader.html', app_name='gisviewer'), name='viewer'),
     url(r'^airspace/$', HomePage.as_view(template='home/AppLoader.html', app_name='airspace_restricted'),
         name='airspace'),
-    url(r'^leaseProperty/$', HomePage.as_view(template='home/AppLoader.html', app_name='leaseProperty'),
+    url(r'^leaseProperty/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_lpm'),
         name='leaseProperty'),
     url(r'^signageMarking/$', HomePage.as_view(template='home/AppLoader.html', app_name='Signs'),
         name='signageMarking'),
