@@ -21,16 +21,17 @@ html, body {
 
 .iframe-container {
     overflow: hidden;
-    top: 150px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 65px;
 }
 
 .iframe-container iframe {
-    position: absolute;
-    top: 64px;
-    left: 0;
-    bottom: 0;
+    position: relative;
     width: 100%;
-    height: 91%;
+    height: 100%;
     outline: none;
     border: none;
 }
