@@ -2153,6 +2153,7 @@ define([
 					evt.preventDefault();
 					console.log('loading ' + evt.newPath);
 					obj.buildGISPortal(evt, groups).then(function(e) {
+						obj.enablePage("viewer3d");
 						console.log(e);
 					});
 				}, function(err) {
@@ -15416,10 +15417,17 @@ define([
       var port = window.location.port;
       var pathname = window.location.pathname.split("/")[1];
       var origin = window.location.origin;
-      var url;
+      var new_path;
       if (Array.indexOf([3000], port) === -1) {
-        // the django web server is handline routing via static files
-        var new_path = pathname + "/" + path;
+        // the connect grunt server is not serving the files
+        // check if the django web server is using a ForceScriptName variable
+        if (!pathname) {
+          new_path = "/" + path;
+          
+        } else {
+          new_path = "/" + pathname + "/" + path;
+          
+        }
         options.path = origin + new_path;
         options.imgSrc = "static/home/"+imgSrc;
       } 
@@ -24461,6 +24469,7 @@ define([
 					// self.buildAnalytics(evt, groups).then(function(resp) {
 						self.build2dViewer(evt, groups).then(function(resp) {
 							self.build3dViewer(evt, groups).then(function(resp) {
+								
 								deferred.resolve(resp);
 								// self.buildBackEndAPIs(evt, groups).then(function(resp) {
 								// 	deferred.resolve(resp);
