@@ -14,11 +14,17 @@ LDAP_URL = "gisapps.aroraengineers.com"
 # LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
+    # always run AD check against AD in the cloud so set this as default
+    PYTHON_PATH = r"C:\ProgramData\Anaconda3\envs\rtaa_gis"
     if "rtaa_gis_django" in os.path.abspath(__file__).split("\\"):
         FORCE_SCRIPT_NAME = "/rtaa_gis/"
     elif "rtaa_gis_production" in os.path.abspath(__file__).split("\\"):
         FORCE_SCRIPT_NAME = "/rtaa_prod/"
-    PYTHON_PATH = r"C:\ProgramData\Anaconda3\envs\rtaa_gis"
+    else:
+        # the code directory is on a local server not IIS
+        FORCE_SCRIPT_NAME = ""
+        PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
+
     FILE_APP_TOP_DIRS = [r"C:\\"]
 
 elif LDAP_URL == "renoairport.net":

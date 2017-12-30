@@ -2159,11 +2159,11 @@ define([
 					console.log(err);
 				});
 				
-				router.register("gisportal/site-analytics", function(evt) {
-					evt.preventDefault();
-					console.log('loading ' + evt.newPath);
-					obj.enablePage("site-analytics");
-				});
+				// router.register("gisportal/site-analytics", function(evt) {
+				// 	evt.preventDefault();
+				// 	console.log('loading ' + evt.newPath);
+				// 	obj.enablePage("site-analytics");
+				// });
 
 				router.register("gisportal/viewer2d", function(evt) {
 					evt.preventDefault();
@@ -2177,11 +2177,11 @@ define([
 					obj.enablePage("viewer3d");
 				});
 
-				router.register("gisportal/publishing-tools", function(evt) {
-					evt.preventDefault();
-					console.log("loading "+evt.newPath);
-					obj.enablePage("publishing-tools");
-				});
+				// router.register("gisportal/publishing-tools", function(evt) {
+				// 	evt.preventDefault();
+				// 	console.log("loading "+evt.newPath);
+				// 	obj.enablePage("publishing-tools");
+				// });
 				/////////////////////////////////////////////////////////////////
 				
 				router.register("web-resources/home", function(evt) {
@@ -15400,28 +15400,33 @@ define([
     templateString: template,
     id: null,
     baseClass: "_Card",
+    imgSrc: null,
     options: {
       path: null,
       header: null,
+      imgSrc: null,
       content1: null,
-      content2: null,
       isActive: null
     },
     constructor: function(options, srcNodeRef) {
       this.inherited(arguments);
-
+      var self = this;
       var path = options.path;
+      var imgSrc = options.imgSrc;
       var port = window.location.port;
       var pathname = window.location.pathname.split("/")[1];
       var origin = window.location.origin;
       var url;
-      if (Array.indexOf([8000, 8080, 3000], port) === -1) {
+      if (Array.indexOf([3000], port) === -1) {
+        // the django web server is handline routing via static files
         var new_path = pathname + "/" + path;
         options.path = origin + "/" + new_path + "/";
+        options.imgSrc = "static/home/"+imgSrc;
       } 
-      
+
       this.id = this.options.id;
       declare.safeMixin(this.options, options);
+
     },
     postCreate: function() {
       var self = this;
@@ -24256,19 +24261,21 @@ define([
 
 		return declare([], {
 			adminRoutes: [
-				{
-					title: 'Site Analytics',
-					href: 'gisportal/site-analytics'
-				}, {
+				// {
+				// 	title: 'Site Analytics',
+				// 	href: 'gisportal/site-analytics'
+				// }, {
+					{
 					title: '2D Data Viewer',
 					href: 'gisportal/viewer2d'
 				}, {
 					title: '3D Data Viewer',
 					href: 'gisportal/viewer3d'
-				}, {
-					title: 'Publishing Tools',
-					href: 'gisportal/publishing-tools'
 				}
+				// }, {
+				// 	title: 'Publishing Tools',
+				// 	href: 'gisportal/publishing-tools'
+				// }
 			],
 
 			helpRoutes: [
@@ -24278,10 +24285,11 @@ define([
 				}, {
 					title: 'About this Site',
 					href: 'help/about'
-				}, {
-					title: 'Request Help Ticket',
-					href: 'help/request-ticket'
 				}
+				// }, {
+				// 	title: 'Request Help Ticket',
+				// 	href: 'help/request-ticket'
+				// }
 			],
 
 			unloadBanner: function() {
@@ -24342,8 +24350,8 @@ define([
 						id: e.id,
 						path: e.path,
 						content1: e.content1,
-						content2: e.content2,
 						header: e.header,
+						imgSrc: e.imgSrc,
 						isActive: e.isActive
 					}, div);
 					return deferred.resolve(new_card);
@@ -42143,7 +42151,7 @@ define(["dojo/_base/declare","dojo/_base/array","dojo/_base/lang","dojo/has","..
 
 define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){function i(n,t){var e=t.x-n.x,r=t.y-n.y;return Math.sqrt(e*e+r*r)}function a(n,t){var e=t[0]-n[0],r=t[1]-n[1];return Math.sqrt(e*e+r*r)}function u(n,t,e){return n instanceof r?new r(n.x+e*(t.x-n.x),n.y+e*(t.y-n.y)):[n[0]+e*(t[0]-n[0]),n[1]+e*(t[1]-n[1])]}function o(n,t){return u(n,t,.5)}function h(n,t){return Math.abs(n-t)<1e-8}function M(n,t,e,r){var i,a,u=1e10,o=h(n[0],t[0])?u:(n[1]-t[1])/(n[0]-t[0]),M=h(e[0],r[0])?u:(e[1]-r[1])/(e[0]-r[0]),f=n[1]-o*n[0],x=e[1]-M*e[0];if(h(o,M)){if(h(f,x)){if(h(n[0],t[0])){if(!(Math.min(n[1],t[1])<Math.max(e[1],r[1])||Math.max(n[1],t[1])>Math.min(e[1],r[1])))return null;a=(n[1]+t[1]+e[1]+r[1]-Math.min(n[1],t[1],e[1],r[1])-Math.max(n[1],t[1],e[1],r[1]))/2,i=(a-f)/o}else{if(!(Math.min(n[0],t[0])<Math.max(e[0],r[0])||Math.max(n[0],t[0])>Math.min(e[0],r[0])))return null;i=(n[0]+t[0]+e[0]+r[0]-Math.min(n[0],t[0],e[0],r[0])-Math.max(n[0],t[0],e[0],r[0]))/2,a=o*i+f}return[i,a]}return null}return h(o,u)?(i=n[0],a=M*i+x):h(M,u)?(i=e[0],a=o*i+f):(i=-(f-x)/(o-M),a=n[1]===t[1]?n[1]:e[1]===r[1]?e[1]:o*i+f),[i,a]}function f(n,t,e,i,a){var u=M([n.x,n.y],[t.x,t.y],[e.x,e.y],[i.x,i.y]);return u&&(u=new r(u[0],u[1],a)),u}function x(n,t){var e,r,i,a,u=n[0],o=n[1],h=t[0],M=t[1],f=u[0],x=u[1],c=o[0],m=o[1],s=h[0],g=h[1],l=M[0],y=M[1],v=l-s,L=f-s,_=c-f,d=y-g,q=x-g,b=m-x,j=d*_-v*b;return 0===j?!1:(e=(v*q-d*L)/j,r=(_*q-b*L)/j,e>=0&&1>=e&&r>=0&&1>=r?(i=f+e*(c-f),a=x+e*(m-x),[i,a]):!1)}function c(n,t){var e=t[0],r=t[1],i=e[0],a=e[1],u=r[0],o=r[1],h=n[0],M=n[1],f=u-i,x=o-a,c=h-i,m=M-a,s=Math.sqrt,g=Math.pow,l=s(g(f,2)+g(x,2)),y=(c*f+m*x)/(l*l),v=i+y*f,L=a+y*x;return s(g(h-v,2)+g(M-L,2))}var m={getLength:i,_getLength:a,getPointOnLine:u,getMidpoint:o,_equals:h,_getLineIntersection:M,getLineIntersection:f,_getLineIntersection2:x,_pointLineDistance:c};return t("extend-esri")&&n.mixin(n.getObject("geometry",!0,e),m),m});
 },
-'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content2}</p>\r\n\t</div>\r\n</div>\r\n",
+'url:app/templates/Card_template.html':"<div class=\"card card-bar-green block trailer-1\">\r\n\t<div class=\"card-content\">\r\n\t\t<h4 class=\"trailer-half\"><a href=\"${path}\">${header}</a></h4>\r\n\t    \t<p class=\"font-size--1 trailer-half\">${content1}</p>\r\n\t    \t<img src=${imgSrc}>\r\n\t</div>\r\n</div>\r\n",
 'url:app/templates/HomepageBanner_template.html':"<div>\r\n\t<div class=\"text-white  animate-fade-in\">\r\n    \t<h1 class=\"header-2\">${title}</h1>\r\n\t    <div class=\"header-1\">\r\n\t    \t<h2>${subtitle}</h2>\r\n\t    </div>\r\n   </div>\r\n</div>\r\n",
 'url:app/templates/PageBanner_template.html':"<div class=\"sub-nav\" role=\"banner\">\r\n  <div class=\"grid-container\">\r\n    <div class=\"column-24\">\r\n      <h1>${title}</h1>\r\n      <div class=\"phone-show dropdown column-6 trailer-half js-dropdown-toggle\">\r\n        <!-- <a href=\"#\" class=\"link-white\">3 &darr;</a> -->\r\n        <nav class=\"dropdown-menu js-dropdown sidenav\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n        </nav>\r\n      </div>\r\n\r\n      <nav class=\"sub-nav-list phone-hide leader-1\" data-dojo-attach-point=\"routeNode\" role=\"navigation\" aria-labelledby=\"subnav\">\r\n      </nav>\r\n    </div>\r\n  </div>\r\n</div> \r\n",
 'url:app/analytics_config.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/analytics/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/analytics/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/analytics/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/analytics/\"\r\n}",
@@ -42159,7 +42167,7 @@ define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){fu
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"content1\": \"\",\r\n\t\t\"content2\": \"The main GIS Application for RTAA containing most of the published layers\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"fileApp/eDocViewer\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"content1\": \"The eDoc app provides an interface for retrieving documents\",\r\n\t\t\"content2\": \"Several types of searches, including by grid cell, are available\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"content1\": \"View and Interact with Airspace data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": false,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\",\r\n\t\t\"content2\": \"Participate in the workflow for managing lease spaces\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"content2\": \"\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Collection\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Collection\",\r\n\t\t\"content1\": \"Resources for creating, configuring, and maintaining a mobile collection\",\r\n\t\t\"content2\": \"\"\r\n\t}\r\n]\r\n\t",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ViewerThumb.png\",\r\n\t\t\"content1\": \"Browse published layers and interact with data\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"fileApp/eDocViewer\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/edoc2.png\",\r\n\t\t\"content1\": \"Search, Retrieve, and Catalog Engineering Documents\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/AirspaceThumb.png\",\r\n\t\t\"content1\": \"Browse and interact with Airspace data\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/lpm2.png\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/SignageThumb.png\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Apps\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Apps\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/collector2.png\",\r\n\t\t\"content1\": \"Guides and Tips for mobile apps\"\r\n\t}\r\n]\r\n\t",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,
