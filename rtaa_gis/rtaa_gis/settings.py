@@ -26,6 +26,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
     FILE_APP_TOP_DIRS = [r"C:\\"]
+    SERVER_URL = "https://{}".format(LDAP_URL)
 
 elif LDAP_URL == "renoairport.net":
     if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
@@ -35,6 +36,7 @@ elif LDAP_URL == "renoairport.net":
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
     FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    SERVER_URL = "https://gis.{}".format(LDAP_URL)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
