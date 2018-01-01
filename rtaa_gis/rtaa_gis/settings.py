@@ -27,6 +27,13 @@ if LDAP_URL == "gisapps.aroraengineers.com":
 
     FILE_APP_TOP_DIRS = [r"C:\\"]
     SERVER_URL = "https://{}".format(LDAP_URL)
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_USE_TLS = False
+    EMAIL_HOST = "aspmx.l.google.com"
+    EMAIL_PORT = 25
+    # EMAIL_HOST_USER = ""
+    # EMAIL_HOST_PASSWORD = ""
 
 elif LDAP_URL == "renoairport.net":
     if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
@@ -37,6 +44,13 @@ elif LDAP_URL == "renoairport.net":
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
     FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_USE_TLS = False
+    EMAIL_HOST = "aspmx.l.google.com"
+    EMAIL_PORT = 25
+    # EMAIL_HOST_USER = ""
+    # EMAIL_HOST_PASSWORD = ""
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
@@ -69,14 +83,6 @@ LOGIN_REDIRECT_URL = FORCE_SCRIPT_NAME
 FCGI_DEBUG = True
 FCGI_LOG = True
 FCGI_LOG_PATH = os.path.join(BASE_DIR, "logs")
-
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_USE_TLS = False
-EMAIL_HOST = "localhost"
-EMAIL_PORT = 25
-# EMAIL_HOST_USER = ""
-# EMAIL_HOST_PASSWORD = ""
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
