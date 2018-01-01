@@ -505,6 +505,12 @@ def emailExhibit(request, format=None):
     username = get_username(request)
     data = request.POST
     exhibit_url = data["exhibit_url"].replace("\n", "")
+    recipient = data["recipient"].replace("\n", "")
+    # to allow for testing
+    if settings.LDAP_URL == "gisapps.aroraengineers.com":
+        recipient = "richardh522@gmail.com"
+    subject = data["subject"].replace("\n", "")
+    message = data["message"].replace("\n", "")
     splits = exhibit_url.split("/")
     start = splits.index("users")
     server_file = os.path.join(MEDIA_ROOT, "/".join(splits[start:]))
@@ -513,8 +519,8 @@ def emailExhibit(request, format=None):
 
     with mail.get_connection() as connection:
         mail.EmailMessage(
-            subject="Update to Lease Space by {}".format(username),
-            body="Hi Amanda,  Attached is an exhibit that contains updates for the Space Layer",
+            subject="{}".format(subject),
+            body="From - {} \n {}".format(username, message),
             from_email="rhughes@aroraengineers.com",
             to=["richardh522@gmail.com"],
             attachments=[(base_name, content, 'application/pdf')],
