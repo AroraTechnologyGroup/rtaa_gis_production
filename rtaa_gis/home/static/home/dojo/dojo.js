@@ -24516,10 +24516,14 @@ define([
 				var self = this;
 				var deferred = new Deferred();
 				var widget = registry.byId('viewer2d');
+				var app_url = "https://gisapps.aroraengineers.com/rtaa_admin_viewer";
+				if (window.location.hostname === "gis.renoairport.net") {
+					app_url = "https://gis.renoairport.net/admin_gisviewer";
+				}
 				if (!widget) {
 					widget =  new IFrameLoader({
 						id: "viewer2d",
-						url: "https://gisapps.aroraengineers.com/rtaa_admin_viewer"
+						url: app_url
 					});
 				
 					widget.startup().then(function(e) {
@@ -24537,10 +24541,14 @@ define([
 				var self = this;
 				var deferred = new Deferred();
 				var widget = registry.byId('viewer3d');
+				var app_url = "https://gisapps.aroraengineers.com/rtaa_airspace";
+				if (window.location.hostname === "gis.renoairport.net") {
+					app_url = "https://gis.renoairport.net/viewer3d";
+				}
 				if (!widget) {
 					widget = new IFrameLoader({
 						id: "viewer3d",
-						url: "https://gisapps.aroraengineers.com/rtaa_airspace"
+						url: app_url
 					});
 				
 					widget.startup().then(function(e) {
