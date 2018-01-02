@@ -46,11 +46,11 @@ elif LDAP_URL == "renoairport.net":
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    EMAIL_USE_TLS = False
-    EMAIL_HOST = "aspmx.l.google.com"
+    EMAIL_USE_TLS = True
+    EMAIL_HOST = "mail.renoairport.net"
     EMAIL_PORT = 25
-    # EMAIL_HOST_USER = ""
-    # EMAIL_HOST_PASSWORD = ""
+    EMAIL_HOST_USER = "RENOAIRPORT\AroraTeam"
+    EMAIL_HOST_PASSWORD = "@R0r@G1$"
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
