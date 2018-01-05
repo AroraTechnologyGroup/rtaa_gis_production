@@ -38,7 +38,6 @@ rtaa_gis/printTool/__pycache__/
 rtaa_gis/printTool/migrations/__pycache__/
 rtaa_gis/rtaa_gis/__pycache__/
 /rtaa_gis/cloudSync/fixtures/MasterGDB_05_25_16.gdb/
-**/CollectorProjectBuildGuide.htm
 rtaa_gis/analytics/migrations/
 rtaa_gis/fileApp/migrations/0002_auto_20170820_1730.py
 rtaa_gis/fileApp/migrations/0003_engineeringfilemodel_lower_file_path.py
