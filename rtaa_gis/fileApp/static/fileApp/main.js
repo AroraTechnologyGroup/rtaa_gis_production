@@ -1,11 +1,17 @@
-require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
+require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
         "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
-        "esri/arcgis/utils", "dijit/Menu", "dijit/popup", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
-        function (Deferred, lang, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
-                  domAttr, domConstruct, dom, on, arcgisUtils, Menu, popup, MenuItem, esriId) {
+        "esri/arcgis/utils", "esri/config", "dijit/Menu", "dijit/popup", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
+        function (Deferred, lang, request, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
+                  domAttr, domConstruct, dom, on, arcgisUtils, esriConfig, Menu, popup, MenuItem, esriId) {
             parser.parse();
             var map, cred = "esri_jsapi_id_manager_data";
             var deferred;
+
+            esriConfig.defaults.io.corsEnabledServers.push({
+                "host": "http://tasks.arcgisonline.com",
+                "withCredentials": true
+            });
+
             function loadCredentials(){
                 var idJson, idObject;
 
@@ -269,6 +275,8 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                             download: true,
                             withCredentials: true
                         });
+                        // the anchor node has to be added to the dom before the domEvent can be fired
+                        domConstruct.place(a, "_resultBox");
                         a.click();
                         domConstruct.destroy(a);
                         console.log(_id);
@@ -296,6 +304,8 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/mouse", "widgets/drawToolbar"
                             target: "_blank",
                             withCredentials: true
                         });
+                        // the anchor node has to be added to the dom before the domEvent can be fired
+                        domConstruct.place(a, "_resultBox");
                         a.click();
                         domConstruct.destroy(a);
                     }
