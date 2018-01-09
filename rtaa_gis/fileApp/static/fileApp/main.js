@@ -1,16 +1,35 @@
 require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widgets/drawToolbar", "dojo/parser", "dojo/cookie", "dojo/json", "dojo/_base/array", 'dijit/registry', 'dojo/_base/unload', "dojo/hash", "dojo/query",
         "dojo/dom-class", "dojo/dom-style", "dojo/dom-attr", "dojo/dom-construct", "dojo/dom", "dojo/on",
-        "esri/arcgis/utils", "esri/config", "dijit/Menu", "dijit/popup", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
+        "esri/arcgis/utils", "esri/config", "esri/urlUtils", "dijit/Menu", "dijit/popup", "dijit/MenuItem","esri/IdentityManager", "dojo/NodeList-traverse", 'dojo/domReady!'],
         function (Deferred, lang, request, mouse, drawToolbar, parser, cookie, JSON, Array, registry, baseUnload, hash, query, domClass, domStyle,
-                  domAttr, domConstruct, dom, on, arcgisUtils, esriConfig, Menu, popup, MenuItem, esriId) {
+                  domAttr, domConstruct, dom, on, arcgisUtils, esriConfig, urlUtils, Menu, popup, MenuItem, esriId) {
             parser.parse();
             var map, cred = "esri_jsapi_id_manager_data";
             var deferred;
 
-            esriConfig.defaults.io.corsEnabledServers.push({
-                "host": "http://tasks.arcgisonline.com",
-                "withCredentials": true
+            Array.forEach(["https://tasks.arcgisonline.com", "http://tasks.arcgisonline.com"], function(url) {
+                esriConfig.defaults.io.corsEnabledServers.push({
+                    "host": url,
+                    "withCredentials": true
+                });
             });
+
+
+            var proxyUrl;
+            if (window.location.hostname === "gis.renoairport.net") {
+                proxyUrl = "https://gis.renoairport.net/DotNet/proxy.ashx";
+            } else {
+                proxyUrl = "https://gisapps.aroraengineers.com/DotNet/proxy.ashx";
+            }
+            Array.forEach(["www.arcgis.com"], function(url) {
+                urlUtils.addProxyRule({
+                    urlPrefix: url,
+                    proxyUrl: proxyUrl
+                });
+            });
+
+            esriConfig.defaults.io.alwaysUseProxy = false;
+
 
             function loadCredentials(){
                 var idJson, idObject;
