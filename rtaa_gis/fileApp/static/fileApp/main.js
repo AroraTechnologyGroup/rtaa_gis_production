@@ -21,7 +21,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widg
             } else {
                 proxyUrl = "https://gisapps.aroraengineers.com/DotNet/proxy.ashx";
             }
-            Array.forEach(["www.arcgis.com"], function(url) {
+            Array.forEach(["www.arcgis.com", "tiles.arcgis.com", "services6.arcgis.com"], function(url) {
                 urlUtils.addProxyRule({
                     urlPrefix: url,
                     proxyUrl: proxyUrl
