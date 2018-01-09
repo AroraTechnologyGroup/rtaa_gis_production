@@ -244,83 +244,6 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widg
                 event.preventDefault();
             });
 
-            var view_menu = new Menu({
-                targetNodeIds: ["_resultBox"],
-                selector: ".fileIcon.viewable"
-            });
-
-            var non_view_menu = new Menu({
-                targetNodeIds: ["_resultBox"],
-                selector: ".fileIcon.non-viewable"
-            });
-
-            var download_menu_item = function() {
-                return new MenuItem({
-                    label: "Download",
-                    iconClass: "taskIcon",
-                    onClick: function (evt) {
-                        var node = this.getParent().currentTarget;
-                        var _id = domAttr.get(node, "data-file-id");
-
-                        // if not on the local server get the SCRIPT NAME
-                        var url;
-                        if (window.location.hostname !== '127.0.0.1') {
-                            var script_name = window.location.pathname.split("/")[1];
-                            url = window.location.origin + "/" + script_name + "/fileApp/eng-io/" + _id + "/_download/";
-                        } else {
-                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
-                        }
-                        var a = domConstruct.create("a", {
-                            href: url,
-                            download: true,
-                            withCredentials: true
-                        });
-                        // the anchor node has to be added to the dom before the domEvent can be fired
-                        domConstruct.place(a, "_resultBox");
-                        a.click();
-                        domConstruct.destroy(a);
-                        console.log(_id);
-                    }
-                });
-            };
-
-            var view_menu_item = function() {
-                return new MenuItem({
-                    label: "View File",
-                    onClick: function(evt) {
-                        var node = this.getParent().currentTarget;
-                        var _id = domAttr.get(node, "data-file-id");
-                        // if not on the local server get the SCRIPT NAME
-                        var url;
-                        if (window.location.hostname !== '127.0.0.1') {
-                            var script_name = window.location.pathname.split("/")[1];
-                            url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
-                        } else {
-                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
-                        }
-
-                        var a = domConstruct.create("a", {
-                            href: url,
-                            target: "_blank",
-                            withCredentials: true
-                        });
-                        // the anchor node has to be added to the dom before the domEvent can be fired
-                        domConstruct.place(a, "_resultBox");
-                        a.click();
-                        domConstruct.destroy(a);
-                    }
-                });
-            };
-
-            view_menu.addChild(download_menu_item());
-            view_menu.addChild(view_menu_item());
-
-            // cloning the Menu Item allows it to be reused
-            non_view_menu.addChild(download_menu_item());
-
-            view_menu.startup();
-            non_view_menu.startup();
-
             var icons = query('.fileIcon');
             Array.forEach(icons, function(div) {
                 on(div, 'click', function(evt) {
@@ -474,6 +397,85 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widg
                     }
                 });
             });
+
+            var view_menu = new Menu({
+                targetNodeIds: ["_resultBox"],
+                selector: ".fileIcon.viewable"
+            });
+
+            var non_view_menu = new Menu({
+                targetNodeIds: ["_resultBox"],
+                selector: ".fileIcon.non-viewable"
+            });
+
+            var download_menu_item = function() {
+                return new MenuItem({
+                    label: "Download",
+                    iconClass: "taskIcon",
+                    onClick: function (evt) {
+                        var node = this.getParent().currentTarget;
+                        var _id = domAttr.get(node, "data-file-id");
+
+                        // if not on the local server get the SCRIPT NAME
+                        var url;
+                        if (window.location.hostname !== '127.0.0.1') {
+                            var script_name = window.location.pathname.split("/")[1];
+                            url = window.location.origin + "/" + script_name + "/fileApp/eng-io/" + _id + "/_download/";
+                        } else {
+                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_download/";
+                        }
+                        var a = domConstruct.create("a", {
+                            href: url,
+                            download: true,
+                            withCredentials: true
+                        });
+                        // the anchor node has to be added to the dom before the domEvent can be fired
+                        domConstruct.place(a, "_resultBox");
+                        a.click();
+                        domConstruct.destroy(a);
+                        console.log(_id);
+                    }
+                });
+            };
+
+            var view_menu_item = function() {
+                return new MenuItem({
+                    label: "View File",
+                    onClick: function(evt) {
+                        var node = this.getParent().currentTarget;
+                        var _id = domAttr.get(node, "data-file-id");
+                        // if not on the local server get the SCRIPT NAME
+                        var url;
+                        if (window.location.hostname !== '127.0.0.1') {
+                            var script_name = window.location.pathname.split("/")[1];
+                            url = window.location.origin + "/"+ script_name + "/fileApp/eng-io/" + _id + "/_view/";
+                        } else {
+                            url = window.location.origin + "/fileApp/eng-io/" + _id + "/_view";
+                        }
+
+                        var a = domConstruct.create("a", {
+                            href: url,
+                            target: "_blank",
+                            withCredentials: true
+                        });
+                        // the anchor node has to be added to the dom before the domEvent can be fired
+                        domConstruct.place(a, "_resultBox");
+                        a.click();
+                        domConstruct.destroy(a);
+                    }
+                });
+            };
+
+            view_menu.addChild(download_menu_item());
+            view_menu.addChild(view_menu_item());
+
+            // cloning the Menu Item allows it to be reused
+            non_view_menu.addChild(download_menu_item());
+
+            view_menu.startup();
+            non_view_menu.startup();
+
+
 
             var createMapOptions = {
                 mapOptions: {

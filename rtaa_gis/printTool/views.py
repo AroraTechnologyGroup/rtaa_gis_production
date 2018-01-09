@@ -26,6 +26,7 @@ import mimetypes
 import json
 import shlex
 import threading
+import traceback
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATIC_ROOT
@@ -34,6 +35,11 @@ environ = "rtaa_testing"
 username = "gissetup"
 
 logger = logging.getLogger(__name__)
+
+
+def loggit(text):
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    logger.error(traceback.print_exception(exc_type, exc_value, exc_traceback, limit=2))
 
 
 def system_paths(environ):
@@ -153,7 +159,7 @@ def apply_watermark(watermark, target):
         return target
 
     except Exception as e:
-        logger.error(e)
+        loggit(e)
 
 
 def name_file(out_folder, file, new_name):
@@ -181,9 +187,6 @@ def name_file(out_folder, file, new_name):
         logger.error("printed map unable to be saved with correct filename")
     os.chdir(old_dir)
     return full_name
-
-
-logger = logging.getLogger(__package__)
 
 
 # Create your views here.
@@ -216,11 +219,13 @@ def print_agol(request, format=None):
         op_layers = map_obj["operationalLayers"]
         json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
         f = open(json_file, 'w')
-        f.write("[")
+
+        cont = []
         for x in op_layers:
             if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
-                f.write(json.dumps(x))
-        f.write("]")
+                cont.append(x)
+        json_cont = json.dumps(cont).replace("False", "false").replace("True", "true").replace("None", "null")
+        f.write(json_cont)
         f.close()
 
         # read json file, if it is empty delete it
@@ -285,7 +290,7 @@ def print_agol(request, format=None):
             logger.error("Unable to save count :: {}".format(data))
         return response
     except Exception as e:
-        logger.error(e)
+        loggit(e)
 
 
 @api_view(['POST'])
@@ -405,7 +410,7 @@ def print_arcmap(request, format=None):
     return response
 
 
-@api_view(['POST', 'GET'])
+@api_view(['GET'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
@@ -439,7 +444,7 @@ def getPrintList(request, format=None):
     return response
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getMarkupList(request, format=None):
