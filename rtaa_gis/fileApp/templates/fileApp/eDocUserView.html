@@ -187,7 +187,9 @@
         <form action='{% url 'fileApp:file-updater' %}' method="post">
             {% csrf_token %}
             <div id="_update_panel">
-                <input class="btn-green btn-fill" type="submit" value="Save" />
+                {% if '_RTAA Planning and Engineering' in groups %}
+                    <input class="btn-green btn-fill" type="submit" value="Save" />
+                {% endif %}
                     <div id="_edit_file_name"></div>
                     {% for field in edit_form.hidden_fields %}
                         <div style="display: none;">
@@ -219,7 +221,9 @@
                         {% endif %}
 
                     {% endfor %}
-                <input class="btn btn-fill" type="submit" value="Save" />
+                {% if '_RTAA Planning and Engineering' in groups %}
+                    <input class="btn btn-fill" type="submit" value="Save" />
+                {% endif %}
             </div>
         </form>
     </div>
