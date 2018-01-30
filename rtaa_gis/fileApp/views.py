@@ -458,6 +458,7 @@ class UserViewer(GenericAPIView):
     renderer_classes = (TemplateHTMLRenderer,)
     permission_classes = (AllowAny,)
     pagination_class = LargeResultsSetPagination
+    serializer_class = EngSerializer
 
     template = ""
     app_name = ""

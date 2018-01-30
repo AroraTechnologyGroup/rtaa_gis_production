@@ -28,8 +28,17 @@
                 <nav class="dropdown-menu modifier-class" role="menu">
                     <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>
                     <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>
-                    <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>
-                    <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
+                    {% if 'GIS_Airspace_Group' in groups %}
+                        <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>
+                    {% endif %}
+                    {% if 'GIS_LPM_Admin' in groups %}
+                        <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
+                    {% endif %}
+                    {% if 'GIS_LPM_Admin' not in groups %}
+                        {% if '_RTAA Planning and Engineering' in groups or '_RTAA Airport Economic Development' in groups or '_RTAA Finance & Administration' in groups %}
+                            <a href="{% url 'home:leasePropertyViewer' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
+                        {% endif %}
+                    {% endif %}
                     <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>
                     <a href="{% url 'home:mobile' %}" class="dropdown-link" role="menu-item">Mobile</a>
                 </nav>
@@ -51,12 +60,16 @@
 {#                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32" class="svg-icon"><path d="M28 9v5L16 26 4 14V9l12 12L28 9z"/></svg>#}
 {#                      </button>#}
 {#                    <nav class="dropdown-menu modifier-class" role="menu">#}
-{#                        <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>#}
-{#                        <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>#}
-{#                        <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>#}
-{#                        <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>#}
-{#                        <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>#}
-{#                        <a href="{% url 'home:mobile' %}" class="dropdown-link" role="menu-item">Mobile</a>#}
+{#                              <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>#}
+{#                            <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>#}
+{#                            {% if 'GIS_Airspace_Group' in groups %}#}
+{#                                <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>#}
+{#                            {% endif %}#}
+{#                            {% if 'GIS_LPM_Admin' in groups %}#}
+{#                                <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>#}
+{#                            {% endif %}#}
+{#                            <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>#}
+{#                            <a href="{% url 'home:mobile' %}" class="dropdown-link" role="menu-item">Mobile</a>#}
 {#                    </nav>#}
 {#                </div>#}
 {#              </nav>#}
