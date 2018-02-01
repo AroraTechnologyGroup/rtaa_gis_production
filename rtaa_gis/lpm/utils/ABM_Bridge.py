@@ -42,15 +42,15 @@ def loggit(text):
 
 
 ###############################################
-kwargs = dict()
-kwargs['driver'] = '{SQL Server}'
-kwargs['server'] = 'Reno-fis-sql2'
-kwargs['database'] = 'ABM_Reno_GIS'
-
-connGIS = pyodbc.connect(**kwargs)
-
-kwargs['database'] = 'ABM_Reno_Prod'
-connPROD = pyodbc.connect(**kwargs)
+# kwargs = dict()
+# kwargs['driver'] = '{SQL Server}'
+# kwargs['server'] = 'Reno-fis-sql2'
+# kwargs['database'] = 'ABM_Reno_GIS'
+#
+# connGIS = pyodbc.connect(**kwargs)
+#
+# kwargs['database'] = 'ABM_Reno_Prod'
+# connPROD = pyodbc.connect(**kwargs)
 
 
 def queryConnection(connection):
@@ -156,30 +156,34 @@ def queryConnection(connection):
 
 if __name__ == "__main__":
     try:
-        x = queryConnection(connPROD)
+        # x = queryConnection(connPROD)
+        # for id in x:
+        #     title = x[id]["AgreementTitle"]
+        #     data = {
+        #         "id": id,
+        #         "type": x[id]["AgreementType"],
+        #         "description": x[id]["AgreementDescription"],
+        #         "status": x[id]["AgreementStatus"],
+        #         "start_date": x[id]["StartDate"],
+        #         "end_date": x[id]["Expiration"]
+        #     }
+        #
+        #     try:
+        #         existing = AgreementModel.objects.get(id=id)
+        #         serial = AgreementSerializer(existing, data=data)
+        #     except AgreementModel.DoesNotExist:
+        #         serial = AgreementSerializer(data=data)
+        #
+        #     if serial.is_valid():
+        #         serial.save()
+        #     else:
+        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+
         domain_list = []
-        for id in x:
-            title = x[id]["AgreementTitle"]
+        for x in AgreementModel.objects.order_by("title"):
+            id = x.id
+            title = x.title
             domain_list.append({"code": id, "name": "{} ID#{}".format(title, id)})
-            data = {
-                "id": id,
-                "type": x[id]["AgreementType"],
-                "description": x[id]["AgreementDescription"],
-                "status": x[id]["AgreementStatus"],
-                "start_date": x[id]["StartDate"],
-                "end_date": x[id]["Expiration"]
-            }
-
-            try:
-                existing = AgreementModel.objects.get(id=id)
-                serial = AgreementSerializer(existing, data=data)
-            except AgreementModel.DoesNotExist:
-                serial = AgreementSerializer(data=data)
-
-            if serial.is_valid():
-                serial.save()
-            else:
-                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         agg_domain = sorted(domain_list, key=itemgetter("name"))
         # Add the 'Unknown' Value to the Domain so space agreement assignments can be reset
@@ -187,7 +191,7 @@ if __name__ == "__main__":
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
+        layer = gis.content.get('290de3849d6c412f950471bc45df182a')
 
         feature_layer = layer.layers[0]
         # Update the domains for the feature service
