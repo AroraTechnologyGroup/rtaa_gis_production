@@ -42,15 +42,15 @@ def loggit(text):
 
 
 ###############################################
-# kwargs = dict()
-# kwargs['driver'] = '{SQL Server}'
-# kwargs['server'] = 'Reno-fis-sql2'
-# kwargs['database'] = 'ABM_Reno_GIS'
-#
-# connGIS = pyodbc.connect(**kwargs)
-#
-# kwargs['database'] = 'ABM_Reno_Prod'
-# connPROD = pyodbc.connect(**kwargs)
+kwargs = dict()
+kwargs['driver'] = '{SQL Server}'
+kwargs['server'] = 'Reno-fis-sql2'
+kwargs['database'] = 'ABM_Reno_GIS'
+
+connGIS = pyodbc.connect(**kwargs)
+
+kwargs['database'] = 'ABM_Reno_Prod'
+connPROD = pyodbc.connect(**kwargs)
 
 
 def queryConnection(connection):
@@ -156,28 +156,29 @@ def queryConnection(connection):
 
 if __name__ == "__main__":
     try:
-        # x = queryConnection(connPROD)
-        # for id in x:
-        #     title = x[id]["AgreementTitle"]
-        #     data = {
-        #         "id": id,
-        #         "type": x[id]["AgreementType"],
-        #         "description": x[id]["AgreementDescription"],
-        #         "status": x[id]["AgreementStatus"],
-        #         "start_date": x[id]["StartDate"],
-        #         "end_date": x[id]["Expiration"]
-        #     }
-        #
-        #     try:
-        #         existing = AgreementModel.objects.get(id=id)
-        #         serial = AgreementSerializer(existing, data=data)
-        #     except AgreementModel.DoesNotExist:
-        #         serial = AgreementSerializer(data=data)
-        #
-        #     if serial.is_valid():
-        #         serial.save()
-        #     else:
-        #         loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
+        x = queryConnection(connPROD)
+        for id in x:
+            title = x[id]["AgreementTitle"]
+            data = {
+                "id": id,
+                "title": x[id]["AgreementTitle"],
+                "type": x[id]["AgreementType"],
+                "description": x[id]["AgreementDescription"],
+                "status": x[id]["AgreementStatus"],
+                "start_date": x[id]["StartDate"],
+                "end_date": x[id]["Expiration"]
+            }
+
+            try:
+                existing = AgreementModel.objects.get(id=id)
+                serial = AgreementSerializer(existing, data=data)
+            except AgreementModel.DoesNotExist:
+                serial = AgreementSerializer(data=data)
+
+            if serial.is_valid():
+                serial.save()
+            else:
+                loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
         domain_list = []
         for x in AgreementModel.objects.order_by("title"):
