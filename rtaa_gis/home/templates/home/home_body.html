@@ -22,7 +22,7 @@
               <a href="{% url 'home:index' %}#home" class="side-nav-link">HomePage</a>
                 {% if "_RTAA GIS" in groups %}
                     <a href="{% url 'home:index' %}#gisportal/home" class="side-nav-link">GIS Admin</a>
-                    <a class="top-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
+                    <a class="side-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
                 {% endif %}
               <a href="{% url 'home:index' %}#web-resources/home" class="side-nav-link">Web Resources</a>
               <a href="{% url 'home:index' %}#help/home" class="side-nav-link">Help</a>
