@@ -14,6 +14,7 @@ from arcgis.features import FeatureLayerCollection
 import pprint
 import urllib.request
 import urllib.parse
+from operator import itemgetter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
@@ -156,12 +157,11 @@ def queryConnection(connection):
 if __name__ == "__main__":
     try:
         x = queryConnection(connPROD)
-        agg_domain = []
         for id in x:
             title = x[id]["AgreementTitle"]
-            agg_domain.append({"code": id, "name": "{} ID#{}".format(title, id)})
             data = {
                 "id": id,
+                "title": x[id]["AgreementTitle"],
                 "type": x[id]["AgreementType"],
                 "description": x[id]["AgreementDescription"],
                 "status": x[id]["AgreementStatus"],
@@ -180,12 +180,19 @@ if __name__ == "__main__":
             else:
                 loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
+        domain_list = []
+        for x in AgreementModel.objects.order_by("title"):
+            id = x.id
+            title = x.title
+            domain_list.append({"code": id, "name": "{} ID#{}".format(title, id)})
+
+        agg_domain = sorted(domain_list, key=itemgetter("name"))
         # Add the 'Unknown' Value to the Domain so space agreement assignments can be reset
-        agg_domain.append({"code": "", "name": "Unknown"})
+        agg_domain.insert(0, {"code": "", "name": "Unknown"})
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
+        layer = gis.content.get('290de3849d6c412f950471bc45df182a')
 
         feature_layer = layer.layers[0]
         # Update the domains for the feature service
