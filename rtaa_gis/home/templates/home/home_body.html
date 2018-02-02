@@ -20,10 +20,10 @@
             <aside class="side-nav">
               <h2 class="side-nav-title">RTAA GIS</h2>
               <a href="{% url 'home:index' %}#home" class="side-nav-link">HomePage</a>
-                {% if "_RTAA GIS" in groups %}
-                    <a href="{% url 'home:index' %}#gisportal/home" class="side-nav-link">GIS Admin</a>
-                    <a class="side-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
-                {% endif %}
+{#                {% if "_RTAA GIS" in groups %}#}
+{#                    <a href="{% url 'home:index' %}#gisportal/home" class="side-nav-link">GIS Admin</a>#}
+{#                    <a class="side-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>#}
+{#                {% endif %}#}
               <a href="{% url 'home:index' %}#web-resources/home" class="side-nav-link">Web Resources</a>
               <a href="{% url 'home:index' %}#help/home" class="side-nav-link">Help</a>
             </aside>
@@ -41,10 +41,10 @@
                 <div class="tablet-hide">
                   <a href="{% url 'home:index' %}#home" class="top-nav-title">RTAA GIS</a>
                   <nav class="top-nav-list" role="navigation" aria-labelledby="topnav">
-                      {% if '_RTAA GIS' in groups %}
-                            <a class="top-nav-link" href="{% url 'home:index' %}#gisportal/home">GIS Admin</a>
-                            <a class="top-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>
-                      {% endif %}
+{#                      {% if '_RTAA GIS' in groups %}#}
+{#                            <a class="top-nav-link" href="{% url 'home:index' %}#gisportal/home">GIS Admin</a>#}
+{#                            <a class="top-nav-link" href="{% url 'diagrams:index' %}">Project Diagrams</a>#}
+{#                      {% endif %}#}
                     <a class="top-nav-link" href="{% url 'home:index' %}#web-resources/home">Web Resources</a>
                     <a class="top-nav-link" href="{% url 'home:index' %}#help/home">Help</a>
                   </nav>
