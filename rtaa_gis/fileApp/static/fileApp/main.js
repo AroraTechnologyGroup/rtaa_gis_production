@@ -110,7 +110,7 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widg
             var panel_btn2 = dom.byId('_doc_type_handle');
             var panel_btn3 = dom.byId('_map_handle');
             var panel_btn4 = dom.byId('_edit_handle');
-            var panel_btn5 = dom.byId('_batch_edit_handle');
+            // var panel_btn5 = dom.byId('_batch_edit_handle');
 
             var slider_panel = dom.byId('_slider_panel');
 
@@ -259,9 +259,9 @@ require(["dojo/Deferred", "dojo/_base/lang", "dojo/request", "dojo/mouse", "widg
                 }
             });
 
-            on(panel_btn5, 'click', function(event) {
-                event.preventDefault();
-            });
+            // on(panel_btn5, 'click', function(event) {
+            //     event.preventDefault();
+            // });
 
             var icons = query('.fileIcon');
             Array.forEach(icons, function(div) {

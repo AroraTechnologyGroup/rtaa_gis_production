@@ -50,5 +50,5 @@ class Space(models.Model):
 
     id = models.CharField(max_length=50, primary_key=True)
 
-    agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE, null=True)
+    agreement = models.ForeignKey(Agreement, related_name="spaces", on_delete=models.CASCADE, null=True)
 
