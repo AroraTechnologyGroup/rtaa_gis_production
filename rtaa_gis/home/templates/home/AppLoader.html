@@ -31,13 +31,8 @@
                     {% if 'GIS_Airspace_Group' in groups %}
                         <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>
                     {% endif %}
-                    {% if 'GIS_LPM_Admin' in groups %}
+                    {% if 'GIS_LPM_Admin' in groups or '_RTAA Planning and Engineering' in groups or '_RTAA Airport Economic Development' in groups or '_RTAA Finance & Administration' in groups %}
                         <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
-                    {% endif %}
-                    {% if 'GIS_LPM_Admin' not in groups %}
-                        {% if '_RTAA Planning and Engineering' in groups or '_RTAA Airport Economic Development' in groups or '_RTAA Finance & Administration' in groups %}
-                            <a href="{% url 'home:leasePropertyViewer' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
-                        {% endif %}
                     {% endif %}
                     <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>
                     <a href="{% url 'home:mobile' %}" class="dropdown-link" role="menu-item">Mobile</a>
