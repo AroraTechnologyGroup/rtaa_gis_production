@@ -18,6 +18,7 @@ from arcgis.features import FeatureLayerCollection
 import pprint
 import urllib.request
 import urllib.parse
+from operator import itemgetter
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('fcd67e3684d44bf7a0052cdc2e52043b')
+        layer = gis.content.get('290de3849d6c412f950471bc45df182a')
 
         feature_layer = layer.layers[0]
         # Update the domains for the feature service
@@ -77,7 +78,7 @@ if __name__ == "__main__":
             # for each field, if it matches a sheet name, build the domain from the excel sheet
             field_name = obj["name"]
             if field_name.lower() in [x.lower().replace(" ", "_") for x in sheet_names]:
-
+                empty_list = []
                 domain_list = []
                 ws = wb.get_sheet_by_name(field_name.lower().replace("_", " "))
                 for row in ws.iter_rows(min_row=2):
@@ -88,11 +89,18 @@ if __name__ == "__main__":
                         if code != row[1].value:
                             loggit("This code {}, does not match the description {}".format(code, row[1].value))
 
-                    domain_list.append({
+                    val = {
                         "code": "{}".format(code),
                         "name": "{}".format(row[1].value)
-                    })
+                    }
+                    if code == "" or not code:
+                        domain_list.append(val)
+                    else:
+                        empty_list.append(val)
 
+                # sort the keys, then build the final sorted domain list
+                new_domains = sorted(empty_list, key=itemgetter('name'))
+                domain_list.extend(new_domains)
                 if not obj["domain"]:
                     # the domain is null so create one
                     domain_type = "codedValue"

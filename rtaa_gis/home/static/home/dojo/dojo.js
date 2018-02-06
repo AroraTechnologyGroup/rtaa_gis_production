@@ -2143,7 +2143,7 @@ define([
 				router.register("home", function(evt) {
 					evt.preventDefault();
 					console.log('loading ' + evt.newPath);
-					obj.buildTitleBar(evt, Card).then(function(e) {
+					obj.buildTitleBar(evt, Card, groups).then(function(e) {
 						console.log(e);
 					});
 				});
@@ -24337,7 +24337,7 @@ define([
 				return deferred.promise;
 			},
 
-			loadCards: function(Card, objects) {
+			loadCards: function(Card, objects, groups) {
 				// each card object has [baseClass, imgSrc, href, header, content]
 				var mainDeferred = new Deferred();
 				var pane = registry.byId('main-content');
@@ -24348,21 +24348,53 @@ define([
 					if (registry.byId(e.id) !== undefined) {
 						registry.byId(e.id).destroyRecursive();
 					}
-					var div = domConstruct.create('div');
-					var new_card = new Card({
-						id: e.id,
-						path: e.path,
-						content1: e.content1,
-						header: e.header,
-						imgSrc: e.imgSrc,
-						isActive: e.isActive
-					}, div);
-					return deferred.resolve(new_card);
+
+					var user_groups = groups;
+					var app_groups = e.groups;
+					var auth = false;
+					if (app_groups.length) {
+						// authorize against the groups specified
+						auth = Array.some(user_groups, function(g) {
+							var val = Array.indexOf(app_groups, g);
+							if (val !== -1) {
+								return true;
+							} else {
+								return false;
+							}
+						});
+
+					} else {
+						//authorize all users
+						auth = true;
+					}
+
+					
+
+					if (auth) {
+						var div = domConstruct.create('div');
+						var new_card = new Card({
+							id: e.id,
+							path: e.path,
+							content1: e.content1,
+							header: e.header,
+							imgSrc: e.imgSrc,
+							isActive: e.isActive
+						}, div);
+						return deferred.resolve(new_card);
+					} else {
+						return deferred.resolve("user not authorized to view "+e.id);
+					}
 				});
 
 				all(nodelist).then(function(arr) {
 					Array.forEach(arr, function(e) {
-						pane.addChild(e);
+						if (typeof e !== "string") {
+							if (e.isInstanceOf(Card)) {
+								pane.addChild(e);
+							}
+						} else {
+							console.log(e);
+						}
 					});
 					mainDeferred.resolve(pane);
 				});
@@ -24392,7 +24424,7 @@ define([
 				return deferred.promise;
 			},
 
-			buildTitleBar: function(evt, Card) {
+			buildTitleBar: function(evt, Card, groups) {
 				var self = this;
 				var deferred = new Deferred();
 				var footer = query("#footer-container");
@@ -24425,7 +24457,7 @@ define([
 					// these are loaded from dojo/text!./application_cards.json
 					var cards = JSON.parse(app_cards);
 
-					self.loadCards(Card, cards).then(function(e) {
+					self.loadCards(Card, cards, groups).then(function(e) {
 						console.log(e);
 						deferred.resolve(pane);
 					}, function(err) {
@@ -42180,7 +42212,7 @@ define(["dojo/_base/lang","dojo/has","../kernel","./Point"],function(n,t,e,r){fu
 'url:dijit/form/templates/TextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\" id=\"widget_${id}\" role=\"presentation\"\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
 'url:dijit/templates/Tooltip.html':"<div class=\"dijitTooltip dijitTooltipLeft\" id=\"dojoTooltip\" data-dojo-attach-event=\"mouseenter:onMouseEnter,mouseleave:onMouseLeave\"\n\t><div class=\"dijitTooltipConnector\" data-dojo-attach-point=\"connectorNode\"></div\n\t><div class=\"dijitTooltipContainer dijitTooltipContents\" data-dojo-attach-point=\"containerNode\" role='alert'></div\n></div>\n",
 'url:dijit/form/templates/ValidationTextBox.html':"<div class=\"dijit dijitReset dijitInline dijitLeft\"\n\tid=\"widget_${id}\" role=\"presentation\"\n\t><div class='dijitReset dijitValidationContainer'\n\t\t><input class=\"dijitReset dijitInputField dijitValidationIcon dijitValidationInner\" value=\"&#935; \" type=\"text\" tabIndex=\"-1\" readonly=\"readonly\" role=\"presentation\"\n\t/></div\n\t><div class=\"dijitReset dijitInputField dijitInputContainer\"\n\t\t><input class=\"dijitReset dijitInputInner\" data-dojo-attach-point='textbox,focusNode' autocomplete=\"off\"\n\t\t\t${!nameAttrSetting} type='${type}'\n\t/></div\n></div>\n",
-'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ViewerThumb.png\",\r\n\t\t\"content1\": \"Browse published layers and interact with data\"\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"fileApp/eDocViewer\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/edoc2.png\",\r\n\t\t\"content1\": \"Search, Retrieve, and Catalog Engineering Documents\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/AirspaceThumb.png\",\r\n\t\t\"content1\": \"Browse and interact with Airspace data\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/lpm2.png\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/SignageThumb.png\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\"\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Apps\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Apps\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/collector2.png\",\r\n\t\t\"content1\": \"Guides and Tips for mobile apps\"\r\n\t}\r\n]\r\n\t",
+'url:app/application_cards.json':"[\r\n\t{\r\n\t\t\"id\": \"GIS Data Viewer\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"viewer\",\r\n\t\t\"header\": \"GIS Data Viewer\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/ViewerThumb.png\",\r\n\t\t\"content1\": \"Browse published layers and interact with data\",\r\n\t\t\"groups\": []\r\n\t},\r\n\t{\r\n\t\t\"id\": \"eDoc Search Tool\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"fileApp/eDocViewer\",\r\n\t\t\"header\": \"eDoc Search Tool\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/edoc2.png\",\r\n\t\t\"content1\": \"Search, Retrieve, and Catalog Engineering Documents\",\r\n\t\t\"groups\": [\"_RTAA Planning and Engineering\", \"_RTAA GIS\", \"Arora\"]\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airspace\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"airspace\",\r\n\t\t\"header\": \"Airspace\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/AirspaceThumb.png\",\r\n\t\t\"content1\": \"Browse and interact with Airspace data\",\r\n\t\t\"groups\": [\"GIS_Airspace_Group\", \"_RTAA GIS\", \"Arora\"]\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Lease and Property Management\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"leaseProperty\",\r\n\t\t\"header\": \"Lease and Property Management\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/lpm2.png\",\r\n\t\t\"content1\": \"View and Interact with GIS Data for Lease and Property Mangement\",\r\n\t\t\"groups\": [\"_RTAA Planning and Engineering\", \"_RTAA Airport Economic Development\", \"_RTAA Finance & Administration\", \"GIS_LPM_Admin\", \"_RTAA GIS\", \"Arora\"]\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Airfield Signage and Marking\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"signageMarking\",\r\n\t\t\"header\": \"Airfield Signage\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/SignageThumb.png\",\r\n\t\t\"content1\": \"View and Interact with the airfield signage data\",\r\n\t\t\"groups\": []\r\n\t}, \r\n\t{\r\n\t\t\"id\": \"Mobile Apps\",\r\n\t\t\"isActive\": true,\r\n\t\t\"path\": \"mobile\",\r\n\t\t\"header\": \"Mobile Apps\",\r\n\t\t\"imgSrc\": \"app/img/thumbnails/collector2.png\",\r\n\t\t\"content1\": \"Guides and Tips for mobile apps\",\r\n\t\t\"groups\": []\r\n\t}\r\n]\r\n\t",
 'url:app/ldap.json':"{\r\n\t\"test_url\": \"http://127.0.0.1:8080/groups/\",\r\n\t\"staging_url\": \"https://gisapps.aroraengineers.com/rtaa_gis/groups/\",\r\n\t\"production_url\": \"https://gisapps.aroraengineers.com/rtaa_prod/groups/\",\r\n\t\"rtaa_url\": \"https://gis.renoairport.net/applications/groups/\"\r\n}",
 '*now':function(r){r(['dojo/i18n!*preload*dojo/nls/dojo*["ar","ca","cs","da","de","el","en-gb","es-es","fi-fi","fr-fr","he-il","hu","it-it","ja-jp","ko-kr","nl-nl","nb","pl","pt-br","pt-pt","ru","sk","sl","sv","th","tr","zh-tw","zh-cn"]']);}
 ,

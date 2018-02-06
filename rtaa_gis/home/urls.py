@@ -19,6 +19,8 @@ urlpatterns = [
         name='airspace'),
     url(r'^leaseProperty/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_lpm'),
         name='leaseProperty'),
+    url(r'^leasePropertyViewer/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_lpm_viewer'),
+        name='leasePropertyViewer'),
     url(r'^signageMarking/$', HomePage.as_view(template='home/AppLoader.html', app_name='Signs'),
         name='signageMarking'),
     url(r'^mobile/$', HomePage.as_view(template='home/AppLoader.html', app_name='gisviewer'), name='mobile'),
