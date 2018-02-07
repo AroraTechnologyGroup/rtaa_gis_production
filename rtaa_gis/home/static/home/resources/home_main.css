@@ -40,3 +40,7 @@ html, body {
     background-color: #FFFFFF;
     padding-bottom: 3px;
 }
+
+.js-drawer-toggle, .side-nav-title {
+    padding-left: 1.0rem;
+}
