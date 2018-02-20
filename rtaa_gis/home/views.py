@@ -27,21 +27,74 @@ logger = logging.getLogger(__package__)
 schema_view = get_schema_view(title='RTAA API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
 
 
-@api_view(['GET'])
-def user_groups(request, format=None):
+def query_ldap(name):
+    """this functions is used in the api function view and the HomePage View Class"""
+    # Perform inheritance from AD
+    local_name = name.split("\\")[-1]
+    if settings.LDAP_URL == "renoairport.net":
+        if settings.DEBUG:
+            local_name = "AroraTeam"
+
+    query = LDAPQuery(local_name, settings.LDAP_URL)
+    ldap_groups = query.get_groups()
+    logger.info("ldap_groups = {}".format(ldap_groups))
+    logger.info("username = {}".format(local_name))
+
+    user_obj = User.objects.get(username=name)
+    users_groups = user_obj.groups.all()
+    # remove groups from user if not in LDAP group list
+    for x in users_groups:
+        if x.name not in ldap_groups:
+            try:
+                # g = Group.objects.get(name=x)
+                user_obj.groups.remove(x)
+                # user_obj.save()
+            except Exception as e:
+                print(e)
+    # add user to group if group exists in ldap and local group table
+    for x in ldap_groups:
+        if x not in [g.name for g in users_groups]:
+            try:
+                g = Group.objects.get(name=x)
+                # g = Group.objects.get(name="tester")
+                user_obj.groups.add(g)
+                # user_obj.save()
+            except Exception as e:
+                print(e)
+    groups = user_obj.groups.all()
+    return groups
+
+
+def get_name(request):
+    """from the request return the domain username or the local user for testing"""
     try:
         name = request.META['REMOTE_USER']
         logger.info("Remote username = {}".format(name))
     except KeyError:
         name = request.user.username
         logger.info("non-Remote username = {}".format(name))
-
     # for testing, if username is '', set it to superuser from django admin
     if name == '':
         name = 'siteadmin'
+    return name
 
+
+@api_view(['GET'])
+def build_groups(request, format=None):
+    """View to inherit from AD and build the app tables"""
+    name = get_name(request)
+    final_groups = query_ldap(name)
+    if len(final_groups):
+        return Response([x.name for x in final_groups])
+    else:
+        return Response(['anonymous'])
+
+
+@api_view(['GET'])
+def user_groups(request, format=None):
+    """View to get the user's groups from the framework tables"""
+    name = get_name(request)
     user_obj = User.objects.get(username=name)
-
     users_groups = user_obj.groups.all()
     if len(users_groups):
         return Response([x.name for x in users_groups])
@@ -73,47 +126,16 @@ class HomePage(APIView):
 
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
-        try:
-            name = request.META['REMOTE_USER']
-        except KeyError:
-            name = request.user.username
 
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
 
-        # Perform inheritance from AD
+        name = get_name(request)
+        # run this function to inherit groups from AD
+        final_groups = query_ldap(name)
+        final_groups = [x.name for x in final_groups]
+
         local_name = name.split("\\")[-1]
-        if settings.LDAP_URL == "renoairport.net":
-            if settings.DEBUG:
-                local_name = "AroraTeam"
-
-        query = LDAPQuery(local_name, settings.LDAP_URL)
-        ldap_groups = query.get_groups()
-        logger.info("ldap_groups = {}".format(ldap_groups))
-        logger.info("username = {}".format(name))
-
-        user_obj = User.objects.get(username=name)
-        users_groups = user_obj.groups.all()
-        # remove groups from user if not in LDAP group list
-        for x in users_groups:
-            if x.name not in ldap_groups:
-                try:
-                    # g = Group.objects.get(name=x)
-                    user_obj.groups.remove(x)
-                    # user_obj.save()
-                except Exception as e:
-                    print(e)
-        # add user to group if group exists in ldap and local group table
-        for x in ldap_groups:
-            if x not in [g.name for g in users_groups]:
-                try:
-                    g = Group.objects.get(name=x)
-                    # g = Group.objects.get(name="tester")
-                    user_obj.groups.add(g)
-                    # user_obj.save()
-                except Exception as e:
-                    print(e)
-
         # Create user's folder in the media root
         users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
         if not os.path.exists(users_dir):
@@ -121,14 +143,12 @@ class HomePage(APIView):
         user_dir = os.path.join(users_dir, local_name)
         if not os.path.exists(user_dir):
             os.mkdir(user_dir)
+
         # make the print directory for the user
+        # TODO - move this to the print App
         print_dir = os.path.join(user_dir, "prints")
         if not os.path.exists(print_dir):
             os.mkdir(print_dir)
-
-        # return the list of groups that the user belongs to
-        final_groups = user_obj.groups.all()
-        final_groups = [x.name for x in final_groups]
 
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
