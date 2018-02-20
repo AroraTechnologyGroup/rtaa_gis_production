@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
         agg_domain = sorted(domain_list, key=itemgetter("name"))
         # Add the 'Unknown' Value to the Domain so space agreement assignments can be reset
-        agg_domain.insert(0, {"code": "", "name": "Unknown"})
+        agg_domain.insert(0, {"code": "0", "name": "Unknown"})
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
