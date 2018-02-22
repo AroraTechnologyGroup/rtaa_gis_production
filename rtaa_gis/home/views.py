@@ -61,8 +61,12 @@ def query_ldap(name):
                 # user_obj.save()
             except Exception as e:
                 print(e)
-    groups = user_obj.groups.all()
-    return groups
+    groups = [x.name for x in user_obj.groups.all()]
+    data = {
+        "user": local_name,
+        "groups": groups
+    }
+    return data
 
 
 def get_name(request):
@@ -83,23 +87,23 @@ def get_name(request):
 def build_groups(request, format=None):
     """View to inherit from AD and build the app tables"""
     name = get_name(request)
-    final_groups = query_ldap(name)
-    if len(final_groups):
-        return Response([x.name for x in final_groups])
-    else:
-        return Response(['anonymous'])
+    user_data = query_ldap(name)
+    return Response(user_data)
 
 
 @api_view(['GET'])
 def user_groups(request, format=None):
     """View to get the user's groups from the framework tables"""
     name = get_name(request)
+    local_name = name.split("\\")[-1]
     user_obj = User.objects.get(username=name)
     users_groups = user_obj.groups.all()
-    if len(users_groups):
-        return Response([x.name for x in users_groups])
-    else:
-        return Response(['anonymous'])
+    groups = [x.name for x in users_groups]
+    user_data = {
+        "user": local_name,
+        "groups": groups
+    }
+    return Response(user_data)
 
 
 @api_view(['GET', 'POST'])
