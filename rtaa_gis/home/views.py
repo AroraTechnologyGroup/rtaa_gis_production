@@ -136,8 +136,8 @@ class HomePage(APIView):
 
         name = get_name(request)
         # run this function to inherit groups from AD
-        final_groups = query_ldap(name)
-        final_groups = [x for x in final_groups]
+        user_data = query_ldap(name)
+        final_groups = user_data["groups"]
 
         local_name = name.split("\\")[-1]
         # Create user's folder in the media root
