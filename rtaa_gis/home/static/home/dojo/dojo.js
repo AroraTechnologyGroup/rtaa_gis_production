@@ -2130,8 +2130,8 @@ define([
 					}
 				}
 				lang.mixin(app, new namedFunctions());
-				app.getGroups(ldap_url).then(function(groups) {
-
+				app.getGroups(ldap_url).then(function(user_data) {
+					var groups = user_data.groups;
 					app.router = self.build_router(app, groups);
 					deferred.resolve(app);
 				});
