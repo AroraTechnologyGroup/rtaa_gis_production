@@ -530,9 +530,18 @@ def emailExhibit(request, format=None):
     data = request.POST
     exhibit_url = data["exhibit_url"].replace("\n", "")
     recipient = data["recipient"].replace("\n", "")
+
+    cc = data["cc"]
+    if type(cc) is str:
+        cc = [cc]
+
+    bcc = ["rhughes@aroraengineers.com"]
+    from_email = "{}@renoairport.net".format(username)
     # to allow for testing
     if settings.LDAP_URL == "gisapps.aroraengineers.com":
         recipient = "richardh522@gmail.com"
+        from_email = "rhughes@aroraengineers.com"
+        cc = ["rhughes@aroraengineers.com"]
     subject = data["subject"].replace("\n", "")
     message = data["message"].replace("\n", "")
     splits = exhibit_url.split("/")
@@ -545,8 +554,10 @@ def emailExhibit(request, format=None):
         mail.EmailMessage(
             subject="{}".format(subject),
             body="From - {} \n {}".format(username, message),
-            from_email="rhughes@aroraengineers.com",
-            to=["richardh522@gmail.com"],
+            from_email=from_email,
+            to=[recipient],
+            cc=cc,
+            bcc=bcc,
             attachments=[(base_name, content, 'application/pdf')],
             connection=connection
         ).send()
