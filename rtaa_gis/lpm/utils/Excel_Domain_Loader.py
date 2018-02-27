@@ -83,9 +83,7 @@ if __name__ == "__main__":
                 ws = wb.get_sheet_by_name(field_name.lower().replace("_", " "))
                 for row in ws.iter_rows(min_row=2):
                     if row[0].value is None:
-                        # all of these domains are text,
-                        # a null value is needed to have a valid domain value across the platform
-                        code = "<null>"
+                        code = ""
                     else:
                         code = row[0].value
                         if code != row[1].value:
@@ -95,7 +93,10 @@ if __name__ == "__main__":
                         "code": "{}".format(code),
                         "name": "{}".format(row[1].value)
                     }
-                    empty_list.append(val)
+                    if code == "" or not code:
+                        domain_list.append(val)
+                    else:
+                        empty_list.append(val)
 
                 # sort the keys, then build the final sorted domain list
                 new_domains = sorted(empty_list, key=itemgetter('name'))
