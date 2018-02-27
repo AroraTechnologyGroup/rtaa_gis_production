@@ -4,18 +4,23 @@ import os
 
 # the FGDB downloaded from AGOL
 # agol_gdb = arcpy.GetParameterAsText(0)
-agol_gdb = r"D:\EsriGDB\FGDBs\Space_2_11_18\417398cbadfd48e1aeb83fb96674ad85.gdb"
+agol_gdb = r"D:\EsriGDB\FGDBs\Space_2_12_18\1ad746f50d6e4e568f1e60d573d3c73d.gdb"
 
 # the SDE GDB to update
 # sde_gdb = arcpy.GetParameterAsText(1)
-sde_gdb = r"C:\Users\arorateam\AppData\Roaming\ESRI\Desktop10.5\ArcCatalog\RENO-GISDB_SQLEXPRESS.gds\RTAA_MasterGDB"
+sde_gdb = r"C:\Users\arorateam\AppData\Roaming\ESRI\Desktop10.5\ArcCatalog\OSAuth@RTAA_MasterGDB.sde"
 # domain prop = [codedValues, description, domainType, name, type]
 
 agol_obj = {}
-for x in arcpy.da.ListDomains(agol_gdb):
-    agol_obj[x.name.strip()] = x
+arcpy.env.workspace = agol_gdb
+try:
+    for x in arcpy.da.ListDomains(agol_gdb):
+        agol_obj[x.name.strip()] = x
+except Exception as e:
+    print(e)
 
 sde_obj = {}
+arcpy.env.workspace = sde_gdb
 try:
     for x in arcpy.da.ListDomains(sde_gdb):
         sde_obj[x.name.strip()] = x
