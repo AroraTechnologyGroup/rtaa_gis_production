@@ -1,0 +1,35 @@
+{
+  "name": "rtaa_gis",
+  "version": "1.0.0",
+  "description": "Node Packages for Testing Javascript and Application Integration",
+  "main": "main.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ricardh522/django_35.git"
+  },
+  "keywords": [
+    "rtaa"
+  ],
+  "author": "rph",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ricardh522/django_35/issues"
+  },
+  "homepage": "https://github.com/Ricardh522/django_35#readme",
+  "devDependencies": {
+    "grunt": "^1.0.2",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-jshint": "^1.1.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "intern": "^4.0.0-rc.1",
+    "jshint-stylish": "^2.2.1"
+  },
+  "dependencies": {
+    "dijit": "^1.13.0",
+    "dojo": "^1.13.0",
+    "dojox": "^1.13.0"
+  }
+}
