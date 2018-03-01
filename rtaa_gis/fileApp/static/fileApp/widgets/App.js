@@ -99,9 +99,8 @@ define([
 
       return declare("App", [_WidgetBase], {
         map: null,
-        constructor: function(map) {
+        constructor: function() {
           this.inherited(arguments);
-          this.map = map;
         },
         postCreate: function () {
           this.inherited(arguments);
@@ -182,7 +181,6 @@ define([
 
           view_menu.startup();
           non_view_menu.startup();
-          self.setupConnections();
         },
 
         setupConnections: function() {

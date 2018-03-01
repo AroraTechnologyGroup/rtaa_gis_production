@@ -12,7 +12,7 @@ define([
   const { assert } = intern.getPlugin('chai');
   const { registerSuite } = intern.getInterface('object');
 
-  registerSuite('App', () => {
+  registerSuite('fileApp', () => {
     var map;
     var node;
     var mapdiv;
@@ -36,7 +36,7 @@ define([
       beforeEach() {
 
         map = new Map(mapdiv);
-        widget = new App(map);
+        widget = new App();
       },
       afterEach() {
         widget.destroy();
