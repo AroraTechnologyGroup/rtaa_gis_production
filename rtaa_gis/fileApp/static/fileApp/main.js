@@ -1,10 +1,10 @@
 require([
-    "widgets/App",
+    "fileApp/widgets/App",
     "dojo/Deferred",
     "dojo/_base/lang",
     "dojo/request",
     "dojo/mouse",
-    "widgets/drawToolbar",
+    "fileApp/widgets/drawToolbar",
     "dojo/parser",
     "dojo/cookie",
     "dojo/json",
