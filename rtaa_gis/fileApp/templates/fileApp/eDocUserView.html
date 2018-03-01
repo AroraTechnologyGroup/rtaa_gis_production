@@ -60,14 +60,16 @@
                         <div id="_file_type_group" class="panel_slide">
                         <input class="btn btn-fill" type="submit" value="Search" />
                             <div>
-                                <input title='select all' id='_file_type_select_all' class="_inline" type="checkbox" checked>
+                                <input title='select all' id='all_file_type_select_all' class="_inline" type="checkbox" checked>
                                 <div class="_inline">- Select All</div>
                             </div>
                             {% for field in filter_form %}
                                 {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
+
                                     <div class="fieldWrapper">
                                         {{ field.errors }}
-                                        {{ field.label_tag }} {{ field }}
+                                        {{ field.label_tag }}
+                                        {{ field }}
                                         {% if field.help_text %}
                                         <p class="help">{{ field.help_text|safe }}</p>
                                         {% endif %}

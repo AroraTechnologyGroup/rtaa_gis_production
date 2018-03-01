@@ -105,7 +105,7 @@ define([
             });
 
             if (lyrs.length > 1) {
-                console.log("More then one grid layer exists in the map");
+                console.log("More than one grid layer exists in the map");
             } else if (lyrs.length === 0) {
                 console.log("There were no grid layers found in the map");
             } else {
@@ -132,12 +132,7 @@ define([
                         grid.setDefinitionExpression("");
                         grid.refresh();
 
-                        var grid_search_list = dom.byId('id_grid_cells');
-                        var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
-                        grid_search_list.value = "";
-                        // remove all of the html from the UpdateList
-                        domConstruct.empty(grid_update_list);
 
                         var tool = this.label.toUpperCase().replace(/ /g, "_");
                         self.map.hideZoomSlider();
@@ -159,6 +154,9 @@ define([
                         layer.refresh();
                         layer.hide();
                     }
+
+                    topic.publish("grids/clear");
+
                 }
             }, self.ClearAll);
 

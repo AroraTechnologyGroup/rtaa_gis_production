@@ -177,7 +177,7 @@ require([
             deferred.then(function(e) {
                 map = e.map;
                 app.set('map', map);
-                app.setupConnections();
+
                 var widget = new drawToolbar({
                     map: map,
                     id: "_draw_bar"
