@@ -254,6 +254,16 @@ define([
           if (panel_btn4) {
             on(panel_btn4, 'click', function (event) {
               event.preventDefault();
+              // if the map button is active, click it to close the map
+              if (!domClass.contains(panel_btn3, "btn-clear")) {
+                on.emit(panel_btn3, "click", {
+                  "bubbles": false
+                });
+              }
+
+
+              domClass.toggle(panel_btn4, 'btn-clear');
+
               if (domClass.contains(update_panel, 'close')) {
                 domClass.replace(update_panel, 'open', 'close');
                 domClass.replace(_container, 'ropen', 'rclose');
@@ -264,6 +274,7 @@ define([
                 domClass.add(update_panel, 'open');
                 domClass.add(_container, 'ropen');
               }
+
             });
           }
 

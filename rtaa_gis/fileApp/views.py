@@ -638,8 +638,7 @@ class UserViewer(GenericAPIView):
         if file_path:
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
-            gnums = [x.strip() for x in grant_number.split()]
-            efiles = efiles.filter(grant_number__in=gnums)
+            efiles = efiles.filter(grant_number__icontains=grant_number)
 
         if funding_types and funding_types != ['all']:
             efiles = efiles.filter(funding_type__in=funding_types).distinct()
