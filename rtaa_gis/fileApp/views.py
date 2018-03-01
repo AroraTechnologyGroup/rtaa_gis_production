@@ -414,7 +414,7 @@ class EngIOViewSet(viewsets.ViewSet):
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
             resp = HttpResponse(fp.read(), content_type=mime_type)
-            resp['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+            resp['Content-Disposition'] = "attachment; filename= {}".format(base_name)
 
             # create entry in the analytics records table
             data = {
