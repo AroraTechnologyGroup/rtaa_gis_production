@@ -11,6 +11,7 @@ define([
   "dojo/json",
   "dojo/hash",
   "dojo/query",
+  "dojo/topic",
   "dojo/dom-class",
   "dojo/dom-style",
   "dojo/dom-attr",
@@ -39,6 +40,7 @@ define([
       JSON,
       hash,
       query,
+      topic,
       domClass,
       domStyle,
       domAttr,
@@ -68,8 +70,16 @@ define([
       var _container = dom.byId('_container');
       var update_panel = dom.byId('_update_panel');
 
-      var ftype_all = dom.byId('_file_type_select_all');
+      var ftype_all = dom.byId('all_file_type_select_all');
+
       var doctype_all = dom.byId('_doc_type_select_all');
+
+      var edit_disc_all = query('#id_edit_discipline input[value="all"]');
+      var edit_sheet_all = query('#id_edit_sheet_type input[value="all"]');
+      var edit_doc_all = query('#id_edit_doc_type input[value="all"]');
+
+      var grid_search_list = dom.byId('id_grid_cells');
+      var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
       // add the DRF class names to the django fieldWrapper to get the calendar
       Array.forEach(query('.fieldWrapper'), function (e) {
@@ -96,12 +106,14 @@ define([
       var t_nodes = query('#id_table_type input');
       var gis_nodes = query('#id_gis_type input');
       var doc_nodes = query('#id_document_type input');
+      var edit_disc_nodes = query('#id_edit_discipline input');
+      var edit_sheet_nodes = query('#id_edit_sheet_type input');
+      var edit_doc_nodes = query('#id_edit_doc_type input');
 
       return declare("App", [_WidgetBase], {
         map: null,
-        constructor: function(map) {
+        constructor: function() {
           this.inherited(arguments);
-          this.map = map;
         },
         postCreate: function () {
           this.inherited(arguments);
@@ -232,7 +244,9 @@ define([
                 domClass.remove(doc_type_html, "visible");
                 domClass.remove(file_type_html, "visible");
                 domClass.toggle(map_html, "visible");
-                self.map.resize();
+                if (self.map) {
+                  self.map.resize();
+                }
               });
             });
           }
@@ -467,6 +481,97 @@ define([
               }
             });
           }
+
+          if (edit_disc_all) {
+            on(edit_disc_all, 'change', function(evt) {
+              console.log(evt);
+              evt.preventDefault();
+
+              if (evt.target.checked) {
+                // check all of the file type boxes
+                Array.forEach([edit_disc_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = true;
+                    }
+                  });
+                });
+              } else {
+                // uncheck all of the file type boxes
+                Array.forEach([edit_disc_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = false;
+                    }
+                  });
+                });
+              }
+            });
+          }
+
+          if (edit_sheet_all) {
+            on(edit_sheet_all, 'change', function(evt) {
+              console.log(evt);
+              evt.preventDefault();
+
+              if (evt.target.checked) {
+                // check all of the file type boxes
+                Array.forEach([edit_sheet_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = true;
+                    }
+                  });
+                });
+              } else {
+                // uncheck all of the file type boxes
+                Array.forEach([edit_sheet_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = false;
+                    }
+                  });
+                });
+              }
+            });
+          }
+
+          if (edit_doc_all) {
+            on(edit_doc_all, 'change', function(evt) {
+              console.log(evt);
+              evt.preventDefault();
+
+              if (evt.target.checked) {
+                // check all of the file type boxes
+                Array.forEach([edit_doc_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = true;
+                    }
+                  });
+                });
+              } else {
+                // uncheck all of the file type boxes
+                Array.forEach([edit_doc_nodes], function(d) {
+                  Array.forEach(d, function (i) {
+                    {
+                      i.checked = false;
+                    }
+                  });
+                });
+              }
+            });
+          }
+
+          self.clearGrid = topic.subscribe("grids/clear", function() {
+            if (grid_search_list) {
+              grid_search_list.value = "";
+            }
+            // remove all of the html from the UpdateList
+            if (grid_update_list) {
+              domConstruct.empty(grid_update_list);
+            }
+          });
         },
 
         checkPanel: function (event) {
