@@ -40,8 +40,16 @@
                 <div id="_filter_group">
                     <input class="btn btn-fill" type="submit" value="Search" />
                     {% for field in filter_form %}
-                        {% if field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
-                             <div class="fieldWrapper">
+                        {% if field.name != 'sheet_type' and field.name != 'discipline' and field.name != 'airport' and field.name != 'funding_type' and field.name != 'file_type' and field.name != 'image_type' and field.name != 'gis_type' and field.name != 'table_type' and field.name != 'document_type'%}
+                             <div class="fieldWrapper form-group">
+                                {{ field.errors }}
+                                {{ field.label_tag }} {{ field }}
+                                {% if field.help_text %}
+                                <p class="help">{{ field.help_text|safe }}</p>
+                                {% endif %}
+                            </div>
+                        {% elif field.name == 'sheet_type' or field.name == 'discipline' or field.name == 'airport' or field.name == 'funding_type'%}
+                             <div class="fieldWrapper form-group inline-list">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
                                 {% if field.help_text %}
@@ -63,7 +71,7 @@
                                 <input title='select all' id='all_file_type_select_all' class="_inline" type="checkbox" checked>
                                 <div class="_inline">- Select All</div>
                             </div>
-                            {% for field in filter_form %}
+                            {% for field in filter_form|dictsort:"name" %}
                                 {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
 
                                     <div class="fieldWrapper">
