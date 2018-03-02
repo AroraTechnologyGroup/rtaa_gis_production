@@ -85,7 +85,7 @@ class FilterForm(forms.Form):
 
     base_name = forms.CharField(label="File Name", required=False)
 
-    date_added = forms.DateField(label="Date Added", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    date_added = forms.DateField(label="Date Added", required=False, widget=forms.DateInput(attrs = {'type': 'date'}))
 
     grid_cells = forms.CharField(label='Grid Cells', required=False, widget=forms.TextInput())
 
@@ -99,9 +99,9 @@ class FilterForm(forms.Form):
 
     project_description = forms.CharField(label='Project Description', required=False)
 
-    after_date = forms.DateField(label='Project After Date', required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    after_date = forms.DateField(label='Project After Date', required=False, widget=forms.DateInput(attrs = {'type': 'date'}))
 
-    before_date = forms.DateField(label='Project Before Date', required=False,  widget=forms.DateInput(attrs={'type': 'date'}))
+    before_date = forms.DateField(label='Project Before Date', required=False,  widget=forms.DateInput(attrs = {'type': 'date'}))
 
     sheet_description = forms.CharField(label="Sheet Description", required=False)
 
@@ -109,7 +109,7 @@ class FilterForm(forms.Form):
 
     airport = forms.ChoiceField(choices=(), label='Airport', widget=forms.RadioSelect(), initial="rno")
 
-    funding_type = forms.MultipleChoiceField(choices=(), label='Funding Type', required=False)
+    funding_type = forms.MultipleChoiceField(choices=(), label='Funding Type', required=False, widget=forms.SelectMultiple())
 
     file_path = forms.CharField(label='File Path', required=False)
 

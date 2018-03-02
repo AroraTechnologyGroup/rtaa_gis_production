@@ -93,24 +93,20 @@ input {
     height: 100%;
     flex-grow: 2;
     max-width: 300px;
-    padding: 3px;
+    padding: 5px;
 }
 
 #_filter_group .form-group {
     display: inline-block;
-    margin: 3px;
     float: left;
     width: 100%;
 }
 
-#_filter_group .form-group.inline {
-    display: inline-block;
-    width: auto;
-}
 
 #_filter_group .form-group.inline-list {
     display: inline-block;
-    width: 50%;
+    margin: 2px;
+    width: 47%;
 }
 
 #_filter_group .form-group.inline-list > ul {

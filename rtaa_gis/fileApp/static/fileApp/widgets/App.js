@@ -83,20 +83,20 @@ define([
 
       // add the DRF class names to the django fieldWrapper to get the calendar
       Array.forEach(query('.fieldWrapper'), function (e) {
-        domClass.add(e, 'form-group');
+        // domClass.add(e, 'form-group');
       });
 
       Array.forEach(query('.fieldWrapper input'), function (e) {
-        domClass.add(e, 'form-control');
+        // domClass.add(e, 'form-control');
       });
 
       // make the multi-select boxes side by side
       Array.forEach(query('.fieldWrapper > select').parent(), function (e) {
-        domClass.add(e, 'inline');
+        // domClass.add(e, 'inline');
       });
 
       Array.forEach(query('.fieldWrapper > ul').parent(), function (e) {
-        domClass.add(e, 'inline-list');
+        // domClass.add(e, 'inline-list');
       });
 
       var btn_accrd = query('button.accordion');
