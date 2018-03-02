@@ -16,6 +16,22 @@ funding_choices = [
 document_types = [
     ('all', 'All'),
     ('unk', 'Unknown'),
+    ('memoranda', 'Memoranda'),
+    ('agenda', 'Agenda'),
+    ('meeting_document', 'Meeting Document'),
+    ('literature_review', 'Literature Review'),
+    ('report', 'Report'),
+    ('letter', 'Letter'),
+    ('proposal', 'Proposal'),
+    ('press_release', 'Press Release'),
+    ('specification', 'Specification'),
+    ('documentation', 'Documentation'),
+    ('instructions_and_procedures', 'Instructions and Procedures'),
+    ('style_guide', 'Style Guide'),
+    ('thesis', "Thesis"),
+    ('oral_presentation', "Oral Presentation"),
+    ('resume', "Resume"),
+    ('notebook', "Notebook"),
     ('email', 'Email'),
     ('notes', 'Notes')
 ]
