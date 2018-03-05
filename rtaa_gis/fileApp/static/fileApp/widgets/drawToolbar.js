@@ -98,10 +98,10 @@ define([
             var grid_layer;
 
             var cellDialog = self.cellDialog = new Dialog({
-              title: "Grid Selection Next Steps",
-              style: "width: 300px"
+              title: "Grid Selection Next Steps"
             });
-            self.cellDialog.set("content", "<b>SEARCH</b> - If you are interested in locating files that have been assigned to \
+            var content = domConstruct.create("div", {"id": "_dialogBox"});
+            var text = `<b>SEARCH</b> - If you are interested in locating files that have been assigned to \
                 these cells, click the Search button in the left pane.  \
                 </br>\
                 </br>\
@@ -124,7 +124,9 @@ define([
                 </br>\
                 </br>\
                 <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
-                <label for='dialogOptOut'>Do not show this dialog again</label>");
+                <label for='dialogOptOut'>Do not show this dialog again</label>`;
+            domConstruct.place(text, content);
+            self.cellDialog.set("content", content);
 
 
 
