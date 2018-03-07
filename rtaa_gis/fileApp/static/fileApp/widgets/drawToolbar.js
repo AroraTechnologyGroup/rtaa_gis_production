@@ -31,7 +31,9 @@ define([
     "dojo/parser",
     
     "dijit/registry",
+    "dijit/Dialog",
     "dijit/form/Button",
+    "dijit/form/CheckBox",
     "dijit/_WidgetBase",
     "dijit/_TemplatedMixin",
     "dijit/_WidgetsInTemplateMixin",
@@ -70,7 +72,9 @@ define([
     parser,
   
     registry,
+    Dialog,
     Button,
+    CheckBox,
     _WidgetBase,
     _TemplatedMixin,
     _WidgetsInTemplateMixin,
@@ -80,6 +84,7 @@ define([
         map: null,
         baseClass: "_draw-bar",
         templateString: template,
+        optOut: false,
         constructor: function(config) {
             console.log("widgets._eDock.drawToolbar::constructor", arguments);
             declare.safeMixin(this, config);
@@ -91,6 +96,39 @@ define([
             var self = this;
             parser.parse();
             var grid_layer;
+
+            var cellDialog = self.cellDialog = new Dialog({
+              title: "Grid Selection Next Steps"
+            });
+            var content = domConstruct.create("div", {"id": "_dialogBox"});
+            var text = `<b>SEARCH</b> - If you are interested in locating files that have been assigned to \
+                these cells, click the Search button in the left pane.  \
+                </br>\
+                </br>\
+                Notice that the grid cells have been added to the search parameters.\
+                </br>\
+                </br>\
+                <b>UPDATE</b> - If there are files that you need to assign to these grid cells, click the Update button in the far \
+                left of the screen.  \
+                </br>\
+                This will close the map and open the file browser along with the Update panel.\
+                </br>\
+                </br>\
+                Notice that the grid cells have been added into the New Grid Cells window.\
+                </br>\
+                </br>\
+                If a file name is not shown in the Update panel, click on the desired file in the file browser window.\
+                </br>\
+                </br>\
+                Clicking Save in the update panel will assign the grid cells to the selected file.\
+                </br>\
+                </br>\
+                <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
+                <label for='dialogOptOut'>Do not show this dialog again</label>`;
+            domConstruct.place(text, content);
+            self.cellDialog.set("content", content);
+
+
 
              // obtain the grid layer from the map
             var layers = self.map.graphicsLayerIds;
@@ -127,12 +165,9 @@ define([
                     onClick: function() {
                         self.map.graphics.clear();
                         var grid = self.map.getLayer(grid_layer);
-                        grid.hide();
                         grid.clearSelection();
                         grid.setDefinitionExpression("");
                         grid.refresh();
-
-
 
                         var tool = this.label.toUpperCase().replace(/ /g, "_");
                         self.map.hideZoomSlider();
@@ -152,7 +187,6 @@ define([
                         layer.clearSelection();
                         layer.setDefinitionExpression("");
                         layer.refresh();
-                        layer.hide();
                     }
 
                     topic.publish("grids/clear");
@@ -182,8 +216,25 @@ define([
                   }
                 var graphic = new Graphic(evt.geometry, symbol);
                 self.map.graphics.add(graphic);
+                // the query grid function will populate the Search and Edit windows with the selected Grid Cell values
                 self.query_grid(graphic);
+                // if the user has not opted out, show the dialog
+                if (!self.optOut) {
+                  self.cellDialog.show();
+                }
             }
+
+            self.setupConnections();
+        },
+
+        setupConnections: function() {
+          var self = this;
+          var optOut = registry.byId('dialogOptOut');
+          on(optOut, 'change', function(evt) {
+            if (evt) {
+              self.optOut = true;
+            }
+          });
         },
 
         query_grid: function(graphic) {
@@ -191,11 +242,11 @@ define([
             var lyr = self.grid_layer;
             var layer = self.map.getLayer(lyr);
 
-            if (layer.getDefinitionExpression()) {
-                layer.clearSelection();
-                layer.setDefinitionExpression("");               
-                layer.refresh();
-            }
+            // if (layer.getDefinitionExpression()) {
+            //     layer.clearSelection();
+            //     layer.setDefinitionExpression("");
+            //     layer.refresh();
+            // }
             
             var query = new Query();
             query.geometry = graphic.geometry;
@@ -231,45 +282,31 @@ define([
                         var label = domConstruct.create("label", {"for" : e+"_id", innerHTML: e});
                         var input = domConstruct.create("input", {"type": "checkbox", "name": "edit_new_grid_cells", "value": e,
                             "id": e+"_id", "checked": true, "class": "form-control"});
+                        on(input, "change", function(evt) {
+                          var query = new Query();
+                          var exp = "GRID = '"+evt.target.value+"'";
+                          query.where = exp;
+
+                          if (evt.target.checked) {
+                            // add the cell to the definition query
+                            layer.selectFeatures(query, FeatureLayer.SELECTION_ADD, function(e) {
+                                console.log(e);
+                                layer.redraw();
+                            });
+                          } else {
+                            // remove the cell from the definition query
+                            layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT, function(e) {
+                                console.log(e);
+                                layer.redraw();
+                            });
+                          }
+                        });
 
                         domConstruct.place(label, li);
                         domConstruct.place(input, label);
                         domConstruct.place(li, grid_update_list);
 
                     });
-
-                    // grid_list.on('dgrid-select', function(event) {
-                    //     var rows = event.rows;
-                    //     var cells = [];
-                    //     Array.forEach(rows, function(item) {
-                    //         var cell = item.data;
-                    //         cells.push(cell);
-                    //     });
-                    //     var exp = "GRID IN ('"+cells.join("', '") + "')";
-                    //     var query = new Query();
-                    //     query.where = exp;
-                    //     layer.selectFeatures(query, FeatureLayer.SELECTION_ADD, function(e) {
-                    //         console.log(e);
-                    //         layer.redraw();
-                    //     });
-                    // });
-
-                    // grid_list.on('dgrid-deselect', function(event) {
-                    //     var rows = event.rows;
-                    //     var cells = [];
-                    //     Array.forEach(rows, function(item) {
-                    //         var cell = item.data;
-                    //         cells.push(cell);
-                    //     });
-                    //
-                    //     var exp = "GRID IN ('"+cells.join("', '") + "')";
-                    //     var query = new Query();
-                    //     query.where = exp;
-                    //     layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT, function(e) {
-                    //         console.log(e);
-                    //         layer.redraw();
-                    //     });
-                    // });
 
                     
                     var defExp = "GRID IN ('"+ array.join("', '") + "')";                    
@@ -280,6 +317,8 @@ define([
 
                     var query = new Query();
                     query.where = defExp;
+                    // initially all the cells are selected using the same definition query as the def expression.
+                    // the checkboxes allow the user to toggle cell selection to disclude them from the post data
                     layer.selectFeatures(query, FeatureLayer.SELECTION_NEW, function(e) {
                         console.log(e);
                     });
