@@ -201,7 +201,8 @@ def print_agol(request, format=None):
     try:
         username = get_username(request)
         out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
-
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
         gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                              username="data_owner",
                              password="GIS@RTAA123!")
