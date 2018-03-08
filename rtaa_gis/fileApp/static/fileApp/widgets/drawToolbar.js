@@ -31,7 +31,7 @@ define([
     "dojo/parser",
     
     "dijit/registry",
-    "dijit/Dialog",
+    "dijit/ConfirmDialog",
     "dijit/form/Button",
     "dijit/form/CheckBox",
     "dijit/_WidgetBase",
@@ -72,7 +72,7 @@ define([
     parser,
   
     registry,
-    Dialog,
+    ConfirmDialog,
     Button,
     CheckBox,
     _WidgetBase,
@@ -97,36 +97,59 @@ define([
             parser.parse();
             var grid_layer;
 
-            var cellDialog = self.cellDialog = new Dialog({
-              title: "Grid Selection Next Steps"
+            var cellDialog = self.cellDialog = new ConfirmDialog({
+              title: "Grid Selection Next Steps",
+              autofocus: false
             });
             var content = domConstruct.create("div", {"id": "_dialogBox"});
-            var text = `<b>SEARCH</b> - If you are interested in locating files that have been assigned to \
-                these cells, click the Search button in the left pane.  \
+            var text = `<b>SEARCH</b> - If you are interested in locating files </br>\
+                that have been assigned to these cells,</br>\
+                click the blue Search button.</br>\
                 </br>\
+                <ul>
+                    <li>
+                    The selected grid cells have been added</br>\
+                    to the "Grid Cells:" text input.
+                    </li>
+                </ul>
+           
+                or</br>\
                 </br>\
-                Notice that the grid cells have been added to the search parameters.\
-                </br>\
-                </br>\
-                <b>UPDATE</b> - If there are files that you need to assign to these grid cells, click the Update button in the far \
-                left of the screen.  \
-                </br>\
-                This will close the map and open the file browser along with the Update panel.\
-                </br>\
-                </br>\
-                Notice that the grid cells have been added into the New Grid Cells window.\
-                </br>\
-                </br>\
-                If a file name is not shown in the Update panel, click on the desired file in the file browser window.\
-                </br>\
-                </br>\
-                Clicking Save in the update panel will assign the grid cells to the selected file.\
-                </br>\
-                </br>\
+                <b>UPDATE</b> - To create an assignment</br>\
+                between the grid cells and a file,</br>\
+                click the Update button at the</br>\
+                bottom of the far left pane.</br>\
+                 </br>\
+                <ul>
+                    <li>
+                    This will close the map</br>\
+                    and open the file browser</br>\
+                    along with the Attribute panel.</br>\
+                    </li>
+                    <li>
+                    The grid cells</br>\
+                    have been added into the</br>\
+                    "New Grid Cells" area.</br>\
+                    of the Attribute Panel</br>\
+                    </li>
+                    <li>
+                    If a file name is not shown in the Attribute panel,</br>\
+                    then a file is not selected.</br>\
+                    Click on the desired file in the file browser</br>\
+                    window to select it.</br>\
+                    </li>
+                    <li>
+                    If editing is available</br>\
+                    clicking Save in the Attribute panel</br>\
+                    will assign the grid cells to the selected file.</br>\
+                    </li>
+                  </ul>
                 <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
-                <label for='dialogOptOut'>Do not show this dialog again</label>`;
+                <label for='dialogOptOut'>Do not show this dialog again</label>
+                `;
             domConstruct.place(text, content);
             self.cellDialog.set("content", content);
+            // self.cellDialog.containerNode.scrollTop;
 
 
 
@@ -180,9 +203,10 @@ define([
             var clear_btn = new Button({
                 label: "Clear All",
                 onClick: function(evt) {
+                    self.map.graphics.clear();
                     var lyr = self.grid_layer;
                     var layer = self.map.getLayer(lyr);
-                    self.map.graphics.clear();
+
                     if (layer.getDefinitionExpression()) {
                         layer.clearSelection();
                         layer.setDefinitionExpression("");
@@ -229,10 +253,13 @@ define([
 
         setupConnections: function() {
           var self = this;
+          var okButton = self.cellDialog.okButton;
           var optOut = registry.byId('dialogOptOut');
-          on(optOut, 'change', function(evt) {
-            if (evt) {
+          on(okButton, 'click', function(evt) {
+            if (optOut.checked) {
               self.optOut = true;
+            } else {
+              self.optOut = false;
             }
           });
         },
