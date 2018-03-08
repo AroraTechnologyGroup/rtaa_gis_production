@@ -35,10 +35,10 @@ class FilterForm(forms.Form):
         self.fields['funding_type'].choices = funding_types
         self.fields['funding_type'].widget.attrs = {"size": len(funding_types)}
 
-        self.fields['file_type'].choices = file_types
-        self.fields['image_type'].choices = image_types
-        self.fields['table_type'].choices = table_types
-        self.fields['document_type'].choices = document_types
+        self.fields['file_type'].choices = sorted(file_types, key=lambda file_type: file_type[0])
+        self.fields['image_type'].choices = sorted(image_types, key=lambda image_type: image_type[0])
+        self.fields['table_type'].choices = sorted(table_types, key=lambda table_type: table_type[0])
+        self.fields['document_type'].choices = sorted(document_types, key=lambda doc_type: doc_type[0])
 
         if init_base_name:
             self.fields['base_name'].initial = init_base_name
@@ -85,7 +85,7 @@ class FilterForm(forms.Form):
 
     base_name = forms.CharField(label="File Name", required=False)
 
-    date_added = forms.DateField(label="Date Added", required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    date_added = forms.DateField(label="Date Added", required=False, widget=forms.DateInput(attrs = {'type': 'date'}))
 
     grid_cells = forms.CharField(label='Grid Cells', required=False, widget=forms.TextInput())
 
@@ -99,9 +99,9 @@ class FilterForm(forms.Form):
 
     project_description = forms.CharField(label='Project Description', required=False)
 
-    after_date = forms.DateField(label='Project After Date', required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    after_date = forms.DateField(label='Project After Date', required=False, widget=forms.DateInput(attrs = {'type': 'date'}))
 
-    before_date = forms.DateField(label='Project Before Date', required=False,  widget=forms.DateInput(attrs={'type': 'date'}))
+    before_date = forms.DateField(label='Project Before Date', required=False,  widget=forms.DateInput(attrs = {'type': 'date'}))
 
     sheet_description = forms.CharField(label="Sheet Description", required=False)
 
@@ -109,7 +109,7 @@ class FilterForm(forms.Form):
 
     airport = forms.ChoiceField(choices=(), label='Airport', widget=forms.RadioSelect(), initial="rno")
 
-    funding_type = forms.MultipleChoiceField(choices=(), label='Funding Type', required=False)
+    funding_type = forms.MultipleChoiceField(choices=(), label='Funding Type', required=False, widget=forms.SelectMultiple())
 
     file_path = forms.CharField(label='File Path', required=False)
 
@@ -143,13 +143,19 @@ class UpdateForm(forms.Form):
 
     edit_sheet_title = forms.CharField(label="Sheet Title", strip=True, max_length=255, required=False)
 
-    edit_discipline = forms.MultipleChoiceField(label="Disciplines", choices=ftypes.engineering_discipline_choices,
-                                           widget=forms.CheckboxSelectMultiple)
+    edit_discipline = forms.MultipleChoiceField(label="Disciplines",
+                                                choices=sorted(ftypes.engineering_discipline_choices,
+                                                               key=lambda discs: discs[0]),
+                                                widget=forms.CheckboxSelectMultiple)
 
-    edit_sheet_type = forms.MultipleChoiceField(label="Sheet Types", choices=ftypes.engineering_sheet_types,
-                                           widget=forms.CheckboxSelectMultiple, required=False)
+    edit_sheet_type = forms.MultipleChoiceField(label="Sheet Types",
+                                                choices=sorted(ftypes.engineering_sheet_types,
+                                                               key=lambda sheet_type: sheet_type[0]),
+                                                widget=forms.CheckboxSelectMultiple, required=False)
 
-    edit_doc_type = forms.MultipleChoiceField(label="Document Types", choices=ftypes.DOC_VIEWER_TYPES,
+    edit_doc_type = forms.MultipleChoiceField(label="Document Types",
+                                              choices=sorted(ftypes.DOC_VIEWER_TYPES,
+                                                             key=lambda doc_type: doc_type[0]),
                                               widget=forms.CheckboxSelectMultiple, required=False)
 
     edit_project_title = forms.CharField(label="Project Title", strip=True, max_length=255, required=False)
