@@ -19,6 +19,9 @@ define([
   "dojo/dom",
   "dojo/on",
 
+  "esri/geometry/Point",
+  "esri/SpatialReference",
+
   'dijit/registry',
   "dijit/Menu",
   "dijit/popup",
@@ -47,6 +50,9 @@ define([
       domConstruct,
       dom,
       on,
+
+      Point,
+      SpatialReference,
 
       registry,
       Menu,
@@ -194,6 +200,8 @@ define([
 
           view_menu.startup();
           non_view_menu.startup();
+
+
           self.setupConnections();
         },
 
@@ -243,10 +251,8 @@ define([
               self.checkPanel(event).then(function (e) {
                 domClass.remove(doc_type_html, "visible");
                 domClass.remove(file_type_html, "visible");
+
                 domClass.toggle(map_html, "visible");
-                if (self.map) {
-                  self.map.resize();
-                }
               });
             });
           }
@@ -573,7 +579,7 @@ define([
               }
             });
           }
-
+          // remove the selected grids from the search and edit windows
           self.clearGrid = topic.subscribe("grids/clear", function() {
             if (grid_search_list) {
               grid_search_list.value = "";

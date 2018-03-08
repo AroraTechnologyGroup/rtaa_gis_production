@@ -1,10 +1,12 @@
 define([
   "fileApp/widgets/App",
+  "fileApp/widgets/drawToolbar",
   "dojo/dom-construct",
   "esri/map"
 
 ], function(
   App,
+  DrawToolbar,
   domConstruct,
   Map
 ) {
@@ -46,8 +48,12 @@ define([
 
       },
       tests: {
-        'create new'() {
+        'create new App'() {
           assert.doesNotThrow(() => new App());
+        },
+
+        'create new drawing Tool'() {
+          assert.doesNotThrow(() => new DrawToolbar({map: map, id: "test_id"}));
         }
       }
     };
