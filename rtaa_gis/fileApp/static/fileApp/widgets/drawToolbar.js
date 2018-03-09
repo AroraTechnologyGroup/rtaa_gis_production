@@ -223,30 +223,39 @@ define([
           var optOut = registry.byId('dialogOptOut');
           var select_btn = self.Select;
           var draw_bar = self.draw_bar;
-          on(okButton, 'click', function(evt) {
-            if (optOut.checked) {
-              self.optOut = true;
-            } else {
-              self.optOut = false;
-            }
-          });
 
-          on(cancelButton, 'click', lang.hitch(self, function(evt) {
-              optOut.set('checked', false);
-          }));
-
-          on(select_btn, 'click', function(evt) {
-            window.calcite.stopPropagation(evt);
-            window.calcite.bus.emit('dropdown:toggle', {
-              node: self._dropdown
+          if (okButton) {
+            on(okButton, 'click', function (evt) {
+              if (optOut.checked) {
+                self.optOut = true;
+              } else {
+                self.optOut = false;
+              }
             });
-          });
+          }
 
-          window.calcite.bus.on('dropdown:toggle', function (options) {
-            console.log(options.node);
-            // this is needed to override the css rules for dropdown ??bug??
-            domClass.toggle(self._menu, "display", null);
-          });
+          if (cancelButton) {
+            on(cancelButton, 'click', lang.hitch(self, function (evt) {
+              optOut.set('checked', false);
+            }));
+          }
+
+          if (select_btn) {
+            on(select_btn, 'click', function (evt) {
+              window.calcite.stopPropagation(evt);
+              window.calcite.bus.emit('dropdown:toggle', {
+                node: self._dropdown
+              });
+            });
+          }
+
+          if (window.calcite) {
+            window.calcite.bus.on('dropdown:toggle', function (options) {
+              console.log(options.node);
+              // this is needed to override the css rules for dropdown ??bug??
+              domClass.toggle(self._menu, "display", null);
+            });
+          }
 
           // Add the events to the draw buttons
           Array.forEach(["Point", "Multi Point", "Polygon", "Freehand Polygon", "Ellipse", "Circle"], function(e) {

@@ -192,7 +192,7 @@ input {
 }
 
 #_map_group {
-    display: none;
+    opacity: 0.0;
     position: absolute;
     top: 0;
     left: 0;
@@ -202,6 +202,19 @@ input {
 
 #_map_group.open_map {
     display: block;
+    opacity: 1.0;
+    animation-name: map-fadein;
+    animation-duration: 1s;
+}
+
+@keyframes map-fadein {
+    from {
+        opacity: 0.0;
+    }
+
+    to {
+        opacity: 1.0;
+    }
 }
 
 #_map_group.close_map {
@@ -231,11 +244,16 @@ input {
 }
 
 #_resultBox {
-    display: inline-block;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background-color: white;
-    height: 100%;
+    /*height: 100%;*/
     overflow-y: scroll;
-    width: 100%;
+    /*width: 100%;*/
     font-size: 0.75em;
 }
 
@@ -352,9 +370,8 @@ input {
     z-index: 10;
     display: inline;
     position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
+    top: 0;
+    left: 0;
 }
 
 

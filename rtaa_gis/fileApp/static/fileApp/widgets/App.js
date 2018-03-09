@@ -6,7 +6,7 @@ define([
   "dojo/_base/declare",
   "dojo/request",
   "dojo/mouse",
-  // "dojo/parser",
+  "dojo/parser",
   "dojo/cookie",
   "dojo/json",
   "dojo/hash",
@@ -38,7 +38,7 @@ define([
       declare,
       request,
       mouse,
-      // parser,
+      parser,
       cookie,
       JSON,
       hash,
@@ -88,23 +88,6 @@ define([
       var grid_search_list = dom.byId('id_grid_cells');
       var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
-      // add the DRF class names to the django fieldWrapper to get the calendar
-      Array.forEach(query('.fieldWrapper'), function (e) {
-        // domClass.add(e, 'form-group');
-      });
-
-      Array.forEach(query('.fieldWrapper input'), function (e) {
-        // domClass.add(e, 'form-control');
-      });
-
-      // make the multi-select boxes side by side
-      Array.forEach(query('.fieldWrapper > select').parent(), function (e) {
-        // domClass.add(e, 'inline');
-      });
-
-      Array.forEach(query('.fieldWrapper > ul').parent(), function (e) {
-        // domClass.add(e, 'inline-list');
-      });
 
       var btn_accrd = query('button.accordion');
       var icons = query('.fileIcon');
@@ -261,13 +244,19 @@ define([
 
               if (domClass.contains(map_html, "open_map")) {
                 domClass.replace(map_html, "close_map", "open_map");
-                self.activateWindow(_result_box);
+                setTimeout(function() {
+                  self.activateWindow(_result_box);
+                }, 1000);
               } else if (domClass.contains(map_html, "close_map")) {
                 domClass.replace(map_html, "open_map", "close_map");
-                self.activateWindow(map_html);
+                setTimeout(function() {
+                  self.activateWindow(map_html)
+                }, 1000);
               } else {
                 domClass.add(map_html, "open_map");
-                self.activateWindow(map_html);
+                setTimeout(function() {
+                  self.activateWindow(map_html)
+                }, 1000);
               }
 
               domClass.toggle(panel_btn3, 'btn-clear');
