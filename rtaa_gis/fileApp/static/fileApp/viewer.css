@@ -31,6 +31,8 @@ input {
 #map {
     height: 100%;
     width: 100%;
+    margin:0;
+    padding:0;
 }
 
 .fileIcon {
@@ -129,51 +131,21 @@ input {
     left: calc(0% + 425px);
     right: 0;
     top: 0;
-    margin: 1px;
+    bottom: 0;
+    padding: 5px;
     height: 99%;
     /*font-size: 0.75rem;*/
     z-index: 10;
 }
 
 
-#_container.ropen {
-    animation-name: editropen;
-    animation-duration: 1s;
-    right: 300px;
-}
-
-@keyframes editropen {
-    from {
-        right: 0;
-    }
-
-    to {
-        right: 300px;
-    }
-}
-
-
-#_container.rclose {
-    animation-name: editrclose;
-    animation-duration: 0.5s;
-    right: 0;
-}
-
-@keyframes editrclose {
-    from {
-        right: 300px;
-    }
-
-    to {
-        right: 0;
-    }
-}
-
 #_slider_panel {
     display: none;
+    background-color: white;
     z-index:-1;
-    order: 3;
     height: 100%;
+    left: calc(0% + 425px);
+    position: absolute;
 }
 
 
@@ -181,10 +153,10 @@ input {
     display: inline-block;
     animation-duration: 1s;
     animation-name: slidein;
-    z-index: -1;
-    margin: 2px;
+    z-index: 100;
     width: 225px;
     height: 100%;
+    padding: 5px;
     overflow-y: scroll;
 }
 
@@ -196,43 +168,6 @@ input {
 
     to {
         width: 225px;
-    }
-}
-
-#_slider_panel.open_map {
-    width: 100%;
-    animation-duration: 1.5s;
-    animation-name: map-slidein;
-    height: 100%;
-    display: inline-block;
-}
-
-@keyframes map-slidein {
-    from {
-        width: 0;
-    }
-
-    to {
-        width: 100%;
-    }
-}
-
-#_slider_panel.open_from_trans {
-    display: inline-block;
-    width: 100%;
-    animation-duration: 1s;
-    animation-name: map-trans-slidein;
-    height: 100%;
-    overflow-y: scroll;
-}
-
-@keyframes map-trans-slidein {
-    from {
-        width: 225px;
-    }
-
-    to {
-        width: 100%;
     }
 }
 
@@ -256,47 +191,33 @@ input {
     }
 }
 
-#_slider_panel.close_to_trans {
-    display: inline-block;
-    animation-name: map-trans-slideout;
-    animation-duration: 0.5s;
-    height: 100%;
-    width: 225px;
-    overflow-y:scroll;
+#_map_group {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
-@keyframes map-trans-slideout {
-    from {
-        width: 100%;
-    }
-
-    to {
-        width: 225px;
-    }
+#_map_group.open_map {
+    display: block;
 }
 
-#_slider_panel.close_map {
-    animation-name: map-slideout;
+#_map_group.close_map {
+    animation-name: map-fadeout;
     animation-duration: 1s;
-    display: inline-block;
-    height: 100%;
+    opacity: 0.0;
 }
 
-@keyframes map-slideout {
+@keyframes map-fadeout {
     from {
-        width: 100%;
+        opacity: 1.0;
     }
 
     to {
-        width: 0;
+        opacity: 0.0;
     }
-}
-#_slider_flex_container {
-    /*display: flex;*/
-    /*position: absolute;*/
-    height: 100%;
-    width: 100%;
-
 }
 
 .panel_slide {
@@ -309,20 +230,11 @@ input {
     justify-content: space-between;
 }
 
-#_map_group.panel_slide.visible {
-    height: 100%;
-}
-
-/*#_map_group {*/
-    /*display: block;*/
-/*}*/
-
 #_resultBox {
     display: inline-block;
     background-color: white;
     height: 100%;
     overflow-y: scroll;
-    position: absolute;
     width: 100%;
     font-size: 0.75em;
 }
@@ -338,16 +250,16 @@ input {
 }
 
 #_update_panel {
-    order: 5;
     overflow-y: scroll;
-    padding: 10px;
-    top: 0;
+    padding: 5px;
+    top: 64px;
     left: 100%;
     right: 0;
     bottom: 0;
-    position: absolute;
+    position: fixed;
     z-index: 10;
     background-color: white;
+    outline: 1px gray solid;
 }
 
 #_update_panel.open {

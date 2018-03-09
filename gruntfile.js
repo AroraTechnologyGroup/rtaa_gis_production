@@ -36,6 +36,7 @@ module.exports = function(grunt) {
       all: [
         'gruntfile.js',
         'rtaa_gis/fileApp/static/fileApp/**/*.js',
+        '!rtaa_gis/fileApp/static/fileApp/calcite-web.js',
         '!rtaa_gis/fileApp/static/fileApp/pdfjs/**/*.js',
         'tests/**/*.js'
       ]

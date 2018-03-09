@@ -3,7 +3,6 @@ define([
   "fileApp/widgets/drawToolbar",
   "dojo/dom-construct",
   "esri/map"
-
 ], function(
   App,
   DrawToolbar,
