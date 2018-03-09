@@ -25,6 +25,8 @@ require([
     "dijit/Menu",
     "dijit/popup",
     "dijit/MenuItem",
+    "dijit/layout/BorderContainer",
+    "dijit/layout/ContentPane",
     "esri/IdentityManager",
     "dojo/NodeList-traverse",
     'dojo/domReady!'
@@ -55,6 +57,8 @@ require([
         Menu,
         popup,
         MenuItem,
+        BorderContainer,
+        ContentPane,
         esriId
         ) {
             parser.parse();
