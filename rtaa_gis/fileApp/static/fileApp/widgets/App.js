@@ -64,7 +64,7 @@ define([
       var panel_btn = dom.byId('_file_type_handle');
       var panel_btn2 = dom.byId('_doc_type_handle');
       var panel_btn3 = dom.byId('_map_handle');
-      var panel_btn4 = dom.byId('_edit_handle');
+      var panel_btn4 = dom.byId('_attribute_handle');
       var panel_btn5 = dom.byId('_batch_edit_handle');
 
       var slider_panel = dom.byId('_slider_panel');
@@ -250,12 +250,12 @@ define([
               } else if (domClass.contains(map_html, "close_map")) {
                 domClass.replace(map_html, "open_map", "close_map");
                 setTimeout(function() {
-                  self.activateWindow(map_html)
+                  self.activateWindow(map_html);
                 }, 1000);
               } else {
                 domClass.add(map_html, "open_map");
                 setTimeout(function() {
-                  self.activateWindow(map_html)
+                  self.activateWindow(map_html);
                 }, 1000);
               }
 
@@ -266,13 +266,7 @@ define([
           if (panel_btn4) {
             on(panel_btn4, 'click', function (event) {
               event.preventDefault();
-              // if the map button is active, click it to close the map
-              if (!domClass.contains(panel_btn3, "btn-clear")) {
-                on.emit(panel_btn3, "click", {
-                  "bubbles": false
-                });
-              }
-
+              // open the file attribute viewer
 
               domClass.toggle(panel_btn4, 'btn-clear');
 

@@ -30,7 +30,7 @@
                     </span>
 {#                    {% if 'Arora' in groups or '_RTAA_GIS' in groups %}#}
                     <span>
-                        <button id="_edit_handle" class="btn btn-clear">Update</button>
+                        <button id="_attribute_handle" class="btn btn-clear">Attributes</button>
                     </span>
 {#                    <span>#}
 {#                        <button id="_batch_edit_handle" class="btn btn-clear">Batch Update</button>#}
@@ -49,6 +49,7 @@
                                 {% endif %}
                             </div>
                         {% elif field.name == 'sheet_type' or field.name == 'discipline' or field.name == 'airport' or field.name == 'funding_type'%}
+{#                            these fields require the list forma widgets#}
                              <div class="fieldWrapper form-group inline-list">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
@@ -199,6 +200,9 @@
             <div id="_update_panel">
                 {% if '_RTAA Planning and Engineering' in groups %}
                     <input class="btn-green btn-fill" type="submit" value="Save" />
+                    <p class="font-size--5 text-center text-rule">File Attributes Editor/Viewer</p>
+                    {% else %}
+                    <p class="font-size--5 text-center text-rule">File Attributes Viewer</p>
                 {% endif %}
                     <div id="_edit_file_name"></div>
                     {% for field in edit_form.hidden_fields %}
@@ -232,7 +236,7 @@
 
                     {% endfor %}
                 {% if '_RTAA Planning and Engineering' in groups %}
-                    <input class="btn btn-fill" type="submit" value="Save" />
+                    <input class="btn-green btn-fill" type="submit" value="Save" />
                 {% endif %}
             </div>
         </form>
