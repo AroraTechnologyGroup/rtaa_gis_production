@@ -89,37 +89,43 @@ class FileTypes:
         tiff = {"tiff": "image/tiff"}
         dwg = {"dwg": "image/vnd.dwg"}
         lyr = {"lyr": "application/octet-stream"}
+        lpk = {"lpk": "application/octet-stream"}
         mpk = {"mpk": "application/octet-stream"}
         mxd = {"mxd": "application/octet-stream"}
+        pptx = {"pptx": "application/octet-stream"}
         img = {"img": "image/img"}
+        zip = {"zip": "application/zip"}
 
         self.file_type_choices = {
             "PDF": pdf,
-            "Open Office doc": odt,
+            "Open Office Doc": odt,
             "Open Office Sheet": ods,
             "Open Office Presentation": odp,
-            "MS Word doc": msdoc,
-            "MS Word docx": msdocx,
+            "MS Word Doc": msdoc,
+            "MS Word Docx": msdocx,
+            "MS Power Point": pptx,
             "Text": text,
-            "MS Excel xls": excel1,
-            "MS Excel xlsx": excel2,
+            "MS Excel Xls": excel1,
+            "MS Excel Xlsx": excel2,
             "CSV Spreadsheet": csv,
             "PNG Image": png,
             "JPEG Image": jpeg,
             "IMG Image": img,
             "TIFF Image": tiff,
-            "AutoCad dwg": dwg,
+            "AutoCad Dwg": dwg,
             "ESRI Layer File": lyr,
+            "ESRI Layer Package": lpk,
             "ESRI Map Package": mpk,
-            "ESRI Map Document": mxd
+            "ESRI Map Document": mxd,
+            "ZIP File": zip
         }
 
         self.FILE_VIEWER_TYPES = []
-        for f in ["PDF", "Open Office doc", "MS Word doc", "MS Word docx", "Open Office Presentation", "Text"]:
+        for f in ["ZIP File", "MS Power Point", "PDF", "Open Office Doc", "MS Word Doc", "MS Word Docx", "Open Office Presentation", "Text"]:
             self.FILE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.TABLE_VIEWER_TYPES = []
-        for f in ["Open Office Sheet", "MS Excel xls", "MS Excel xlsx", "CSV Spreadsheet"]:
+        for f in ["Open Office Sheet", "MS Excel Xls", "MS Excel Xlsx", "CSV Spreadsheet"]:
             self.TABLE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.IMAGE_VIEWER_TYPES = []
@@ -127,7 +133,7 @@ class FileTypes:
             self.IMAGE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.GIS_VIEWER_TYPES = []
-        for f in ["AutoCad dwg", "ESRI Layer File", "ESRI Map Package", "ESRI Map Document"]:
+        for f in ["ESRI Layer Package", "AutoCad Dwg", "ESRI Layer File", "ESRI Map Package", "ESRI Map Document"]:
             self.GIS_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.ALL_FILE_TYPES = dict(self.FILE_VIEWER_TYPES)
