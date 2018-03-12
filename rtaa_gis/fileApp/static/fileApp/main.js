@@ -182,20 +182,11 @@ require([
                 map = e.map;
                 app.set('map', map);
 
-                // only create the drawToolbar if the user is an editor
-                var auth_panel = dom.byId("_auth_panel");
-                var groups = query("._auth_group", auth_panel);
-                Array.some(groups, function(e) {
-                  if (e.innerHTML.trim() === "_RTAA Planning and Engineering") {
-                    var widget = new drawToolbar({
-                      map: map,
-                      id: "_draw_bar"
-                    }, "widgetNode");
-                    // widget.startup();
-                    return true;
-                  } else {
-                    return false;
-                  }
-                });
+                var widget = new drawToolbar({
+                  map: map,
+                  id: "_draw_bar"
+                }, "widgetNode");
+                // widget.startup();
+
             });
         });

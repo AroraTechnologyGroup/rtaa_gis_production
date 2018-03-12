@@ -30,6 +30,7 @@ define([
     "dojo/Deferred",
     "dojo/cookie",
     "dojo/parser",
+    "dojo/query",
     
     "dijit/registry",
     "dijit/ConfirmDialog",
@@ -72,6 +73,7 @@ define([
     Deferred,
     cookie,
     parser,
+    query,
   
     registry,
     ConfirmDialog,
@@ -106,7 +108,18 @@ define([
               autofocus: false
             });
             var content = domConstruct.create("div", {"id": "_dialogBox"});
-            var text = `<b>SEARCH</b> - If you are interested in locating files </br>\
+
+            var text;
+            var auth_node = dom.byId("_auth_panel");
+            var edit_lvl = Array.some(query("._auth_group", auth_node), function(e) {
+              if (e.innerHTML.trim() === "_RTAA Planning and Engineering") {
+                return true;
+              } else {
+                return false;
+              }
+            });
+            if (edit_lvl) {
+              text = `<b>SEARCH</b> - If you are interested in locating files </br>\
                 that have been assigned to these cells,</br>\
                 click the blue Search button.</br>\
                 </br>\
@@ -151,6 +164,21 @@ define([
                 <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
                 <label for='dialogOptOut'>Do not show this dialog again</label>
                 `;
+            } else {
+              text = `<b>SEARCH</b> - If you are interested in locating files </br>\
+                  that have been assigned to these cells,</br>\
+                  click the blue Search button.</br>\
+                  </br>\
+                  <ul>
+                      <li>
+                      The selected grid cells have already been added</br>\
+                      to the "Grid Cells:" text input.
+                      </li>
+                  </ul>
+                  <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
+                  <label for='dialogOptOut'>Do not show this dialog again</label>
+                  `;
+            }
             domConstruct.place(text, content);
             self.cellDialog.set("content", content);
 
