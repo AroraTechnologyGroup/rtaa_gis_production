@@ -81,11 +81,11 @@
                         {{ request.user.username }}
                     </a>
                     <nav class="dropdown-menu dropdown-right">
-                        <div class="dropdown-link">
+                        <div class="dropdown-link" id="_auth_panel">
                             <p class="trailer-0">{{ request.user.username }} on {%  now "DATE_FORMAT" %}</p>
                             <small>profile information</small>
                             {%  for group in groups %}
-                                <p class="trailer-0"> {{ group }}</p>
+                                <p class="trailer-0 _auth_group"> {{ group }}</p>
                             {% endfor %}
                         </div>
                         {% if request.user.is_staff %}
