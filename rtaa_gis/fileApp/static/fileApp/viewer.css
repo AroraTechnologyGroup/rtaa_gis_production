@@ -1,4 +1,5 @@
 @import url("./widgets/resources/drawToolbar.css");
+@import url("//js.arcgis.com/3.23/dojox/widget/Toaster/Toaster.css");
 
 .wrapper {
         background-image: none
@@ -35,16 +36,61 @@ input {
     padding:0;
 }
 
-.fileIcon {
-    display: inline-block;
-    margin: 10px;
-    padding: 10px;
-    height: 50px;
-    position: relative;
+#attribute_popup {
+    display: none;
+}
+
+.icon-container {
+    width: 125px;
+    height: 144px;
 }
 
 .fileIcon {
     display: inline-block;
+    position: relative;
+    width: 100px;
+    background-color: white;
+    margin: auto;
+}
+
+
+div.fileIcon.hover-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.1, 1.1);
+    padding: 2px;
+    z-index: 100;
+    margin: 5px;
+}
+
+div.fileIcon.hover-file::after {
+    content: '';
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 2px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease-in-out;
+}
+
+div.fileIcon.hover-file:hover::after {
+    opacity: 1;
+}
+
+div.selected-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    border: 1px solid #0079c1;
+    padding: 2px;
+}
+
+div.icon-image.hover-image {
+    transition: all 0.3s ease-in-out;
+    transform: scale(0.9, 0.9);
 }
 
 #_buttons span {
@@ -136,8 +182,40 @@ input {
     height: 99%;
     /*font-size: 0.75rem;*/
     z-index: 10;
+    margin-right: 5px;
 }
 
+#_container.ropen {
+    right: 300px;
+    animation-duration: 0.5s;
+    animation-name: container_ropen;
+    animation-timing-function: linear;
+}
+
+@keyframes container_ropen {
+    from {
+        right: 0;
+    }
+    to {
+        right: 300px;
+    }
+}
+
+#_container.rclose {
+    right: 0;
+    animation-duration: 0.5s;
+    animation-name: container_rclose;
+    animation-timing-function: linear;
+}
+
+@keyframes container_rclose {
+    from {
+        right: 300px;
+    }
+    to {
+        right: 0;
+    }
+}
 
 #_slider_panel {
     display: none;
@@ -150,20 +228,21 @@ input {
 
 
 #_slider_panel.open {
-    display: inline-block;
-    animation-duration: 1s;
+    display: inline-grid;
+    animation-duration: 0.5s;
     animation-name: slidein;
+    animation-timing-function: ease-in;
     z-index: 100;
     width: 225px;
     height: 100%;
     padding: 5px;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 @keyframes slidein {
     from {
         width: 0;
-
     }
 
     to {
@@ -175,6 +254,7 @@ input {
     display: inline-block;
     animation-duration: 0.5s;
     animation-name: slideout;
+    animation-timing-function: ease-in;
     z-index: -1;
     margin: 2px;
     width: 0;
@@ -192,7 +272,7 @@ input {
 }
 
 #_map_group {
-    display: none;
+    opacity: 0.0;
     position: absolute;
     top: 0;
     left: 0;
@@ -202,6 +282,19 @@ input {
 
 #_map_group.open_map {
     display: block;
+    opacity: 1.0;
+    animation-name: map-fadein;
+    animation-duration: 1s;
+}
+
+@keyframes map-fadein {
+    from {
+        opacity: 0.0;
+    }
+
+    to {
+        opacity: 1.0;
+    }
 }
 
 #_map_group.close_map {
@@ -227,16 +320,37 @@ input {
 .panel_slide.visible {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+}
+
+#_resultContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 #_resultBox {
-    display: inline-block;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-content: flex-start;
+    height: 95%;
     background-color: white;
-    height: 100%;
+    /*height: 100%;*/
     overflow-y: scroll;
-    width: 100%;
+    /*width: 100%;*/
     font-size: 0.75em;
+    overflow-x: hidden;
+    padding-top: 15px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 
 #_resultBox > div:hover {
@@ -251,7 +365,8 @@ input {
 
 #_update_panel {
     overflow-y: scroll;
-    padding: 5px;
+    overflow-x: hidden;
+    padding-top: 5px;
     top: 64px;
     left: 100%;
     right: 0;
@@ -259,12 +374,16 @@ input {
     position: fixed;
     z-index: 10;
     background-color: white;
-    outline: 1px gray solid;
+    display: inline-grid;
+    width: 295px;
+    padding-right: 8px;
+    padding-bottom: 5px;
 }
 
 #_update_panel.open {
     animation-name: openpanel;
-    animation-duration: 1s;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
     left: calc(100% - 300px);
 }
 
@@ -285,6 +404,7 @@ input {
 #_update_panel.close {
     animation-name: closepanel;
     animation-duration: 0.5s;
+    animation-timing-function: linear;
     left: 100%;
 }
 
@@ -352,9 +472,8 @@ input {
     z-index: 10;
     display: inline;
     position: absolute;
-    top: 5px;
-    left: 5px;
-    right: 5px;
+    top: 0;
+    left: 0;
 }
 
 
