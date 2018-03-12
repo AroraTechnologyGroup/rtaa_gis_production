@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/dijit/themes/claro/claro.css">
     <link rel="stylesheet" type="text/css" href="{%  static 'fileApp/viewer.css' %}"/>
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    {% include 'fileApp/css/templated_styles.html' %}
 {% endblock %}
 
 {% block content %}
@@ -30,7 +31,7 @@
                     </span>
 {#                    {% if 'Arora' in groups or '_RTAA_GIS' in groups %}#}
                     <span>
-                        <button id="_edit_handle" class="btn btn-clear">Update</button>
+                        <button id="_attribute_handle" class="btn btn-clear">Attributes</button>
                     </span>
 {#                    <span>#}
 {#                        <button id="_batch_edit_handle" class="btn btn-clear">Batch Update</button>#}
@@ -49,6 +50,7 @@
                                 {% endif %}
                             </div>
                         {% elif field.name == 'sheet_type' or field.name == 'discipline' or field.name == 'airport' or field.name == 'funding_type'%}
+{#                            these fields require the list forma widgets#}
                              <div class="fieldWrapper form-group inline-list">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
@@ -111,73 +113,45 @@
                         <div id="widgetNode"></div>
                     </div>
                 </div>
-                <div id="_resultBox">
-                    {% if not efiles|length %}
-                        <div>No results returned</div>
-                    {% else %}
-                        {% for file in efiles %}
-                            {% if file.file_type in viewable_types %}
-                            <div class="fileIcon viewable"
-                            {% else %}
-                            <div class="fileIcon non-viewable"
-                            {% endif %}
-                                 data-file-id="{{ file.id }}"
-                                 data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
-                                 data-file-path="{{ file.file_path }}"
-                                 data-file-base-name="{{ file.base_name }}"
-                                 data-file-grid-cells="{{ file.grid_cells.all|join:"," }}"
-                                 data-file-project-title="{{ file.project_title }}"
-                                 data-file-project-desc="{{ file.project_description }}"
-                                 data-file-project-date="{{ file.project_date|date:"Y-m-d" }}"
-                                 data-file-sheet-title="{{ file.sheet_title }}"
-                                 data-file-sheet-type="{{ file.sheet_type.all|join:"," }}"
-                                 data-file-doc-type="{{ file.document_type.all|join:"," }}"
-                                 data-file-sheet-desc="{{ file.sheet_description }}"
-                                 data-file-vendor="{{ file.vendor }}"
-                                 data-file-discipline="{{ file.discipline.all|join:"," }}"
-                                 data-file-airport="{{ file.airport }}"
-                                 data-file-funding-type="{{ file.funding_type }}"
-                                 data-file-grant-number="{{ file.grant_number }}">
+                <div id="_resultContainer">
+                    <div id="_resultBox">
+                        {% if not efiles|length %}
+                            <div>No results returned</div>
+                        {% else %}
+                            {% for file in efiles %}
+                                <div class="icon-container">
+                                    {% if file.file_type in viewable_types %}
+                                    <div class="fileIcon viewable"
+                                    {% else %}
+                                    <div class="fileIcon non-viewable"
+                                    {% endif %}
+                                         data-file-id="{{ file.id }}"
+                                         data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
+                                         data-file-path="{{ file.file_path }}"
+                                         data-file-base-name="{{ file.base_name }}"
+                                         data-file-grid-cells="{{ file.grid_cells.all|join:"," }}"
+                                         data-file-project-title="{{ file.project_title }}"
+                                         data-file-project-desc="{{ file.project_description }}"
+                                         data-file-project-date="{{ file.project_date|date:"Y-m-d" }}"
+                                         data-file-sheet-title="{{ file.sheet_title }}"
+                                         data-file-sheet-type="{{ file.sheet_type.all|join:"," }}"
+                                         data-file-doc-type="{{ file.document_type.all|join:"," }}"
+                                         data-file-sheet-desc="{{ file.sheet_description }}"
+                                         data-file-vendor="{{ file.vendor }}"
+                                         data-file-discipline="{{ file.discipline.all|join:"," }}"
+                                         data-file-airport="{{ file.airport }}"
+                                         data-file-funding-type="{{ file.funding_type }}"
+                                         data-file-grant-number="{{ file.grant_number }}">
 
-                                {% if file.file_type == 'pdf' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/pdf_96.png' %}"/>
-                                {% elif file.file_type == 'mxd' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mxd_96.png' %}"/>
-                                {% elif file.file_type == 'mpk' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mpk_96.png' %}"/>
-                                {% elif file.file_type == 'lyr' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lyr_96.png' %}"/>
-                                {% elif file.file_type == 'lpk' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lpk_96.png' %}"/>
-                                {% elif file.file_type == 'dwg' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/dwg_96.png' %}"/>
-                                {% elif file.file_type == 'docx' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/docx_96.png' %}"/>
-                                {% elif file.file_type == 'doc' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/doc_96.png' %}"/>
-                                {% elif file.file_type == 'jpg' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/jpeg_96.png' %}"/>
-                                {% elif file.file_type == 'img' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/img_96.png' %}"/>
-                                {% elif file.file_type == 'png' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/png_96.png' %}"/>
-                                {% elif file.file_type == 'pptx' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/pptx_96.png' %}"/>
-                                {% elif file.file_type == 'txt' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/txt_96.png' %}"/>
-                                {% elif file.file_type == 'tiff' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/tiff_96.png' %}"/>
-                                {% elif file.file_type == 'zip' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/zip_96.png' %}"/>
-                                {% elif file.file_type == 'xls' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xls_96.png' %}"/>
-                                {% elif file.file_type == 'xlsx' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xlsx_96.png' %}"/>
-                                {% endif %}
-                                 <div title="{{ file.base_name }}">{{ file.base_name|truncatechars:18 }}</div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                                            <div class="{{ file.file_type }}-icon icon-image">
+                                             {{ file.base_name|truncatechars:29 }}
+                                            </div>
+                                            <div id="_{{ file.id }}_toast"></div>
+                                        </div>
+                                    </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                     <div class="pagination">
                         <span class="step-links">
                             {% if efiles.has_previous %}
@@ -199,6 +173,9 @@
             <div id="_update_panel">
                 {% if '_RTAA Planning and Engineering' in groups %}
                     <input class="btn-green btn-fill" type="submit" value="Save" />
+                    <p class="font-size--5 text-center text-rule">File Attributes Editor/Viewer</p>
+                    {% else %}
+                    <p class="font-size--5 text-center text-rule">File Attributes Viewer</p>
                 {% endif %}
                     <div id="_edit_file_name"></div>
                     {% for field in edit_form.hidden_fields %}
@@ -231,8 +208,8 @@
                         {% endif %}
 
                     {% endfor %}
-                {% if '_RTAA Planning and Engineering' in groups or 'Arora' in groups %}
-                    <input class="btn btn-fill" type="submit" value="Save" />
+                {% if '_RTAA Planning and Engineering' in groups %}
+                    <input class="btn-green btn-fill" type="submit" value="Save" />
                 {% endif %}
             </div>
         </form>

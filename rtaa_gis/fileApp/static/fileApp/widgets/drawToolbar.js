@@ -112,39 +112,39 @@ define([
                 </br>\
                 <ul>
                     <li>
-                    The selected grid cells have been added</br>\
+                    The selected grid cells have already been added</br>\
                     to the "Grid Cells:" text input.
                     </li>
                 </ul>
            
                 or</br>\
                 </br>\
-                <b>UPDATE</b> - To create an assignment</br>\
-                between the grid cells and a file,</br>\
-                click the Update button at the</br>\
-                bottom of the far left pane.</br>\
+                <b>UPDATE</b> - To assign</br>\
+                the grid cell(s) to a file,</br>\
+                click the Attributes button.</br>\
                  </br>\
                 <ul>
                     <li>
-                    This will close the map</br>\
-                    and open the file browser</br>\
-                    along with the Attribute panel.</br>\
+                    This will open the Attribute panel.</br>\
                     </li>
                     <li>
                     The grid cells</br>\
-                    have been added into the</br>\
+                    have already been added into the</br>\
                     "New Grid Cells" area.</br>\
                     of the Attribute Panel</br>\
                     </li>
                     <li>
                     If a file name is not shown in the Attribute panel,</br>\
                     then a file is not selected.</br>\
+                    Click Map to close the map.</br>\
                     Click on the desired file in the file browser</br>\
                     window to select it.</br>\
                     </li>
                     <li>
-                    If editing is available</br>\
-                    clicking Save in the Attribute panel</br>\
+                    Currently only one file can be selected and updated at a time.</br>\
+                    </li>
+                    <li>
+                    Clicking Save in the Attribute panel</br>\
                     will assign the grid cells to the selected file.</br>\
                     </li>
                   </ul>
@@ -223,30 +223,39 @@ define([
           var optOut = registry.byId('dialogOptOut');
           var select_btn = self.Select;
           var draw_bar = self.draw_bar;
-          on(okButton, 'click', function(evt) {
-            if (optOut.checked) {
-              self.optOut = true;
-            } else {
-              self.optOut = false;
-            }
-          });
 
-          on(cancelButton, 'click', lang.hitch(self, function(evt) {
-              optOut.set('checked', false);
-          }));
-
-          on(select_btn, 'click', function(evt) {
-            window.calcite.stopPropagation(evt);
-            window.calcite.bus.emit('dropdown:toggle', {
-              node: self._dropdown
+          if (okButton) {
+            on(okButton, 'click', function (evt) {
+              if (optOut.checked) {
+                self.optOut = true;
+              } else {
+                self.optOut = false;
+              }
             });
-          });
+          }
 
-          window.calcite.bus.on('dropdown:toggle', function (options) {
-            console.log(options.node);
-            // this is needed to override the css rules for dropdown ??bug??
-            domClass.toggle(self._menu, "display", null);
-          });
+          if (cancelButton) {
+            on(cancelButton, 'click', lang.hitch(self, function (evt) {
+              optOut.set('checked', false);
+            }));
+          }
+
+          if (select_btn) {
+            on(select_btn, 'click', function (evt) {
+              window.calcite.stopPropagation(evt);
+              window.calcite.bus.emit('dropdown:toggle', {
+                node: self._dropdown
+              });
+            });
+          }
+
+          if (window.calcite) {
+            window.calcite.bus.on('dropdown:toggle', function (options) {
+              console.log(options.node);
+              // this is needed to override the css rules for dropdown ??bug??
+              domClass.toggle(self._menu, "display", null);
+            });
+          }
 
           // Add the events to the draw buttons
           Array.forEach(["Point", "Multi Point", "Polygon", "Freehand Polygon", "Ellipse", "Circle"], function(e) {

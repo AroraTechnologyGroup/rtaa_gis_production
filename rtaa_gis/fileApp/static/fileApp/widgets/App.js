@@ -6,7 +6,7 @@ define([
   "dojo/_base/declare",
   "dojo/request",
   "dojo/mouse",
-  // "dojo/parser",
+  "dojo/parser",
   "dojo/cookie",
   "dojo/json",
   "dojo/hash",
@@ -22,7 +22,10 @@ define([
   "esri/geometry/Point",
   "esri/SpatialReference",
 
+  "dojox/widget/Toaster",
+
   'dijit/registry',
+    "dijit/layout/ContentPane",
   "dijit/Menu",
   "dijit/popup",
   "dijit/MenuItem",
@@ -38,7 +41,7 @@ define([
       declare,
       request,
       mouse,
-      // parser,
+      parser,
       cookie,
       JSON,
       hash,
@@ -54,7 +57,10 @@ define([
       Point,
       SpatialReference,
 
+      Toaster,
+
       registry,
+      ContentPane,
       Menu,
       popup,
       MenuItem,
@@ -64,7 +70,7 @@ define([
       var panel_btn = dom.byId('_file_type_handle');
       var panel_btn2 = dom.byId('_doc_type_handle');
       var panel_btn3 = dom.byId('_map_handle');
-      var panel_btn4 = dom.byId('_edit_handle');
+      var panel_btn4 = dom.byId('_attribute_handle');
       var panel_btn5 = dom.byId('_batch_edit_handle');
 
       var slider_panel = dom.byId('_slider_panel');
@@ -74,7 +80,7 @@ define([
       var map_html = dom.byId('_map_group');
 
       var _container = dom.byId('_container');
-      var _result_box = dom.byId('_resultBox');
+      var _result_box = dom.byId('_resultContainer');
       var update_panel = dom.byId('_update_panel');
 
       var ftype_all = dom.byId('all_file_type_select_all');
@@ -88,26 +94,9 @@ define([
       var grid_search_list = dom.byId('id_grid_cells');
       var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
-      // add the DRF class names to the django fieldWrapper to get the calendar
-      Array.forEach(query('.fieldWrapper'), function (e) {
-        // domClass.add(e, 'form-group');
-      });
-
-      Array.forEach(query('.fieldWrapper input'), function (e) {
-        // domClass.add(e, 'form-control');
-      });
-
-      // make the multi-select boxes side by side
-      Array.forEach(query('.fieldWrapper > select').parent(), function (e) {
-        // domClass.add(e, 'inline');
-      });
-
-      Array.forEach(query('.fieldWrapper > ul').parent(), function (e) {
-        // domClass.add(e, 'inline-list');
-      });
 
       var btn_accrd = query('button.accordion');
-      var icons = query('.fileIcon');
+      var icons = query('.icon-container');
       var f_nodes = query('#id_file_type input');
       var d_nodes = query('#id_image_type input');
       var t_nodes = query('#id_table_type input');
@@ -122,9 +111,11 @@ define([
         constructor: function() {
           this.inherited(arguments);
         },
+
         postCreate: function () {
           this.inherited(arguments);
           var self = this;
+
           var view_menu = self.view_menu = new Menu({
             targetNodeIds: ["_resultBox"],
             selector: ".fileIcon.viewable"
@@ -261,13 +252,19 @@ define([
 
               if (domClass.contains(map_html, "open_map")) {
                 domClass.replace(map_html, "close_map", "open_map");
-                self.activateWindow(_result_box);
+                setTimeout(function() {
+                  self.activateWindow(_result_box);
+                }, 1000);
               } else if (domClass.contains(map_html, "close_map")) {
                 domClass.replace(map_html, "open_map", "close_map");
-                self.activateWindow(map_html);
+                setTimeout(function() {
+                  self.activateWindow(map_html);
+                }, 1000);
               } else {
                 domClass.add(map_html, "open_map");
-                self.activateWindow(map_html);
+                setTimeout(function() {
+                  self.activateWindow(map_html);
+                }, 1000);
               }
 
               domClass.toggle(panel_btn3, 'btn-clear');
@@ -277,13 +274,7 @@ define([
           if (panel_btn4) {
             on(panel_btn4, 'click', function (event) {
               event.preventDefault();
-              // if the map button is active, click it to close the map
-              if (!domClass.contains(panel_btn3, "btn-clear")) {
-                on.emit(panel_btn3, "click", {
-                  "bubbles": false
-                });
-              }
-
+              // open the file attribute viewer
 
               domClass.toggle(panel_btn4, 'btn-clear');
 
@@ -309,39 +300,108 @@ define([
 
           if (icons) {
             Array.forEach(icons, function (div) {
+              // get the icon-image node child and fileIcon div
+              // get all data-atts on the icon and place data in the update form
+              var file_icon = query(".fileIcon", div)[0];
+              var icon_image = query(".icon-image", div)[0];
+
+
+              var file_id = domAttr.get(file_icon, 'data-file-id');
+              var date_added = domAttr.get(file_icon, 'data-file-date-added');
+              var file_path = domAttr.get(file_icon, 'data-file-path');
+              var base_name = domAttr.get(file_icon, 'data-file-base-name');
+              var grid_cells = domAttr.get(file_icon, 'data-file-grid-cells');
+              var project_title = domAttr.get(file_icon, 'data-file-project-title');
+              var project_desc = domAttr.get(file_icon, 'data-file-project-desc');
+              var project_date = domAttr.get(file_icon, 'data-file-project-date');
+              var sheet_title = domAttr.get(file_icon, 'data-file-sheet-title');
+              var sheet_type = domAttr.get(file_icon, 'data-file-sheet-type');
+              var doc_type = domAttr.get(file_icon, 'data-file-doc-type');
+              var sheet_desc = domAttr.get(file_icon, 'data-file-sheet-desc');
+              var vendor = domAttr.get(file_icon, 'data-file-vendor');
+              var discipline = domAttr.get(file_icon, 'data-file-discipline');
+              var airport = domAttr.get(file_icon, 'data-file-airport');
+              var funding_type = domAttr.get(file_icon, 'data-file-funding-type');
+              var grant_number = domAttr.get(file_icon, 'data-file-grant-number');
+
+              var toast_node = query("#_"+file_id+"_toast");
+              var myToaster = new Toaster({id: '_'+file_id+'_toast'}, toast_node[0]);
+
+              var fields = [];
+              if (project_title && project_title !== "None") {
+                fields.push(project_title);
+              }
+              if (project_date && project_date !== "None") {
+                fields.push(project_date);
+              }
+              if (sheet_title && sheet_title !== "None") {
+                fields.push(sheet_title);
+              }
+              if (discipline && discipline !== "None") {
+                fields.push(discipline);
+              }
+
+              var content;
+              if (fields.length) {
+                content = fields.join("</br></br>");
+              } else {
+                content = [base_name, date_added].join("</br></br>");
+              }
+
+              myToaster.setContent(content);
+
+              on(div, mouse.enter, function(evt) {
+                domClass.add(div, "hover-div");
+                domClass.add(icon_image, "hover-image");
+                domClass.add(file_icon, "hover-file");
+                myToaster.show();
+
+              });
+              on(div, mouse.leave, function(evt) {
+                domClass.remove(div, "hover-div");
+                domClass.remove(file_icon, "hover-file");
+                domClass.remove(icon_image, "hover-image");
+                myToaster.hide();
+              });
+
               on(div, 'click', function (evt) {
                 console.log(evt);
                 // close the context menu
                 Array.forEach([self.view_menu, self.non_view_menu], function (e) {
                   popup.close(e);
                 });
-                // get all data-atts on the icon and place data in the update form
-                var file_id = domAttr.get(div, 'data-file-id');
-                var date_added = domAttr.get(div, 'data-file-date-added');
-                var file_path = domAttr.get(div, 'data-file-path');
-                var base_name = domAttr.get(div, 'data-file-base-name');
-                var grid_cells = domAttr.get(div, 'data-file-grid-cells');
-                var project_title = domAttr.get(div, 'data-file-project-title');
-                var project_desc = domAttr.get(div, 'data-file-project-desc');
-                var project_date = domAttr.get(div, 'data-file-project-date');
-                var sheet_title = domAttr.get(div, 'data-file-sheet-title');
-                var sheet_type = domAttr.get(div, 'data-file-sheet-type');
-                var doc_type = domAttr.get(div, 'data-file-doc-type');
-                var sheet_desc = domAttr.get(div, 'data-file-sheet-desc');
-                var vendor = domAttr.get(div, 'data-file-vendor');
-                var discipline = domAttr.get(div, 'data-file-discipline');
-                var airport = domAttr.get(div, 'data-file-airport');
-                var funding_type = domAttr.get(div, 'data-file-funding-type');
-                var grant_number = domAttr.get(div, 'data-file-grant-number');
 
                 if (mouse.isLeft(evt)) {
-                  // populate the edit form with these values
-                  if (!domClass.contains(update_panel, 'open')) {
-                    on.emit(panel_btn4, "click", {
-                      bubbles: true,
-                      cancelable: true
+                  // TODO -to allow for multiple selection a table must be used to render results
+                  // right click is handled by the Menu Popup
+                  var nodes = query(".selected-file", _result_box);
+                  if (nodes) {
+                    // check if the clicked file is already selected
+                    var should_disable = Array.some(nodes, function (e) {
+                      return (e === file_icon);
                     });
+
+                    if (should_disable) {
+                      domClass.remove(file_icon, "selected-file");
+                    } else {
+                      Array.forEach(nodes, function(node) {
+                        // disable all other selected files; there currently can be only one selected file
+                        domClass.remove(node, "selected-file");
+                      });
+                      domClass.add(file_icon, "selected-file");
+                    }
+                  } else {
+                    domClass.add(file_icon, "selected-file");
                   }
+
+
+                  // open the attribute form
+                  // if (!domClass.contains(update_panel, 'open')) {
+                  //   on.emit(panel_btn4, "click", {
+                  //     bubbles: true,
+                  //     cancelable: true
+                  //   });
+                  // }
 
                   dom.byId('id_edit_id').value = file_id;
 
@@ -609,7 +669,7 @@ define([
         },
 
         checkPanel: function (event) {
-
+            // this method controls whether to open or close the left slider panel
             var deferred = new Deferred();
             var target = event.target;
             // if the slider panel is not open, open it.
