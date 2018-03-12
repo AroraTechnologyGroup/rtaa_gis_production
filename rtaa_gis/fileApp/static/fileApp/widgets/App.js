@@ -373,7 +373,7 @@ define([
 
                 if (mouse.isLeft(evt)) {
                   // TODO -to allow for multiple selection a table must be used to render results
-                  // right click is handles by the Menu Popup
+                  // right click is handled by the Menu Popup
                   var nodes = query(".selected-file", _result_box);
                   if (nodes) {
                     // check if the clicked file is already selected
