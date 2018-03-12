@@ -1,4 +1,5 @@
 @import url("./widgets/resources/drawToolbar.css");
+@import url("//js.arcgis.com/3.23/dojox/widget/Toaster/Toaster.css");
 
 .wrapper {
         background-image: none
@@ -35,16 +36,61 @@ input {
     padding:0;
 }
 
-.fileIcon {
-    display: inline-block;
-    margin: 10px;
-    padding: 10px;
-    height: 50px;
-    position: relative;
+#attribute_popup {
+    display: none;
+}
+
+.icon-container {
+    width: 125px;
+    height: 144px;
 }
 
 .fileIcon {
     display: inline-block;
+    position: relative;
+    width: 100px;
+    background-color: white;
+    margin: auto;
+}
+
+
+div.fileIcon.hover-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.1, 1.1);
+    padding: 2px;
+    z-index: 100;
+    margin: 5px;
+}
+
+div.fileIcon.hover-file::after {
+    content: '';
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 2px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease-in-out;
+}
+
+div.fileIcon.hover-file:hover::after {
+    opacity: 1;
+}
+
+div.selected-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    border: 1px solid #0079c1;
+    padding: 2px;
+}
+
+div.icon-image.hover-image {
+    transition: all 0.3s ease-in-out;
+    transform: scale(0.9, 0.9);
 }
 
 #_buttons span {
@@ -141,9 +187,9 @@ input {
 
 #_container.ropen {
     right: 300px;
-    animation-duration: 1s;
+    animation-duration: 0.5s;
     animation-name: container_ropen;
-    animation-timing-function: ease-out;
+    animation-timing-function: linear;
 }
 
 @keyframes container_ropen {
@@ -157,9 +203,9 @@ input {
 
 #_container.rclose {
     right: 0;
-    animation-duration: 1s;
+    animation-duration: 0.5s;
     animation-name: container_rclose;
-    animation-timing-function: ease-out;
+    animation-timing-function: linear;
 }
 
 @keyframes container_rclose {
@@ -182,20 +228,21 @@ input {
 
 
 #_slider_panel.open {
-    display: inline-block;
-    animation-duration: 1s;
+    display: inline-grid;
+    animation-duration: 0.5s;
     animation-name: slidein;
+    animation-timing-function: ease-in;
     z-index: 100;
     width: 225px;
     height: 100%;
     padding: 5px;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 @keyframes slidein {
     from {
         width: 0;
-
     }
 
     to {
@@ -207,6 +254,7 @@ input {
     display: inline-block;
     animation-duration: 0.5s;
     animation-name: slideout;
+    animation-timing-function: ease-in;
     z-index: -1;
     margin: 2px;
     width: 0;
@@ -272,21 +320,37 @@ input {
 .panel_slide.visible {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
 }
 
-#_resultBox {
-    display: block;
+#_resultContainer {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+}
+
+#_resultBox {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+    align-content: flex-start;
+    height: 95%;
     background-color: white;
     /*height: 100%;*/
     overflow-y: scroll;
     /*width: 100%;*/
     font-size: 0.75em;
+    overflow-x: hidden;
+    padding-top: 15px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
 }
 
 #_resultBox > div:hover {
@@ -318,8 +382,8 @@ input {
 
 #_update_panel.open {
     animation-name: openpanel;
-    animation-duration: 1s;
-    animation-timing-function: ease-out;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
     left: calc(100% - 300px);
 }
 
@@ -339,8 +403,8 @@ input {
 
 #_update_panel.close {
     animation-name: closepanel;
-    animation-duration: 1s;
-    animation-timing-function: ease-out;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
     left: 100%;
 }
 
