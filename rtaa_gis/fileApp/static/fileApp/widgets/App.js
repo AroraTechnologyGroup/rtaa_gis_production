@@ -329,38 +329,45 @@ define([
 
               var fields = [];
               if (project_title && project_title !== "None") {
-                fields.push(project_title);
+                fields.push("Project Title: " + project_title);
               }
               if (project_date && project_date !== "None") {
-                fields.push(project_date);
+                fields.push("Project Date: " + project_date);
               }
               if (sheet_title && sheet_title !== "None") {
-                fields.push(sheet_title);
+                fields.push("Sheet Title: " + sheet_title);
               }
               if (discipline && discipline !== "None") {
-                fields.push(discipline);
+                fields.push("Discipline: " + discipline);
               }
+              if (base_name && base_name !== "None") {
+                fields.push("File Name: " + base_name);
+              }
+              if (date_added && date_added !== "None") {
+                fields.push("Date Added: " +  date_added);
+              }
+
 
               var content;
               if (fields.length) {
-                content = fields.join("</br></br>");
-              } else {
-                content = [base_name, date_added].join("</br></br>");
+                content = fields.join("</br>");
               }
 
               myToaster.setContent(content);
+              myToaster.hide();
 
               on(div, mouse.enter, function(evt) {
                 domClass.add(div, "hover-div");
                 domClass.add(icon_image, "hover-image");
                 domClass.add(file_icon, "hover-file");
-                myToaster.show();
 
+                myToaster.show();
               });
               on(div, mouse.leave, function(evt) {
                 domClass.remove(div, "hover-div");
                 domClass.remove(file_icon, "hover-file");
                 domClass.remove(icon_image, "hover-image");
+                // myToaster.setContent("");
                 myToaster.hide();
               });
 
