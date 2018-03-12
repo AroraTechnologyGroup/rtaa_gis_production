@@ -376,17 +376,16 @@ define([
                   // right click is handles by the Menu Popup
                   var nodes = query(".selected-file", _result_box);
                   if (nodes) {
-                    // some files are already selected
+                    // check if the clicked file is already selected
                     var should_disable = Array.some(nodes, function (e) {
-                      return (e === div);
+                      return (e === file_icon);
                     });
 
                     if (should_disable) {
-                      // this clicked button was already selected
                       domClass.remove(file_icon, "selected-file");
                     } else {
                       Array.forEach(nodes, function(node) {
-                        // disable all other selected files; there can be only one selected file
+                        // disable all other selected files; there currently can be only one selected file
                         domClass.remove(node, "selected-file");
                       });
                       domClass.add(file_icon, "selected-file");
