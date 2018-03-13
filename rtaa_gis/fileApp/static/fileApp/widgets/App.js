@@ -327,33 +327,48 @@ define([
               var toast_node = query("#_"+file_id+"_toast");
               var myToaster = new Toaster({id: '_'+file_id+'_toast'}, toast_node[0]);
 
-              var fields = [];
+              var table_div = domConstruct.create("div", {"class": "overflow-auto _table_container"});
+              var _table = domConstruct.create("table", {"class": 'table-striped table-blue'}, table_div);
+              var head = domConstruct.create("thead", null, _table);
+              var header_row = domConstruct.create("tr", null, head);
+              var column_1 = domConstruct.create("th", {"innerHTML": "Field Name"}, header_row);
+              var column_2 = domConstruct.create("th", {"innerHTML": "Value"}, header_row, "last");
+
+              var tbody = domConstruct.create("tbody", null, _table);
+
               if (project_title && project_title !== "None") {
-                fields.push("Project Title: " + project_title);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "Project Title", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": project_title, "class": "text-green"}, _row, "last");
               }
+
               if (project_date && project_date !== "None") {
-                fields.push("Project Date: " + project_date);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "Project Date", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": project_date, "class": "text-green"}, _row, "last");
               }
               if (sheet_title && sheet_title !== "None") {
-                fields.push("Sheet Title: " + sheet_title);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "Sheet Title", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": sheet_title, "class": "text-green"}, _row, "last");
               }
               if (discipline && discipline !== "None") {
-                fields.push("Discipline: " + discipline);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "Discipline", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": discipline, "class": "text-green"}, _row, "last");
               }
               if (base_name && base_name !== "None") {
-                fields.push("File Name: " + base_name);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "File Name", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": base_name, "class": "text-green"}, _row, "last");
               }
               if (date_added && date_added !== "None") {
-                fields.push("Date Added: " +  date_added);
+                let _row = domConstruct.create("tr", null, tbody);
+                let td1 = domConstruct.create("td", {"innerHTML": "Date Added", "class": "text-off-black"}, _row);
+                let td2 = domConstruct.create("td", {"innerHTML": date_added, "class": "text-green"}, _row, "last");
               }
 
-
-              var content;
-              if (fields.length) {
-                content = fields.join("</br>");
-              }
-
-              myToaster.setContent(content);
+              myToaster.setContent(table_div.innerHTML);
               myToaster.hide();
 
               on(div, mouse.enter, function(evt) {

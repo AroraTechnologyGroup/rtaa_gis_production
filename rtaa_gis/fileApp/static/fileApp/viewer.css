@@ -347,6 +347,7 @@ div.icon-image.selected-image {
     font-size: 0.75em;
     overflow-x: hidden;
     padding-top: 15px;
+    padding-left: 15px;
     position: absolute;
     top: 0;
     left: 0;
@@ -354,6 +355,15 @@ div.icon-image.selected-image {
     bottom: 50px;
 }
 
+.dijitToasterContent{
+    padding: 0.5em;
+    background: rgba(223, 240, 251, 1);
+}
+
+._table_container {
+    width: 100%;
+    height: 100%;
+}
 .pagination {
     position: absolute;
     top: calc(100% - 50px);
