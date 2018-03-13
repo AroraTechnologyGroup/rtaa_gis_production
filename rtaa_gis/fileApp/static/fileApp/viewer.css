@@ -378,6 +378,7 @@ div.icon-image.selected-image {
     display: flex;
     justify-content: center;
     flex-direction: row;
+    align-items: center;
 }
 
 #_resultBox > div:hover {

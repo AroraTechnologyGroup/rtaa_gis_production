@@ -13,7 +13,7 @@
 
 {% block content %}
     <div id="_outer_div">
-        <form action="{% url 'fileApp:eDoc' %}" method="post">
+        <form action="{% url 'fileApp:eDoc' %}" method="post" id="_filter_form">
         {% csrf_token %}
             <div id="_placed_panel">
                 <div id="_buttons">
@@ -150,16 +150,17 @@
                             {% endfor %}
                         {% endif %}
                     </div>
-                    <div class="pagination">
+                    <div class="pagination text-center trailer-1 leader-1">
                         <span class="step-links">
+{#                        These submit buttons will only add their value to the Filter Form post data if they are clicked#}
                             {% if efiles.has_previous %}
-                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.previous_page_number }}">previous</a>
+                                <button class="btn-transparent font-size-0" name="page" type="submit" value="{{ efiles.previous_page_number }}">previous</button>
                             {% endif %}
                             <span class="current">
                                 Page {{ efiles.number }} of {{ efiles.paginator.num_pages }}.
                             </span>
                             {% if efiles.has_next %}
-                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.next_page_number }}">next</a>
+                                <button class="btn-transparent font-size-0" name="page" type="submit" value="{{ efiles.next_page_number }}">next</button>
                             {% endif %}
                         </span>
                     </div>

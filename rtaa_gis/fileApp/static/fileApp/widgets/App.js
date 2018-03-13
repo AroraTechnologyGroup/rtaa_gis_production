@@ -94,6 +94,10 @@ define([
       var grid_search_list = dom.byId('id_grid_cells');
       var grid_update_list = dom.byId('id_edit_new_grid_cells');
 
+      var previous_link = dom.byId('_page_before');
+      var after_link = dom.byId('_page_after');
+
+      var filter_form = dom.byId('_filter_form');
 
       var btn_accrd = query('button.accordion');
       var icons = query('.icon-container');
@@ -105,6 +109,7 @@ define([
       var edit_disc_nodes = query('#id_edit_discipline input');
       var edit_sheet_nodes = query('#id_edit_sheet_type input');
       var edit_doc_nodes = query('#id_edit_doc_type input');
+
 
       return declare("App", [_WidgetBase], {
         map: null,
@@ -692,6 +697,25 @@ define([
               domConstruct.empty(grid_update_list);
             }
           });
+
+          // add the page number to the filter form, then submit the form
+          if (previous_link) {
+            on(previous_link, "click", function(evt) {
+              evt.preventDefault();
+              console.log(filter_form);
+              filter_form.submit();
+            });
+          }
+
+          if (after_link) {
+            on(after_link, "click", function(evt) {
+              evt.preventDefault();
+              console.log(filter_form);
+              // get the
+              filter_form.submit();
+            });
+          }
+
         },
 
         checkPanel: function (event) {
