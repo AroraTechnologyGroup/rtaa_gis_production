@@ -26,14 +26,13 @@ class FilterForm(forms.Form):
 
         self.fields['gis_type'].choices = gis_types
         self.fields['sheet_type'].choices = sheet_types
-        self.fields['sheet_type'].widget.attrs = {"size": d}
-
+        self.fields['sheet_type'].widget.attrs = {"size": d, 'class': "_multi-select"}
         self.fields['discipline'].choices = disciplines
-        self.fields['discipline'].widget.attrs = {"size": d}
+        self.fields['discipline'].widget.attrs = {"size": d, 'class': "_multi-select"}
 
         self.fields['airport'].choices = airports
         self.fields['funding_type'].choices = funding_types
-        self.fields['funding_type'].widget.attrs = {"size": len(funding_types)}
+        self.fields['funding_type'].widget.attrs = {"size": len(funding_types), 'class': "_multi-select"}
 
         self.fields['file_type'].choices = sorted(file_types, key=lambda file_type: file_type[0])
         self.fields['image_type'].choices = sorted(image_types, key=lambda image_type: image_type[0])
