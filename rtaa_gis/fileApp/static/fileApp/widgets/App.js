@@ -390,15 +390,19 @@ define([
 
                     if (should_disable) {
                       domClass.remove(file_icon, "selected-file");
+                      domClass.remove(image_icon, "selected-image");
                     } else {
                       Array.forEach(nodes, function(node) {
                         // disable all other selected files; there currently can be only one selected file
                         domClass.remove(node, "selected-file");
+                        domClass.remove(image_icon, "selected-image");
                       });
                       domClass.add(file_icon, "selected-file");
+                      domClass.add(image_icon, "selected-image");
                     }
                   } else {
                     domClass.add(file_icon, "selected-file");
+                    domClass.add(image_icon, "selected-image");
                   }
 
 
