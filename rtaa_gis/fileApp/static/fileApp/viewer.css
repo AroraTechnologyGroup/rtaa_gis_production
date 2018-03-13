@@ -157,8 +157,7 @@ div.icon-image.selected-image {
 
 #_filter_group .form-group.inline-list {
     display: inline-block;
-    margin: 2px;
-    width: 47%;
+    width: 50%;
 }
 
 #_filter_group .form-group.inline-list > ul {
