@@ -126,12 +126,11 @@ define([
               text += "<p></p><b>UPDATE</b> - To assign the grid cell(s) to a file, click the Attributes button.</p>\
               <ul><li>This will open the Attribute panel.</li>\
               <li>The grid cells have been added into the 'New Grid Cells:' input of the Attribute Panel.</li>\
-              <li>If a file name is not shown in the Attribute panel, then a file is not selected.</li>\
-              <li>Click the Map button to close the map.</li>\
-              <li>Click on the desired file in the file browser window to select it.</li>\
-              <li>Currently only one file can be selected and updated at a time.</li>\
-              <li>Clicking Save in the Attribute panel will assign the grid cell(s) to the selected file.</li>\
-              </ul>"
+              <li>If the File Name input is empty, then a file is not selected.</li>\
+                <ul><li>Click the Map button to close the map.</li>\
+                <li>Click on the desired file in the file browser window to select it.</li>\
+                <li>Currently only one file can be selected and updated at a time.</li></ul>\
+              <li>Clicking Save in the Attribute panel will assign the grid cell(s) to the selected file.</li></ul>";
             }
 
             text +=  "<input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
