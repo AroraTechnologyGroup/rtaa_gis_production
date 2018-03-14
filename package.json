@@ -20,13 +20,15 @@
   },
   "homepage": "https://github.com/Ricardh522/django_35#readme",
   "devDependencies": {
+    "autoprefixer-stylus": "^0.14.0",
+    "calcite-web": "github:Esri/calcite-web#v1.0.0-rc.8",
     "grunt": "^1.0.2",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-contrib-jshint": "^1.1.0",
+    "grunt-contrib-stylus": "^1.2.0",
     "grunt-contrib-watch": "^1.0.0",
     "intern": "^4.0.0-rc.1",
-    "jshint-stylish": "^2.2.1",
-    "calcite-web": "github:Esri/calcite-web#v1.0.0-rc.8"
+    "jshint-stylish": "^2.2.1"
   },
   "dependencies": {
     "dijit": "^1.13.0",

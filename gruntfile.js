@@ -11,15 +11,32 @@ module.exports = function(grunt) {
       main: {
         cwd: '.',
         files: [
-          'rtaa_gis/fileApp/static/**/*.js',
+          './rtaa_gis/fileApp/static/fileApp/**/*.js', './rtaa_gis/fileApp/static/fileApp/**/*.styl'
         ],
         tasks: [
+          'stylus',
           'jshint'
         ],
         options: {
           'spawn': false,
           'atBegin': true
         }
+      }
+    },
+    stylus: {
+      compile: {
+        options: {
+          compress: false,
+          'import': [ 'nib']
+        },
+        use: [
+          require('autoprefixer-stylus')
+        ],
+        files: [{
+          './rtaa_gis/fileApp/static/fileApp/viewer.css': [
+            './rtaa_gis/fileApp/static/fileApp/viewer.styl'
+          ]
+        }]
       }
     },
     jshint : {
@@ -30,7 +47,8 @@ module.exports = function(grunt) {
         eqnull: true,
         browser: true,
         dojo: true,
-        esversion: 6
+        esversion: 6,
+        multistr: true
       },
 
       all: [
@@ -61,8 +79,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-jshint');
-
+  grunt.loadNpmTasks('grunt-contrib-stylus');
   grunt.registerTask('default', [
+    'stylus',
     'jshint',
     'connect',
     'watch'

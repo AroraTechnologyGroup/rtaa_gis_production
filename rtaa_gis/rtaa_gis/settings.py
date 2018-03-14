@@ -112,7 +112,8 @@ CORS_ORIGIN_WHITELIST = (
     'https://gis.renoairport.net',
     'localhost',
     '127.0.0.1:8080',
-    'localhost:3000'
+    'localhost:3000',
+    'localhost:8080'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
