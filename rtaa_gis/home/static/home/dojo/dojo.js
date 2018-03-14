@@ -2094,7 +2094,7 @@ define([
 		) {
 		return declare([_WidgetBase], {
 			unload: function() {
-				registry.forEach(function(widget, index, hash) {
+				Array.forEach(registry.toArray(), function(widget) {
 					registry.remove(widget);
 					domConstruct.destroy(widget.domNode);
 				});
