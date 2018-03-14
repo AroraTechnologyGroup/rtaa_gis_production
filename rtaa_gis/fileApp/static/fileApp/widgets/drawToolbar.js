@@ -107,9 +107,9 @@ define([
               title: "Grid Selection Next Steps",
               autofocus: false
             });
+
             var content = domConstruct.create("div", {"id": "_dialogBox"});
 
-            var text;
             var auth_node = dom.byId("_auth_panel");
             var edit_lvl = Array.some(query("._auth_group", auth_node), function(e) {
               if (e.innerHTML.trim() === "_RTAA Planning and Engineering") {
@@ -118,68 +118,30 @@ define([
                 return false;
               }
             });
+
+            var text = "<p><b>SEARCH</b> - To locate files that have been assigned to these cells, click the blue Search button.</p>\
+                <ul><li>The selected grid cells have been added to the 'Grid Cells:' text input.</li></ul>";
+
             if (edit_lvl) {
-              text = `<b>SEARCH</b> - If you are interested in locating files </br>\
-                that have been assigned to these cells,</br>\
-                click the blue Search button.</br>\
-                </br>\
-                <ul>
-                    <li>
-                    The selected grid cells have already been added</br>\
-                    to the "Grid Cells:" text input.
-                    </li>
-                </ul>
-           
-                or</br>\
-                </br>\
-                <b>UPDATE</b> - To assign</br>\
-                the grid cell(s) to a file,</br>\
-                click the Attributes button.</br>\
-                 </br>\
-                <ul>
-                    <li>
-                    This will open the Attribute panel.</br>\
-                    </li>
-                    <li>
-                    The grid cells</br>\
-                    have already been added into the</br>\
-                    "New Grid Cells" area.</br>\
-                    of the Attribute Panel</br>\
-                    </li>
-                    <li>
-                    If a file name is not shown in the Attribute panel,</br>\
-                    then a file is not selected.</br>\
-                    Click Map to close the map.</br>\
-                    Click on the desired file in the file browser</br>\
-                    window to select it.</br>\
-                    </li>
-                    <li>
-                    Currently only one file can be selected and updated at a time.</br>\
-                    </li>
-                    <li>
-                    Clicking Save in the Attribute panel</br>\
-                    will assign the grid cells to the selected file.</br>\
-                    </li>
-                  </ul>
-                <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
-                <label for='dialogOptOut'>Do not show this dialog again</label>
-                `;
-            } else {
-              text = `<b>SEARCH</b> - If you are interested in locating files </br>\
-                  that have been assigned to these cells,</br>\
-                  click the blue Search button.</br>\
-                  </br>\
-                  <ul>
-                      <li>
-                      The selected grid cells have already been added</br>\
-                      to the "Grid Cells:" text input.
-                      </li>
-                  </ul>
-                  <input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
-                  <label for='dialogOptOut'>Do not show this dialog again</label>
-                  `;
+              text += "<p></p><b>UPDATE</b> - To assign the grid cell(s) to a file, click the Attributes button.</p>\
+              <ul><li>This will open the Attribute panel.</li>\
+              <li>The grid cells have been added into the 'New Grid Cells:' input of the Attribute Panel.</li>\
+              <li>If a file name is not shown in the Attribute panel, then a file is not selected.</li>\
+              <li>Click the Map button to close the map.</li>\
+              <li>Click on the desired file in the file browser window to select it.</li>\
+              <li>Currently only one file can be selected and updated at a time.</li>\
+              <li>Clicking Save in the Attribute panel will assign the grid cell(s) to the selected file.</li>\
+              </ul>"
             }
-            domConstruct.place(text, content);
+
+            text +=  "<input id='dialogOptOut' name='dialogOptOut' data-dojo-type='dijit/form/CheckBox' value='optOut'/>\
+            <label for='dialogOptOut'>Do not show this dialog again</label>";
+
+            var message_div = domConstruct.create("div", {"class": "menu-panel"});
+
+            domConstruct.place(domConstruct.toDom(text), message_div);
+            domConstruct.place(message_div, content);
+
             self.cellDialog.set("content", content);
 
              // obtain the grid layer from the map
