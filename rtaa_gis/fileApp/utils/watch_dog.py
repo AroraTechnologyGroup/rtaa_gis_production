@@ -9,7 +9,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from django.conf import settings
 
-from fileApp.utils import buildDocStore
+from fileApp.utils import domains
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from fileApp.models import FileModel as FileModel
@@ -19,8 +19,8 @@ BASE_DIR = settings.BASE_DIR
 
 
 class MyHandler(PatternMatchingEventHandler):
-
-    step1 = iter(buildDocStore.FILE_TYPE_CHOICES.values())
+    o = domains.FileTypes()
+    step1 = iter(o.file_type_choices.values())
     patterns = ["*.{}".format(list(k.keys())[0]) for k in step1]
     ignore_directories = False
     case_sensitive = False
@@ -94,6 +94,10 @@ class MyHandler(PatternMatchingEventHandler):
 if __name__ == "__main__":
     try:
         log_path = os.path.join(BASE_DIR, "logs/watch_dog.log")
+        if not os.path.exists(log_path):
+            f = open(log_path, 'w')
+            f.close()
+
         logging.basicConfig(
             level=logging.INFO,
             filename=log_path,
@@ -110,8 +114,13 @@ if __name__ == "__main__":
         observer.start()
 
         try:
+            i = 0
             while True:
+                i += 1
                 time.sleep(1)
+                if i % 5 == 0:
+                    logging.info("{} iterations for logger".format(i))
+
         except KeyboardInterrupt:
             observer.stop()
 
