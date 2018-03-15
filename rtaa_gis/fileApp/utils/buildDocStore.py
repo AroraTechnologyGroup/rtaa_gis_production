@@ -22,7 +22,8 @@ from fileApp.utils.domains import FileTypes
 from fileApp.utils import function_definitions
 from django.conf import settings
 
-TOP_DIRs = settings.FILE_APP_TOP_DIRS
+# TOP_DIRs = settings.FILE_APP_TOP_DIRS
+TOP_DIRs = [r"C:\GitHub"]
 acc_db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures/data/reno.accdb")
 
 # for testing load the sample pdf files
@@ -346,7 +347,6 @@ class FileStoreBuilder:
                         file_paths.append(path)
                     else:
                         raise Error("Duplicate file objects with path {}".format(path))
-                        # TODO - if two files are the same path, merge their grid cell assignments
                         pass
 
         except Exception as e:
