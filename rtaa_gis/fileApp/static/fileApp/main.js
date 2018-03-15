@@ -142,7 +142,10 @@ require([
             var unLoad = function() {
                 storeCredentials();
                 Array.forEach(registry.toArray(), function(item) {
-                    item.destroyRecursive();
+                    // keep these date inputs, they provide structure to the forms
+                    if (!item.isInstanceOf(dijit.form.DateTextBox)) {
+                      item.destroyRecursive();
+                    }
                 });
             };
             baseUnload.addOnUnload(unLoad);

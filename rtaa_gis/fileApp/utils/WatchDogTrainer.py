@@ -58,3 +58,11 @@ class Observers:
 
         paths = [{"pid": k, "path": v["process_path"]} for k, v in self.processes.items()]
         return paths
+
+
+if __name__ == "__main__":
+    obs = Observers([r"C:\\"])
+    try:
+        obs.start_monitors()
+    except:
+        obs.stop_monitors()
