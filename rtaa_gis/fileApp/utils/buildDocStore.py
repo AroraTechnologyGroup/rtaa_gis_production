@@ -346,7 +346,6 @@ class FileStoreBuilder:
                         file_paths.append(path)
                     else:
                         raise Error("Duplicate file objects with path {}".format(path))
-                        # TODO - if two files are the same path, merge their grid cell assignments
                         pass
 
         except Exception as e:
