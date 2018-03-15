@@ -18,6 +18,7 @@ define([
   "dojo/dom-construct",
   "dojo/dom",
   "dojo/on",
+  "dojo/date",
 
   "esri/geometry/Point",
   "esri/SpatialReference",
@@ -25,7 +26,9 @@ define([
   "dojox/widget/Toaster",
 
   'dijit/registry',
-    "dijit/layout/ContentPane",
+    'dijit/layout/ContentPane',
+  "dijit/Calendar",
+  "dijit/form/DateTextBox",
   "dijit/Menu",
   "dijit/popup",
   "dijit/MenuItem",
@@ -53,6 +56,7 @@ define([
       domConstruct,
       dom,
       on,
+      date,
 
       Point,
       SpatialReference,
@@ -61,6 +65,8 @@ define([
 
       registry,
       ContentPane,
+      Calendar,
+      DateTextBox,
       Menu,
       popup,
       MenuItem,
@@ -72,6 +78,11 @@ define([
       var panel_btn3 = dom.byId('_map_handle');
       var panel_btn4 = dom.byId('_attribute_handle');
       var panel_btn5 = dom.byId('_batch_edit_handle');
+
+      var date_added = dom.byId('id_date_added');
+      var after_date = dom.byId('id_after_date');
+      var before_date = dom.byId('id_before_date');
+      var edit_proj_date = dom.byId('id_edit_project_date');
 
       var slider_panel = dom.byId('_slider_panel');
 
@@ -109,7 +120,6 @@ define([
       var edit_disc_nodes = query('#id_edit_discipline input');
       var edit_sheet_nodes = query('#id_edit_sheet_type input');
       var edit_doc_nodes = query('#id_edit_doc_type input');
-
 
       return declare("App", [_WidgetBase], {
         map: null,
@@ -198,6 +208,54 @@ define([
           view_menu.startup();
           non_view_menu.startup();
 
+          var added_val;
+          var before_val;
+          var after_val;
+          var edit_proj_val;
+
+          if (!date_added.value) {
+            added_val = 0;
+          } else {
+            added_val = date_added.value;
+          }
+
+          if (!before_date.value) {
+            before_val = 0;
+          } else {
+            before_val = before_date.value;
+          }
+
+          if (!after_date.value) {
+            after_val = 0;
+          } else {
+            after_val = after_date.value;
+          }
+
+          if (!edit_proj_date.value) {
+            edit_proj_val = 0;
+          } else {
+            edit_proj_val = edit_proj_date.value;
+          }
+
+          var added_date_box = self.added_date_box = new DateTextBox({
+            value: added_val,
+            name: "date_added"
+          }, date_added).startup();
+
+          var before_date_box = self.before_date_box = new DateTextBox({
+            value: before_val,
+            name: "before_date"
+          }, before_date).startup();
+
+          var after_date_box = self.after_date_box = new DateTextBox({
+            value: after_val,
+            name: "after_date"
+          }, after_date).startup();
+
+          var edit_proj_date_box = self.edit_proj_date_box = new DateTextBox({
+            value: edit_proj_val,
+            name: "edit_project_date"
+          }, edit_proj_date).startup();
 
           self.setupConnections();
         },
@@ -215,6 +273,8 @@ define([
         },
         setupConnections: function() {
           var self = this;
+
+
           // disable the click event for the dropdown buttons in the update panel
           if (btn_accrd) {
             Array.forEach(btn_accrd, function (e) {
