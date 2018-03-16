@@ -61,7 +61,7 @@ class Observers:
 
 
 if __name__ == "__main__":
-    obs = Observers([r"C:\\"])
+    obs = Observers([r"E:\\"])
     try:
         obs.start_monitors()
     except:

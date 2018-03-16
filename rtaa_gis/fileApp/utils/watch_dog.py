@@ -12,7 +12,7 @@ from django.conf import settings
 from fileApp.utils import domains
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
-from fileApp.models import FileModel as FileModel
+from fileApp.models import EngineeringFileModel as FileModel
 from fileApp.serializers import EngSerializer as FileSerializer
 
 BASE_DIR = settings.BASE_DIR
@@ -48,11 +48,13 @@ class MyHandler(PatternMatchingEventHandler):
                 serializer = FileSerializer()
                 instance = serializer.update(file_object, _data)
                 instance.save()
+                logging.info("Updated file {}".format(_data["file_path"]))
             else:
                 serializer = FileSerializer()
                 _data['comment'] = ""
                 instance = serializer.create(_data)
                 instance.save()
+                logging.info("Created file {}".format(_data["file_path"]))
 
     def on_created(self, event):
         self.process(event)
@@ -65,8 +67,13 @@ class MyHandler(PatternMatchingEventHandler):
             # source_path = os.path.join(path_input, event.src_path)
             logging.info('%s :: %s' % (event.event_type, event.src_path))
             # file_path = os.path.join(path_input, event.src_path)
-            x = FileModel.objects.get(file_path=event.src_path)
-            x.delete()
+
+            try:
+                x = FileModel.objects.get(file_path=event.src_path)
+                x.delete()
+                logging.info("Deleted {}".format(event.src_path))
+            except FileModel.DoesNotExist:
+                logging.warning("File removed from directory, {}, did not exist in database.".format(event.src_path))
 
     def on_moved(self, event):
         if not event.is_directory:
@@ -82,13 +89,16 @@ class MyHandler(PatternMatchingEventHandler):
                 comment = file_object.comment
                 _data['comment'] = comment
                 serializer = FileSerializer()
+                # update the data with the file_path and comments
                 instance = serializer.update(file_object, _data)
                 instance.save()
+                logging.info("Updated file {}".format(_data['file_path']))
             else:
                 serializer = FileSerializer()
                 _data['comment'] = ""
                 instance = serializer.create(_data)
                 instance.save()
+                logging.info("Create new file {}".format(_data['file_path']))
 
 
 if __name__ == "__main__":
