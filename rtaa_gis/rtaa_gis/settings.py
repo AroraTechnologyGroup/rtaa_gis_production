@@ -7,7 +7,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -25,7 +25,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         FORCE_SCRIPT_NAME = ""
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
-    FILE_APP_TOP_DIRS = [r"C:\\ESRI_WORK_FOLDER"]
+    FILE_APP_TOP_DIRS = [r"C:\inetpub\ftproot\GISAPPS\gissetup"]
     SERVER_URL = "https://{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
