@@ -8,6 +8,7 @@ import json
 import traceback
 import pyodbc
 import datetime
+from datetime import datetime
 import xlrd
 from arcgis.gis import GIS
 from arcgis.features import FeatureLayerCollection
@@ -30,7 +31,7 @@ if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "
     os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
 
 log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs/ABM_bridge.txt")
-file = open(log_path, 'w')
+file = open(log_path, 'a')
 file.close()
 
 
@@ -40,6 +41,8 @@ def loggit(text):
     pprint.pprint("{}\n".format(text))
     file.close()
 
+
+loggit("Script run {}".format(datetime.today()))
 
 ###############################################
 kwargs = dict()
@@ -192,7 +195,7 @@ if __name__ == "__main__":
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('290de3849d6c412f950471bc45df182a')
+        layer = gis.content.get('f4c37d0861e04cf29e559047dd492c79')
 
         feature_layer = layer.layers[0]
         # Update the domains for the feature service
@@ -250,20 +253,23 @@ if __name__ == "__main__":
         d = json.loads(json_acceptable_string)
         pprint.pprint(d)
 
-        # for agg in AgreementModel.objects.all():
-        #     feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
-        #     if len(feature_set.features):
-        #         filtered = feature_set.features
-        #         for lyr in filtered:
-        #             lyr.attributes["AGREEMENT_TYPE"] = agg.type
-        #             lyr.attributes["START_DATE"] = str(agg.start_date)
-        #             lyr.attributes["END_DATE"] = str(agg.end_date)
-        #             lyr.attributes["LEASE_STATUS"] = agg.status
-        #
-        #             try:
-        #                 update_result = feature_layer.edit_features(updates=[lyr])
-        #             except RuntimeError as e:
-        #                 loggit(e)
+        for agg in AgreementModel.objects.all():
+            feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
+            if len(feature_set.features):
+                filtered = feature_set.features
+                for lyr in filtered:
+                    lyr.attributes["AGREEMENT_TYPE"] = agg.type
+                    lyr.attributes["START_DATE"] = str(agg.start_date)
+                    lyr.attributes["END_DATE"] = str(agg.end_date)
+                    lyr.attributes["LEASE_STATUS"] = agg.status
+
+                    try:
+                        update_result = feature_layer.edit_features(updates=[lyr])
+                    except RuntimeError as e:
+                        loggit(e)
+
+        loggit("Completed on {}".format(datetime.today()))
+
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
         loggit(e)
