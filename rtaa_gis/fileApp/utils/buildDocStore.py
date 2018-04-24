@@ -22,8 +22,8 @@ from fileApp.utils.domains import FileTypes
 from fileApp.utils import function_definitions
 from django.conf import settings
 
-# TOP_DIRs = settings.FILE_APP_TOP_DIRS
-TOP_DIRs = [r"C:\GitHub"]
+TOP_DIRs = settings.FILE_APP_TOP_DIRS
+# TOP_DIRs = [r"C:\GitHub"]
 acc_db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures/data/reno.accdb")
 
 # for testing load the sample pdf files
@@ -327,9 +327,11 @@ class FileStoreBuilder:
        """
         def check_roots(in_path, roots):
             d = False
+            lower_path = in_path.lower()
             for x in roots:
                 d = d
-                if in_path.startswith(x):
+                lower_root = x.lower()
+                if lower_path.startswith(lower_root):
                     if os.path.exists(in_path):
                         if not os.path.isdir(in_path):
                             d = True
