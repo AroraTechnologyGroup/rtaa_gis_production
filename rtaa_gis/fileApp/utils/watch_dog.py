@@ -39,10 +39,12 @@ class MyHandler(PatternMatchingEventHandler):
             # source_path = os.path.join(path_input, event.src_path)
             logging.info('%s :: %s' % (event.event_type, event.src_path))
             print('%s :: %s' % (event.event_type,  event.src_path))
-            _data = {'file_path': event.src_path}
+            lower_path = event.src_path.lower()
 
-            if len(FileModel.objects.filter(file_path=event.src_path)):
-                file_object = FileModel.objects.filter(file_path=event.src_path)[0]
+            _data = {'file_path': lower_path}
+
+            if len(FileModel.objects.filter(file_path=lower_path)):
+                file_object = FileModel.objects.filter(file_path=lower_path)[0]
                 comment = file_object.comment
                 _data['comment'] = comment
                 serializer = FileSerializer()
@@ -67,13 +69,13 @@ class MyHandler(PatternMatchingEventHandler):
             # source_path = os.path.join(path_input, event.src_path)
             logging.info('%s :: %s' % (event.event_type, event.src_path))
             # file_path = os.path.join(path_input, event.src_path)
-
+            lower_path = event.src_path.lower()
             try:
-                x = FileModel.objects.get(file_path=event.src_path)
+                x = FileModel.objects.get(file_path=lower_path)
                 x.delete()
-                logging.info("Deleted {}".format(event.src_path))
+                logging.info("Deleted {}".format(lower_path))
             except FileModel.DoesNotExist:
-                logging.warning("File removed from directory, {}, did not exist in database.".format(event.src_path))
+                logging.warning("File removed from directory, {}, did not exist in database.".format(lower_path))
 
     def on_moved(self, event):
         if not event.is_directory:
@@ -83,9 +85,9 @@ class MyHandler(PatternMatchingEventHandler):
             # destination_path = os.path.join(path_input, event.dest_path)
 
             _data = {'file_path': event.dest_path}
-
-            if len(FileModel.objects.filter(file_path=event.src_path)):
-                file_object = FileModel.objects.filter(file_path=event.src_path)[0]
+            lower_path = event.src_path.lower()
+            if len(FileModel.objects.filter(file_path=lower_path)):
+                file_object = FileModel.objects.filter(file_path=lower_path)[0]
                 comment = file_object.comment
                 _data['comment'] = comment
                 serializer = FileSerializer()

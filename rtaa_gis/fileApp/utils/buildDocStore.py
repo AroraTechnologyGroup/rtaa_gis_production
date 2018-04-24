@@ -327,9 +327,11 @@ class FileStoreBuilder:
        """
         def check_roots(in_path, roots):
             d = False
+            lower_path = in_path.lower()
             for x in roots:
                 d = d
-                if in_path.startswith(x):
+                lower_root = x.lower()
+                if lower_path.startswith(lower_root):
                     if os.path.exists(in_path):
                         if not os.path.isdir(in_path):
                             d = True
