@@ -329,7 +329,6 @@ class FileStoreBuilder:
             d = False
             lower_path = in_path.lower()
             for x in roots:
-                d = d
                 lower_root = x.lower()
                 if lower_path.startswith(lower_root):
                     if os.path.exists(in_path):
@@ -450,10 +449,10 @@ if __name__ == '__main__':
     x = FileStoreBuilder()
     x.build_rel_stores()
     x.build_store()
-    if os.path.exists(acc_db_path):
-        x.load_accdb()
-    cell = GridCellBuilder()
-    cell.build_store()
+    # if os.path.exists(acc_db_path):
+    #     x.load_accdb()
+    # cell = GridCellBuilder()
+    # cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 

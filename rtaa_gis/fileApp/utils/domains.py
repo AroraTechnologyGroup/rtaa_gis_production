@@ -95,6 +95,9 @@ class FileTypes:
         pptx = {"pptx": "application/octet-stream"}
         img = {"img": "image/img"}
         zip = {"zip": "application/zip"}
+        xml = {"xml": "text/xml"}
+        tpk = {"tpk": "application/octet-stream"}
+        lyrx = {"lyrx": "application/octet-stream"}
 
         self.file_type_choices = {
             "PDF": pdf,
@@ -113,15 +116,18 @@ class FileTypes:
             "IMG Image": img,
             "TIFF Image": tiff,
             "AutoCad Dwg": dwg,
-            "ESRI Layer File": lyr,
-            "ESRI Layer Package": lpk,
-            "ESRI Map Package": mpk,
-            "ESRI Map Document": mxd,
-            "ZIP File": zip
+            "ArcMap Layer File": lyr,
+            "ArcMap Layer Package": lpk,
+            "ArcMap Map Package": mpk,
+            "ArcMap Map Document": mxd,
+            "Esri Tile Package": tpk,
+            "ArcPro Layer File": lyrx,
+            "ZIP File": zip,
+            "XML": xml
         }
 
         self.FILE_VIEWER_TYPES = []
-        for f in ["ZIP File", "MS Power Point", "PDF", "Open Office Doc", "MS Word Doc", "MS Word Docx", "Open Office Presentation", "Text"]:
+        for f in ["ZIP File", "MS Power Point", "PDF", "Open Office Doc", "MS Word Doc", "MS Word Docx", "Open Office Presentation", "Text",  "XML"]:
             self.FILE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.TABLE_VIEWER_TYPES = []
@@ -133,7 +139,8 @@ class FileTypes:
             self.IMAGE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.GIS_VIEWER_TYPES = []
-        for f in ["ESRI Layer Package", "AutoCad Dwg", "ESRI Layer File", "ESRI Map Package", "ESRI Map Document"]:
+        for f in ["ArcMap Layer Package", "AutoCad Dwg", "ArcMap Layer File", "ArcMap Map Package", "ArcMap Map Document",
+                  "Esri Tile Package", "ArcPro Layer File"]:
             self.GIS_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.ALL_FILE_TYPES = dict(self.FILE_VIEWER_TYPES)

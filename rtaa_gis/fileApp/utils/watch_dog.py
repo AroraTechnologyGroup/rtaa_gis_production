@@ -131,7 +131,8 @@ if __name__ == "__main__":
                 i += 1
                 time.sleep(1)
                 if i % 5 == 0:
-                    logging.info("{} iterations for logger".format(i))
+                    # logging.info("{} iterations for logger".format(i))
+                    pass
 
         except KeyboardInterrupt:
             observer.stop()
