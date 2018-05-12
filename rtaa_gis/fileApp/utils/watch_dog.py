@@ -117,10 +117,11 @@ if __name__ == "__main__":
             format='%(asctime)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
-        path_input = sys.argv[1] if len(sys.argv) > 1 else '.'
-        if path_input == '.':
-            path_input = os.path.dirname(os.path.abspath(__file__))
+        # path_input = sys.argv[1] if len(sys.argv) > 1 else '.'
+        # if path_input == '.':
+        #     path_input = os.path.dirname(os.path.abspath(__file__))
 
+        path_input = r"E:\\Projects"
         observer = Observer()
         observer.schedule(MyHandler(), path_input, recursive=True)
         observer.start()
@@ -141,4 +142,5 @@ if __name__ == "__main__":
 
     except Exception as e:
         logging.error('%s' % e)
+        # TODO - notify via emaail that the service has stopped due to exception
 
