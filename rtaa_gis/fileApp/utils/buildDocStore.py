@@ -23,6 +23,7 @@ from fileApp.utils import function_definitions
 from django.conf import settings
 
 TOP_DIRs = settings.FILE_APP_TOP_DIRS
+# TOP_DIRs = [r"C:\GitHub"]
 acc_db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fixtures/data/reno.accdb")
 
 # for testing load the sample pdf files
@@ -326,9 +327,10 @@ class FileStoreBuilder:
        """
         def check_roots(in_path, roots):
             d = False
+            lower_path = in_path.lower()
             for x in roots:
-                d = d
-                if in_path.startswith(x):
+                lower_root = x.lower()
+                if lower_path.startswith(lower_root):
                     if os.path.exists(in_path):
                         if not os.path.isdir(in_path):
                             d = True
@@ -346,7 +348,6 @@ class FileStoreBuilder:
                         file_paths.append(path)
                     else:
                         raise Error("Duplicate file objects with path {}".format(path))
-                        # TODO - if two files are the same path, merge their grid cell assignments
                         pass
 
         except Exception as e:
@@ -448,10 +449,10 @@ if __name__ == '__main__':
     x = FileStoreBuilder()
     x.build_rel_stores()
     x.build_store()
-    if os.path.exists(acc_db_path):
-        x.load_accdb()
-    cell = GridCellBuilder()
-    cell.build_store()
+    # if os.path.exists(acc_db_path):
+    #     x.load_accdb()
+    # cell = GridCellBuilder()
+    # cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 

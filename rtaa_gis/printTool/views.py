@@ -27,6 +27,8 @@ import json
 import shlex
 import threading
 import traceback
+import time
+from datetime import datetime
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATIC_ROOT
@@ -170,6 +172,7 @@ def name_file(out_folder, file, new_name):
     extension = file.split(".")[-1]
     base_name = new_name
     full_name = "{}.{}".format(base_name, extension)
+
     if os.path.exists(full_name):
         v = 1
         full_name = "{}_{}.{}".format(base_name, v, extension)
@@ -186,7 +189,7 @@ def name_file(out_folder, file, new_name):
     except OSError:
         logger.error("printed map unable to be saved with correct filename")
     os.chdir(old_dir)
-    return full_name
+    return os.path.join(out_folder, full_name)
 
 
 # Create your views here.
@@ -198,7 +201,8 @@ def print_agol(request, format=None):
     try:
         username = get_username(request)
         out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
-
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
         gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                              username="data_owner",
                              password="GIS@RTAA123!")
@@ -217,21 +221,23 @@ def print_agol(request, format=None):
         # logger.info(map_json)
         # get all of the Draw Results layer from the web map and save to the user's media dir
         op_layers = map_obj["operationalLayers"]
-        json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
-        f = open(json_file, 'w')
+
+        # create an initial temp graphics file to rename
+        tempfile = os.path.join(out_folder, "temp.json")
+        temp_file = open(tempfile, 'w')
 
         cont = []
         for x in op_layers:
             if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
                 cont.append(x)
         json_cont = json.dumps(cont).replace("False", "false").replace("True", "true").replace("None", "null")
-        f.write(json_cont)
-        f.close()
+        temp_file.write(json_cont)
+        temp_file.close()
 
-        # read json file, if it is empty delete it
-        text = open(json_file, 'r').read()
+        # read json file, if it is empty delete it from the server
+        text = open(tempfile, 'r').read()
         if text == "[]":
-            os.remove(json_file)
+            os.remove(tempfile)
 
         format = data['Format']
         layout_template = data['Layout_Template']
@@ -250,9 +256,13 @@ def print_agol(request, format=None):
                            gis=gis)
 
         file = data.download(out_folder)
-        full_name = name_file(out_folder=out_folder, file=file, new_name=title)
+        target = name_file(out_folder=out_folder, file=file, new_name=title)
 
-        target = os.path.join(out_folder, full_name)
+        # rename the graphics file using the renamed map pdf
+        if os.path.exists(tempfile):
+            graphic_name = target.replace(".pdf", ".json")
+            os.rename(tempfile, graphic_name)
+
         apply_watermark(watermark=watermark, target=target)
 
         response = Response()
@@ -266,12 +276,13 @@ def print_agol(request, format=None):
         else:
             protocol = "https"
 
-        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
+        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, os.path.basename(target))
 
         response.data = {
             "messages": [],
             "results": [{
                 "value": {
+                    "date": date.today().isoformat(),
                     "url": url
                 },
                 "paramName": "Output_File",
@@ -422,6 +433,7 @@ def getPrintList(request, format=None):
     response.data = list()
     if os.path.exists(print_dir):
         files = os.listdir(print_dir)
+        # selection will hold the files with the specified extensions
         selection = []
         for x in [".png", ".pdf", ".jpg", ".gif", ".eps", ".svg", ".svgz"]:
             selection.extend([f for f in files if f.endswith(x)])
@@ -437,7 +449,9 @@ def getPrintList(request, format=None):
 
         for out_file in selection:
             url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
-            response.data.append({"url": url})
+            sec = os.path.getmtime(os.path.join(print_dir, out_file))
+            date = datetime.fromtimestamp(sec).date().isoformat()
+            response.data.append({"date": date, "url": url})
     else:
         response.data.append("Error, print directory not found")
 
@@ -465,8 +479,19 @@ def getMarkupList(request, format=None):
         media_url = settings.MEDIA_URL.lstrip("/")
         media_url = media_url.rstrip("/")
         for out_file in selection:
+            full_path = os.path.join(print_dir, out_file)
+            # count the number of graphics
+            obj = json.loads(open(full_path).read())
+            feature_cnt = 0
+            layers = obj[0]["featureCollection"]["layers"]
+            for x in layers:
+                feats = x["featureSet"]["features"]
+                feature_cnt += len(feats)
+
+            sec = os.path.getmtime(full_path)
+            date = datetime.fromtimestamp(sec).date().isoformat()
             url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
-            response.data.append({"url": url})
+            response.data.append({"date": date, "url": url, "feature_count": feature_cnt})
     else:
         response.data.append("Error, print directory not found")
 
@@ -506,9 +531,18 @@ def emailExhibit(request, format=None):
     data = request.POST
     exhibit_url = data["exhibit_url"].replace("\n", "")
     recipient = data["recipient"].replace("\n", "")
+
+    cc = data["cc"]
+    if type(cc) is str:
+        cc = [cc]
+
+    bcc = ["rhughes@aroraengineers.com"]
+    from_email = "{}@renoairport.net".format(username)
     # to allow for testing
     if settings.LDAP_URL == "gisapps.aroraengineers.com":
         recipient = "richardh522@gmail.com"
+        from_email = "rhughes@aroraengineers.com"
+        cc = ["rhughes@aroraengineers.com"]
     subject = data["subject"].replace("\n", "")
     message = data["message"].replace("\n", "")
     splits = exhibit_url.split("/")
@@ -521,8 +555,10 @@ def emailExhibit(request, format=None):
         mail.EmailMessage(
             subject="{}".format(subject),
             body="From - {} \n {}".format(username, message),
-            from_email="rhughes@aroraengineers.com",
-            to=["richardh522@gmail.com"],
+            from_email=from_email,
+            to=[recipient],
+            cc=cc,
+            bcc=bcc,
             attachments=[(base_name, content, 'application/pdf')],
             connection=connection
         ).send()

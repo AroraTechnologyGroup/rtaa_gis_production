@@ -178,6 +178,7 @@ class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
     filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
     pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer,)
 
     @list_route(methods=['get',])
     def _stop_monitors(self, request):
@@ -329,6 +330,7 @@ class PagedEngViewSet(PagedFileViewSet):
     queryset = EngineeringFileModel.objects.all()
     serializer_class = EngSerializer
     filter_fields = ('project_title', 'sheet_name', 'airport')
+    renderer_classes = (JSONRenderer,)
 
     @detail_route(methods=['get', ])
     def _view(self, request, pk=None):
@@ -414,7 +416,7 @@ class EngIOViewSet(viewsets.ViewSet):
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
             resp = HttpResponse(fp.read(), content_type=mime_type)
-            resp['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+            resp['Content-Disposition'] = "attachment; filename= {}".format(base_name)
 
             # create entry in the analytics records table
             data = {
@@ -638,8 +640,7 @@ class UserViewer(GenericAPIView):
         if file_path:
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
-            gnums = [x.strip() for x in grant_number.split()]
-            efiles = efiles.filter(grant_number__in=gnums)
+            efiles = efiles.filter(grant_number__icontains=grant_number)
 
         if funding_types and funding_types != ['all']:
             efiles = efiles.filter(funding_type__in=funding_types).distinct()

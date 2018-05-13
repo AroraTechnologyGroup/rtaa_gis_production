@@ -1,0 +1,531 @@
+@import "./widgets/resources/drawToolbar.css"
+@import "//js.arcgis.com/3.23/dojox/widget/Toaster/Toaster.css"
+
+.wrapper {
+        background-image: none
+    }
+
+form {
+    display: inline;
+}
+
+select > option {
+    font-size: 0.75em;
+}
+
+html, body, .viewport {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+label {
+    margin: auto;
+    font-size: 0.75em;
+}
+
+input {
+    font-size: 0.75em;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    margin:0;
+    padding:0;
+}
+
+/*class provides the spacing for the icons in the flex so animations can modify shapes*/
+.icon-container {
+    width: 125px;
+    height: 200px;
+}
+
+.fileIcon {
+    display: inline-block;
+    position: relative;
+    width: 95px;
+    background-color: white;
+    margin: auto;
+}
+
+
+div.fileIcon.hover-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.1, 1.1) translate(-5px, 5px);
+    padding: 2px;
+    z-index: 110;
+    /*margin: 5px;*/
+}
+
+div.fileIcon.hover-file::after {
+    content: '';
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 2px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: opacity 0.3s ease-in-out;
+}
+
+div.fileIcon.hover-file:hover::after {
+    opacity: 1;
+}
+
+.dijitTextBox {
+    width: 100%;
+    height: 42px;
+}
+
+div.selected-file {
+    background-color: rgba(223, 240, 251, 1);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    border: 1px solid #0079c1;
+    padding: 2px;
+    z-index: 100;
+    transform: scale(1.1, 1.1) translate(-5px, 5px);
+}
+
+div.icon-image {
+  word-wrap: break-word;
+}
+
+div.icon-image.hover-image {
+    transition: all 0.2s ease-in-out;
+    transform: scale(0.9, 0.9);
+}
+
+div.icon-image.selected-image {
+    transition: all 0.2s ease-in-out;
+    transform: scale(0.9, 0.9);
+}
+
+#_buttons span {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-green {
+    color: white;
+}
+
+#_buttons button {
+    padding: 0.5em;
+    margin: 0.5em;
+}
+
+#_outer_div {
+    position: absolute;
+    top: 63px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px gray solid;
+}
+
+#_placed_panel {
+    position: absolute;
+    top:0;
+    left: 0;
+    bottom: 5px;
+    z-index: 10;
+    display: flex;
+    flex-direction: row;
+    width: 425px;
+    padding: 2px;
+}
+
+#_buttons {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex-grow: 1;
+    width: 150px;
+}
+
+#_filter_group {
+    overflow-y: scroll;
+    height: 100%;
+    flex-grow: 2;
+    max-width: 300px;
+    padding: 5px;
+}
+
+#_filter_group .form-group {
+    display: inline-block;
+    float: left;
+    width: 100%;
+}
+
+
+#_filter_group .form-group.inline-list {
+    display: inline-block;
+    width: 50%;
+}
+
+#_filter_group .form-group.inline-list > ul {
+    list-style: none;
+    margin: 0;
+}
+
+#_filter_group .form-group > select {
+    width: 100%;
+    display: block;
+}
+
+.fieldWrapper > select {
+    width: 100%;
+    display: block;
+}
+
+#_container {
+    position: absolute;
+    left: calc(0% + 425px);
+    right: 0;
+    top: 0;
+    bottom: 0;
+    padding: 5px;
+    height: 99%;
+    /*font-size: 0.75rem;*/
+    z-index: 10;
+    margin-right: 5px;
+}
+
+#_container.ropen {
+    right: 300px;
+    animation-duration: 0.5s;
+    animation-name: container_ropen;
+    animation-timing-function: linear;
+}
+
+@keyframes container_ropen {
+    from {
+        right: 0;
+    }
+    to {
+        right: 300px;
+    }
+}
+
+#_container.rclose {
+    right: 0;
+    animation-duration: 0.5s;
+    animation-name: container_rclose;
+    animation-timing-function: linear;
+}
+
+@keyframes container_rclose {
+    from {
+        right: 300px;
+    }
+    to {
+        right: 0;
+    }
+}
+
+#_slider_panel {
+    display: none;
+    background-color: white;
+    z-index:-1;
+    height: 100%;
+    left: calc(0% + 425px);
+    position: absolute;
+}
+
+
+#_slider_panel.open {
+    display: inline;
+    animation-duration: 0.5s;
+    animation-name: slidein;
+    animation-timing-function: ease-in;
+    z-index: 100;
+    width: 225px;
+    height: 100%;
+    padding: 5px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+@keyframes slidein {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 225px;
+    }
+}
+
+#_slider_panel.close {
+    display: inline-block;
+    animation-duration: 0.5s;
+    animation-name: slideout;
+    animation-timing-function: ease-in;
+    z-index: -1;
+    margin: 2px;
+    width: 0;
+    height: 100%;
+}
+
+@keyframes slideout {
+    from {
+        width: 225px;
+    }
+
+    to {
+        width: 0;
+    }
+}
+
+#_map_group {
+    opacity: 0.0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#_map_group.open_map {
+    display: block;
+    opacity: 1.0;
+    animation-name: map-fadein;
+    animation-duration: 1s;
+}
+
+@keyframes map-fadein {
+    from {
+        opacity: 0.0;
+    }
+
+    to {
+        opacity: 1.0;
+    }
+}
+
+#_map_group.close_map {
+    animation-name: map-fadeout;
+    animation-duration: 1s;
+    opacity: 0.0;
+}
+
+@keyframes map-fadeout {
+    from {
+        opacity: 1.0;
+    }
+
+    to {
+        opacity: 0.0;
+    }
+}
+
+.panel_slide {
+    display: none;
+}
+
+.panel_slide.visible {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+._multi-select {
+    overflow-y: hidden;
+}
+
+#_resultContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#_resultBox {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: flex-start;
+    background-color: white;
+    /*height: 100%;*/
+    overflow-y: scroll;
+    /*width: 100%;*/
+    font-size: 0.75em;
+    overflow-x: hidden;
+    padding-top: 15px;
+    padding-left: 15px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 50px;
+}
+
+.dijitToasterContent{
+    padding: 0.5em;
+    background: rgba(223, 240, 251, 1);
+}
+
+._table_container {
+    width: 100%;
+    height: 100%;
+}
+
+.pagination {
+    position: absolute;
+    top: calc(100% - 50px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    align-items: center;
+}
+
+#_resultBox > div:hover {
+    cursor: pointer
+}
+
+#_type_submit {
+    display: inline-block;
+    float: right;
+    padding-bottom: 35px;
+}
+
+#_update_panel {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-top: 5px;
+    top: 64px;
+    left: 100%;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+    z-index: 10;
+    background-color: white;
+    display: inline;
+    width: 295px;
+    padding-right: 8px;
+    padding-bottom: 5px;
+}
+
+#_update_panel.open {
+    animation-name: openpanel;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    left: calc(100% - 300px);
+}
+
+#_update_panel textarea {
+    height: 2.25rem
+}
+
+@keyframes openpanel {
+    from {
+        left: 100%;
+    }
+
+    to {
+        left: calc(100% - 300px);
+    }
+}
+
+#_update_panel.close {
+    animation-name: closepanel;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    left: 100%;
+}
+
+@keyframes closepanel {
+    from {
+        left: calc(100% - 300px);
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+#_update_panel .form-group > select {
+    width: 100%;
+}
+
+#_update_panel .form-group.inline.active {
+    display: inline-block;
+    margin: 3px;
+    float: right;
+}
+
+#_update_panel .panel.active {
+    display: block;
+}
+
+#_update_panel .panel.off {
+    display: none;
+}
+
+#_update_panel .panel > ul {
+    margin-left: 0;
+    list-style: none;
+}
+
+#_update_panel button.accordion {
+    transition: 0.4s;
+    outline: none;
+    cursor: pointer;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#_update_panel button.accordion > label {
+    letter-spacing: 0em;
+    font-size: 1em;
+    font-family: "Avenir Next W01", "Avenir Next W00", "Avenir Next", "Avenir", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    color: #4c4c4c;
+}
+
+#_update_panel button.accordion.active {
+    background-color: lightblue;
+}
+
+#_update_panel button.accordion > label:hover {
+    cursor: pointer;
+}
+
+#_update_panel .panel {
+    display: none;
+}
+
+.widgetContainer {
+    z-index: 10;
+    display: inline;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+
+#map.hide {
+    display: none
+}
+
+.dijitCheckBoxInput {
+    opacity: 1;
+}
+
+.dijitArrowButtonContainer {
+    height: 100%
+}
+
+.dijitTextBox input.dijitArrowButtonInner {
+  height: 100%!important
+}

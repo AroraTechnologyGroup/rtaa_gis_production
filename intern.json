@@ -1,0 +1,58 @@
+{
+  "loader": {
+    "script": "dojo",
+    "options": {
+      "packages": [
+        {
+          "name": "unittests",
+          "location": "tests/unit"
+        },
+        {
+          "name": "dojo",
+          "location": "bower_components/dojo"
+        },
+        {
+          "name": "dojox",
+          "location": "bower_components/dojox"
+        },
+        {
+          "name": "dijit",
+          "location": "bower_components/dijit"
+        },
+        {
+          "name": "dgrid",
+          "location": "bower_components/dgrid"
+        },
+        {
+          "name": "dstore",
+          "location": "bower_components/dstore"
+        },
+        {
+          "name": "esri",
+          "location": "bower_components/esri"
+        },
+        {
+          "name": "moment",
+          "location": "bower_components/moment"
+        },
+        {
+          "name": "put-selector",
+          "location": "bower_components/put-selector"
+        },
+        {
+          "name": "util",
+          "location": "bower_components/util"
+        },
+        {
+          "name": "xstyle",
+          "location": "bower_components/xstyle"
+        },
+        {
+          "name": "fileApp",
+          "location": "rtaa_gis/fileApp/static/fileApp"
+        }
+      ]
+    }
+  },
+  "suites": "../../tests/unit/fileApp_unit.js"
+}
