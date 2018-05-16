@@ -13,7 +13,7 @@ class Agreement(models.Model):
 
     id = models.CharField(max_length=255, primary_key=True)
 
-    number = models.CharField(max_length=255, unique=True)
+    # number = models.CharField(max_length=255, unique=True)
 
     title = models.CharField(max_length=255, blank=True)
 

@@ -10,8 +10,8 @@ import urllib
 DEBUG = True
 # USE_X_FORWARDED_HOST = True
 
-# LDAP_URL = "gisapps.aroraengineers.com"
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
@@ -25,7 +25,8 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         FORCE_SCRIPT_NAME = ""
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
-    FILE_APP_TOP_DIRS = [r"C:\\"]
+    FILE_APP_TOP_DIRS = [r"c:\inetpub\ftproot\gisapps\gissetup"]
+    IIS_APP_ROOT = r"C:\inetpub\wabapps"
     SERVER_URL = "https://{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -43,6 +44,7 @@ elif LDAP_URL == "renoairport.net":
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
     FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    IIS_APP_ROOT = r"C:\inetpub\apps"
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
