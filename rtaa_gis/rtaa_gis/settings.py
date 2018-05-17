@@ -35,6 +35,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
     EMAIL_PORT = 25
     # EMAIL_HOST_USER = ""
     # EMAIL_HOST_PASSWORD = ""
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
 
 elif LDAP_URL == "renoairport.net":
     if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
@@ -53,9 +54,9 @@ elif LDAP_URL == "renoairport.net":
     EMAIL_PORT = 25
     # EMAIL_HOST_USER = ""
     # EMAIL_HOST_PASSWORD = ""
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400

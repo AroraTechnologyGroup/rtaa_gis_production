@@ -140,14 +140,13 @@ def query_ldap(name):
                 # user_obj.save()
             except Exception as e:
                 print(e)
-    # add user to group if group exists in ldap and local group table
+    # add user to group if group exists in local group table
     for x in ldap_groups:
         if x not in [g.name for g in users_groups]:
             try:
                 g = Group.objects.get(name=x)
-                # g = Group.objects.get(name="tester")
-                user_obj.groups.add(g)
-                # user_obj.save()
+                if g:
+                    user_obj.groups.add(g)
             except Exception as e:
                 print(e)
     groups = [x.name for x in user_obj.groups.all()]
