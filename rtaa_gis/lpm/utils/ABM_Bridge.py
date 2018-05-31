@@ -284,6 +284,10 @@ if __name__ == "__main__":
 
                     except RuntimeError as e:
                         loggit(e)
+
+        # TODO - iterate through the AGOL features, if an agreement is not in the active list, unassign it and
+        # clear the applicable agreement fields
+
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
         loggit(e)
