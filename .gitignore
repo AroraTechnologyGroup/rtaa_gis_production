@@ -46,3 +46,4 @@ rtaa_gis/printTool/migrations/
 rtaa_gis/home/utils/ldap_tool.py
 /node_modules/
 /bower_components/
+**/testy_5.txt
