@@ -2,7 +2,7 @@ from django.db import models
 
 
 class GDB(models.Model):
-    def __unicode__(self):
+    def __str__(self):
         return "%s" % self.base_name
 
     class Meta:
@@ -26,7 +26,7 @@ class GDB(models.Model):
 
 class DomainValues(models.Model):
     def __str__(self):
-        return "%s" % self.name
+        return "%s::%s::%s" % (self.name, self.code, self.description)
 
     class Meta:
         ordering = ('code', 'description')

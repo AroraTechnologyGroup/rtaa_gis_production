@@ -29,6 +29,7 @@ class AgreementSerializer(serializers.ModelSerializer):
             # These variables are brought in from the Access Database of Tiffany
             instance.title = validated_data.get("title", instance.title)
             instance.id = validated_data.get("id", instance.id)
+            instance.number = validated_data.get("number", instance.number)
             instance.type = validated_data.get("type", instance.type)
             instance.status = validated_data.get("status", instance.status)
             instance.description = validated_data.get("description", instance.description)

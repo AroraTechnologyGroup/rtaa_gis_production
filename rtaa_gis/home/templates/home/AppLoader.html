@@ -27,13 +27,13 @@
                   </button>
                 <nav class="dropdown-menu modifier-class" role="menu">
                     <a href="{% url 'home:viewer' %}" class="dropdown-link" role="menu-item">Viewer</a>
-                    {% if '_RTAA Planning and Engineering' in groups or '_RTAA GIS' in groups or "Arora" in groups %}
+                    {% if "edoc" in apps %}
                         <a href="{% url 'fileApp:eDoc' %}" class="dropdown-link" role="menu-item">eDoc</a>
                     {% endif %}
-                    {% if 'GIS_Airspace_Group' in groups or '_RTAA GIS' in groups or 'Arora' in groups%}
+                    {% if 'airspace' in apps %}
                         <a href="{% url 'home:airspace' %}" class="dropdown-link" role="menu-item">Airspace</a>
                     {% endif %}
-                    {% if 'GIS_LPM_Admin' in groups or '_RTAA Planning and Engineering' in groups or '_RTAA Airport Economic Development' in groups or '_RTAA Finance & Administration' in groups or '_RTAA GIS' in groups or 'Arora' in groups or '_RTAA F&M Management' in groups%}
+                    {% if 'lpm' in apps %}
                         <a href="{% url 'home:leaseProperty' %}" class="dropdown-link" role="menu-item">Lease and Property Management</a>
                     {% endif %}
                     <a href="{% url 'home:signageMarking' %}" class="dropdown-link" role="menu-item">Signage and Marking</a>

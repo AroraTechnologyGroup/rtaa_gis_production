@@ -170,7 +170,7 @@
         <form action='{% url 'fileApp:file-updater' %}' method="post">
             {% csrf_token %}
             <div id="_update_panel">
-                {% if '_RTAA Planning and Engineering' in groups %}
+                {% if isEditor %}
                     <input class="btn-green btn-fill" type="submit" value="Save" />
                     <p class="font-size--5 text-center text-rule">File Attributes Editor/Viewer</p>
                     {% else %}
@@ -207,7 +207,7 @@
                         {% endif %}
 
                     {% endfor %}
-                {% if '_RTAA Planning and Engineering' in groups %}
+                {% if isEditor %}
                     <input class="btn-green btn-fill" type="submit" value="Save" />
                 {% endif %}
             </div>

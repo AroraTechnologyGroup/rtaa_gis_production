@@ -26,6 +26,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
     FILE_APP_TOP_DIRS = [r"c:\inetpub\ftproot\gisapps\gissetup"]
+    IIS_APP_ROOT = r"C:\inetpub\wabapps"
     SERVER_URL = "https://{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -34,6 +35,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
     EMAIL_PORT = 25
     # EMAIL_HOST_USER = ""
     # EMAIL_HOST_PASSWORD = ""
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
 
 elif LDAP_URL == "renoairport.net":
     if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
@@ -42,7 +44,8 @@ elif LDAP_URL == "renoairport.net":
         FORCE_SCRIPT_NAME = "/applications/"
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-    FILE_APP_TOP_DIRS = [r"d:\\", r"\\renofs2\groups\engineering\drawings\std", r"\\renofs2\groups\engineering\drawings\rno"]
+    FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    IIS_APP_ROOT = r"C:\inetpub\apps"
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -51,9 +54,9 @@ elif LDAP_URL == "renoairport.net":
     EMAIL_PORT = 25
     # EMAIL_HOST_USER = ""
     # EMAIL_HOST_PASSWORD = ""
+    ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
@@ -304,7 +307,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "ERROR",
+            'level': "DEBUG",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -349,7 +352,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': "DEBUG"
+            'level': "ERROR"
         },
         'django.security.DisallowedHost': {
             'handlers': ['file'],

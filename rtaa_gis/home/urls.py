@@ -1,13 +1,13 @@
 from django.conf.urls import url
 from django.contrib.auth.views import logout, login, password_change
-from .views import HomePage, user_groups, build_groups, clear_users, schema_view
+from .views import HomePage, user_auth, build_groups, clear_users, schema_view
 
 app_name = 'home'
 urlpatterns = [
     url(r'^$', HomePage.as_view(), name='index'),
     url(r'^docs', schema_view, name="docs"),
     url(r'^load/$', build_groups),
-    url(r'^groups/$', user_groups),
+    url(r'^groups/$', user_auth),
     url(r'^login/$', login, {'extra_context': {'next': '/#home'}}, name='login'),
     url(r'^logout/$', logout, {'next_page': 'home:login'}, name='logout'),
     url(r'^clear/$', clear_users),
@@ -20,8 +20,6 @@ urlpatterns = [
         name='airspace'),
     url(r'^leaseProperty/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_lpm'),
         name='leaseProperty'),
-    url(r'^leasePropertyViewer/$', HomePage.as_view(template='home/AppLoader.html', app_name='rtaa_lpm_viewer'),
-        name='leasePropertyViewer'),
     url(r'^signageMarking/$', HomePage.as_view(template='home/AppLoader.html', app_name='Signs'),
         name='signageMarking'),
     url(r'^mobile/$', HomePage.as_view(template='home/AppLoader.html', app_name='gisviewer'), name='mobile'),

@@ -61,10 +61,11 @@
                         <nav class="dropdown-menu dropdown-right">
                             <div class="dropdown-link">
                                 <p class="trailer-0">{{ request.user.username }} on the {% now "jS \o\f F" %}</p>
-                                <small>profile information</small>
-                                {%  for group in groups %}
-                                    <p class="trailer-0"> {{ group }}</p>
-                                {% endfor %}
+{#                                <small>AD group information</small>#}
+{##}
+{#                                {%  for group in groups %}#}
+{#                                    <p class="trailer-0"> {{ group }}</p>#}
+{#                                {% endfor %}#}
                             </div>
                             {% if request.user.is_staff %}
                                 {% load admin_urls %}
