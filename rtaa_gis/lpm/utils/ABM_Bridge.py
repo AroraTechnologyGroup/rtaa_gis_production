@@ -252,26 +252,28 @@ if __name__ == "__main__":
         pprint.pprint(d)
 
         for agg in AgreementModel.objects.all():
+            # query the spaces with agreements that match active agreements
             feature_set = feature_layer.query(where="Agreement={}".format(int(agg.id)))
             if len(feature_set.features):
                 filtered = feature_set.features
                 if not agg.start_date:
-                    start_date = ""
+                    start_date = None
                 else:
                     start_date = str(agg.start_date)
 
                 if not agg.end_date:
-                    end_date = ""
+                    end_date = None
                 else:
                     end_date = str(agg.end_date)
-                for lyr in filtered:
-                    lyr.attributes["AGREEMENT_TYPE"] = agg.type
-                    lyr.attributes["START_DATE"] = start_date
-                    lyr.attributes["END_DATE"] = end_date
-                    lyr.attributes["LEASE_STATUS"] = agg.status
+
+                for feat in filtered:
+                    feat.attributes["AGREEMENT_TYPE"] = agg.type
+                    feat.attributes["START_DATE"] = start_date
+                    feat.attributes["END_DATE"] = end_date
+                    feat.attributes["LEASE_STATUS"] = agg.status
 
                     try:
-                        update_result = feature_layer.edit_features(updates=[lyr])
+                        update_result = feature_layer.edit_features(updates=[feat])
                         adds = update_result["addResults"]
                         deletes = update_result["deleteResults"]
                         updates = update_result["updateResults"]
@@ -285,8 +287,55 @@ if __name__ == "__main__":
                     except RuntimeError as e:
                         loggit(e)
 
-        # TODO - iterate through the AGOL features, if an agreement is not in the active list, unassign it and
-        # clear the applicable agreement fields
+        # for each TERMINAL feature with an agreement defined, if that agreement is not in the domain list clear the fields
+        feature_set = feature_layer.query(where="Agreement > 0 and Region = 'Terminal'")
+        if len(feature_set.features):
+            filtered = feature_set.features
+            for feat in filtered:
+                ag_id = feat.attributes["AGREEMENT"]
+                if str(ag_id) not in [x["code"] for x in domain_list]:
+                    feat.attributes["AGREEMENT_TYPE"] = ""
+                    feat.attributes["START_DATE"] = None
+                    feat.attributes["END_DATE"] = None
+                    feat.attributes["LEASE_STATUS"] = ""
+                    try:
+                        update_result = feature_layer.edit_features(updates=[feat])
+                        adds = update_result["addResults"]
+                        deletes = update_result["deleteResults"]
+                        updates = update_result["updateResults"]
+                        if adds:
+                            loggit("{} add_result: {}".format(datetime.datetime.today(), adds))
+                        if deletes:
+                            loggit("{} delete_result: {}".format(datetime.datetime.today(), deletes))
+                        if updates:
+                            loggit("{} update_result: {}".format(datetime.datetime.today(), updates))
+
+                    except RuntimeError as e:
+                        loggit(e)
+
+        # if the agreement a TERMINAL spaces is empty clear the fields
+        feature_set = feature_layer.query(where="(Agreement IS NULL OR Agreement = 0) AND Region = 'Terminal'")
+        if len(feature_set.features):
+            filtered = feature_set.features
+            for feat in filtered:
+                feat.attributes["AGREEMENT_TYPE"] = ""
+                feat.attributes["START_DATE"] = None
+                feat.attributes["END_DATE"] = None
+                feat.attributes["LEASE_STATUS"] = ""
+                try:
+                    update_result = feature_layer.edit_features(updates=[feat])
+                    adds = update_result["addResults"]
+                    deletes = update_result["deleteResults"]
+                    updates = update_result["updateResults"]
+                    if adds:
+                        loggit("{} add_result: {}".format(datetime.datetime.today(), adds))
+                    if deletes:
+                        loggit("{} delete_result: {}".format(datetime.datetime.today(), deletes))
+                    if updates:
+                        loggit("{} update_result: {}".format(datetime.datetime.today(), updates))
+
+                except RuntimeError as e:
+                    loggit(e)
 
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
