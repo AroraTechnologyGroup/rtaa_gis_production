@@ -39,6 +39,7 @@ class FilterForm(forms.Form):
         self.fields['table_type'].choices = sorted(table_types, key=lambda table_type: table_type[0])
         self.fields['document_type'].choices = sorted(document_types, key=lambda doc_type: doc_type[0])
 
+        # providing an initial value allows the text used in the query to remain in the input
         if init_base_name:
             self.fields['base_name'].initial = init_base_name
         if init_date_added:

@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 from .utils import buildDocStore
 from .utils.domains import FileTypes
 from home.utils.ldap_tool import LDAPQuery
+from home.models import App
 from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
@@ -120,6 +121,9 @@ def create_response_object(in_path, file_type):
 
 
 def authorize_user(request, template):
+    """
+    return a boolean for admin level on eDoc, and a list of apps the user is authorized to view
+    """
     if not request.user.is_authenticated():
         return False
     try:
@@ -130,47 +134,29 @@ def authorize_user(request, template):
     resp = Response(template_name=template)
     resp['Cache-Control'] = 'no-cache'
 
-    # Perform inheritance from AD
-    local_name = name.split("\\")[-1]
-    query = LDAPQuery(local_name, settings.LDAP_URL)
-    ldap_groups = query.get_groups()
+    user = User.objects.get(username=name)
+    ldap_groups = user.groups.all()
+
+    d = {
+        "isEditor": False,
+        "final_apps": []
+    }
+    if '_RTAA Planning and Engineering' in [x.name for x in ldap_groups]:
+        d["isEditor"] = True
+
     logger.info("ldap_groups = {}".format(ldap_groups))
     logger.info("username = {}".format(name))
 
-    user_obj = User.objects.get(username=name)
-    users_groups = user_obj.groups.all()
-    # remove groups from user if not in LDAP group list
-    for x in users_groups:
-        if x.name not in ldap_groups:
-            try:
-                g = Group.objects.get(name=x)
-                user_obj.groups.remove(g)
-                user_obj.save()
-            except Exception as e:
-                print(e)
-    # add user to group if group exists in ldap and local group table
-    for x in ldap_groups:
-        if x not in [g.name for g in users_groups]:
-            try:
-                g = Group.objects.get(name=x)
-                user_obj.groups.add(g)
-                user_obj.save()
-            except Exception as e:
-                print(e)
+    for app in App.objects.all():
+        app_name = app.name
+        groups = app.groups.all()
+        for gr in groups:
+            # if the app is authorized for the a group that the user belongs to add it to the list
+            if gr in ldap_groups:
+                if app_name not in d["final_apps"]:
+                    d["final_apps"].append(app_name)
 
-    # Create user's folder in the media root
-    users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
-    if not os.path.exists(users_dir):
-        os.mkdir(users_dir)
-    user_dir = os.path.join(users_dir, local_name)
-    if not os.path.exists(user_dir):
-        os.mkdir(user_dir)
-    # make the print directory for the user
-    print_dir = os.path.join(user_dir, "prints")
-    if not os.path.exists(print_dir):
-        os.mkdir(print_dir)
-
-    return [x.name for x in user_obj.groups.all()]
+    return d
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -490,7 +476,9 @@ class UserViewer(GenericAPIView):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
 
-        final_groups = authorize_user(request, self.template)
+        auth = authorize_user(request, self.template)
+        final_apps = auth["final_apps"]
+        isEditor = auth["isEditor"]
 
         app_name = self.app_name.strip('/')
 
@@ -559,7 +547,8 @@ class UserViewer(GenericAPIView):
                      "efiles": efiles,
                      "assigns": assignments,
                      "server_url": self.server_url,
-                     "groups": final_groups,
+                     "apps": final_apps,
+                     "isEditor": isEditor,
                      "app_name": app_name,
                      "filter_form": filter_form,
                      "edit_form": edit_form,
@@ -570,7 +559,9 @@ class UserViewer(GenericAPIView):
     def post(self, request, format=None):
         if not request.user.is_authenticated():
             return redirect(reverse('home:login'))
-        final_groups = authorize_user(request, self.template)
+        auth = authorize_user(request, self.template)
+        final_apps = auth["final_apps"]
+        isEditor = auth["isEditor"]
 
         app_name = self.app_name.strip('/')
 
@@ -722,7 +713,8 @@ class UserViewer(GenericAPIView):
             "efiles": efiles,
             "assigns": assignments,
             "server_url": self.server_url,
-            "groups": final_groups,
+            "apps": final_apps,
+            "isEditor": isEditor,
             "app_name": app_name,
             "filter_form": filter_form,
             "edit_form": edit_form,

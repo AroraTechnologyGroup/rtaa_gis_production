@@ -14,6 +14,17 @@ type_domains = domains.FileTypes()
 logger = logging.getLogger(__name__)
 
 
+class StringListField(serializers.ListField):
+    child = serializers.CharField()
+    required = False
+
+    def to_representation(self, data):
+        return [x.name for x in data.all()]
+
+    # def to_internal_value(self, data):
+    #     return data.all
+
+
 class GridSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -84,10 +95,7 @@ class EngSerializer(serializers.ModelSerializer):
         depth = 2
         read_only_fields = ('last_edited_date', 'base_name', 'file_type', 'size', 'date_added', 'mime')
 
-    grid_cells = serializers.ListField(
-        child=serializers.CharField(),
-        required=False
-    )
+    grid_cells = StringListField()
 
     new_grid_cells = serializers.ListField(
         child=serializers.CharField(),
