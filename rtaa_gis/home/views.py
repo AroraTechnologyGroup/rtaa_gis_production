@@ -31,7 +31,7 @@ schema_view = get_schema_view(title='RTAA API', renderer_classes=[OpenAPIRendere
 
 def process_configs():
     # These are the folders that the apps are deployed into on IIS
-    if settings.LDAP_URL == "renoairport.com":
+    if settings.LDAP_URL == "renoairport.net":
         viewer_dir = "RTAA Viewer"
         lpm_dir = "RTAA Lease and Property Management"
         airspace_dir = "airspace"
