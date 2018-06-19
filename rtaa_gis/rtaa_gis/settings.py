@@ -42,7 +42,7 @@ elif LDAP_URL == "renoairport.net":
         FORCE_SCRIPT_NAME = "/applications/"
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-    FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
