@@ -25,7 +25,7 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         FORCE_SCRIPT_NAME = ""
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
-    FILE_APP_TOP_DIRS = [r"C:\\ESRI_WORK_FOLDER"]
+    FILE_APP_TOP_DIRS = [r"c:\inetpub\ftproot\gisapps\gissetup"]
     SERVER_URL = "https://{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -304,7 +304,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "ERROR",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,
@@ -344,7 +344,7 @@ LOGGING = {
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': "DEBUG",
+            'level': "ERROR",
             'propogate': True
         },
         'django': {

@@ -614,6 +614,12 @@ div.icon-image.selected-image {
   -ms-filter: none;
   filter: none;
 }
+.dijitArrowButtonContainer {
+  height: 100%;
+}
+.dijitTextBox input.dijitArrowButtonInner {
+  height: 100% !important;
+}
 @-moz-keyframes container_ropen {
   from {
     right: 0;

@@ -178,6 +178,7 @@ class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
     filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
     pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer,)
 
     @list_route(methods=['get',])
     def _stop_monitors(self, request):
@@ -329,6 +330,7 @@ class PagedEngViewSet(PagedFileViewSet):
     queryset = EngineeringFileModel.objects.all()
     serializer_class = EngSerializer
     filter_fields = ('project_title', 'sheet_name', 'airport')
+    renderer_classes = (JSONRenderer,)
 
     @detail_route(methods=['get', ])
     def _view(self, request, pk=None):

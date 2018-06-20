@@ -2,7 +2,15 @@ import subprocess
 import os
 import sys
 import traceback
-from rtaa_gis.settings import BASE_DIR
+import django
+import time
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
+django.setup()
+from django.conf import settings
+
+TOP_DIRS = settings.FILE_APP_TOP_DIRS
 
 
 def open_monitor(in_path):
@@ -61,8 +69,14 @@ class Observers:
 
 
 if __name__ == "__main__":
-    obs = Observers([r"C:\\"])
+    obs = Observers(TOP_DIRS)
     try:
         obs.start_monitors()
-    except:
+        i = 0
+        while True:
+            i += 1
+            time.sleep(1)
+            if i % 5 == 0:
+                print("{} iterations for logger".format(i))
+    except KeyboardInterrupt:
         obs.stop_monitors()
