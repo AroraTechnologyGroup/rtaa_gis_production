@@ -7,11 +7,11 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 # USE_X_FORWARDED_HOST = True
 
-# LDAP_URL = "gisapps.aroraengineers.com"
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
