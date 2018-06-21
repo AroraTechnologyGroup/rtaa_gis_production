@@ -143,7 +143,8 @@ class EngineeringFileModel(FileModel):
 
     grid_cells = models.ManyToManyField(GridCell,
                                         through='EngineeringAssignment',
-                                        through_fields=('file', 'grid_cell')
+                                        through_fields=('file', 'grid_cell'),
+                                        blank=True
                                         )
 
     project_title = models.CharField(max_length=255, null=True, blank=True)
