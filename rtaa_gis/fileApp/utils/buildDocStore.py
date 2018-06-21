@@ -289,15 +289,14 @@ class FileStoreBuilder:
                             extension = _file.split(".")[-1].lower()
                             if extension == mapping:
                                 file_path = os.path.join(root, _file)
-                                # file_path = file_path.replace("\\", "/")
+                                file_path = file_path.replace("\\", "/")
                                 # all file_paths in the system are lower case
                                 file_path = file_path.lower()
                                 filtered = EngineeringFileModel.objects.filter(file_path=file_path)
                                 if len(filtered) == 0:
                                     # File has not been added to the database
                                     ser = EngSerializer(data={
-                                        "file_path": file_path,
-                                        "project_title": ""
+                                        "file_path": file_path
                                     })
                                     if ser.is_valid():
                                         ser.save()
@@ -449,10 +448,10 @@ if __name__ == '__main__':
     x = FileStoreBuilder()
     x.build_rel_stores()
     x.build_store()
-    # if os.path.exists(acc_db_path):
-    #     x.load_accdb()
-    cell = GridCellBuilder()
-    cell.build_store()
+    if os.path.exists(acc_db_path):
+        x.load_accdb()
+    # cell = GridCellBuilder()
+    # cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 

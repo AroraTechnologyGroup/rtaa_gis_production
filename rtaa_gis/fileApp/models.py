@@ -110,7 +110,7 @@ class Assignment(models.Model):
         return "%s" % self.grid_cell
 
     class Meta:
-        ordering = ('grid_cell', 'file', 'date_assigned', 'comment',)
+        ordering = ('grid_cell', 'date_assigned', 'comment',)
         app_label = 'fileApp'
         abstract = True
 
