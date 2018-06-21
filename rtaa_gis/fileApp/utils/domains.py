@@ -86,7 +86,7 @@ class FileTypes:
         csv = {"csv": "text/csv"}
         png = {"png": "image/png"}
         jpeg = {"jpg": "image/jpeg"}
-        tiff = {"tiff": "image/tiff"}
+        tif = {"tif": "image/tiff"}
         dwg = {"dwg": "image/vnd.dwg"}
         lyr = {"lyr": "application/octet-stream"}
         lpk = {"lpk": "application/octet-stream"}
@@ -114,7 +114,7 @@ class FileTypes:
             "PNG Image": png,
             "JPEG Image": jpeg,
             "IMG Image": img,
-            "TIFF Image": tiff,
+            "TIF Image": tif,
             "AutoCad Dwg": dwg,
             "ArcMap Layer File": lyr,
             "ArcMap Layer Package": lpk,
@@ -135,7 +135,7 @@ class FileTypes:
             self.TABLE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.IMAGE_VIEWER_TYPES = []
-        for f in ["PNG Image", "JPEG Image", "IMG Image", "TIFF Image"]:
+        for f in ["PNG Image", "JPEG Image", "IMG Image", "TIF Image"]:
             self.IMAGE_VIEWER_TYPES.append((list(self.file_type_choices[f].keys())[0], f))
 
         self.GIS_VIEWER_TYPES = []

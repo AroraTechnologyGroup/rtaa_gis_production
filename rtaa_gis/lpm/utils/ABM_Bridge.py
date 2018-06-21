@@ -8,6 +8,7 @@ import json
 import traceback
 import pyodbc
 import datetime
+from datetime import datetime
 import xlrd
 from arcgis.gis import GIS
 from arcgis.features import FeatureLayerCollection
@@ -40,6 +41,8 @@ def loggit(text):
     pprint.pprint("{}\n".format(text))
     file.close()
 
+
+loggit("Script run {}".format(datetime.today()))
 
 ###############################################
 kwargs = dict()
