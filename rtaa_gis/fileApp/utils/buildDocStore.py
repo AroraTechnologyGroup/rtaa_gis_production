@@ -296,8 +296,7 @@ class FileStoreBuilder:
                                 if len(filtered) == 0:
                                     # File has not been added to the database
                                     ser = EngSerializer(data={
-                                        "file_path": file_path,
-                                        "project_title": ""
+                                        "file_path": file_path
                                     })
                                     if ser.is_valid():
                                         ser.save()

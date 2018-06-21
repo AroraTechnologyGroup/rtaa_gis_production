@@ -110,7 +110,7 @@ class Assignment(models.Model):
         return "%s" % self.grid_cell
 
     class Meta:
-        ordering = ('grid_cell', 'file', 'date_assigned', 'comment',)
+        ordering = ('grid_cell', 'date_assigned', 'comment',)
         app_label = 'fileApp'
         abstract = True
 
@@ -143,7 +143,8 @@ class EngineeringFileModel(FileModel):
 
     grid_cells = models.ManyToManyField(GridCell,
                                         through='EngineeringAssignment',
-                                        through_fields=('file', 'grid_cell')
+                                        through_fields=('file', 'grid_cell'),
+                                        blank=True
                                         )
 
     project_title = models.CharField(max_length=255, null=True, blank=True)
