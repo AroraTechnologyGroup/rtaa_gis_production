@@ -82,13 +82,21 @@ if __name__ == "__main__":
                 domain_list = []
                 ws = wb.get_sheet_by_name(field_name.lower().replace("_", " "))
                 for row in ws.iter_rows(min_row=2):
-                    code = row[0].value
+                    if row[0].value is None:
+                        code = ""
+                    else:
+                        code = row[0].value
+                        if code != row[1].value:
+                            loggit("This code {}, does not match the description {}".format(code, row[1].value))
 
                     val = {
                         "code": "{}".format(code),
-                        "name": "{}".format(code)
+                        "name": "{}".format(row[1].value)
                     }
-                    empty_list.append(val)
+                    if code == "" or not code:
+                        domain_list.append(val)
+                    else:
+                        empty_list.append(val)
 
                 # sort the keys, then build the final sorted domain list
                 new_domains = sorted(empty_list, key=itemgetter('name'))
