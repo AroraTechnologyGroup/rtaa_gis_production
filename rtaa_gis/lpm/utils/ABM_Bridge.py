@@ -183,6 +183,9 @@ if __name__ == "__main__":
             else:
                 loggit("Unable to save agreement to db :: {} : {}".format(serial.errors, data))
 
+        # TODO - Iterate through all of the Agreements, if one is not found in the results from the sql query, remove it
+
+        # Here were are updating the domain in the AGOL Space feature layer with the active agreements
         domain_list = []
         for x in AgreementModel.objects.order_by("title"):
             id = x.id
@@ -279,17 +282,16 @@ if __name__ == "__main__":
                         deletes = update_result["deleteResults"]
                         updates = update_result["updateResults"]
                         if adds:
-                            loggit("{} add_result: {}".format(datetime.datetime.today(), adds))
+                            loggit("{} add_result: {}".format(datetime.today(), adds))
                         if deletes:
-                            loggit("{} delete_result: {}".format(datetime.datetime.today(), deletes))
+                            loggit("{} delete_result: {}".format(datetime.today(), deletes))
                         if updates:
-                            loggit("{} update_result: {}".format(datetime.datetime.today(), updates))
+                            loggit("{} update_result: {}".format(datetime.today(), updates))
 
                     except RuntimeError as e:
                         loggit(e)
 
-        # TODO - iterate through the AGOL features, if an agreement is not in the active list, unassign it and
-        # clear the applicable agreement fields
+        # TODO - iterate through the AGOL features, if an agreement is not in the active list, unassign it and clear the applicable agreement fields
 
     except Exception as e:
         traceback.print_exc(file=sys.stdout)
