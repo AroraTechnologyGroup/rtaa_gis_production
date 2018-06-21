@@ -10,8 +10,8 @@ import urllib
 DEBUG = True
 # USE_X_FORWARDED_HOST = True
 
-# LDAP_URL = "gisapps.aroraengineers.com"
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
@@ -35,7 +35,6 @@ if LDAP_URL == "gisapps.aroraengineers.com":
     EMAIL_PORT = 25
     # EMAIL_HOST_USER = ""
     # EMAIL_HOST_PASSWORD = ""
-    ARCPY_PATH = r"C:\Python27\ArcGIS10.4\python.exe"
 
 elif LDAP_URL == "renoairport.net":
     if "rtaa_gis_django_testing" in os.path.abspath(__file__).split("\\"):
@@ -50,13 +49,13 @@ elif LDAP_URL == "renoairport.net":
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     EMAIL_USE_TLS = False
-    EMAIL_HOST = "aspmx.l.google.com"
+    EMAIL_HOST = "mail.renoairport.net"
     EMAIL_PORT = 25
-    # EMAIL_HOST_USER = ""
-    # EMAIL_HOST_PASSWORD = ""
-    ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
+    EMAIL_HOST_USER = ""
+    EMAIL_HOST_PASSWORD = ""
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
@@ -307,7 +306,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.handlers.RotatingFileHandler',
-            'level': "DEBUG",
+            'level': "ERROR",
             'filename': os.path.join(BASE_DIR, 'logs/django_log.log'),
             'maxBytes': 1024*1024*10,
             'backupCount': 5,

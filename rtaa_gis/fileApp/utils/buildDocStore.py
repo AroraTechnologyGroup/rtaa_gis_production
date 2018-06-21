@@ -451,8 +451,8 @@ if __name__ == '__main__':
     x.build_store()
     # if os.path.exists(acc_db_path):
     #     x.load_accdb()
-    # cell = GridCellBuilder()
-    # cell.build_store()
+    cell = GridCellBuilder()
+    cell.build_store()
     # ass = AssignmentManager()
     # ass.create_test_assignments()
 
