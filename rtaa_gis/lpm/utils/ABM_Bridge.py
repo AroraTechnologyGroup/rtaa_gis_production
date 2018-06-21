@@ -262,12 +262,12 @@ if __name__ == "__main__":
             if len(feature_set.features):
                 filtered = feature_set.features
                 if not agg.start_date:
-                    start_date = ""
+                    start_date = None
                 else:
                     start_date = str(agg.start_date)
 
                 if not agg.end_date:
-                    end_date = ""
+                    end_date = None
                 else:
                     end_date = str(agg.end_date)
                 for lyr in filtered:
