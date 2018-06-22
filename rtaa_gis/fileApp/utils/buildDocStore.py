@@ -227,6 +227,7 @@ class FileStoreBuilder:
                             traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
 
                     elif len(filtered) == 1:
+                        # The file was matched to a record in the database
                         _object = filtered[0]
                         doc_types = _object.document_type.all()
                         airport = _object.airport
@@ -279,6 +280,14 @@ class FileStoreBuilder:
             top_dirs = self.top_dirs
             file_types = self.FileTypes
             for top_dir in top_dirs:
+                # The airport is determined by the root folder the file is found under
+                if top_dir.lower().endswith("rno"):
+                    airport = "rno"
+                elif top_dir.lower().endswith("std"):
+                    airport = "rts"
+                else:
+                    raise Exception("Airport could not be determined from the last directory in top dir file path {}".format(top_dir))
+
                 for root, dirs, files in os.walk(top_dir):
                     for _file in files:
 
@@ -296,7 +305,8 @@ class FileStoreBuilder:
                                 if len(filtered) == 0:
                                     # File has not been added to the database
                                     ser = EngSerializer(data={
-                                        "file_path": file_path
+                                        "file_path": file_path,
+                                        "airport": airport
                                     })
                                     if ser.is_valid():
                                         ser.save()
@@ -307,7 +317,8 @@ class FileStoreBuilder:
                                     # The File Exists in the Database and will be updated
                                     _object = filtered[0]
                                     serializer = EngSerializer(_object, data={
-                                        "file_path": file_path
+                                        "file_path": file_path,
+                                        "airport": airport
                                     }, partial=True)
                                     if serializer.is_valid():
                                         serializer.save()
@@ -326,13 +337,18 @@ class FileStoreBuilder:
        """
         def check_roots(in_path, roots):
             d = False
-            lower_path = in_path.lower()
+            lower_path = in_path.lower().replace("\\", "/")
             for x in roots:
-                lower_root = x.lower()
+                lower_root = x.lower().replace("\\", "/")
                 if lower_path.startswith(lower_root):
                     if os.path.exists(in_path):
                         if not os.path.isdir(in_path):
-                            d = True
+                            # remove any files with "\" in the path, these will cause duplication
+                            try:
+                                in_path.index("\\")
+                                d = False
+                            except ValueError:
+                                d = True
             return d
 
         try:
@@ -447,11 +463,10 @@ class AssignmentManager:
 if __name__ == '__main__':
     x = FileStoreBuilder()
     x.build_rel_stores()
+    x.clean_store()
     x.build_store()
     if os.path.exists(acc_db_path):
         x.load_accdb()
     # cell = GridCellBuilder()
     # cell.build_store()
-    # ass = AssignmentManager()
-    # ass.create_test_assignments()
 
