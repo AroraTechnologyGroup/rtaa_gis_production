@@ -37,7 +37,7 @@ sheet_title: A1
 path: //renofs2/groups/engineering/drawings/rno/rno01187.tif
 discipline: [<DisciplineModel: civil>]
 project_title: Terminal expansion
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: 
 
 path: //renofs2/groups/engineering/drawings/rno/rno01189.tif
@@ -199,7 +199,7 @@ sheet_title: A2
 path: //renofs2/groups/engineering/drawings/rno/rno01611.tif
 discipline: [<DisciplineModel: arch>, <DisciplineModel: misc>]
 project_title: Ap fire & rescue blg
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: A4
 
 path: //renofs2/groups/engineering/drawings/rno/rno01613.tif
@@ -991,13 +991,13 @@ sheet_title: C12
 path: //renofs2/groups/engineering/drawings/rno/rno03553.tif
 discipline: [<DisciplineModel: arch>]
 project_title: Longley lane improvements
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: C13
 
 path: //renofs2/groups/engineering/drawings/rno/rno03554.tif
 discipline: [<DisciplineModel: structural>]
 project_title: Longley lane improvements
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: S1
 
 path: //renofs2/groups/engineering/drawings/rno/rno03555.tif
@@ -1399,7 +1399,7 @@ sheet_title: E5
 path: //renofs2/groups/engineering/drawings/rno/rno04247.tif
 discipline: [<DisciplineModel: electrical>, <DisciplineModel: civil>]
 project_title: Aircraft fuel systems
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E10
 
 path: //renofs2/groups/engineering/drawings/rno/rno04248.tif
@@ -1573,7 +1573,7 @@ sheet_title: A5
 path: //renofs2/groups/engineering/drawings/rno/rno04368.tif
 discipline: [<DisciplineModel: arch>]
 project_title: Aircraft fuel systems
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: A6
 
 path: //renofs2/groups/engineering/drawings/rno/rno04370.tif
@@ -1699,7 +1699,7 @@ sheet_title: A5
 path: //renofs2/groups/engineering/drawings/rno/rno04431.tif
 discipline: [<DisciplineModel: civil>]
 project_title: Aircraft fuel systems
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: A6
 
 path: //renofs2/groups/engineering/drawings/rno/rno04432.tif
@@ -1777,7 +1777,7 @@ sheet_title: E8
 path: //renofs2/groups/engineering/drawings/rno/rno04458.tif
 discipline: [<DisciplineModel: electrical>]
 project_title: Aircraft fuel systems
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E10
 
 path: //renofs2/groups/engineering/drawings/rno/rno04459.tif
@@ -1801,7 +1801,7 @@ sheet_title: A3
 path: //renofs2/groups/engineering/drawings/rno/rno04487.tif
 discipline: [<DisciplineModel: arch>]
 project_title: Aircraft fuel systems
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: A6
 
 path: //renofs2/groups/engineering/drawings/rno/rno04500.tif
@@ -1849,7 +1849,7 @@ sheet_title: Mfp2
 path: //renofs2/groups/engineering/drawings/rno/rno04779.tif
 discipline: [<DisciplineModel: electrical>]
 project_title: Paradiesshopsconcourse b newsgiftsshop reno cannon intl
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E1
 
 path: //renofs2/groups/engineering/drawings/rno/rno04794.tif
@@ -1897,7 +1897,7 @@ sheet_title:
 path: //renofs2/groups/engineering/drawings/rno/rno06017.tif
 discipline: [<DisciplineModel: electrical>]
 project_title: Reno cannon intl ap
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: 
 
 path: //renofs2/groups/engineering/drawings/rno/rno06076.tif
@@ -1951,13 +1951,13 @@ sheet_title: 1 of 12
 path: //renofs2/groups/engineering/drawings/rno/rno06302.tif
 discipline: [<DisciplineModel: misc>]
 project_title: Reno cannon intl ap
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: 1 of 12
 
 path: //renofs2/groups/engineering/drawings/rno/rno06303.tif
 discipline: [<DisciplineModel: misc>]
 project_title: Reno cannon intl ap
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: 1 of 12
 
 path: //renofs2/groups/engineering/drawings/rno/rno06560.tif
@@ -2071,7 +2071,7 @@ sheet_title:
 path: //renofs2/groups/engineering/drawings/rno/rno06733.tif
 discipline: [<DisciplineModel: arch>]
 project_title: Remodel cactusj's
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: A1
 
 path: //renofs2/groups/engineering/drawings/rno/rno06734.tif
@@ -3673,13 +3673,13 @@ sheet_title: E2.2
 path: //renofs2/groups/engineering/drawings/rno/rno07259.plt
 discipline: [<DisciplineModel: electrical>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E2.3
 
 path: //renofs2/groups/engineering/drawings/rno/rno07260.plt
 discipline: [<DisciplineModel: electrical>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E2.4
 
 path: //renofs2/groups/engineering/drawings/rno/rno07261.plt
@@ -3769,7 +3769,7 @@ sheet_title: E5.4
 path: //renofs2/groups/engineering/drawings/rno/rno07275.plt
 discipline: [<DisciplineModel: electrical>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E5.5
 
 path: //renofs2/groups/engineering/drawings/rno/rno07276.plt
@@ -3781,7 +3781,7 @@ sheet_title: E5.6
 path: //renofs2/groups/engineering/drawings/rno/rno07277.plt
 discipline: [<DisciplineModel: electrical>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E5.7
 
 path: //renofs2/groups/engineering/drawings/rno/rno07278.plt
@@ -3817,7 +3817,7 @@ sheet_title: E6.5
 path: //renofs2/groups/engineering/drawings/rno/rno07283.plt
 discipline: [<DisciplineModel: electrical>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: E0.1
 
 path: //renofs2/groups/engineering/drawings/rno/rno07284.plt
@@ -3883,7 +3883,7 @@ sheet_title: M2.2
 path: //renofs2/groups/engineering/drawings/rno/rno07294.plt
 discipline: [<DisciplineModel: misc>]
 project_title: Reconstruct 16l34r
-sheet_type: [<SheetTypeModel: notes>, <SheetTypeModel: symbols>]
+sheet_type: [<SheetTypeModel: symbols>, <SheetTypeModel: notes>]
 sheet_title: S1.1
 
 path: //renofs2/groups/engineering/drawings/rno/rno07295.plt
