@@ -149,7 +149,7 @@ def name_file(out_folder, new_name):
 
     full_name = "{}.pdf".format(new_name)
 
-    if os.path.exists(full_name):
+    if os.path.exists(os.path.join(out_folder, full_name)):
         v = 1
         full_name = "{}_{}.pdf".format(new_name, v)
         if os.path.exists(full_name):
@@ -401,9 +401,9 @@ def delete_file(request, format=None):
         os.chdir(outfolder)
         if os.path.exists(file_name):
             os.remove(file_name)
-            data = "Temp File {} Deleted from Server".format(file_name)
+            data = "File {} Deleted from Server".format(file_name)
         else:
-            data = "File not found in user's print folder"
+            data = "File {} not found in user's print folder".format(file_name)
         os.chdir(old_dir)
     else:
         data = "Failed to located user's media folder"
