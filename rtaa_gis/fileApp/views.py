@@ -486,7 +486,7 @@ class UserViewer(GenericAPIView):
         resp['Cache-Control'] = 'no-cache'
 
         # add the engineering file objects to the context
-        efile_list = EngineeringFileModel.objects.all().order_by('base_name')
+        efile_list = EngineeringFileModel.objects.filter(airport="rno").order_by('base_name')
         paginator = Paginator(efile_list, 25)
 
         page = request.GET.get('page')
@@ -595,24 +595,28 @@ class UserViewer(GenericAPIView):
         gis_types = data.getlist('gis_type')
 
         # build the querysets that refine the final efile list
-        if base_name:
-            efiles = EngineeringFileModel.objects.filter(base_name__icontains=base_name)
+        # all files should have the airport attributed by the top_dir leaf folder
+        if airport:
+            efiles = EngineeringFileModel.objects.filter(airport=airport)
         else:
             efiles = EngineeringFileModel.objects.all()
+
+        if base_name:
+            efiles = efiles.filter(base_name__icontains=base_name)
 
         if date_added:
             delta = timedelta(days=7)
             target_date = datetime.datetime.strptime(date_added, '%Y-%m-%d')
             start_date = target_date - delta
             end_date = target_date + delta
-            efiles = EngineeringFileModel.objects.filter(date_added__range=(start_date, end_date))
+            efiles = efiles.filter(date_added__range=(start_date, end_date))
 
         if grid_cells:
             gcells = [x.strip() for x in grid_cells.split(",")]
             efiles = efiles.filter(engineeringassignment__grid_cell__name__in=gcells).distinct()
 
         if sheet_title:
-            efiles = EngineeringFileModel.objects.filter(sheet_title__icontains=sheet_title)
+            efiles = efiles.filter(sheet_title__icontains=sheet_title)
         if project_title:
             efiles = efiles.filter(project_title__icontains=project_title)
         if project_description:
@@ -625,9 +629,6 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(sheet_description__icontains=sheet_description)
         if vendor:
             efiles = efiles.filter(vendor__icontains=vendor)
-        # not all files are attributed yet so only filter for rst if requested
-        if airport != 'rno':
-            efiles = efiles.filter(airport=airport)
         if file_path:
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
