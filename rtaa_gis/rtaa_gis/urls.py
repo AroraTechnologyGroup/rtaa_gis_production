@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.conf.urls import url, include
+from django.urls import path, include
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
@@ -22,15 +22,15 @@ from django.conf.urls.static import static
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^', include('home.urls')),
-    url(r'^lpm/', include('lpm.urls')),
-    url(r'^diagrams/', include('diagrams.urls')),
-    url(r'^analytics/', include('analytics.urls')),
-    url(r'^print/', include('printTool.urls')),
-    url(r'^cloudSync/', include('cloudSync.urls')),
-    url(r'^fileApp/', include('fileApp.urls')),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('', include('home.urls')),
+    path('lpm/', include('lpm.urls')),
+    path('diagrams/', include('diagrams.urls')),
+    path('analytics/', include('analytics.urls')),
+    path('print/', include('printTool.urls')),
+    path('cloudSync/', include('cloudSync.urls')),
+    path('fileApp/', include('fileApp.urls')),
+    path('admin/', admin.site.urls),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 
 

@@ -21,8 +21,8 @@ class StringListField(serializers.ListField):
     def to_representation(self, data):
         return [x.name for x in data.all()]
 
-    # def to_internal_value(self, data):
-    #     return data.all
+    def to_internal_value(self, data):
+        return data.all
 
 
 class GridSerializer(serializers.ModelSerializer):

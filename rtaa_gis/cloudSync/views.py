@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework.decorators import list_route, api_view, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework import viewsets
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -154,7 +154,7 @@ class GDBSummaryPage(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'GDB_Summary.html'
 
-    @list_route(methods=['get',])
+    @action(detail=False, methods=['get',])
     def get(self, request, format=None):
         gdb = GDB.objects.all()
         dsets = FeatureDataset.objects.all()
@@ -169,7 +169,7 @@ class GDBSummaryPage(APIView):
 class OnlineViewSet(viewsets.ViewSet):
     renderer_classes = (JSONRenderer,)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def feature_layers(self, request):
         x = SearchTool("Feature Layer")
         items = x.search_all()
@@ -184,7 +184,7 @@ class OnlineViewSet(viewsets.ViewSet):
             final_list.append(new_item)
         return Response(final_list)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def web_maps(self, request):
         x = SearchTool("Web Map")
         items = x.search_all()
@@ -196,7 +196,7 @@ class OnlineViewSet(viewsets.ViewSet):
             final_list.append(new_item)
         return Response(final_list)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def web_apps(self, request):
         x = SearchTool("Web App")
         items = x.search_all()

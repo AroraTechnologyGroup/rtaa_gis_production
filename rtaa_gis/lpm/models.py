@@ -42,15 +42,4 @@ class Agreement(models.Model):
     end_date = models.DateField(null=True)
 
 
-class Space(models.Model):
-    """This is an individual space that may belong to an agreement"""
-    def __str__(self):
-        return "%s" % self.id
-
-    class Meta:
-        app_label = 'lpm'
-
-    id = models.CharField(max_length=50, primary_key=True)
-
-    agreement = models.ForeignKey(Agreement, related_name="spaces", on_delete=models.CASCADE, null=True)
 
