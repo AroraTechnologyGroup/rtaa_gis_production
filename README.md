@@ -11,9 +11,9 @@ Installation
 
 - Next, open the PyCharm settings and set the interpreter for the project
 
-- Add the arcgis module; this will install dependencies that would cause issues when installing through command line
+- Install the arcgis module; this will install dependencies that would cause issues when installing through command line
 
-- Next, open the terminal to active the environment
+- Next, open the terminal to activate the environment
 
 - Use pip to install the packages listed in the requirements.txt file in the project root (pip install -r requirements.txt)
 

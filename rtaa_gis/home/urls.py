@@ -22,6 +22,7 @@ urlpatterns = [
         name='leaseProperty'),
     path('signageMarking', HomePage.as_view(template='home/AppLoader.html', app_name='Signs'),
         name='signageMarking'),
+    path('mobile', HomePage.as_view(template='home/AppLoader.html', app_name='mobile'), name='mobile'),
     # url(r'^password_change/$', password_change, {'post_change_redirect': 'home:login'}, name='password_change')
 ]
 
