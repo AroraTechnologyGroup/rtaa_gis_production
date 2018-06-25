@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from rest_framework.fields import CharField
-from .models import Agreement, Space
+from .models import Agreement
 import os
 
 
@@ -48,28 +48,5 @@ class AgreementSerializer(serializers.ModelSerializer):
             print(e)
 
 
-class SpaceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Space
-        fields = '__all__'
-        read_only_fields = ('id',)
 
-    def create(self, validated_data):
-        try:
-            _space = Space.objects.create(**validated_data)
-            _space.save()
-            return _space
-        except Exception as e:
-            print(e)
-
-    def update(self, instance, validated_data):
-        try:
-
-            # These variables are brought in from the Access Database of Tiffany
-            instance.id = validated_data.get("id", instance.id)
-            instance.agreement = validated_data.get("agreement", instance.agreement)
-            instance.save()
-            return instance
-        except Exception as e:
-            print(e)
 
