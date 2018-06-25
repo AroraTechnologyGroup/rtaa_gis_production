@@ -172,14 +172,6 @@ def get_name(request):
 
 
 @api_view(['GET'])
-def build_groups(request, format=None):
-    """View to inherit from AD and build the app tables"""
-    name = get_name(request)
-    user_data = query_ldap(name)
-    return Response(user_data)
-
-
-@api_view(['GET'])
 def user_auth(request, format=None):
     """View to get the user's groups from the framework tables"""
     name = get_name(request)
@@ -211,17 +203,6 @@ def user_auth(request, format=None):
     return Response(user_data)
 
 
-@api_view(['GET', 'POST'])
-def clear_users(request, format=None):
-    users = User.objects.all()
-    removed = []
-    for user in users:
-        if user.username.split("\\")[0] == "GISAPPS":
-            user.delete()
-            removed.append(user.username)
-    return Response(data="These users were removed :: {} :: {}".format(removed, datetime.now()))
-
-
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 # @method_decorator(never_cache, name="dispatch")
 class HomePage(APIView):
@@ -233,7 +214,7 @@ class HomePage(APIView):
 
     def get(self, request, format=None):
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return redirect(reverse('home:login'))
 
         resp = Response(template_name=self.template)
