@@ -35,7 +35,8 @@ from datetime import datetime
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATIC_ROOT
-
+LDAP_URL = settings.LDAP_URL
+DEBUG = settings.DEBUG
 
 logger = logging.getLogger(__name__)
 
@@ -281,27 +282,39 @@ def agol_user(request, format=None):
                              username="data_owner",
                              password="GIS@RTAA123!")
         username = get_username(request)
+
+        if LDAP_URL == "gis.renoairport.net":
+            provider = "enterprise"
+        else:
+            provider = "arcgis"
+
+        if DEBUG:
+            username = "AroraTeam"
+            email = "richardh522@gmail.com"
+
         me = gis.users.me
-        account = gis.users.get(username="{}".format("Test_RTAA"))
+        account = gis.users.get(username="{}".format(username))
 
         resp = Response()
         if account:
             pass
             # account.delete(reassign_to='data_owner')
-            resp.data = "User Exists in AGOL"
+            resp.data = {"code": 0, "message": username}
         else:
-            user = gis.users.create(username="Test_RTAA",
+            user = gis.users.create(username=username,
                                     password="dfgsdfg345345",
                                     firstname="Test",
                                     lastname="RTAA",
                                     email="richardh522@gmail.com",
                                     level=1,
                                     role="org_viewer",
-                                    provider="arcgis")
+                                    provider=provider)
             if user:
-                resp.data = "User has been created in AGOL"
+                resp.data = {"code": 0,
+                             "message": username}
             else:
-                resp.data = "Unable to create user"
+                resp.data = {"code": 1,
+                             "message": "error. Unable to create user"}
 
         return resp
 
