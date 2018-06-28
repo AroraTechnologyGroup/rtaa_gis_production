@@ -11,7 +11,7 @@ def dump(model):
     kwargs['cwd'] = BASE_DIR
     kwargs['stdout'] = PIPE
     kwargs['stderr'] = PIPE
-    proc = subprocess.Popen("python manage.py dumpdata lpm.{0} --indent 4 --output lpm/fixtures/json/{1}.json".format(model, model.lower()),
+    proc = subprocess.Popen("python manage.py dumpdata home.{0} --indent 4 --output home/fixtures/json/{1}.json".format(model, model.lower()),
                             **kwargs)
     std_out, std_err = proc.communicate()
     if std_out:
@@ -19,7 +19,7 @@ def dump(model):
     if std_err:
         print(std_err)
 
-    spec = os.path.join(BASE_DIR, "lpm/fixtures/json/{}.json".format(model.lower()))
+    spec = os.path.join(BASE_DIR, "home/fixtures/json/{}.json".format(model.lower()))
     if os.path.exists(spec):
         # If the number of test feature needs to be limited slice the list
         fixt = json.loads(open(spec, 'r').read())
@@ -30,6 +30,6 @@ def dump(model):
         new_fixt.close()
 
 
-models = ["Agreement"]
+models = ["App"]
 for x in models:
     dump(x)
