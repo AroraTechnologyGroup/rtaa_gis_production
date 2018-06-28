@@ -17,7 +17,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from rest_framework.permissions import AllowAny
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from io import BytesIO
 from rest_framework.response import Response
@@ -146,18 +146,19 @@ def apply_watermark(watermark, target):
 
 
 def name_file(out_folder, new_name):
-
+    if not new_name:
+        new_name = "Map Print {}".format(datetime.date(datetime.today()))
     full_name = "{}.pdf".format(new_name)
 
     if os.path.exists(os.path.join(out_folder, full_name)):
         v = 1
         full_name = "{}_{}.pdf".format(new_name, v)
-        if os.path.exists(full_name):
+        if os.path.exists(os.path.join(out_folder, full_name)):
             i = False
             while not i:
                 v += 1
                 full_name = "{}_{}.pdf".format(new_name, v)
-                if not os.path.exists(full_name):
+                if not os.path.exists(os.path.join(out_folder, full_name)):
                     i = True
 
     return os.path.join(out_folder, full_name)
@@ -165,7 +166,6 @@ def name_file(out_folder, new_name):
 
 # Create your views here.
 @api_view(['POST'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def layout(request, format=None):
     try:
@@ -207,7 +207,7 @@ def layout(request, format=None):
         graphics_file = os.path.join(out_folder, 'temp.json')
         new_name = "{}.json".format(os.path.basename(filename).split(".")[0])
         if os.path.exists(graphics_file):
-            os.rename(graphics_file, new_name)
+            os.rename(graphics_file, os.path.join(out_folder, new_name))
 
         host = request.META["HTTP_HOST"]
         media_url = settings.MEDIA_URL.lstrip("/")
@@ -243,7 +243,7 @@ def parseGraphics(request, format=None):
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
 
-        web_map = request.POST['web_map_json']
+        web_map = request.data.get('web_map_json')
         map = json.loads(web_map)
         op_layers = map["operationalLayers"]
 
@@ -264,9 +264,9 @@ def parseGraphics(request, format=None):
         text = open(tempfile, 'r').read()
         if text == "[]":
             os.remove(tempfile)
-            resp.data = "Empty drawings graphics"
+            resp.data = {"message": "Empty drawings graphics"}
         else:
-            resp.data = "Graphics file saved"
+            resp.data = {"message": "Graphics file saved"}
         return resp
 
     except Exception as e:

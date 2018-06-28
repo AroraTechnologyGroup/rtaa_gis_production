@@ -7,11 +7,11 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 
-# LDAP_URL = "gisapps.aroraengineers.com"
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
@@ -105,7 +105,7 @@ CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERRER = True
+CORS_REPLACE_HTTPS_REFERRER = False
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
@@ -124,6 +124,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'authorization',
     'content-type',
+    'http_x_csrftoken'
 )
 
 CORS_EXPOSE_HEADERS = (
@@ -218,16 +219,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'GIS_Web',
-        'HOST': 'gis.renoairport.net',
-        'USER': 'gis',
-        'PASSWORD': "GIS@RTAA123!",
-        'OPTIONS': {
-            'driver': 'ODBC Driver 13 for SQL Server'
-         }
-     },
+    # 'default': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': 'GIS_Web',
+    #     'HOST': 'gis.renoairport.net',
+    #     'USER': 'gis',
+    #     'PASSWORD': "GIS@RTAA123!",
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 13 for SQL Server'
+    #      }
+    #  },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -236,10 +237,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    # 'default': {
-    #      'ENGINE': 'django.db.backends.sqlite3',
-    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    #  }
+    'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
 
 
