@@ -60,6 +60,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
+APPEND_SLASH = False
+
 # This setting gets used in templates to build correct hyperlinks
 if DEBUG:
     FORCE_SCRIPT_NAME = '/'
@@ -104,7 +106,7 @@ CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -120,16 +122,18 @@ CORS_ORIGIN_WHITELIST = (
 CORS_ALLOW_HEADERS = (
     # 'content-range',
     'x-requested-with',
+    'authorization',
+    'content-type',
 )
 
 CORS_EXPOSE_HEADERS = (
-    # 'x-requested-with',
+    'x-requested-with',
     # 'content-type',
     # 'content-range',
     # 'accept',
     # 'origin',
-    # 'authorization',
-    # 'x-csrftoken',
+    'authorization',
+    'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -184,8 +188,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.auth.middleware.PersistentRemoteUserMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -214,16 +218,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'GIS_Web',
-        'HOST': 'gis.renoairport.net',
-        'USER': 'gis',
-        'PASSWORD': "GIS@RTAA123!",
-        'OPTIONS': {
-            'driver': 'ODBC Driver 13 for SQL Server'
-         }
-     },
+    # 'default': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': 'GIS_Web',
+    #     'HOST': 'gis.renoairport.net',
+    #     'USER': 'gis',
+    #     'PASSWORD': "GIS@RTAA123!",
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 13 for SQL Server'
+    #      }
+    #  },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -232,10 +236,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    # 'default': {
-    #      'ENGINE': 'django.db.backends.sqlite3',
-    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    #  }
+    'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+     }
 }
 
 
@@ -265,7 +269,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
         # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_FILTER_BACKENDS': (
@@ -341,7 +345,7 @@ LOGGING = {
         },
         'printTool': {
             'handlers': ['console', 'file'],
-            'level': "DEBUG",
+            'level': "ERROR",
             'propogate': True
         },
         'home': {
@@ -351,7 +355,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': "ERROR"
+            'level': "DEBUG"
         },
         'django.security.DisallowedHost': {
             'handlers': ['file'],
@@ -372,3 +376,9 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# load authentication settings for test env
+try:
+    exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_settings.py")).read())
+except IOError:
+    pass
