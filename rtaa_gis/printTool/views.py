@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 import logging
 import os
 import sys
@@ -278,20 +279,27 @@ def parseGraphics(request, format=None):
 @ensure_csrf_cookie
 def agol_user(request, format=None):
     try:
-        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                             username="data_owner",
-                             password="GIS@RTAA123!")
-        username = get_username(request)
+        ldap_username = get_username(request)
+        user_obj = User.objects.get(username=ldap_username)
+        email = user_obj.email
+        firstName = user_obj.first_name
+        lastName = user_obj.last_name
 
         if LDAP_URL == "gis.renoairport.net":
             provider = "enterprise"
+            password = None
+            username = "{}_RTAA".format(email)
+            idpUsername = ldap_username
+
         else:
             provider = "arcgis"
+            password = "testeruser123"
+            username = "{}{}".format(firstName, lastName)
+            idpUsername = None
 
-        if DEBUG:
-            username = "AroraTeam"
-            email = "richardh522@gmail.com"
-
+        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                             username="data_owner",
+                             password="GIS@RTAA123!")
         me = gis.users.me
         account = gis.users.get(username="{}".format(username))
 
@@ -302,10 +310,10 @@ def agol_user(request, format=None):
             resp.data = {"code": 0, "message": username}
         else:
             user = gis.users.create(username=username,
-                                    password="dfgsdfg345345",
-                                    firstname="Test",
-                                    lastname="RTAA",
-                                    email="richardh522@gmail.com",
+                                    password=password,
+                                    firstname=firstName,
+                                    lastname=lastName,
+                                    email=email,
                                     level=1,
                                     role="org_viewer",
                                     provider=provider)
