@@ -147,19 +147,17 @@ def apply_watermark(watermark, target):
         loggit(e)
 
 
-def name_file(out_folder, new_name):
-    if not new_name:
-        new_name = "Map Print {}".format(datetime.date(datetime.today()))
-    full_name = "{}.pdf".format(new_name)
+def name_file(out_folder, new_name, extension):
+    full_name = "{}.{}".format(new_name, extension)
 
     if os.path.exists(os.path.join(out_folder, full_name)):
         v = 1
-        full_name = "{}_{}.pdf".format(new_name, v)
+        full_name = "{}_{}.{}".format(new_name, v, extension)
         if os.path.exists(os.path.join(out_folder, full_name)):
             i = False
             while not i:
                 v += 1
-                full_name = "{}_{}.pdf".format(new_name, v)
+                full_name = "{}_{}.{}".format(new_name, v, extension)
                 if not os.path.exists(os.path.join(out_folder, full_name)):
                     i = True
 
@@ -182,7 +180,7 @@ def layout(request, format=None):
         layout_template = data['layout_template']
 
         # set the filename to be the Title of the map
-        filename = name_file(out_folder, title)
+        filename = name_file(out_folder, title, "pdf")
 
         # download the pdf map print from AGOL
         file = requests.get(url, auth=('data_owner', 'GIS@RTAA123!'))
@@ -207,9 +205,9 @@ def layout(request, format=None):
 
         # rename map print and graphics file if it exists at temp.json
         graphics_file = os.path.join(out_folder, 'temp.json')
-        new_name = "{}.json".format(os.path.basename(filename).split(".")[0])
         if os.path.exists(graphics_file):
-            os.rename(graphics_file, os.path.join(out_folder, new_name))
+            new_name = name_file(out_folder, title, "json")
+            os.rename(graphics_file, new_name)
 
         host = request.META["HTTP_HOST"]
         media_url = settings.MEDIA_URL.lstrip("/")
@@ -285,6 +283,10 @@ def agol_user(request, format=None):
         firstName = user_obj.first_name
         lastName = user_obj.last_name
 
+        if ldap_username == "siteadmin":
+            firstName = "siteadmin"
+            lastName = "siteadmin"
+
         if LDAP_URL == "gis.renoairport.net":
             provider = "enterprise"
             password = None
@@ -294,7 +296,7 @@ def agol_user(request, format=None):
         else:
             provider = "arcgis"
             password = "testeruser123"
-            username = "{}{}".format(firstName, lastName)
+            username = "{}".format(ldap_username)
             idpUsername = None
 
         gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
@@ -307,7 +309,7 @@ def agol_user(request, format=None):
         if account:
             pass
             # account.delete(reassign_to='data_owner')
-            resp.data = {"code": 0, "message": username}
+            resp.data = {"code": 0, "message": ldap_username}
         else:
             user = gis.users.create(username=username,
                                     password=password,
@@ -321,7 +323,7 @@ def agol_user(request, format=None):
                 resp.data = {"code": 0,
                              "message": username}
             else:
-                resp.data = {"code": 1,
+                resp.data = {"code": -1,
                              "message": "error. Unable to create user"}
 
         return resp
