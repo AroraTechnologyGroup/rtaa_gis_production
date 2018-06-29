@@ -49,3 +49,5 @@ rtaa_gis/home/utils/ldap_tool.py
 /bower_components/
 **/testy_5.txt
 **/local_settings.py
+**/no_match.txt
+**/yes_match.txt

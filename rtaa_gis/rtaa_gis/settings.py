@@ -7,7 +7,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -105,7 +105,7 @@ CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERRER = True
+CORS_REPLACE_HTTPS_REFERRER = False
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
@@ -124,6 +124,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'authorization',
     'content-type',
+    'http_x_csrftoken'
 )
 
 CORS_EXPOSE_HEADERS = (
@@ -225,7 +226,7 @@ DATABASES = {
     #     'USER': 'gis',
     #     'PASSWORD': "GIS@RTAA123!",
     #     'OPTIONS': {
-    #         'driver': 'SQL Server Native Client 11.0'
+    #         'driver': 'ODBC Driver 13 for SQL Server'
     #      }
     #  },
     # 'postGres': {

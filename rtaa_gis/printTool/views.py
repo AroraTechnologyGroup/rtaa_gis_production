@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 import logging
 import os
 import sys
@@ -17,7 +18,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from rest_framework.permissions import AllowAny
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
 
 from io import BytesIO
 from rest_framework.response import Response
@@ -35,7 +36,8 @@ from datetime import datetime
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATIC_ROOT
-
+LDAP_URL = settings.LDAP_URL
+DEBUG = settings.DEBUG
 
 logger = logging.getLogger(__name__)
 
@@ -145,19 +147,18 @@ def apply_watermark(watermark, target):
         loggit(e)
 
 
-def name_file(out_folder, new_name):
-
-    full_name = "{}.pdf".format(new_name)
+def name_file(out_folder, new_name, extension):
+    full_name = "{}.{}".format(new_name, extension)
 
     if os.path.exists(os.path.join(out_folder, full_name)):
         v = 1
-        full_name = "{}_{}.pdf".format(new_name, v)
-        if os.path.exists(full_name):
+        full_name = "{}_{}.{}".format(new_name, v, extension)
+        if os.path.exists(os.path.join(out_folder, full_name)):
             i = False
             while not i:
                 v += 1
-                full_name = "{}_{}.pdf".format(new_name, v)
-                if not os.path.exists(full_name):
+                full_name = "{}_{}.{}".format(new_name, v, extension)
+                if not os.path.exists(os.path.join(out_folder, full_name)):
                     i = True
 
     return os.path.join(out_folder, full_name)
@@ -165,11 +166,11 @@ def name_file(out_folder, new_name):
 
 # Create your views here.
 @api_view(['POST'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def layout(request, format=None):
     try:
         username = get_username(request)
+        # the user's folder is created when they access the home page
         out_folder = os.path.join(MEDIA_ROOT, r'users\{}\prints'.format(username))
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
@@ -180,7 +181,7 @@ def layout(request, format=None):
         layout_template = data['layout_template']
 
         # set the filename to be the Title of the map
-        filename = name_file(out_folder, title)
+        filename = name_file(out_folder, title, "pdf")
 
         # download the pdf map print from AGOL
         file = requests.get(url, auth=('data_owner', 'GIS@RTAA123!'))
@@ -205,8 +206,8 @@ def layout(request, format=None):
 
         # rename map print and graphics file if it exists at temp.json
         graphics_file = os.path.join(out_folder, 'temp.json')
-        new_name = "{}.json".format(os.path.basename(filename).split(".")[0])
         if os.path.exists(graphics_file):
+            new_name = name_file(out_folder, title, "json")
             os.rename(graphics_file, new_name)
 
         host = request.META["HTTP_HOST"]
@@ -243,7 +244,7 @@ def parseGraphics(request, format=None):
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
 
-        web_map = request.POST['web_map_json']
+        web_map = request.data.get('web_map_json')
         map = json.loads(web_map)
         op_layers = map["operationalLayers"]
 
@@ -264,9 +265,9 @@ def parseGraphics(request, format=None):
         text = open(tempfile, 'r').read()
         if text == "[]":
             os.remove(tempfile)
-            resp.data = "Empty drawings graphics"
+            resp.data = {"message": "Empty drawings graphics"}
         else:
-            resp.data = "Graphics file saved"
+            resp.data = {"message": "Graphics file saved"}
         return resp
 
     except Exception as e:
@@ -277,31 +278,60 @@ def parseGraphics(request, format=None):
 @ensure_csrf_cookie
 def agol_user(request, format=None):
     try:
+        ldap_username = get_username(request)
+        user_obj = User.objects.get(username=ldap_username)
+        email = user_obj.email
+        firstName = user_obj.first_name
+        lastName = user_obj.last_name
+
+        if ldap_username == "siteadmin":
+            firstName = "siteadmin"
+            lastName = "siteadmin"
+
+        # get the user info from our database
+        user_obj = User.objects.get(username=ldap_username)
+        firstName = user_obj.first_name
+        lastName = user_obj.last_name
+        email = user_obj.email
+
+        if LDAP_URL == "gis.renoairport.net":
+            provider = "enterprise"
+            password = None
+            username = "{}_RTAA".format(email)
+            idpUsername = ldap_username
+
+        else:
+            provider = "arcgis"
+            password = "testeruser123"
+            username = "{}".format(ldap_username)
+            idpUsername = None
+
         gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                              username="data_owner",
                              password="GIS@RTAA123!")
-        username = get_username(request)
         me = gis.users.me
-        account = gis.users.get(username="{}".format("Test_RTAA"))
+        account = gis.users.get(username="{}".format(username))
 
         resp = Response()
         if account:
             pass
             # account.delete(reassign_to='data_owner')
-            resp.data = "User Exists in AGOL"
+            resp.data = {"code": 0, "message": ldap_username}
         else:
-            user = gis.users.create(username="Test_RTAA",
-                                    password="dfgsdfg345345",
-                                    firstname="Test",
-                                    lastname="RTAA",
-                                    email="richardh522@gmail.com",
+            user = gis.users.create(username=username,
+                                    password=password,
+                                    firstname=firstName,
+                                    lastname=lastName,
+                                    email=email,
                                     level=1,
                                     role="org_viewer",
-                                    provider="arcgis")
+                                    provider=provider)
             if user:
-                resp.data = "User has been created in AGOL"
+                resp.data = {"code": 0,
+                             "message": username}
             else:
-                resp.data = "Unable to create user"
+                resp.data = {"code": -1,
+                             "message": "error. Unable to create user"}
 
         return resp
 
