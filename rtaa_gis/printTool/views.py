@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 import logging
 import os
 import sys
@@ -171,6 +172,7 @@ def name_file(out_folder, new_name):
 def layout(request, format=None):
     try:
         username = get_username(request)
+        # the user's folder is created when they access the home page
         out_folder = os.path.join(MEDIA_ROOT, r'users\{}\prints'.format(username))
         if not os.path.exists(out_folder):
             os.mkdir(out_folder)
@@ -282,6 +284,12 @@ def agol_user(request, format=None):
                              username="data_owner",
                              password="GIS@RTAA123!")
         username = get_username(request)
+
+        # get the user info from our database
+        user_obj = User.objects.get(username=username)
+        firstName = user_obj.first_name
+        lastName = user_obj.last_name
+        email = user_obj.email
 
         if LDAP_URL == "gis.renoairport.net":
             provider = "enterprise"
