@@ -44,6 +44,7 @@ def process_configs():
         signage_dir = "signs"
 
     # Here these objs represent apps hosted on django framework not IIS
+    # the groups set the read-only level permissions
     edoc = {
         "name": "edoc",
         "path": None,
