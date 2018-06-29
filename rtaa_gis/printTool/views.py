@@ -289,7 +289,7 @@ def agol_user(request, format=None):
             lastName = "siteadmin"
 
         # get the user info from our database
-        user_obj = User.objects.get(username=username)
+        user_obj = User.objects.get(username=ldap_username)
         firstName = user_obj.first_name
         lastName = user_obj.last_name
         email = user_obj.email
