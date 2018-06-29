@@ -48,6 +48,7 @@ class DescribeGDB:
 class DescribeFDataset:
     """Gathers details about a Feature Dataset"""
     def __init__(self, workspace, dataset):
+        self.gdb = arcpy.Describe(workspace).baseName
         self.workspace = os.path.join(workspace, dataset)
         self.desc = arcpy.Describe(self.workspace)
 
@@ -56,6 +57,7 @@ class DescribeFDataset:
             env.workspace = self.workspace
         descdata = self.desc
         props = dict()
+        props["gdb_name"] = self.gdb
         props["base_name"] = descdata.baseName
         props["change_tracked"] = descdata.changeTracked
         props["dataset_type"] = descdata.datasetType
@@ -76,6 +78,7 @@ class DescribeFClass:
     """Gathers information about a Feature Class"""
     def __init__(self, workspace, dataset, fclass):
         self.workspace = os.path.join(workspace, dataset)
+        self.dataset = dataset
         self.fclass = fclass
         # schema is updated with key=field name, value={"percent": 0.0, "attributes": []}
         self.field_data = {"featureClass": fclass}
@@ -93,6 +96,7 @@ class DescribeFClass:
         props = dict()
         descfc = arcpy.Describe(fc)
         props["catalog_path"] = descfc.catalogPath
+        props["dataset"] = self.dataset
         props["base_name"] = descfc.baseName
         props["count"] = count
         props["feature_type"] = descfc.featureType
@@ -218,6 +222,7 @@ class DescribeField:
         in_field = self.field
         field = arcpy.ListFields(infc, "{}".format(in_field))[0]
         props = dict()
+        props["fc_name"] = self.fc
         # using the feature class name with the field name makes it unique
         props["name"] = "{}::{}".format(self.fc, field.name)
         props["alias_name"] = field.aliasName
@@ -311,19 +316,21 @@ if __name__ == "__main__":
                 fc_out = obj.describe()
                 sys.stdout.write(json.dumps(fc_out) + "\n")
 
-                field_summary = obj.summarize_fields()
-                sys.stdout.write(json.dumps(field_summary) + "\n")
+                # if features exist summarize the fields
+                if fc_out["count"]:
+                    field_summary = obj.summarize_fields()
+                    sys.stdout.write(json.dumps(field_summary) + "\n")
 
-                if single_field:
-                    fields = [single_field]
-                else:
-                    fields = fc_out["field_list"]
+                    if single_field:
+                        fields = [single_field]
+                    else:
+                        fields = fc_out["field_list"]
 
-                for fld in fields:
-                    percent = field_summary[fld]["percent"]
-                    f_obj = DescribeField(gdb, dataset, fc, fld, percent)
-                    f_out = f_obj.describe()
-                    sys.stdout.write(json.dumps(f_out) + "\n")
+                    for fld in fields:
+                        percent = field_summary[fld]["percent"]
+                        f_obj = DescribeField(gdb, dataset, fc, fld, percent)
+                        f_out = f_obj.describe()
+                        sys.stdout.write(json.dumps(f_out) + "\n")
 
     except Exception as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()

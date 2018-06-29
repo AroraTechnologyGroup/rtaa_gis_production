@@ -2,7 +2,7 @@ from rest_framework import routers
 from .views import RecordViewSet
 
 router = routers.DefaultRouter()
-router.register(r'counts', RecordViewSet)
+router.register('counts', RecordViewSet)
 
 app_name = 'analytics'
 

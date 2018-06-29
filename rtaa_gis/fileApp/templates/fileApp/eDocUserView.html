@@ -5,14 +5,15 @@
 {% block stylesheets %}
     {{ block.super }}
 
-    <link rel="stylesheet" href="https://js.arcgis.com/3.22/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/dijit/themes/claro/claro.css">
     <link rel="stylesheet" type="text/css" href="{%  static 'fileApp/viewer.css' %}"/>
-    <link rel="stylesheet" href="https://js.arcgis.com/3.22/esri/css/esri.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    {% include 'fileApp/css/templated_styles.html' %}
 {% endblock %}
 
 {% block content %}
     <div id="_outer_div">
-        <form action="{% url 'fileApp:eDoc' %}" method="post">
+        <form action="{% url 'fileApp:eDoc' %}" method="post" id="_filter_form">
         {% csrf_token %}
             <div id="_placed_panel">
                 <div id="_buttons">
@@ -30,7 +31,7 @@
                     </span>
 {#                    {% if 'Arora' in groups or '_RTAA_GIS' in groups %}#}
                     <span>
-                        <button id="_edit_handle" class="btn btn-clear">Update</button>
+                        <button id="_attribute_handle" class="btn btn-clear">Attributes</button>
                     </span>
 {#                    <span>#}
 {#                        <button id="_batch_edit_handle" class="btn btn-clear">Batch Update</button>#}
@@ -40,8 +41,17 @@
                 <div id="_filter_group">
                     <input class="btn btn-fill" type="submit" value="Search" />
                     {% for field in filter_form %}
-                        {% if field.name != 'file_type' and field.name != 'document_type' and field.name != 'image_type' and field.name != 'table_type' and field.name != 'gis_type'%}
-                             <div class="fieldWrapper">
+                        {% if field.name != 'sheet_type' and field.name != 'discipline' and field.name != 'airport' and field.name != 'funding_type' and field.name != 'file_type' and field.name != 'image_type' and field.name != 'gis_type' and field.name != 'table_type' and field.name != 'document_type'%}
+                             <div class="fieldWrapper form-group">
+                                {{ field.errors }}
+                                {{ field.label_tag }} {{ field }}
+                                {% if field.help_text %}
+                                <p class="help">{{ field.help_text|safe }}</p>
+                                {% endif %}
+                            </div>
+                        {% elif field.name == 'sheet_type' or field.name == 'discipline' or field.name == 'airport' or field.name == 'funding_type'%}
+{#                            these fields require the list forma widgets#}
+                             <div class="fieldWrapper form-group inline-list">
                                 {{ field.errors }}
                                 {{ field.label_tag }} {{ field }}
                                 {% if field.help_text %}
@@ -53,131 +63,106 @@
                     <input class="btn btn-fill" type="submit" value="Search" />
                 </div>
             </div>
+            <div id="_slider_panel">
+                <div id="_file_type_group" class="panel_slide">
+                <input class="btn btn-fill" type="submit" value="Search" />
+                    <div>
+                        <input title='select all' id='all_file_type_select_all' class="_inline" type="checkbox" checked>
+                        <div class="_inline">- Select All</div>
+                    </div>
+                    {% for field in filter_form|dictsort:"name" %}
+                        {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
 
+                            <div class="fieldWrapper">
+                                {{ field.errors }}
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                <p class="help">{{ field.help_text|safe }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    <input class="btn btn-fill" type="submit" value="Search" />
+                </div>
+
+                <div id="_doc_type_group" class="panel_slide">
+                    <input class="btn btn-fill" type="submit" value="Search" />
+                    <div>
+                        <input title='select all' id='_doc_type_select_all' class="_inline" type="checkbox" checked>
+                        <div class="_inline">- Select All</div>
+                    </div>
+                    {% for field in filter_form %}
+                        {% if field.name == 'document_type' %}
+                            <div class="fieldWrapper">
+                                {{ field.errors }}
+                                {{ field.label_tag }} {{ field }}
+                                {% if field.help_text %}
+                                <p class="help">{{ field.help_text|safe }}</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    <input class="btn btn-fill" type="submit" value="Search" />
+                </div>
+            </div>
             <div id="_container">
-                <div id="_slider_panel">
-                    <div id="_slider_flex_container">
-                        <div id="_file_type_group" class="panel_slide">
-                        <input class="btn btn-fill" type="submit" value="Search" />
-                            <div>
-                                <input title='select all' id='_file_type_select_all' class="_inline" type="checkbox">
-                                <div class="_inline">- Select All</div>
-                            </div>
-                            {% for field in filter_form %}
-                                {% if field.name == 'file_type' or field.name == 'image_type' or field.name == 'table_type' or field.name == 'gis_type'%}
-                                    <div class="fieldWrapper">
-                                        {{ field.errors }}
-                                        {{ field.label_tag }} {{ field }}
-                                        {% if field.help_text %}
-                                        <p class="help">{{ field.help_text|safe }}</p>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                            <input class="btn btn-fill" type="submit" value="Search" />
-                        </div>
-
-                        <div id="_doc_type_group" class="panel_slide">
-                            <input class="btn btn-fill" type="submit" value="Search" />
-                            <div>
-                                <input title='select all' id='_doc_type_select_all' class="_inline" type="checkbox">
-                                <div class="_inline">- Select All</div>
-                            </div>
-                            {% for field in filter_form %}
-                                {% if field.name == 'document_type' %}
-                                    <div class="fieldWrapper">
-                                        {{ field.errors }}
-                                        {{ field.label_tag }} {{ field }}
-                                        {% if field.help_text %}
-                                        <p class="help">{{ field.help_text|safe }}</p>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                            <input class="btn btn-fill" type="submit" value="Search" />
-                        </div>
-
-                        <div id="_map_group" class="panel_slide">
-                            <div id="map"></div>
-                            <div class="widgetContainer">
-                                <div id="widgetNode"></div>
-                            </div>
-                        </div>
+                <div id="_map_group">
+                    <div id="map"></div>
+                    <div class="widgetContainer">
+                        <div id="widgetNode"></div>
                     </div>
                 </div>
-                <div id="_resultBox">
-                    {% if not efiles|length %}
-                        <div>No results returned</div>
-                    {% else %}
-                        {% for file in efiles %}
-                            {% if file.file_type in viewable_types %}
-                            <div class="fileIcon viewable"
-                            {% else %}
-                            <div class="fileIcon non-viewable"
-                            {% endif %}
-                                 data-file-id="{{ file.id }}"
-                                 data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
-                                 data-file-path="{{ file.file_path }}"
-                                 data-file-base-name="{{ file.base_name }}"
-                                 data-file-grid-cells="{{ file.grid_cells.all|join:"," }}"
-                                 data-file-project-title="{{ file.project_title }}"
-                                 data-file-project-desc="{{ file.project_description }}"
-                                 data-file-project-date="{{ file.project_date|date:"Y-m-d" }}"
-                                 data-file-sheet-title="{{ file.sheet_title }}"
-                                 data-file-sheet-type="{{ file.sheet_type.all|join:"," }}"
-                                 data-file-doc-type="{{ file.document_type.all|join:"," }}"
-                                 data-file-sheet-desc="{{ file.sheet_description }}"
-                                 data-file-vendor="{{ file.vendor }}"
-                                 data-file-discipline="{{ file.discipline.all|join:"," }}"
-                                 data-file-airport="{{ file.airport }}"
-                                 data-file-funding-type="{{ file.funding_type }}"
-                                 data-file-grant-number="{{ file.grant_number }}">
+                <div id="_resultContainer">
+                    <div id="_resultBox">
+                        {% if not efiles|length %}
+                            <div>No results returned</div>
+                        {% else %}
+                            {% for file in efiles %}
+                                <div class="icon-container">
+                                    {% if file.file_type in viewable_types %}
+                                    <div class="fileIcon viewable"
+                                    {% else %}
+                                    <div class="fileIcon non-viewable"
+                                    {% endif %}
+                                         data-file-id="{{ file.id }}"
+                                         data-file-date-added="{{ file.date_added|date:"Y-m-d" }}"
+                                         data-file-path="{{ file.file_path }}"
+                                         data-file-base-name="{{ file.base_name }}"
+                                         data-file-grid-cells="{{ file.grid_cells.all|join:"," }}"
+                                         data-file-project-title="{{ file.project_title }}"
+                                         data-file-project-desc="{{ file.project_description }}"
+                                         data-file-project-date="{{ file.project_date|date:"Y-m-d" }}"
+                                         data-file-sheet-title="{{ file.sheet_title }}"
+                                         data-file-sheet-type="{{ file.sheet_type.all|join:"," }}"
+                                         data-file-doc-type="{{ file.document_type.all|join:"," }}"
+                                         data-file-sheet-desc="{{ file.sheet_description }}"
+                                         data-file-vendor="{{ file.vendor }}"
+                                         data-file-discipline="{{ file.discipline.all|join:"," }}"
+                                         data-file-airport="{{ file.airport }}"
+                                         data-file-funding-type="{{ file.funding_type }}"
+                                         data-file-grant-number="{{ file.grant_number }}">
 
-                                {% if file.file_type == 'pdf' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/pdf_96.png' %}"/>
-                                {% elif file.file_type == 'mxd' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mxd_96.png' %}"/>
-                                {% elif file.file_type == 'mpk' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/mpk_96.png' %}"/>
-                                {% elif file.file_type == 'lyr' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lyr_96.png' %}"/>
-                                {% elif file.file_type == 'lpk' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/lpk_96.png' %}"/>
-                                {% elif file.file_type == 'dwg' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/dwg_96.png' %}"/>
-                                {% elif file.file_type == 'docx' %}
-                                    <img title="{{ file.base_name }}" src="{% static 'fileApp/images/docx_96.png' %}"/>
-                                {% elif file.file_type == 'jpg' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/jpeg_96.png' %}"/>
-                                {% elif file.file_type == 'png' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/png_96.png' %}"/>
-                                {% elif file.file_type == 'pptx' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/pptx_96.png' %}"/>
-                                {% elif file.file_type == 'txt' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/txt_96.png' %}"/>
-                                {% elif file.file_type == 'tiff' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/tiff_96.png' %}"/>
-                                {% elif file.file_type == 'zip' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/zip_96.png' %}"/>
-                                {% elif file.file_type == 'xls' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xls_96.png' %}"/>
-                                {% elif file.file_type == 'xlsx' %}
-                                    <img title="{{ file.base_name }}"  src="{% static 'fileApp/images/xlsx_96.png' %}"/>
-                                {% endif %}
-                                 <div title="{{ file.base_name }}">{{ file.base_name|truncatechars:18 }}</div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                    <div class="pagination">
+                                            <div class="{{ file.file_type }}-icon icon-image">
+                                             {{ file.base_name|truncatechars:29 }}
+                                            </div>
+                                            <div id="_{{ file.id }}_toast"></div>
+                                        </div>
+                                    </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="pagination text-center trailer-1 leader-1">
                         <span class="step-links">
+{#                        These submit buttons will only add their value to the Filter Form post data if they are clicked#}
                             {% if efiles.has_previous %}
-                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.previous_page_number }}">previous</a>
+                                <button class="btn-transparent font-size-0" name="page" type="submit" value="{{ efiles.previous_page_number }}">previous</button>
                             {% endif %}
                             <span class="current">
                                 Page {{ efiles.number }} of {{ efiles.paginator.num_pages }}.
                             </span>
                             {% if efiles.has_next %}
-                                <a href="{% url "fileApp:eDoc" %}?page={{ efiles.next_page_number }}">next</a>
+                                <button class="btn-transparent font-size-0" name="page" type="submit" value="{{ efiles.next_page_number }}">next</button>
                             {% endif %}
                         </span>
                     </div>
@@ -187,8 +172,11 @@
         <form action='{% url 'fileApp:file-updater' %}' method="post">
             {% csrf_token %}
             <div id="_update_panel">
-                {% if '_RTAA Planning and Engineering' in groups %}
+                {% if isEditor %}
                     <input class="btn-green btn-fill" type="submit" value="Save" />
+                    <p class="font-size--5 text-center text-rule">File Attributes Editor/Viewer</p>
+                    {% else %}
+                    <p class="font-size--5 text-center text-rule">File Attributes Viewer</p>
                 {% endif %}
                     <div id="_edit_file_name"></div>
                     {% for field in edit_form.hidden_fields %}
@@ -221,8 +209,8 @@
                         {% endif %}
 
                     {% endfor %}
-                {% if '_RTAA Planning and Engineering' in groups %}
-                    <input class="btn btn-fill" type="submit" value="Save" />
+                {% if isEditor %}
+                    <input class="btn-green btn-fill" type="submit" value="Save" />
                 {% endif %}
             </div>
         </form>

@@ -25,7 +25,8 @@ if LDAP_URL == "gisapps.aroraengineers.com":
         FORCE_SCRIPT_NAME = ""
         PYTHON_PATH = r"C:\Program Files (x86)\Anaconda3\envs\rtaa_gis\python.exe"
 
-    FILE_APP_TOP_DIRS = [r"C:\\"]
+    FILE_APP_TOP_DIRS = [r"c:\inetpub\ftproot\gisapps\gissetup"]
+    IIS_APP_ROOT = r"C:\inetpub\wabapps"
     SERVER_URL = "https://{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
@@ -42,21 +43,24 @@ elif LDAP_URL == "renoairport.net":
         FORCE_SCRIPT_NAME = "/applications/"
 
     PYTHON_PATH = r"C:\inetpub\Anaconda3\envs\rtaa_gis\python.exe"
-    FILE_APP_TOP_DIRS = [r"D:\\", r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    FILE_APP_TOP_DIRS = [r"\\renofs2\groups\Engineering\Drawings\Std", r"\\renofs2\groups\Engineering\Drawings\Rno"]
+    IIS_APP_ROOT = r"C:\inetpub\apps"
     SERVER_URL = "https://gis.{}".format(LDAP_URL)
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     EMAIL_USE_TLS = False
-    EMAIL_HOST = "aspmx.l.google.com"
+    EMAIL_HOST = "mail.renoairport.net"
     EMAIL_PORT = 25
-    # EMAIL_HOST_USER = ""
-    # EMAIL_HOST_PASSWORD = ""
+    EMAIL_HOST_USER = ""
+    EMAIL_HOST_PASSWORD = ""
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ARCPY_PATH = r"C:\Python27\ArcGIS10.5\python.exe"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
+
+APPEND_SLASH = False
 
 # This setting gets used in templates to build correct hyperlinks
 if DEBUG:
@@ -102,7 +106,7 @@ CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = True
-CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -112,21 +116,24 @@ CORS_ORIGIN_WHITELIST = (
     'https://gis.renoairport.net',
     'localhost',
     '127.0.0.1:8080',
-    'localhost:3000'
+    'localhost:3000',
+    'localhost:8080'
 )
 CORS_ALLOW_HEADERS = (
     # 'content-range',
     'x-requested-with',
+    'authorization',
+    'content-type',
 )
 
 CORS_EXPOSE_HEADERS = (
-    # 'x-requested-with',
+    'x-requested-with',
     # 'content-type',
     # 'content-range',
     # 'accept',
     # 'origin',
-    # 'authorization',
-    # 'x-csrftoken',
+    'authorization',
+    'x-csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -181,8 +188,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.RemoteUserMiddleware',
     'django.contrib.auth.middleware.PersistentRemoteUserMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -262,7 +269,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
         # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_FILTER_BACKENDS': (
@@ -338,7 +345,7 @@ LOGGING = {
         },
         'printTool': {
             'handlers': ['console', 'file'],
-            'level': "DEBUG",
+            'level': "ERROR",
             'propogate': True
         },
         'home': {
@@ -369,3 +376,9 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# load authentication settings for test env
+try:
+    exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_settings.py")).read())
+except IOError:
+    pass

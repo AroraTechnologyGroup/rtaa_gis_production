@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 from .utils import buildDocStore
 from .utils.domains import FileTypes
 from home.utils.ldap_tool import LDAPQuery
+from home.models import App
 from analytics.serializers import RecordSerializer
 from .serializers import GridSerializer, EngAssignmentSerializer, EngSerializer
 from .models import GridCell, EngineeringFileModel, EngineeringAssignment
@@ -15,7 +16,7 @@ from .forms import FilterForm, UpdateForm
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
-from rest_framework.decorators import detail_route, list_route, permission_classes, api_view, renderer_classes
+from rest_framework.decorators import action, permission_classes, api_view, renderer_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.reverse import reverse_lazy
 from rest_framework import response, schemas
@@ -120,7 +121,10 @@ def create_response_object(in_path, file_type):
 
 
 def authorize_user(request, template):
-    if not request.user.is_authenticated():
+    """
+    return a boolean for admin level on eDoc, and a list of apps the user is authorized to view
+    """
+    if not request.user.is_authenticated:
         return False
     try:
         name = request.META['REMOTE_USER']
@@ -130,47 +134,29 @@ def authorize_user(request, template):
     resp = Response(template_name=template)
     resp['Cache-Control'] = 'no-cache'
 
-    # Perform inheritance from AD
-    local_name = name.split("\\")[-1]
-    query = LDAPQuery(local_name, settings.LDAP_URL)
-    ldap_groups = query.get_groups()
+    user = User.objects.get(username=name)
+    ldap_groups = user.groups.all()
+
+    d = {
+        "isEditor": False,
+        "final_apps": []
+    }
+    if '_RTAA Planning and Engineering' in [x.name for x in ldap_groups]:
+        d["isEditor"] = True
+
     logger.info("ldap_groups = {}".format(ldap_groups))
     logger.info("username = {}".format(name))
 
-    user_obj = User.objects.get(username=name)
-    users_groups = user_obj.groups.all()
-    # remove groups from user if not in LDAP group list
-    for x in users_groups:
-        if x.name not in ldap_groups:
-            try:
-                g = Group.objects.get(name=x)
-                user_obj.groups.remove(g)
-                user_obj.save()
-            except Exception as e:
-                print(e)
-    # add user to group if group exists in ldap and local group table
-    for x in ldap_groups:
-        if x not in [g.name for g in users_groups]:
-            try:
-                g = Group.objects.get(name=x)
-                user_obj.groups.add(g)
-                user_obj.save()
-            except Exception as e:
-                print(e)
+    for app in App.objects.all():
+        app_name = app.name
+        groups = app.groups.all()
+        for gr in groups:
+            # if the app is authorized for the a group that the user belongs to add it to the list
+            if gr in ldap_groups:
+                if app_name not in d["final_apps"]:
+                    d["final_apps"].append(app_name)
 
-    # Create user's folder in the media root
-    users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
-    if not os.path.exists(users_dir):
-        os.mkdir(users_dir)
-    user_dir = os.path.join(users_dir, local_name)
-    if not os.path.exists(user_dir):
-        os.mkdir(user_dir)
-    # make the print directory for the user
-    print_dir = os.path.join(user_dir, "prints")
-    if not os.path.exists(print_dir):
-        os.mkdir(print_dir)
-
-    return [x.name for x in user_obj.groups.all()]
+    return d
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -178,20 +164,21 @@ class PagedFileViewSet(viewsets.ModelViewSet):
     """Paged view of file objects"""
     filter_fields = ('file_path', 'base_name', 'file_type', 'size', 'date_added')
     pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer,)
 
-    @list_route(methods=['get',])
+    @action(detail=False, methods=['get',])
     def _stop_monitors(self, request):
         """Kill all of the watchdog monitor processes"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             x = trainer.stop_monitors()
             return Response(x)
         else:
             return redirect(reverse('home:login'))
 
-    @list_route(methods=['get',])
+    @action(detail=False, methods=['get',])
     def _start_monitors(self, request):
         """Start a watchdog monitor process for each of the paths in TOP_DIRs"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             x = trainer.start_monitors()
             return Response(x)
         else:
@@ -205,10 +192,10 @@ class EngGridViewSet(viewsets.ModelViewSet):
     serializer_class = GridSerializer
     filter_fields = ('name',)
 
-    @detail_route()
+    @action(detail=True)
     def _files(self, request, pk=None):
         """Files that have been assigned to the specified grid cell"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             queryset = EngineeringAssignment.objects.filter(grid_cell_id__exact=str(pk))
             file_models = [x.file for x in queryset]
             serializer = EngSerializer(file_models, many=True)
@@ -216,10 +203,10 @@ class EngGridViewSet(viewsets.ModelViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @list_route()
+    @action(detail=False)
     def _build(self, request):
         """Logon to AGOL, query the grid cell service and build the grid cell data table in sqlite"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             tool = buildDocStore.GridCellBuilder()
             tool.build_store()
             grids = GridCell.objects.all()
@@ -239,7 +226,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
     filter_fields = ('grid_cell', 'file', 'date_assigned')
     renderer_classes = (JSONRenderer,)
 
-    @list_route(methods=['post', ])
+    @action(detail=False, methods=['post', ])
     def _delete(self, request):
         """Remove the specified assignment object"""
         file_pks = [f.strip() for f in request.POST['files'].split(",")]
@@ -267,7 +254,7 @@ class EngAssignmentViewSet(viewsets.ModelViewSet):
             resp['status'] = False
         return Response(resp)
 
-    @list_route(methods=['post', ])
+    @action(detail=False, methods=['post', ])
     def _create(self, request):
         """Create assignment from the list of files and the grid cell on the Post request"""
         file_pks = [f.strip() for f in request.POST['files'].split(",")]
@@ -312,10 +299,10 @@ class EngViewSet(viewsets.ModelViewSet):
     filter_fields = ('project_title', 'sheet_name', 'airport')
     renderer_classes = (JSONRenderer,)
 
-    @detail_route()
+    @action(detail=True)
     def _grids(self, request, pk=None):
         """grid cells that the file as been assigned to"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             queryset = EngineeringAssignment.objects.filter(file_id__exact=str(pk))
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
@@ -329,11 +316,12 @@ class PagedEngViewSet(PagedFileViewSet):
     queryset = EngineeringFileModel.objects.all()
     serializer_class = EngSerializer
     filter_fields = ('project_title', 'sheet_name', 'airport')
+    renderer_classes = (JSONRenderer,)
 
-    @detail_route(methods=['get', ])
+    @action(detail=True, methods=['get', ])
     def _view(self, request, pk=None):
         """Return a pdf or image as an http response"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             """Returns either an image http response or a pdf http response"""
             file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
             base_name = file_obj[0].base_name
@@ -344,10 +332,10 @@ class PagedEngViewSet(PagedFileViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @list_route(methods=['get', ])
+    @action(detail=False, methods=['get', ])
     def _build(self, request):
         """Traverse through the list of paths in the buildDocStore.py file and build the sqlite db"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # TODO streaming http response to update a chart showing statistics of created file object types
             trainer.stop_monitors()
             tool = buildDocStore.FileStoreBuilder()
@@ -358,10 +346,10 @@ class PagedEngViewSet(PagedFileViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @detail_route(methods=['get', ])
+    @action(detail=True, methods=['get', ])
     def _delete(self, request, pk=None):
         """Remove the specified file and its assignments from the sqlite database"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             _file = EngineeringFileModel.objects.filter(id__exact=str(pk))[0]
             path = _file.file_path
             if os.path.exists(path):
@@ -370,10 +358,10 @@ class PagedEngViewSet(PagedFileViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @detail_route(methods=['get', ])
+    @action(detail=True, methods=['get', ])
     def _grids(self, request, pk=None):
         """Grid cells that the file has been assigned to"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             queryset = EngineeringAssignment.objects.filter(file_id__exact=str(pk))
             grid_cells = [x.grid_cell for x in queryset]
             serializer = GridSerializer(grid_cells, many=True)
@@ -381,10 +369,10 @@ class PagedEngViewSet(PagedFileViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @list_route(methods=['get', ])
+    @action(detail=False, methods=['get', ])
     def _clean(self, request):
         """Remove files that are not included in the TOP_DIRs; or are non-existent"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             # TODO create return from File Store Builder showing stats from the removed files
             trainer.stop_monitors()
             tool = buildDocStore.FileStoreBuilder()
@@ -401,10 +389,10 @@ class EngIOViewSet(viewsets.ViewSet):
     # TODO group download file requests into a zip file
     queryset = EngineeringFileModel.objects.all()
 
-    @detail_route()
+    @action(detail=True)
     def _download(self, request, pk=None):
         """download a file as attachment"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
             file_path = file_obj[0].file_path
             mime_type = file_obj[0].mime
@@ -414,7 +402,7 @@ class EngIOViewSet(viewsets.ViewSet):
             # the file download option enabled
             fp = File(open(file_path, 'rb'))
             resp = HttpResponse(fp.read(), content_type=mime_type)
-            resp['Content-Disposition'] = "attachment; filename= '{}'".format(base_name)
+            resp['Content-Disposition'] = "attachment; filename= {}".format(base_name)
 
             # create entry in the analytics records table
             data = {
@@ -433,18 +421,18 @@ class EngIOViewSet(viewsets.ViewSet):
         else:
             return redirect(reverse('home:login'))
 
-    @list_route(methods=['post'])
+    @action(detail=False, methods=['post'])
     def _upload(self, request):
         """TODO - upload files"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return
         else:
             return redirect(reverse('home:login'))
 
-    @detail_route()
+    @action(detail=True)
     def _view(self, request, pk=None):
         """convert the file to pdf and render in pdfjs"""
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             file_obj = EngineeringFileModel.objects.filter(id__exact=str(pk))
             file_path = file_obj[0].file_path
             file_type = file_obj[0].file_type
@@ -456,7 +444,7 @@ class EngIOViewSet(viewsets.ViewSet):
 class UserViewer(GenericAPIView):
     """View that renders the edoc viewer app"""
     renderer_classes = (TemplateHTMLRenderer,)
-    permission_classes = (AllowAny,)
+    # permission_classes = (AllowAny,)
     pagination_class = LargeResultsSetPagination
     serializer_class = EngSerializer
 
@@ -485,10 +473,12 @@ class UserViewer(GenericAPIView):
                                        max_num=25, extra=1)
 
     def get(self, request, format=None):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return redirect(reverse('home:login'))
 
-        final_groups = authorize_user(request, self.template)
+        auth = authorize_user(request, self.template)
+        final_apps = auth["final_apps"]
+        isEditor = auth["isEditor"]
 
         app_name = self.app_name.strip('/')
 
@@ -496,7 +486,7 @@ class UserViewer(GenericAPIView):
         resp['Cache-Control'] = 'no-cache'
 
         # add the engineering file objects to the context
-        efile_list = EngineeringFileModel.objects.all().order_by('base_name')
+        efile_list = EngineeringFileModel.objects.filter(airport="rno").order_by('base_name')
         paginator = Paginator(efile_list, 25)
 
         page = request.GET.get('page')
@@ -557,7 +547,8 @@ class UserViewer(GenericAPIView):
                      "efiles": efiles,
                      "assigns": assignments,
                      "server_url": self.server_url,
-                     "groups": final_groups,
+                     "apps": final_apps,
+                     "isEditor": isEditor,
                      "app_name": app_name,
                      "filter_form": filter_form,
                      "edit_form": edit_form,
@@ -566,9 +557,11 @@ class UserViewer(GenericAPIView):
         return resp
 
     def post(self, request, format=None):
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return redirect(reverse('home:login'))
-        final_groups = authorize_user(request, self.template)
+        auth = authorize_user(request, self.template)
+        final_apps = auth["final_apps"]
+        isEditor = auth["isEditor"]
 
         app_name = self.app_name.strip('/')
 
@@ -602,24 +595,28 @@ class UserViewer(GenericAPIView):
         gis_types = data.getlist('gis_type')
 
         # build the querysets that refine the final efile list
-        if base_name:
-            efiles = EngineeringFileModel.objects.filter(base_name__icontains=base_name)
+        # all files should have the airport attributed by the top_dir leaf folder
+        if airport:
+            efiles = EngineeringFileModel.objects.filter(airport=airport)
         else:
             efiles = EngineeringFileModel.objects.all()
+
+        if base_name:
+            efiles = efiles.filter(base_name__icontains=base_name)
 
         if date_added:
             delta = timedelta(days=7)
             target_date = datetime.datetime.strptime(date_added, '%Y-%m-%d')
             start_date = target_date - delta
             end_date = target_date + delta
-            efiles = EngineeringFileModel.objects.filter(date_added__range=(start_date, end_date))
+            efiles = efiles.filter(date_added__range=(start_date, end_date))
 
         if grid_cells:
             gcells = [x.strip() for x in grid_cells.split(",")]
             efiles = efiles.filter(engineeringassignment__grid_cell__name__in=gcells).distinct()
 
         if sheet_title:
-            efiles = EngineeringFileModel.objects.filter(sheet_title__icontains=sheet_title)
+            efiles = efiles.filter(sheet_title__icontains=sheet_title)
         if project_title:
             efiles = efiles.filter(project_title__icontains=project_title)
         if project_description:
@@ -632,14 +629,10 @@ class UserViewer(GenericAPIView):
             efiles = efiles.filter(sheet_description__icontains=sheet_description)
         if vendor:
             efiles = efiles.filter(vendor__icontains=vendor)
-        # not all files are attributed yet so only filter for rst if requested
-        if airport != 'rno':
-            efiles = efiles.filter(airport=airport)
         if file_path:
             efiles = efiles.filter(file_path__icontains=file_path)
         if grant_number:
-            gnums = [x.strip() for x in grant_number.split()]
-            efiles = efiles.filter(grant_number__in=gnums)
+            efiles = efiles.filter(grant_number__icontains=grant_number)
 
         if funding_types and funding_types != ['all']:
             efiles = efiles.filter(funding_type__in=funding_types).distinct()
@@ -721,7 +714,8 @@ class UserViewer(GenericAPIView):
             "efiles": efiles,
             "assigns": assignments,
             "server_url": self.server_url,
-            "groups": final_groups,
+            "apps": final_apps,
+            "isEditor": isEditor,
             "app_name": app_name,
             "filter_form": filter_form,
             "edit_form": edit_form,

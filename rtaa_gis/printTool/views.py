@@ -1,15 +1,18 @@
 from __future__ import unicode_literals
 from analytics.serializers import RecordSerializer
 from rest_framework.decorators import api_view, renderer_classes, authentication_classes
-from rest_framework_jsonp.renderers import JSONPRenderer
+from django.http import JsonResponse
 import logging
 import os
 import sys
+import requests
 import subprocess
 from subprocess import PIPE
 from subprocess import TimeoutExpired
 import arcgis
 from arcgis import mapping
+from PIL import Image
+from io import BytesIO
 
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
@@ -27,12 +30,12 @@ import json
 import shlex
 import threading
 import traceback
+import time
+from datetime import datetime
 from django.conf import settings
 MEDIA_ROOT = settings.MEDIA_ROOT
 STATIC_ROOT = settings.STATIC_ROOT
 
-environ = "rtaa_testing"
-username = "gissetup"
 
 logger = logging.getLogger(__name__)
 
@@ -108,30 +111,10 @@ def get_username(request):
     return username
 
 
-def insert_token(webmap, token):
-    op_layers = webmap["operationalLayers"]
-    new_ops = list()
-
-    for x in op_layers:
-        keys = x.keys()
-        if "url" in keys:
-            service_url = x["url"]
-            if "https://services.arcgisonline.com" in service_url:
-                new_ops.append(x)
-            else:
-                x['token'] = token
-                new_ops.append(x)
-        else:
-            new_ops.append(x)
-
-    webmap["operationalLayers"] = new_ops
-    return webmap
-
-
 def apply_watermark(watermark, target):
     try:
         logger.info(os.path.abspath(__file__))
-        wmark_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'media/printTool/{}'.format(watermark))
+        wmark_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'media\printTool\{}'.format(watermark))
         wmark = PdfFileReader(open(wmark_file, "rb"))
         output_file = PdfFileWriter()
         input_file = PdfFileReader(open(target, "rb"))
@@ -162,79 +145,52 @@ def apply_watermark(watermark, target):
         loggit(e)
 
 
-def name_file(out_folder, file, new_name):
-    file_name = os.path.basename(file)
-    logger.info("Downloaded file named {}".format(file_name))
-    old_dir = os.getcwd()
-    os.chdir(out_folder)
-    extension = file.split(".")[-1]
-    base_name = new_name
-    full_name = "{}.{}".format(base_name, extension)
-    if os.path.exists(full_name):
+def name_file(out_folder, new_name):
+
+    full_name = "{}.pdf".format(new_name)
+
+    if os.path.exists(os.path.join(out_folder, full_name)):
         v = 1
-        full_name = "{}_{}.{}".format(base_name, v, extension)
+        full_name = "{}_{}.pdf".format(new_name, v)
         if os.path.exists(full_name):
             i = False
             while not i:
                 v += 1
-                full_name = "{}_{}.{}".format(base_name, v, extension)
+                full_name = "{}_{}.pdf".format(new_name, v)
                 if not os.path.exists(full_name):
                     i = True
 
-    try:
-        os.rename(file_name, full_name)
-    except OSError:
-        logger.error("printed map unable to be saved with correct filename")
-    os.chdir(old_dir)
-    return full_name
+    return os.path.join(out_folder, full_name)
 
 
 # Create your views here.
 @api_view(['POST'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
+# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
-def print_agol(request, format=None):
+def layout(request, format=None):
     try:
         username = get_username(request)
-        out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+        out_folder = os.path.join(MEDIA_ROOT, r'users\{}\prints'.format(username))
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
 
-        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                             username="data_owner",
-                             password="GIS@RTAA123!")
-
-        token = gis._con._token
-        # logger.info(token)
         data = request.POST
+        url = data["url"]
         title = data["title"]
-        if not title:
-            title = "Map Export"
-        webmap = data['Web_Map_as_JSON']
+        layout_template = data['layout_template']
 
-        map_obj = json.loads(webmap)
-        map_obj = insert_token(map_obj, token)
-        map_json = json.dumps(map_obj)
-        # logger.info(map_json)
-        # get all of the Draw Results layer from the web map and save to the user's media dir
-        op_layers = map_obj["operationalLayers"]
-        json_file = os.path.join(out_folder, "{} {}.json".format(title, date.today().isoformat()))
-        f = open(json_file, 'w')
+        # set the filename to be the Title of the map
+        filename = name_file(out_folder, title)
 
-        cont = []
-        for x in op_layers:
-            if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
-                cont.append(x)
-        json_cont = json.dumps(cont).replace("False", "false").replace("True", "true").replace("None", "null")
-        f.write(json_cont)
-        f.close()
+        # download the pdf map print from AGOL
+        file = requests.get(url, auth=('data_owner', 'GIS@RTAA123!'))
 
-        # read json file, if it is empty delete it
-        text = open(json_file, 'r').read()
-        if text == "[]":
-            os.remove(json_file)
+        pdfOutputFile = open(filename, 'wb')
+        pdfOutputFile.write(file.content)
+        pdfOutputFile.close()
 
-        format = data['Format']
-        layout_template = data['Layout_Template']
+        # apply the watermark
+
         watermark = None
         if layout_template == "Letter ANSI A Landscape":
             watermark = "Watermark_8_5_11_landscape.pdf"
@@ -245,17 +201,13 @@ def print_agol(request, format=None):
         elif layout_template == "Tabloid ANSI B Portrait":
             watermark = "Watermark_11_17_portrait.pdf"
 
-        data = mapping.export_map(web_map_as_json=map_json, format=format,
-                           layout_template=layout_template,
-                           gis=gis)
+        apply_watermark(watermark=watermark, target=filename)
 
-        file = data.download(out_folder)
-        full_name = name_file(out_folder=out_folder, file=file, new_name=title)
-
-        target = os.path.join(out_folder, full_name)
-        apply_watermark(watermark=watermark, target=target)
-
-        response = Response()
+        # rename map print and graphics file if it exists at temp.json
+        graphics_file = os.path.join(out_folder, 'temp.json')
+        new_name = "{}.json".format(os.path.basename(filename).split(".")[0])
+        if os.path.exists(graphics_file):
+            os.rename(graphics_file, new_name)
 
         host = request.META["HTTP_HOST"]
         media_url = settings.MEDIA_URL.lstrip("/")
@@ -266,18 +218,7 @@ def print_agol(request, format=None):
         else:
             protocol = "https"
 
-        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
-
-        response.data = {
-            "messages": [],
-            "results": [{
-                "value": {
-                    "url": url
-                },
-                "paramName": "Output_File",
-                "dataType": "GPDataFile"
-            }]
-        }
+        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, os.path.basename(filename))
 
         data = {
             "method": "print",
@@ -288,130 +229,88 @@ def print_agol(request, format=None):
             serial.save()
         else:
             logger.error("Unable to save count :: {}".format(data))
-        return response
+        return JsonResponse({"url": url})
     except Exception as e:
         loggit(e)
 
 
 @api_view(['POST'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
 @ensure_csrf_cookie
-def print_mxd(request, format=None):
-    username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+def parseGraphics(request, format=None):
+    try:
+        username = get_username(request)
+        out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
+        if not os.path.exists(out_folder):
+            os.mkdir(out_folder)
 
-    v = system_paths(environ)
-    arcmap_path = v["arcmap_path"]
-    mxd_script = v["mxd_script"]
+        web_map = request.POST['web_map_json']
+        map = json.loads(web_map)
+        op_layers = map["operationalLayers"]
 
-    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                         username="data_owner",
-                         password="GIS@RTAA123!")
+        # create an initial temp graphics file to rename
+        tempfile = os.path.join(out_folder, "temp.json")
+        temp_file = open(tempfile, 'w')
 
-    token = gis._con._token
-    data = request.POST
-    webmap = data['Web_Map_as_JSON']
+        cont = []
+        for x in op_layers:
+            if "draw_results" in x["id"].lower() or "map_graphics" in x["id"].lower():
+                cont.append(x)
+        json_cont = json.dumps(cont).replace("False", "false").replace("True", "true").replace("None", "null")
+        temp_file.write(json_cont)
+        temp_file.close()
 
-    map_obj = json.loads(webmap)
-    map_obj = insert_token(map_obj, token)
-    map_json = json.dumps(map_obj)
-    temp_file = os.path.join(out_folder, "webmap.json")
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    f = open(temp_file, 'w')
-    f.write(map_json)
-    f.close()
+        resp = Response()
+        # read json file, if it is empty delete it from the server
+        text = open(tempfile, 'r').read()
+        if text == "[]":
+            os.remove(tempfile)
+            resp.data = "Empty drawings graphics"
+        else:
+            resp.data = "Graphics file saved"
+        return resp
 
-    format = data['Format']
-    layout_template = data['Layout_Template']
-
-    args = [arcmap_path, mxd_script, '-media_dir', MEDIA_ROOT, '-username', username, '-layout', layout_template, '-format', format]
-    proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
-    out, err = proc.communicate()
-
-    full_name = name_file(out_folder=out_folder, file=out.decode())
-    response = Response()
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
-
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
-    media_url = settings.MEDIA_URL.lstrip("/")
-    media_url = media_url.rstrip("/")
-
-    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
-    logger.info(url)
-    response.data = {
-        "messages": [],
-        "results": [{
-            "value": {
-                "url": url
-            },
-            "paramName": "Output_File",
-            "dataType": "GPDataFile"
-        }]
-    }
-    return response
-
-
-@api_view(['POST'])
-# @renderer_classes((JSONPRenderer,))
-@authentication_classes((AllowAny,))
-@ensure_csrf_cookie
-def print_arcmap(request, format=None):
-    username = get_username(request)
-    out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
-
-    v = system_paths(environ)
-    arcmap_path = v["arcmap_path"]
-    mxd_script = v["mxd_script"]
-
-    data = request.POST
-    webmap = data['Web_Map_as_JSON']
-
-    map_obj = json.loads(webmap)
-
-
-    format = data['Format']
-    layout_template = data['Layout_Template']
-
-    args = [arcmap_path, mxd_script, '-media_dir', MEDIA_ROOT, '-username', username, '-layout', layout_template,
-            '-format', format]
-    proc = subprocess.Popen(args, executable=arcmap_path, stderr=PIPE, stdout=PIPE)
-    out, err = proc.communicate()
-
-    full_name = name_file(out_folder=out_folder, file=out.decode())
-    response = Response()
-    # This format must be identical to the DataFile object returned by the esri print examples
-    host = request.META["HTTP_HOST"]
-
-    if host == "127.0.0.1:8080":
-        protocol = "http"
-    else:
-        protocol = "https"
-    media_url = settings.MEDIA_URL.lstrip("/")
-    media_url = media_url.rstrip("/")
-
-    url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, full_name)
-    logger.info(url)
-    response.data = {
-        "messages": [],
-        "results": [{
-            "value": {
-                "url": url
-            },
-            "paramName": "Output_File",
-            "dataType": "GPDataFile"
-        }]
-    }
-    return response
+    except Exception as e:
+        loggit(e)
 
 
 @api_view(['GET'])
-@authentication_classes((AllowAny,))
+@ensure_csrf_cookie
+def agol_user(request, format=None):
+    try:
+        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                             username="data_owner",
+                             password="GIS@RTAA123!")
+        username = get_username(request)
+        me = gis.users.me
+        account = gis.users.get(username="{}".format("Test_RTAA"))
+
+        resp = Response()
+        if account:
+            pass
+            # account.delete(reassign_to='data_owner')
+            resp.data = "User Exists in AGOL"
+        else:
+            user = gis.users.create(username="Test_RTAA",
+                                    password="dfgsdfg345345",
+                                    firstname="Test",
+                                    lastname="RTAA",
+                                    email="richardh522@gmail.com",
+                                    level=1,
+                                    role="org_viewer",
+                                    provider="arcgis")
+            if user:
+                resp.data = "User has been created in AGOL"
+            else:
+                resp.data = "Unable to create user"
+
+        return resp
+
+    except Exception as e:
+        loggit(e)
+
+
+@api_view(['GET'])
+# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
     username = get_username(request)
@@ -422,6 +321,7 @@ def getPrintList(request, format=None):
     response.data = list()
     if os.path.exists(print_dir):
         files = os.listdir(print_dir)
+        # selection will hold the files with the specified extensions
         selection = []
         for x in [".png", ".pdf", ".jpg", ".gif", ".eps", ".svg", ".svgz"]:
             selection.extend([f for f in files if f.endswith(x)])
@@ -437,7 +337,9 @@ def getPrintList(request, format=None):
 
         for out_file in selection:
             url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
-            response.data.append({"url": url})
+            sec = os.path.getmtime(os.path.join(print_dir, out_file))
+            date = datetime.fromtimestamp(sec).date().isoformat()
+            response.data.append({"date": date, "url": url})
     else:
         response.data.append("Error, print directory not found")
 
@@ -445,7 +347,7 @@ def getPrintList(request, format=None):
 
 
 @api_view(['GET'])
-@authentication_classes((AllowAny,))
+# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getMarkupList(request, format=None):
     username = get_username(request)
@@ -465,8 +367,19 @@ def getMarkupList(request, format=None):
         media_url = settings.MEDIA_URL.lstrip("/")
         media_url = media_url.rstrip("/")
         for out_file in selection:
+            full_path = os.path.join(print_dir, out_file)
+            # count the number of graphics
+            obj = json.loads(open(full_path).read())
+            feature_cnt = 0
+            layers = obj[0]["featureCollection"]["layers"]
+            for x in layers:
+                feats = x["featureSet"]["features"]
+                feature_cnt += len(feats)
+
+            sec = os.path.getmtime(full_path)
+            date = datetime.fromtimestamp(sec).date().isoformat()
             url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
-            response.data.append({"url": url})
+            response.data.append({"date": date, "url": url, "feature_count": feature_cnt})
     else:
         response.data.append("Error, print directory not found")
 
@@ -474,13 +387,13 @@ def getMarkupList(request, format=None):
 
 
 @api_view(['POST'])
-@authentication_classes((AllowAny,))
+# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def delete_file(request, format=None):
     username = get_username(request)
     data = request.POST
     file_name = data["filename"].replace("\n", "")
-    outfolder = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
+    outfolder = os.path.join(MEDIA_ROOT, r"users\{}\prints".format(username))
     response = Response()
 
     if os.path.exists(outfolder):
@@ -488,9 +401,9 @@ def delete_file(request, format=None):
         os.chdir(outfolder)
         if os.path.exists(file_name):
             os.remove(file_name)
-            data = "Temp File {} Deleted from Server".format(file_name)
+            data = "File {} Deleted from Server".format(file_name)
         else:
-            data = "File not found in user's print folder"
+            data = "File {} not found in user's print folder".format(file_name)
         os.chdir(old_dir)
     else:
         data = "Failed to located user's media folder"
@@ -499,16 +412,25 @@ def delete_file(request, format=None):
 
 
 @api_view(['POST'])
-@authentication_classes((AllowAny,))
+# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def emailExhibit(request, format=None):
     username = get_username(request)
     data = request.POST
     exhibit_url = data["exhibit_url"].replace("\n", "")
     recipient = data["recipient"].replace("\n", "")
+
+    cc = data["cc"]
+    if type(cc) is str:
+        cc = [cc]
+
+    bcc = ["rhughes@aroraengineers.com"]
+    from_email = "{}@renoairport.net".format(username)
     # to allow for testing
     if settings.LDAP_URL == "gisapps.aroraengineers.com":
         recipient = "richardh522@gmail.com"
+        from_email = "rhughes@aroraengineers.com"
+        cc = ["rhughes@aroraengineers.com"]
     subject = data["subject"].replace("\n", "")
     message = data["message"].replace("\n", "")
     splits = exhibit_url.split("/")
@@ -521,8 +443,10 @@ def emailExhibit(request, format=None):
         mail.EmailMessage(
             subject="{}".format(subject),
             body="From - {} \n {}".format(username, message),
-            from_email="rhughes@aroraengineers.com",
-            to=["richardh522@gmail.com"],
+            from_email=from_email,
+            to=[recipient],
+            cc=cc,
+            bcc=bcc,
             attachments=[(base_name, content, 'application/pdf')],
             connection=connection
         ).send()

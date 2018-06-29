@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
-from rest_framework.decorators import list_route, api_view, renderer_classes
+from rest_framework.decorators import action, api_view, renderer_classes
 from rest_framework import viewsets
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -51,97 +51,98 @@ class Builder(GenericAPIView):
             if field:
                 args.extend(['-field', field])
 
-            out_data = []
+            gdb = {
+                "datasets": []
+            }
+
             proc = subprocess.Popen(args, executable=arcpy_path, stderr=PIPE, stdout=PIPE)
             while proc.poll() is None:
                 l = proc.stdout.readline()
                 if l:
                     try:
-                        out_data.append(json.loads(l.decode('utf8').replace("'", '"')))
+                        # out_data.append(json.loads(l.decode('utf8').replace("'", '"')))
+                        data = json.loads(l.decode('utf8').replace("'", '"'))
+                        if "workspace_type" in data:
+                            # this is a geodatabase object
+                            # check to see if it exists
+                            existing = GDB.objects.filter(catalog_path=data["catalog_path"])
+                            if existing:
+                                serializer = GDBSerializer(existing[0], data=data)
+                            else:
+                                serializer = GDBSerializer(data=data)
+
+                            if serializer.is_valid():
+                                serializer.save()
+                            else:
+                                logger.error(serializer.errors)
+
+                        elif "code" in data:
+                            # this is a domain code and description
+                            # get the gdb object to relate these to
+                            gdb = GDB.objects.get(base_name=data['gdb_name'])
+                            if gdb:
+                                data['gdb'] = gdb.pk
+                            try:
+                                existing = DomainValues.objects.filter(name=data["name"]).get(code=data["code"])
+                                serializer = DomainSerializer(existing, data=data)
+                            except DomainValues.DoesNotExist:
+                                serializer = DomainSerializer(data=data)
+
+                            if serializer.is_valid():
+                                serializer.save()
+                            else:
+                                logger.error(serializer.errors)
+
+                        elif "children" in data:
+                            # this is a feature dataset object
+                            # GDB must bet set
+                            existing = FeatureDataset.objects.filter(base_name=data["base_name"])
+                            if existing:
+                                serializer = FDatasetSerializer(existing[0], data=data)
+                            else:
+                                serializer = FDatasetSerializer(data=data)
+
+                            if serializer.is_valid():
+                                serializer.save()
+                            else:
+                                logger.error(serializer.errors)
+
+                        elif "field_list" in data:
+                            # this is a feature class object
+                            # check to see if it exists
+                            existing = FeatureClass.objects.filter(catalog_path=data["catalog_path"])
+                            if existing:
+                                serializer = FClassSerializer(existing[0], data=data)
+                            else:
+                                serializer = FClassSerializer(data=data)
+
+                            if serializer.is_valid():
+                                serializer.save()
+                            else:
+                                logger.error(serializer.errors)
+
+                        elif "percent" in data:
+                            # this is a Field Object
+                            # check to see if the field object exists
+                            existing = FieldObject.objects.filter(name=data["name"])
+                            if existing:
+                                serializer = FieldSerializer(existing[0], data=data)
+                            else:
+                                serializer = FieldSerializer(data=data)
+
+                            if serializer.is_valid():
+                                field = serializer.save()
+                                domain_rows = DomainValues.objects.filter(name=data["domain_name"])
+                                if domain_rows:
+                                    for x in domain_rows:
+                                        x.fieldobject_set.add(field)
+                            else:
+                                logger.error(serializer.errors)
                     except JSONDecodeError as e:
                         logger.error(e, l)
                         raise Exception(e, 1)
 
-            # loop through all the json objects and build the store
-            for data in out_data:
-                if "workspace_type" in data:
-                    # this is a geodatabase object
-                    # check to see if it exists
-                    existing = GDB.objects.filter(catalog_path=data["catalog_path"])
-                    if existing:
-                        serializer = GDBSerializer(existing[0], data=data)
-                    else:
-                        serializer = GDBSerializer(data=data)
-
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        logger.error(serializer.errors)
-
-                elif "code" in data:
-                    # this is a domain code and description
-                    # get the gdb object to relate these to
-                    gdb = GDB.objects.get(base_name=data['gdb_name'])
-                    if gdb:
-                        data['gdb'] = gdb.pk
-                    try:
-                        existing = DomainValues.objects.filter(name=data["name"]).get(code=data["code"])
-                        serializer = DomainSerializer(existing, data=data)
-                    except DomainValues.DoesNotExist:
-                        serializer = DomainSerializer(data=data)
-
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        logger.error(serializer.errors)
-
-                elif "children" in data:
-                    # this is a feature dataset object
-                    # check to see if it exists
-                    existing = FeatureDataset.objects.filter(base_name=data["base_name"])
-                    if existing:
-                        serializer = FDatasetSerializer(existing[0], data=data)
-                    else:
-                        serializer = FDatasetSerializer(data=data)
-
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        logger.error(serializer.errors)
-
-                elif "field_list" in data:
-                    # this is a feature class object
-                    # check to see if it exists
-                    existing = FeatureClass.objects.filter(catalog_path=data["catalog_path"])
-                    if existing:
-                        serializer = FClassSerializer(existing[0], data=data)
-                    else:
-                        serializer = FClassSerializer(data=data)
-
-                    if serializer.is_valid():
-                        serializer.save()
-                    else:
-                        logger.error(serializer.errors)
-
-                elif "percent" in data:
-                    # this is a Field Object
-                    # check to see if the field object exists
-                    existing = FieldObject.objects.filter(name=data["name"])
-                    if existing:
-                        serializer = FieldSerializer(existing[0], data=data)
-                    else:
-                        serializer = FieldSerializer(data=data)
-
-                    if serializer.is_valid():
-                        field = serializer.save()
-                        domain_rows = DomainValues.objects.filter(name=data["domain_name"])
-                        if domain_rows:
-                            for x in domain_rows:
-                                x.fieldobject_set.add(field)
-                    else:
-                        logger.error(serializer.errors)
-
-            return Response(data=out_data)
+            return Response("success")
 
         else:
 
@@ -153,7 +154,7 @@ class GDBSummaryPage(APIView):
     renderer_classes = [TemplateHTMLRenderer]
     template_name = 'GDB_Summary.html'
 
-    @list_route(methods=['get',])
+    @action(detail=False, methods=['get',])
     def get(self, request, format=None):
         gdb = GDB.objects.all()
         dsets = FeatureDataset.objects.all()
@@ -168,7 +169,7 @@ class GDBSummaryPage(APIView):
 class OnlineViewSet(viewsets.ViewSet):
     renderer_classes = (JSONRenderer,)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def feature_layers(self, request):
         x = SearchTool("Feature Layer")
         items = x.search_all()
@@ -183,7 +184,7 @@ class OnlineViewSet(viewsets.ViewSet):
             final_list.append(new_item)
         return Response(final_list)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def web_maps(self, request):
         x = SearchTool("Web Map")
         items = x.search_all()
@@ -195,7 +196,7 @@ class OnlineViewSet(viewsets.ViewSet):
             final_list.append(new_item)
         return Response(final_list)
 
-    @list_route(methods=['get', 'post'])
+    @action(detail=False, methods=['get', 'post'])
     def web_apps(self, request):
         x = SearchTool("Web App")
         items = x.search_all()

@@ -20,7 +20,7 @@ ws.append(headings)
 
 fcs = FeatureClass.objects.all()
 for fc in fcs:
-    ws.append(["", fc.baseName, fc.count])
+    ws.append(["", fc.base_name, fc.count])
 
 wb.save(outfile)
 
