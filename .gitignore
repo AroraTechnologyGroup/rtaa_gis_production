@@ -24,6 +24,7 @@ rtaa_gis/media/
 **/fixtures/data/
 **/creds.json
 **/migrations/
+bower_components/
 rtaa_gis/analytics/__pycache__/
 rtaa_gis/cloudSync/__pycache__/
 rtaa_gis/cloudSync/migrations/__pycache__/
