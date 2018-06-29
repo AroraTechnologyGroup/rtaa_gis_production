@@ -279,17 +279,13 @@ def parseGraphics(request, format=None):
 def agol_user(request, format=None):
     try:
         ldap_username = get_username(request)
-        user_obj = User.objects.get(username=ldap_username)
-        email = user_obj.email
-        firstName = user_obj.first_name
-        lastName = user_obj.last_name
 
         if ldap_username == "siteadmin":
             firstName = "siteadmin"
             lastName = "siteadmin"
 
         # get the user info from our database
-        user_obj = User.objects.get(username=username)
+        user_obj = User.objects.get(username=ldap_username)
         firstName = user_obj.first_name
         lastName = user_obj.last_name
         email = user_obj.email
@@ -318,14 +314,26 @@ def agol_user(request, format=None):
             # account.delete(reassign_to='data_owner')
             resp.data = {"code": 0, "message": ldap_username}
         else:
-            user = gis.users.create(username=username,
-                                    password=password,
-                                    firstname=firstName,
-                                    lastname=lastName,
-                                    email=email,
-                                    level=1,
-                                    role="org_viewer",
-                                    provider=provider)
+            if LDAP_URL == "gis.renoairport.net":
+
+                user = gis.users.create(username=username,
+                                        firstname=firstName,
+                                        lastname=lastName,
+                                        email=email,
+                                        level=1,
+                                        role="org_viewer",
+                                        provider=provider,
+                                        idpUsername=idpUsername)
+            else:
+                user = gis.users.create(username=username,
+                                        firstname=firstName,
+                                        lastname=lastName,
+                                        email=email,
+                                        level=1,
+                                        role="org_viewer",
+                                        provider=provider,
+                                        password=password)
+
             if user:
                 resp.data = {"code": 0,
                              "message": username}
