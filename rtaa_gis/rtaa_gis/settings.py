@@ -105,7 +105,7 @@ CSRF_COOKIE_SECURE = False
 CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_REPLACE_HTTPS_REFERRER = True
+CORS_REPLACE_HTTPS_REFERRER = False
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
@@ -124,6 +124,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'authorization',
     'content-type',
+    'http_x_csrftoken'
 )
 
 CORS_EXPOSE_HEADERS = (
@@ -376,9 +377,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-# load authentication settings for test env
-try:
-    exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_settings.py")).read())
-except IOError:
-    pass

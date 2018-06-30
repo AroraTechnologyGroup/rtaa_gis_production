@@ -44,6 +44,7 @@ def process_configs():
         signage_dir = "signs"
 
     # Here these objs represent apps hosted on django framework not IIS
+    # the groups set the read-only level permissions
     edoc = {
         "name": "edoc",
         "path": None,
@@ -125,9 +126,16 @@ def query_ldap(name):
             local_name = "AroraTeam"
 
     query = LDAPQuery(local_name, settings.LDAP_URL)
-    ldap_groups = query.get_groups()
+    user_info = query.get_user_info()
+    ldap_groups = user_info["groups"]
+    first_name = user_info["firstName"]
+    last_name = user_info["lastName"]
+    email = user_info["email"]
+
     logger.info("ldap_groups = {}".format(ldap_groups))
-    logger.info("username = {}".format(local_name))
+    logger.info("firstName = {}".format(first_name))
+    logger.info("lastName = {}".format(last_name))
+    logger.info("email = {}".format(email))
 
     user_obj = User.objects.get(username=name)
     users_groups = user_obj.groups.all()
@@ -135,12 +143,10 @@ def query_ldap(name):
     for x in users_groups:
         if x.name not in ldap_groups:
             try:
-                # g = Group.objects.get(name=x)
                 user_obj.groups.remove(x)
-                # user_obj.save()
             except Exception as e:
                 print(e)
-    # add user to group if group exists in local group table
+    # add user to group if not already a member
     for x in ldap_groups:
         if x not in [g.name for g in users_groups]:
             try:
@@ -149,10 +155,24 @@ def query_ldap(name):
                     user_obj.groups.add(g)
             except Exception as e:
                 print(e)
-    groups = [x.name for x in user_obj.groups.all()]
+
+    user_obj.first_name = first_name
+    user_obj.last_name = last_name
+    user_obj.email = email
+    user_obj.save()
+
+    new_user_obj = User.objects.get(username=name)
+    groups = [x.name for x in new_user_obj.groups.all()]
+    first_name = new_user_obj.first_name
+    last_name = new_user_obj.last_name
+    email = new_user_obj.email
+
     data = {
         "user": local_name,
-        "groups": groups
+        "groups": groups,
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email
     }
     return data
 
@@ -190,15 +210,24 @@ def user_auth(request, format=None):
                 if group.name in final_groups:
                     final_apps.append(app.name)
         else:
-            # no groups are defined so all groups are accepted
+            # no groups are assigned to the app so it allows all access
             final_apps.append(app.name)
 
     final_apps = list(set(final_apps))
     final_apps.sort()
+
+    first_name = user_obj.first_name
+    last_name = user_obj.last_name
+    email = user_obj.email
+
     user_data = {
-        "user": local_name,
+        "username": name,
+        "local_name": local_name,
         "groups": final_groups,
-        "apps": final_apps
+        "apps": final_apps,
+        "firstName": first_name,
+        "lastName": last_name,
+        "email": email
     }
     return Response(user_data)
 
@@ -247,12 +276,6 @@ class HomePage(APIView):
         user_dir = os.path.join(users_dir, local_name)
         if not os.path.exists(user_dir):
             os.mkdir(user_dir)
-
-        # make the print directory for the user
-        # TODO - move this to the print App
-        print_dir = os.path.join(user_dir, "prints")
-        if not os.path.exists(print_dir):
-            os.mkdir(print_dir)
 
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
