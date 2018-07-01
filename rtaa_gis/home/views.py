@@ -191,7 +191,7 @@ def get_name(request):
     return name
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def user_auth(request, format=None):
     """View to get the user's groups from the framework tables"""
     name = get_name(request)

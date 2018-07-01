@@ -7,9 +7,9 @@ app_name = 'home'
 urlpatterns = [
     path('', HomePage.as_view(), name='index'),
     path('docs', schema_view, name="docs"),
-    path('groups', user_auth, name="user_info"),
-    path('login', login, {'extra_context': {'next': '/#home'}}, name='login'),
-    path('logout', logout, {'next_page': 'home:login'}, name='logout'),
+    path('groups/', user_auth, name="user_info"),
+    path('login/', login, {'extra_context': {'next': '/#home'}}, name='login'),
+    path('logout/', logout, {'next_page': 'home:login'}, name='logout'),
     path('get_auth_token', rest_framework_views.obtain_auth_token, name='get_auth_token'),
 
     # These urls for web mapping applications are also specified in the application_cards.json file, loaded

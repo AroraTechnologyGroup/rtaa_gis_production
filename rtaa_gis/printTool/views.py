@@ -285,7 +285,7 @@ def agol_user(request, format=None):
             lastName = "siteadmin"
 
         # get the user info from our database
-        user_obj = User.objects.get(ldap_username)
+        user_obj = User.objects.get(username=ldap_username)
 
         firstName = user_obj.first_name
         lastName = user_obj.last_name
@@ -349,7 +349,6 @@ def agol_user(request, format=None):
 
 
 @api_view(['GET'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getPrintList(request, format=None):
     username = get_username(request)
@@ -386,7 +385,6 @@ def getPrintList(request, format=None):
 
 
 @api_view(['GET'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getMarkupList(request, format=None):
     username = get_username(request)
