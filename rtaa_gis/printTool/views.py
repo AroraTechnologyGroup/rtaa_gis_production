@@ -104,7 +104,7 @@ def system_paths(environ):
 
 def get_username(request):
     try:
-        username = request.META['REMOTE_USER'].split("\\")[-1]
+        username = request.META['REMOTE_USER']
     except KeyError:
         username = request.user.username
     if not len(username):
@@ -285,7 +285,8 @@ def agol_user(request, format=None):
             lastName = "siteadmin"
 
         # get the user info from our database
-        user_obj = User.objects.get(username=ldap_username)
+        user_obj = User.objects.get(ldap_username)
+
         firstName = user_obj.first_name
         lastName = user_obj.last_name
         email = user_obj.email
