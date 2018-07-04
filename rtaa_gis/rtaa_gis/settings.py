@@ -7,7 +7,7 @@ from django.urls import reverse
 import urllib
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 # USE_X_FORWARDED_HOST = True
 
 LDAP_URL = "gisapps.aroraengineers.com"
@@ -124,7 +124,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'authorization',
     'content-type',
-    'http_x_csrftoken'
+    'x_csrftoken'
 )
 
 CORS_EXPOSE_HEADERS = (
@@ -134,7 +134,7 @@ CORS_EXPOSE_HEADERS = (
     # 'accept',
     # 'origin',
     'authorization',
-    'x-csrftoken',
+    'x_csrftoken',
 )
 
 ALLOWED_HOSTS = [
