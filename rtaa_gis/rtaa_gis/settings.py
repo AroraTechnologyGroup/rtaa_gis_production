@@ -98,7 +98,7 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 
 # CSRF_COOKIE_DOMAIN = ['.renoairport.net', '.aroraengineers.com']
-CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'gisapps.aroraengineers.com',
+CSRF_TRUSTED_ORIGINS = ('localhost:3003', 'gisapps.aroraengineers.com:3344', 'localhost:3344', 'gisapps.aroraengineers.com',
                         'gisapps.aroraengineers.com:443', 'gis.renoairport.net:443', 'localhost')
 
 CSRF_COOKIE_SECURE = False
@@ -106,7 +106,7 @@ CSRF_USE_SESSIONS = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_REPLACE_HTTPS_REFERRER = False
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'https://gisapps.aroraengineers.com',
     'localhost:3003',
@@ -124,7 +124,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'authorization',
     'content-type',
-    'http_x_csrftoken'
+    'x_csrftoken'
 )
 
 CORS_EXPOSE_HEADERS = (
@@ -134,7 +134,7 @@ CORS_EXPOSE_HEADERS = (
     # 'accept',
     # 'origin',
     'authorization',
-    'x-csrftoken',
+    'x_csrftoken',
 )
 
 ALLOWED_HOSTS = [
@@ -152,7 +152,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     CORS_REPLACE_HTTPS_REFERER = False
-    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ORIGIN_ALLOW_ALL = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -377,9 +377,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-# load authentication settings for test env
-try:
-    exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "local_settings.py")).read())
-except IOError:
-    pass

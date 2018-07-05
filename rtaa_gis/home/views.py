@@ -8,6 +8,7 @@ from django.urls import reverse
 from rest_framework.permissions import AllowAny
 from .utils.ldap_tool import LDAPQuery
 from .utils.app_config import WebConfig
+from .utils.agol_user import agol_user
 from home.models import App
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
@@ -44,6 +45,7 @@ def process_configs():
         signage_dir = "signs"
 
     # Here these objs represent apps hosted on django framework not IIS
+    # the groups set the read-only level permissions
     edoc = {
         "name": "edoc",
         "path": None,
@@ -190,7 +192,7 @@ def get_name(request):
     return name
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def user_auth(request, format=None):
     """View to get the user's groups from the framework tables"""
     name = get_name(request)
@@ -248,13 +250,13 @@ class HomePage(APIView):
         resp = Response(template_name=self.template)
         resp['Cache-Control'] = 'no-cache'
 
-        name = get_name(request)
+        username = get_name(request)
 
         # read the web.config for each app and build the App model with authorization groups
         web_config = process_configs()
 
         # run this function to inherit groups from AD
-        user_data = query_ldap(name)
+        user_data = query_ldap(username)
         final_groups = user_data["groups"]
 
         # return the list of apps the user can view
@@ -267,7 +269,7 @@ class HomePage(APIView):
                     final_apps.append(app_name)
         final_apps = list(set(final_apps))
 
-        local_name = name.split("\\")[-1]
+        local_name = username.split("\\")[-1]
         # Create user's folder in the media root
         users_dir = os.path.join(settings.MEDIA_ROOT, 'users')
         if not os.path.exists(users_dir):
@@ -278,6 +280,17 @@ class HomePage(APIView):
 
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
+
+        # if the app is viewer, verify user in AGOL or create new
+        # get the user info from our database
+        if app_name == "gisviewer":
+            user_obj = User.objects.get(username=username)
+            try:
+                out = agol_user(user_obj)
+                logger.info(out)
+            except Exception as e:
+                logger.error(e)
+
         resp.data = {"server_url": server_url, "apps": final_apps, "groups": final_groups,
                      "app_name": app_name}
         return resp

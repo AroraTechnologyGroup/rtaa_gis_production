@@ -104,13 +104,23 @@ def system_paths(environ):
 
 def get_username(request):
     try:
-        username = request.META['REMOTE_USER'].split("\\")[-1]
+        username = request.META['REMOTE_USER']
     except KeyError:
         username = request.user.username
     if not len(username):
         # This value is used for testing AJAX requests to the dev runserver
         username = "siteadmin"
-    return username
+
+    # create print directory if not exist
+    local_name = username.split("\\")[-1]
+    user_dir = os.path.join(MEDIA_ROOT, "users/{}".format(local_name))
+    if not os.path.exists(user_dir):
+        os.mkdir(user_dir)
+    print_dir = os.path.join(user_dir, "prints")
+    if not os.path.exists(print_dir):
+        os.mkdir(print_dir)
+
+    return username, print_dir
 
 
 def apply_watermark(watermark, target):
@@ -164,24 +174,19 @@ def name_file(out_folder, new_name, extension):
     return os.path.join(out_folder, full_name)
 
 
-# Create your views here.
 @api_view(['POST'])
 @ensure_csrf_cookie
 def layout(request, format=None):
     try:
-        username = get_username(request)
-        # the user's folder is created when they access the home page
-        out_folder = os.path.join(MEDIA_ROOT, r'users\{}\prints'.format(username))
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
-
+        username, print_dir = get_username(request)
+        localname = username.split("\\")[-1]
         data = request.POST
         url = data["url"]
         title = data["title"]
         layout_template = data['layout_template']
 
         # set the filename to be the Title of the map
-        filename = name_file(out_folder, title, "pdf")
+        filename = name_file(print_dir, title, "pdf")
 
         # download the pdf map print from AGOL
         file = requests.get(url, auth=('data_owner', 'GIS@RTAA123!'))
@@ -205,9 +210,9 @@ def layout(request, format=None):
         apply_watermark(watermark=watermark, target=filename)
 
         # rename map print and graphics file if it exists at temp.json
-        graphics_file = os.path.join(out_folder, 'temp.json')
+        graphics_file = os.path.join(print_dir, 'temp.json')
         if os.path.exists(graphics_file):
-            new_name = name_file(out_folder, title, "json")
+            new_name = name_file(print_dir, title, "json")
             os.rename(graphics_file, new_name)
 
         host = request.META["HTTP_HOST"]
@@ -219,7 +224,7 @@ def layout(request, format=None):
         else:
             protocol = "https"
 
-        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, os.path.basename(filename))
+        url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, localname, os.path.basename(filename))
 
         data = {
             "method": "print",
@@ -239,17 +244,15 @@ def layout(request, format=None):
 @ensure_csrf_cookie
 def parseGraphics(request, format=None):
     try:
-        username = get_username(request)
-        out_folder = os.path.join(MEDIA_ROOT, 'users/{}/prints'.format(username))
-        if not os.path.exists(out_folder):
-            os.mkdir(out_folder)
+        # the get_username will also check for and create the print directiories
+        username, print_dir = get_username(request)
 
         web_map = request.data.get('web_map_json')
         map = json.loads(web_map)
         op_layers = map["operationalLayers"]
 
         # create an initial temp graphics file to rename
-        tempfile = os.path.join(out_folder, "temp.json")
+        tempfile = os.path.join(print_dir, "temp.json")
         temp_file = open(tempfile, 'w')
 
         cont = []
@@ -276,76 +279,10 @@ def parseGraphics(request, format=None):
 
 @api_view(['GET'])
 @ensure_csrf_cookie
-def agol_user(request, format=None):
-    try:
-        ldap_username = get_username(request)
-        user_obj = User.objects.get(username=ldap_username)
-        email = user_obj.email
-        firstName = user_obj.first_name
-        lastName = user_obj.last_name
-
-        if ldap_username == "siteadmin":
-            firstName = "siteadmin"
-            lastName = "siteadmin"
-
-        # get the user info from our database
-        user_obj = User.objects.get(username=ldap_username)
-        firstName = user_obj.first_name
-        lastName = user_obj.last_name
-        email = user_obj.email
-
-        if LDAP_URL == "gis.renoairport.net":
-            provider = "enterprise"
-            password = None
-            username = "{}_RTAA".format(email)
-            idpUsername = ldap_username
-
-        else:
-            provider = "arcgis"
-            password = "testeruser123"
-            username = "{}".format(ldap_username)
-            idpUsername = None
-
-        gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
-                             username="data_owner",
-                             password="GIS@RTAA123!")
-        me = gis.users.me
-        account = gis.users.get(username="{}".format(username))
-
-        resp = Response()
-        if account:
-            pass
-            # account.delete(reassign_to='data_owner')
-            resp.data = {"code": 0, "message": ldap_username}
-        else:
-            user = gis.users.create(username=username,
-                                    password=password,
-                                    firstname=firstName,
-                                    lastname=lastName,
-                                    email=email,
-                                    level=1,
-                                    role="org_viewer",
-                                    provider=provider)
-            if user:
-                resp.data = {"code": 0,
-                             "message": username}
-            else:
-                resp.data = {"code": -1,
-                             "message": "error. Unable to create user"}
-
-        return resp
-
-    except Exception as e:
-        loggit(e)
-
-
-@api_view(['GET'])
-# @authentication_classes((AllowAny,))
-@ensure_csrf_cookie
 def getPrintList(request, format=None):
-    username = get_username(request)
-    print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
-    logger.info(print_dir)
+    username, print_dir = get_username(request)
+    localname = username.split("\\")[-1]
+    logger.info(localname)
 
     response = Response()
     response.data = list()
@@ -366,7 +303,7 @@ def getPrintList(request, format=None):
         media_url = media_url.rstrip("/")
 
         for out_file in selection:
-            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
+            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, localname, out_file)
             sec = os.path.getmtime(os.path.join(print_dir, out_file))
             date = datetime.fromtimestamp(sec).date().isoformat()
             response.data.append({"date": date, "url": url})
@@ -377,12 +314,10 @@ def getPrintList(request, format=None):
 
 
 @api_view(['GET'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def getMarkupList(request, format=None):
-    username = get_username(request)
-    print_dir = os.path.join(MEDIA_ROOT, "users/{}/prints".format(username))
-    logger.info(print_dir)
+    username, print_dir = get_username(request)
+    localname = username.split("\\")[-1]
     response = Response()
     response.data = list()
     if os.path.exists(print_dir):
@@ -408,7 +343,7 @@ def getMarkupList(request, format=None):
 
             sec = os.path.getmtime(full_path)
             date = datetime.fromtimestamp(sec).date().isoformat()
-            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, username, out_file)
+            url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, localname, out_file)
             response.data.append({"date": date, "url": url, "feature_count": feature_cnt})
     else:
         response.data.append("Error, print directory not found")
@@ -417,18 +352,16 @@ def getMarkupList(request, format=None):
 
 
 @api_view(['POST'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def delete_file(request, format=None):
-    username = get_username(request)
+    username, print_dir = get_username(request)
     data = request.POST
     file_name = data["filename"].replace("\n", "")
-    outfolder = os.path.join(MEDIA_ROOT, r"users\{}\prints".format(username))
-    response = Response()
 
-    if os.path.exists(outfolder):
+    response = Response()
+    if os.path.exists(print_dir):
         old_dir = os.getcwd()
-        os.chdir(outfolder)
+        os.chdir(print_dir)
         if os.path.exists(file_name):
             os.remove(file_name)
             data = "File {} Deleted from Server".format(file_name)
@@ -442,10 +375,10 @@ def delete_file(request, format=None):
 
 
 @api_view(['POST'])
-# @authentication_classes((AllowAny,))
 @ensure_csrf_cookie
 def emailExhibit(request, format=None):
-    username = get_username(request)
+    username, print_dir = get_username(request)
+    user_obj = User.objects.get(username=username)
     data = request.POST
     exhibit_url = data["exhibit_url"].replace("\n", "")
     recipient = data["recipient"].replace("\n", "")
@@ -455,12 +388,13 @@ def emailExhibit(request, format=None):
         cc = [cc]
 
     bcc = ["rhughes@aroraengineers.com"]
-    from_email = "{}@renoairport.net".format(username)
+    from_email = user_obj.email
     # to allow for testing
     if settings.LDAP_URL == "gisapps.aroraengineers.com":
         recipient = "richardh522@gmail.com"
         from_email = "rhughes@aroraengineers.com"
         cc = ["rhughes@aroraengineers.com"]
+
     subject = data["subject"].replace("\n", "")
     message = data["message"].replace("\n", "")
     splits = exhibit_url.split("/")
