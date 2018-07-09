@@ -141,7 +141,7 @@ ALLOWED_HOSTS = [
     'gisapps.aroraengineers.com',
     '10.0.0.5',
     'gis.renoairport.net',
-    'localhost',
+    'localhost:3344',
     '127.0.0.1',
     '172.72.118.217',
     # '13.90.210.35'
