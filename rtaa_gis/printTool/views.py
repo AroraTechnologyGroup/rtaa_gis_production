@@ -212,7 +212,10 @@ def layout(request, format=None):
         # rename map print and graphics file if it exists at temp.json
         graphics_file = os.path.join(print_dir, 'temp.json')
         if os.path.exists(graphics_file):
-            os.rename(graphics_file, filename.replace(".pdf", ".json"))
+            try:
+                os.remove(filename.replace(".pdf", ".json"))
+            except OSError:
+                os.rename(graphics_file, filename.replace(".pdf", ".json"))
 
         host = request.META["HTTP_HOST"]
         media_url = settings.MEDIA_URL.lstrip("/")
