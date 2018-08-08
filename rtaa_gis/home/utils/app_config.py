@@ -106,4 +106,4 @@ if __name__ == "__main__":
                     lpm_dir=lpm_dir,
                     airspace_dir=airspace_dir,
                     signage_dir=signage_dir)
-    print(obj.lpm)
+    print(obj.lpm_dir)
