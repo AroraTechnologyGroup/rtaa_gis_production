@@ -212,8 +212,10 @@ def layout(request, format=None):
         # rename map print and graphics file if it exists at temp.json
         graphics_file = os.path.join(print_dir, 'temp.json')
         if os.path.exists(graphics_file):
-            new_name = name_file(print_dir, title, "json")
-            os.rename(graphics_file, new_name)
+            try:
+                os.remove(filename.replace(".pdf", ".json"))
+            except OSError:
+                os.rename(graphics_file, filename.replace(".pdf", ".json"))
 
         host = request.META["HTTP_HOST"]
         media_url = settings.MEDIA_URL.lstrip("/")
@@ -225,6 +227,8 @@ def layout(request, format=None):
             protocol = "https"
 
         url = "{}://{}/{}/users/{}/prints/{}".format(protocol, host, media_url, localname, os.path.basename(filename))
+        sec = os.path.getmtime(os.path.join(print_dir, filename))
+        date = datetime.fromtimestamp(sec).date().isoformat()
 
         data = {
             "method": "print",
@@ -235,7 +239,7 @@ def layout(request, format=None):
             serial.save()
         else:
             logger.error("Unable to save count :: {}".format(data))
-        return JsonResponse({"url": url})
+        return JsonResponse({"url": url, "date": date})
     except Exception as e:
         loggit(e)
 
