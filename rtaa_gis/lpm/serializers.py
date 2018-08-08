@@ -10,12 +10,6 @@ class AgreementSerializer(serializers.ModelSerializer):
         model = Agreement
         fields = '__all__'
 
-    # spaces = serializers.HyperlinkedRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     view_name='space-detail'
-    # )
-
     def create(self, validated_data):
         try:
             _agg = Agreement.objects.create(**validated_data)

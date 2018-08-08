@@ -18,7 +18,7 @@ def agol_user(user_obj):
         email = user_obj.email
         localname = username.split("\\")[-1]
 
-        if LDAP_URL == "gis.renoairport.net":
+        if LDAP_URL == "renoairport.net":
             provider = "enterprise"
             password = None
             username = "{}_RTAA".format(email)
@@ -43,7 +43,7 @@ def agol_user(user_obj):
             # account.delete(reassign_to='data_owner')
         else:
             # create an account
-            if LDAP_URL == "gis.renoairport.net":
+            if LDAP_URL == "renoairport.net":
 
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -52,7 +52,8 @@ def agol_user(user_obj):
                                         level=1,
                                         role="org_viewer",
                                         provider=provider,
-                                        idpUsername=idpUsername)
+                                        password=password,
+                                        idp_username=idpUsername)
             else:
                 user = gis.users.create(username=username,
                                         firstname=firstName,

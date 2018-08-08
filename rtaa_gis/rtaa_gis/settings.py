@@ -356,7 +356,7 @@ LOGGING = {
         },
         'django': {
             'handlers': ['console', 'file'],
-            'level': "DEBUG"
+            'level': "ERROR"
         },
         'django.security.DisallowedHost': {
             'handlers': ['file'],
