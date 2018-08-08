@@ -18,7 +18,7 @@ def agol_user(user_obj):
         email = user_obj.email
         localname = username.split("\\")[-1]
 
-        if LDAP_URL == "gis.renoairport.net":
+        if LDAP_URL == "renoairport.net":
             provider = "enterprise"
             password = None
             username = "{}_RTAA".format(email)
@@ -43,7 +43,7 @@ def agol_user(user_obj):
             # account.delete(reassign_to='data_owner')
         else:
             # create an account
-            if LDAP_URL == "gis.renoairport.net":
+            if LDAP_URL == "renoairport.net":
 
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -68,7 +68,8 @@ def agol_user(user_obj):
             target_groups = {
                 "8aedb0ecfe6b417796993fb8ed4cfe0a": 'Published Layers',
                 "90d7bc6eeaf94a24a661782a1d1ba0dc": 'Web Maps',
-                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator'
+                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator',
+                "743f7e0190b6455da99dd847a3e76ab9": 'Basemaps in StatePlane'
             }
             user_groups = user.groups
 
