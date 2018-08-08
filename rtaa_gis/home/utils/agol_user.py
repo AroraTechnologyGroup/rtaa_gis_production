@@ -52,7 +52,8 @@ def agol_user(user_obj):
                                         level=1,
                                         role="org_viewer",
                                         provider=provider,
-                                        idpUsername=idpUsername)
+                                        password=password,
+                                        idp_username=idpUsername)
             else:
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -74,10 +75,12 @@ def agol_user(user_obj):
             user_groups = user.groups
 
             if len(user_groups):
+                # if a user's group is included in the target_groups, remove it from the obj
                 for gr in user_groups:
                     if gr.id in target_groups:
                         del(target_groups[gr.id])
 
+            # for the remaining groups that the user is not a member of add them
             if len(target_groups):
                 for group_id in target_groups:
                     # add the user to the remaining target_groups
