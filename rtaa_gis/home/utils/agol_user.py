@@ -18,7 +18,7 @@ def agol_user(user_obj):
         email = user_obj.email
         localname = username.split("\\")[-1]
 
-        if LDAP_URL == "gis.renoairport.net":
+        if LDAP_URL == "renoairport.net":
             provider = "enterprise"
             password = None
             username = "{}_RTAA".format(email)
@@ -43,7 +43,7 @@ def agol_user(user_obj):
             # account.delete(reassign_to='data_owner')
         else:
             # create an account
-            if LDAP_URL == "gis.renoairport.net":
+            if LDAP_URL == "renoairport.net":
 
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -52,7 +52,8 @@ def agol_user(user_obj):
                                         level=1,
                                         role="org_viewer",
                                         provider=provider,
-                                        idpUsername=idpUsername)
+                                        password=password,
+                                        idp_username=idpUsername)
             else:
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -68,15 +69,18 @@ def agol_user(user_obj):
             target_groups = {
                 "8aedb0ecfe6b417796993fb8ed4cfe0a": 'Published Layers',
                 "90d7bc6eeaf94a24a661782a1d1ba0dc": 'Web Maps',
-                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator'
+                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator',
+                "743f7e0190b6455da99dd847a3e76ab9": 'Basemaps in StatePlane'
             }
             user_groups = user.groups
 
             if len(user_groups):
+                # if a user's group is included in the target_groups, remove it from the obj
                 for gr in user_groups:
                     if gr.id in target_groups:
                         del(target_groups[gr.id])
 
+            # for the remaining groups that the user is not a member of add them
             if len(target_groups):
                 for group_id in target_groups:
                     # add the user to the remaining target_groups
