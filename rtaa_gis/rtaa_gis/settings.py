@@ -10,8 +10,8 @@ import urllib
 DEBUG = False
 # USE_X_FORWARDED_HOST = True
 
-# LDAP_URL = "gisapps.aroraengineers.com"
-LDAP_URL = "renoairport.net"
+LDAP_URL = "gisapps.aroraengineers.com"
+# LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
