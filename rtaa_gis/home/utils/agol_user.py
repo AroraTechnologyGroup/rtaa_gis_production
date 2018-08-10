@@ -21,7 +21,7 @@ def agol_user(user_obj):
         if LDAP_URL == "renoairport.net":
             provider = "enterprise"
             password = None
-            username = "{}_RTAA".format(email)
+            username = "{}_RTAA".format(localname)
             idpUsername = username
 
         else:
