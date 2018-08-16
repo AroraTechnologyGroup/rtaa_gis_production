@@ -2,12 +2,19 @@ import os
 import sys
 import arcgis
 import django
+import datetime
+import time
+from datetime import timedelta
 from django.conf import settings
-LDAP_URL = settings.LDAP_URL
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
+
+LDAP_URL = settings.LDAP_URL
+"""This function will create users in AGOL.  We are not using this.  
+Instead we are automatically adding users as Level1 Viewers"""
 
 
 def agol_user(user_obj):
@@ -18,10 +25,10 @@ def agol_user(user_obj):
         email = user_obj.email
         localname = username.split("\\")[-1]
 
-        if LDAP_URL == "gis.renoairport.net":
+        if LDAP_URL == "renoairport.net":
             provider = "enterprise"
             password = None
-            username = "{}_RTAA".format(email)
+            username = "{}_RTAA".format(localname)
             idpUsername = username
 
         else:
@@ -43,7 +50,7 @@ def agol_user(user_obj):
             # account.delete(reassign_to='data_owner')
         else:
             # create an account
-            if LDAP_URL == "gis.renoairport.net":
+            if LDAP_URL == "renoairport.net":
 
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -52,7 +59,8 @@ def agol_user(user_obj):
                                         level=1,
                                         role="org_viewer",
                                         provider=provider,
-                                        idpUsername=idpUsername)
+                                        password=password,
+                                        idp_username=idpUsername)
             else:
                 user = gis.users.create(username=username,
                                         firstname=firstName,
@@ -68,15 +76,18 @@ def agol_user(user_obj):
             target_groups = {
                 "8aedb0ecfe6b417796993fb8ed4cfe0a": 'Published Layers',
                 "90d7bc6eeaf94a24a661782a1d1ba0dc": 'Web Maps',
-                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator'
+                "0d23c3513ba141c2b21b0c4b7325da1c": 'Basemaps in Web Mercator',
+                "743f7e0190b6455da99dd847a3e76ab9": 'Basemaps in StatePlane'
             }
             user_groups = user.groups
 
             if len(user_groups):
+                # if a user's group is included in the target_groups, remove it from the obj
                 for gr in user_groups:
                     if gr.id in target_groups:
                         del(target_groups[gr.id])
 
+            # for the remaining groups that the user is not a member of add them
             if len(target_groups):
                 for group_id in target_groups:
                     # add the user to the remaining target_groups
@@ -99,3 +110,29 @@ def agol_user(user_obj):
 
     except Exception as e:
         raise Exception(e)
+
+
+def clear_old_users():
+    gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
+                         username="data_owner",
+                         password="GIS@RTAA123!")
+
+    current_date = datetime.datetime.today()
+    month_ago = current_date - timedelta(days=30)
+
+    all_users = gis.users.search(query='*')
+    for user in all_users:
+        last_login = user.lastLogin
+        if last_login != -1:
+            login_date = datetime.datetime.fromtimestamp(last_login / 1000)
+            if login_date < month_ago:
+                print(user)
+                if user.level == '1':
+                    try:
+                        user.delete()
+                    except Exception as e:
+                        print(e)
+
+
+if __name__ == "__main__":
+    clear_old_users()

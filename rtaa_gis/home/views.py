@@ -8,7 +8,7 @@ from django.urls import reverse
 from rest_framework.permissions import AllowAny
 from .utils.ldap_tool import LDAPQuery
 from .utils.app_config import WebConfig
-from .utils.agol_user import agol_user
+from .utils.agol_user import clear_old_users
 from home.models import App
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User, Group
@@ -281,12 +281,12 @@ class HomePage(APIView):
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
 
-        # if the app is viewer, verify user in AGOL or create new
-        # get the user info from our database
-        if app_name == "gisviewer":
+        # if the app is connecting to AGOL, it is set to automatically add users
+        # We need to clear out users that have not logged on as Viewers in the past month
+        if app_name in ["gisviewer", "rtaa_lpm"]:
             user_obj = User.objects.get(username=username)
             try:
-                out = agol_user(user_obj)
+                out = clear_old_users()
                 logger.info(out)
             except Exception as e:
                 logger.error(e)
