@@ -67,7 +67,9 @@ if __name__ == "__main__":
 
         # Query the tables and update the data in AGOL
         gis = GIS("https://www.arcgis.com", "data_owner", "GIS@RTAA123!")
-        layer = gis.content.get('290de3849d6c412f950471bc45df182a')
+
+        # ensure that this references the main spaces feature layer and not a view
+        layer = gis.content.get('f4c37d0861e04cf29e559047dd492c79')
 
         feature_layer = layer.layers[0]
         # Update the domains for the feature service
@@ -86,12 +88,11 @@ if __name__ == "__main__":
                         code = ""
                     else:
                         code = row[0].value
-                        if code != row[1].value:
-                            loggit("This code {}, does not match the description {}".format(code, row[1].value))
 
+                    # the description is equal to the coded value
                     val = {
                         "code": "{}".format(code),
-                        "name": "{}".format(row[1].value)
+                        "name": "{}".format(code)
                     }
                     if code == "" or not code:
                         domain_list.append(val)
