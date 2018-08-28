@@ -281,16 +281,6 @@ class HomePage(APIView):
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
 
-        # if the app is connecting to AGOL, it is set to automatically add users
-        # We need to clear out users that have not logged on as Viewers in the past month
-        if app_name in ["gisviewer", "rtaa_lpm"]:
-            user_obj = User.objects.get(username=username)
-            try:
-                out = clear_old_users()
-                logger.info(out)
-            except Exception as e:
-                logger.error(e)
-
         resp.data = {"server_url": server_url, "apps": final_apps, "groups": final_groups,
                      "app_name": app_name}
         return resp

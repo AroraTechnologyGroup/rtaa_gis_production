@@ -5,19 +5,42 @@ import django
 import datetime
 import time
 from datetime import timedelta
+from datetime import datetime
 from django.conf import settings
-
+import pprint
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 
 LDAP_URL = settings.LDAP_URL
-"""This function will create users in AGOL.  We are not using this.  
-Instead we are automatically adding users as Level1 Viewers"""
+
+##############################################
+if not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")):
+    os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs"))
+
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs/agol_UserCleanup.txt")
+file = open(log_path, 'w')
+file.close()
+##############################################
+
+
+def loggit(text):
+    file = open(log_path, 'a')
+    file.write("{}\n".format(text))
+    pprint.pprint("{}\n".format(text))
+    file.close()
+
+
+loggit("Script run {}".format(datetime.today()))
+
+###############################################
 
 
 def agol_user(user_obj):
+    """This agol_user function will create users in AGOL.  We are not using this.
+    Instead we are automatically adding users as Level1 Viewers through SAML and then
+    removing inactive users after 1 month"""
     try:
         username = user_obj.username
         firstName = user_obj.first_name
@@ -117,21 +140,27 @@ def clear_old_users():
                          username="data_owner",
                          password="GIS@RTAA123!")
 
-    current_date = datetime.datetime.today()
+    current_date = datetime.today()
     month_ago = current_date - timedelta(days=30)
 
     all_users = gis.users.search(query='*')
+    number_inactive = 0
     for user in all_users:
         last_login = user.lastLogin
         if last_login != -1:
-            login_date = datetime.datetime.fromtimestamp(last_login / 1000)
+            login_date = datetime.fromtimestamp(last_login / 1000)
             if login_date < month_ago:
-                print(user)
                 if user.level == '1':
                     try:
                         user.delete()
+                        number_inactive += 1
+                        loggit("User {} removed from AGOL".format(user))
                     except Exception as e:
-                        print(e)
+                        loggit(e)
+                else:
+                    loggit("Level {} {}, {}, inactive over 1 month.".format(user.level, user.role, user.username))
+    if not number_inactive:
+        loggit("Zero Level 1 Viewers have been inactive for 1 month or more")
 
 
 if __name__ == "__main__":
