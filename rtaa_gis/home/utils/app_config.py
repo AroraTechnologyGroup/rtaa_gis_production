@@ -1,11 +1,15 @@
 import django
 import sys
 import os
+import logging
+
 import xml.etree.ElementTree as ET
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rtaa_gis.settings'
 django.setup()
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 root_path = settings.IIS_APP_ROOT
 
@@ -61,11 +65,14 @@ class WebConfig:
         for x in self.apps:
             """only run if a web.config path is defined"""
             if x["path"]:
-                obj = self.parseAppConfig(x)
-                gr = obj["groups"]
-                for g in gr:
-                    if g not in groups:
-                        groups.append(g)
+                if os.path.exists(x["path"]):
+                    obj = self.parseAppConfig(x)
+                    gr = obj["groups"]
+                    for g in gr:
+                        if g not in groups:
+                            groups.append(g)
+                else:
+                    logger.error("{} does not exist".format(x["path"]))
             else:
                 for group in x["groups"]:
                     if group not in groups:
