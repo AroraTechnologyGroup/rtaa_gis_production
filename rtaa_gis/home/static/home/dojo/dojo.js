@@ -24378,6 +24378,7 @@ define([
 
 			getGroups: function(url) {
 				var deferred = new Deferred();
+				// if running on a dev server passing the admin token in the header is required
 				
 				(function() {
 					request(url, {
