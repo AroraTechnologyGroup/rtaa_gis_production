@@ -10,8 +10,8 @@ import urllib
 DEBUG = False
 # USE_X_FORWARDED_HOST = True
 
-LDAP_URL = "gisapps.aroraengineers.com"
-# LDAP_URL = "renoairport.net"
+# LDAP_URL = "gisapps.aroraengineers.com"
+LDAP_URL = "renoairport.net"
 
 if LDAP_URL == "gisapps.aroraengineers.com":
     # always run AD check against AD in the cloud so set this as default
@@ -219,16 +219,16 @@ WSGI_APPLICATION = 'rtaa_gis.wsgi.application'
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'sql_server.pyodbc',
-    #     'NAME': 'GIS_Web',
-    #     'HOST': 'gis.renoairport.net',
-    #     'USER': 'gis',
-    #     'PASSWORD': "GIS@RTAA123!",
-    #     'OPTIONS': {
-    #         'driver': 'ODBC Driver 13 for SQL Server'
-    #      }
-    #  },
+    'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'GIS_Web',
+        'HOST': 'gis.renoairport.net',
+        'USER': 'gis',
+        'PASSWORD': "GIS@RTAA123!",
+        'OPTIONS': {
+            'driver': 'ODBC Driver 13 for SQL Server'
+         }
+     },
     # 'postGres': {
     #     'ENGINE': 'django.db.backends.postgresql',
     #     'NAME': 'rtaa_DRF',
@@ -237,10 +237,10 @@ DATABASES = {
     #     'HOST': '127.0.0.1',
     #     'PORT': '5432'
     # },
-    'default': {
-         'ENGINE': 'django.db.backends.sqlite3',
-         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-     }
+    # 'default': {
+    #      'ENGINE': 'django.db.backends.sqlite3',
+    #      'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #  }
 }
 
 
