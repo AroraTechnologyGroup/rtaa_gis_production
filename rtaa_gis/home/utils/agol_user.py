@@ -32,8 +32,6 @@ def loggit(text):
     file.close()
 
 
-loggit("Script run {}".format(datetime.today()))
-
 ###############################################
 
 
@@ -41,6 +39,7 @@ def agol_user(user_obj):
     """This agol_user function will create users in AGOL.  We are not using this.
     Instead we are automatically adding users as Level1 Viewers through SAML and then
     removing inactive users after 1 month"""
+    loggit("agol_user script run {}".format(datetime.today()))
     try:
         username = user_obj.username
         firstName = user_obj.first_name
@@ -136,6 +135,7 @@ def agol_user(user_obj):
 
 
 def clear_old_users():
+    loggit("clear_old_users script run {}".format(datetime.today()))
     gis = arcgis.gis.GIS(url="https://rtaa.maps.arcgis.com",
                          username="data_owner",
                          password="GIS@RTAA123!")
