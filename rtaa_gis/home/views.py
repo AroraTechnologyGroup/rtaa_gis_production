@@ -264,9 +264,14 @@ class HomePage(APIView):
         for x in App.objects.all():
             app_name = x.name
             groups = x.groups.all()
-            for gr in final_groups:
-                if gr in groups:
-                    final_apps.append(app_name)
+            if groups.filter(name="All Users").exists():
+                final_apps.append(app_name)
+
+            else:
+                for gr in final_groups:
+                    if gr in groups:
+                        final_apps.append(app_name)
+
         final_apps = list(set(final_apps))
 
         local_name = username.split("\\")[-1]
