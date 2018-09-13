@@ -12,6 +12,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 root_path = settings.IIS_APP_ROOT
+if not os.path.exists(root_path) and settings.DEBUG:
+    root_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_configs")
 
 if settings.LDAP_URL == "renoairport.com":
     viewer_dir = "RTAA Viewer"

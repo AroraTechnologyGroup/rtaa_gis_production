@@ -51,6 +51,8 @@ def process_configs():
         "path": None,
         "groups": ['_RTAA Planning and Engineering', '_RTAA GIS', "Arora"]
     }
+    if settings.DEBUG and settings.LDAP_URL == "gisapps.aroraengineers.com":
+        edoc["groups"].append("All Users")
 
     mobile = {
         "name": "mobile",
@@ -206,6 +208,8 @@ def user_auth(request, format=None):
     final_apps = []
     for app in App.objects.all():
         groups = app.groups.all()
+        if groups.filter(name="All Users").exists():
+            final_apps.append(app.name)
         if len(groups):
             for group in groups:
                 if group.name in final_groups:
@@ -257,19 +261,19 @@ class HomePage(APIView):
 
         # run this function to inherit groups from AD
         user_data = query_ldap(username)
-        final_groups = user_data["groups"]
+        user_groups = user_data["groups"]
 
         # return the list of apps the user can view
         final_apps = []
         for x in App.objects.all():
             app_name = x.name
-            groups = x.groups.all()
-            if groups.filter(name="All Users").exists():
+            app_groups = x.groups.all()
+            if app_groups.filter(name="All Users").exists():
                 final_apps.append(app_name)
 
             else:
-                for gr in final_groups:
-                    if gr in groups:
+                for gr in app_groups:
+                    if gr in user_groups:
                         final_apps.append(app_name)
 
         final_apps = list(set(final_apps))
@@ -286,6 +290,6 @@ class HomePage(APIView):
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
 
-        resp.data = {"server_url": server_url, "apps": final_apps, "groups": final_groups,
+        resp.data = {"server_url": server_url, "apps": final_apps, "groups": user_groups,
                      "app_name": app_name}
         return resp
