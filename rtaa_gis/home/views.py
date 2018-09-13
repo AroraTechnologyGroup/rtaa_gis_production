@@ -44,7 +44,7 @@ def process_configs():
         airspace_dir = "airspace"
         signage_dir = "signs"
 
-    # Here these objs represent apps hosted on django framework not IIS
+    # Here these objects represent apps hosted on django framework, not IIS.
     # the groups set the read-only level permissions
     edoc = {
         "name": "edoc",
@@ -55,7 +55,7 @@ def process_configs():
     mobile = {
         "name": "mobile",
         "path": None,
-        "groups": []
+        "groups": ["All Users"]
     }
 
     web_config = WebConfig(viewer_dir=viewer_dir, lpm_dir=lpm_dir, airspace_dir=airspace_dir, signage_dir=signage_dir)
@@ -264,9 +264,14 @@ class HomePage(APIView):
         for x in App.objects.all():
             app_name = x.name
             groups = x.groups.all()
-            for gr in final_groups:
-                if gr in groups:
-                    final_apps.append(app_name)
+            if groups.filter(name="All Users").exists():
+                final_apps.append(app_name)
+
+            else:
+                for gr in final_groups:
+                    if gr in groups:
+                        final_apps.append(app_name)
+
         final_apps = list(set(final_apps))
 
         local_name = username.split("\\")[-1]
