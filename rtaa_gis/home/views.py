@@ -44,7 +44,7 @@ def process_configs():
         airspace_dir = "airspace"
         signage_dir = "signs"
 
-    # Here these objs represent apps hosted on django framework not IIS
+    # Here these objects represent apps hosted on django framework, not IIS.
     # the groups set the read-only level permissions
     edoc = {
         "name": "edoc",
@@ -55,7 +55,7 @@ def process_configs():
     mobile = {
         "name": "mobile",
         "path": None,
-        "groups": []
+        "groups": ["All Users"]
     }
 
     web_config = WebConfig(viewer_dir=viewer_dir, lpm_dir=lpm_dir, airspace_dir=airspace_dir, signage_dir=signage_dir)

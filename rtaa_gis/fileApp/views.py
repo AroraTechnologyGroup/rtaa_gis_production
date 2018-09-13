@@ -150,6 +150,9 @@ def authorize_user(request, template):
     for app in App.objects.all():
         app_name = app.name
         groups = app.groups.all()
+        if groups.filter(name="All Users").exists():
+            d["final_apps"].append(app_name)
+
         for gr in groups:
             # if the app is authorized for the a group that the user belongs to add it to the list
             if gr in ldap_groups:
