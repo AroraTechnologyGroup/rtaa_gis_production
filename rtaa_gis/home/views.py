@@ -51,6 +51,8 @@ def process_configs():
         "path": None,
         "groups": ['_RTAA Planning and Engineering', '_RTAA GIS', "Arora"]
     }
+    if settings.DEBUG and settings.LDAP_URL == "gisapps.aroraengineers.com":
+        edoc["groups"].append("All Users")
 
     mobile = {
         "name": "mobile",
