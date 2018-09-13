@@ -12,6 +12,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 root_path = settings.IIS_APP_ROOT
+if not os.path.exists(root_path) and settings.DEBUG:
+    root_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_configs")
 
 if settings.LDAP_URL == "renoairport.com":
     viewer_dir = "RTAA Viewer"
@@ -85,19 +87,24 @@ class WebConfig:
         """This will append the groups to each app by parsing the web.config file"""
         tree = ET.parse(input["path"])
         root = tree.getroot()
-        auth = root.iter("authorization")
-        for x in auth:
+        for x in root.iter("authorization"):
             adds = x.findall("add")
             for entry in adds:
                 atts = entry.attrib
                 if atts["accessType"] == "Allow":
                     try:
+                        if "users" in atts:
+                            target_users = atts["users"]
+                            if "*" == target_users:
+                                # Add 'All Users' as a group for the app in the framework
+                                if "All Users" not in input["groups"]:
+                                    input["groups"].append("All Users")
+
                         target_roles = atts["roles"]
-                        roles_list = target_roles.split(",")
+                        roles_list = [x.strip() for x in target_roles.split(",")]
                         for role in roles_list:
-                            r = role.strip()
-                            if r not in input["groups"]:
-                                input["groups"].append(r)
+                            if role not in input["groups"]:
+                                input["groups"].append(role)
                     except KeyError:
                         # the viewer does not have roles defined so it is safe to ignore
                         pass
@@ -113,4 +120,4 @@ if __name__ == "__main__":
                     lpm_dir=lpm_dir,
                     airspace_dir=airspace_dir,
                     signage_dir=signage_dir)
-    print(obj.lpm_dir)
+    obj.collect_groups()
