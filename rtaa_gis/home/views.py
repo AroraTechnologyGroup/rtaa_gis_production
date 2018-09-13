@@ -106,7 +106,6 @@ def process_configs():
                             logger.error(e)
 
                 # load the groups onto the app
-
                 for group in groups:
                     try:
                         gr = Group.objects.get(name=group)
@@ -262,18 +261,20 @@ class HomePage(APIView):
         # run this function to inherit groups from AD
         user_data = query_ldap(username)
         user_groups = user_data["groups"]
+        logger.info("user_groups: {}".format(user_groups))
 
         # return the list of apps the user can view
         final_apps = []
         for x in App.objects.all():
             app_name = x.name
             app_groups = x.groups.all()
+            logger.info("app_groups {}: {}".format(app_name, app_groups))
             if app_groups.filter(name="All Users").exists():
                 final_apps.append(app_name)
 
             else:
                 for gr in app_groups:
-                    if gr in user_groups:
+                    if gr.name in user_groups:
                         final_apps.append(app_name)
 
         final_apps = list(set(final_apps))
@@ -290,6 +291,7 @@ class HomePage(APIView):
         server_url = settings.SERVER_URL
         app_name = self.app_name.strip('/')
 
+        logger.info("final apps: {}".format(final_apps))
         resp.data = {"server_url": server_url, "apps": final_apps, "groups": user_groups,
                      "app_name": app_name}
         return resp

@@ -351,7 +351,7 @@ LOGGING = {
         },
         'home': {
             'handlers': ['console', 'file'],
-            'level': "ERROR",
+            'level': "INFO",
             'propogate': True
         },
         'django': {

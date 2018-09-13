@@ -79,10 +79,16 @@ class LDAPQuery:
             print(conn.response)
             for entry in conn.response:
                 try:
-                    print("dn: [{}], attributes: {}".format(entry['dn'], entry['attributes']))
-                    groups = entry['attributes']['memberOf']
-                    email = entry['attributes']['userPrincipalName']
-                    full_name = entry['attributes']['name'].split(",")
+                    pprint.pprint(("dn: [{}], attributes: {}".format(entry['dn'], entry['attributes'])))
+                    atts = entry['attributes']
+                    groups = atts['memberOf']
+
+                    if 'userPrincipalName' in atts:
+                        email = atts['userPrincipalName']
+                    else:
+                        email = None
+
+                    full_name = atts['name'].split(",")
                     first_name = full_name[-1]
                     last_name = full_name[0]
 
@@ -111,7 +117,7 @@ class LDAPQuery:
 
 
 if __name__ == "__main__":
-    query = LDAPQuery("RENOAIRPORT\\AroraTeam", "renoairport.net")
+    query = LDAPQuery("GISAPPS\\gissetup", "gisapps.aroraengineers.com")
     x = query.get_user_info()
     print(x)
 
