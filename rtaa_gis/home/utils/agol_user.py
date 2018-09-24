@@ -158,10 +158,11 @@ def clear_old_users():
                     except Exception as e:
                         loggit(e)
                 else:
-                    loggit("Level {} {}, {}, inactive over 1 month.".format(user.level, user.role, user.username))
+                    loggit("Level {} {}, {}, inactive over 1 month is not removed.".format(user.level, user.role, user.username))
     if not number_inactive:
         loggit("Zero Level 1 Viewers have been inactive for 1 month or more")
 
 
 if __name__ == "__main__":
     clear_old_users()
+    time.sleep(5)
